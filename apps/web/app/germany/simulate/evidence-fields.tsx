@@ -5,7 +5,7 @@ import { Field } from '../../simulate/field';
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import { endDateRequired } from '../../../lib/germany-draft';
-import type { GermanyField } from '../../../lib/germany-fields';
+import { optionKey, type GermanyField } from '../../../lib/germany-fields';
 import form from '../../simulate/form.module.css';
 import site from '../../site.module.css';
 
@@ -178,7 +178,7 @@ function Question({
                 >
                   {field.options.map((option) => (
                     <option key={option} value={option}>
-                      {t(`de.option.${option}`)}
+                      {t(optionKey(field, option))}
                     </option>
                   ))}
                 </select>
@@ -328,7 +328,7 @@ function Question({
           ) : (
             field.options.map((option) => (
               <option key={option} value={option}>
-                {t(`de.option.${option}`)}
+                {t(optionKey(field, option))}
               </option>
             ))
           )}

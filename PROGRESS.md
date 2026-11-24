@@ -616,6 +616,7 @@
 | 724 | 任务 100：任务报告（问卷步骤与字段、对比旋钮、旧链接处理、验证结果）。 | docs/tasks/reports/100-de-pages.md |
 | 725 | 任务 100 审核修正（review100-1 问题 1、7、8）：刑事记录选罚金或罚金与自由刑并存时日额列表必填（可确认为无），不再在结果页崩溃；历史劳工类别选「无 / 不适用」时不再强制申请人身份；旧版只算时间草稿迁移后逐步校验，不完整时回到出错步骤。 | apps/web/lib/germany-{fields,draft}.ts、apps/web/app/germany/simulate/evidence-fields.tsx、apps/web/test/germany.test.tsx |
 | 726 | 任务 100 审核修正（review100-1 问题 2）：德国问卷的居留许可与出境记录默认「未填」，与「确认没有」分开送入引擎；所有记录列表（含逐份文书下的出境记录）都可确认为无、显示反馈并恢复为待确认，删除最后一行回到未填。e2e 覆盖确认、撤销与删除。 | apps/web/lib/germany-draft.ts、apps/web/app/germany/simulate/{page,evidence-fields}.tsx、apps/web/test/germany.test.tsx、apps/e2e/tests/germany.spec.ts |
+| 727 | 任务 100 审核修正（review100-1 问题 4、建议 3）：德国问卷字段可指定独立标签键、选项可指定按问题措辞的文案键（`labelled` / `worded`），修正 R08 关系终结日、R11 学业与许可依据、R16 亲属关系、R18 权利依据与离德、入籍头衔、生计例外、历史劳工、刑事记录与知识证明类型、R06 期间类别、R13 州同意、R15 扶养、费用「普通」等十余处跨路径文案；审核中、不足两项改为通用措辞。依赖前置选择的入籍全职／伴侣／历史劳工、R08 关系终结特例和费用金额项按条件显示。单测逐项核对渲染后的中英文。 | apps/web/lib/germany-fields.ts、apps/web/app/germany/simulate/evidence-fields.tsx、apps/web/i18n/countries/germany-form.ts、apps/web/test/germany.test.tsx |
 | 740 | 任务 91：登记日本完整版使用的官方法条、指南、手续费及办事材料，校对调研哈希，补 PD-360–379 与网页来源索引。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 741 | 任务 91：加入永住审查过渡、许可期间、教育与证据窗口、人才分值、帰化特例、再入国和手续费参数。 | packages/policy-data/src/{index.ts,parameters/japan-2026-11.ts} |
 | 742 | 任务 91：新增日本完整版评估入口，复用原时间结果，逐项检查永住、帰化与再入国并补边界测试。 | packages/engine/src/{index.ts,japan-full*.ts}、packages/engine/test/japan-full.test.ts、docs/tasks/reports/91-jp-rules.md |

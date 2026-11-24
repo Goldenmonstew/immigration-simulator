@@ -619,3 +619,230 @@ test('residence history lists start unanswered so "no trips" differs from "not s
   expect(count(confirmed, '已确认为无记录。')).toBe(3);
   expect(count(confirmed, '恢复为待确认')).toBe(3);
 });
+
+test('each route and group shows its own field and option wording (review100-1 #4)', () => {
+  const page = (draft: Partial<GermanyDraft>, locale: 'zh-CN' | 'en') =>
+    renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        {GermanySimulatePage().props.children({
+          draft: { ...createGermanyDraft(), ...draft } as GermanyDraft,
+          errors: {},
+          update: () => {},
+        })}
+      </LocaleContext>,
+    );
+  const unescape = (text: string) =>
+    text.replaceAll('&#x27;', "'").replaceAll('&amp;', '&');
+  const option = (html: string, id: string, value: string) => {
+    const select = html.match(
+      new RegExp(`<select[^>]* id="${id}"[^>]*>(.*?)</select>`),
+    )?.[1];
+    return unescape(
+      select?.match(
+        new RegExp(`<option value="${value}"[^>]*>(.*?)</option>`),
+      )?.[1] ?? `missing ${id} ${value}`,
+    );
+  };
+  const label = (html: string, id: string) =>
+    unescape(
+      html.match(new RegExp(`<label for="${id}">(.*?)</label>`))?.[1] ??
+        `missing ${id}`,
+    );
+  const settlement = (locale: 'zh-CN' | 'en') =>
+    page(
+      {
+        step: 3,
+        routes: ['R05', 'R06', 'R10', 'R11', 'R13', 'R15', 'R18'],
+        settlement: {
+          euMobility: {
+            periods: [{ kind: 'ineligible', from: '', until: '' }],
+          },
+          childJudgments: [{ kind: 'fine', judgmentDate: '', amount: 0 }],
+        },
+        mobility: {
+          freedom: {
+            periods: [{ from: '' }],
+            subsequentTrips: [{ departed: '' }],
+          },
+        },
+      } as Partial<GermanyDraft>,
+      locale,
+    );
+  const citizenship = (locale: 'zh-CN' | 'en') =>
+    page(
+      {
+        step: 4,
+        routes: ['R08', 'R16'],
+        citizenship: {
+          incomeException: 'legacy-worker',
+          historicalWorker: { kind: 'west-agreement' },
+          spouse: { status: 'died' },
+        },
+      } as Partial<GermanyDraft>,
+      locale,
+    );
+  const fees = (locale: 'zh-CN' | 'en') =>
+    page({ step: 5, routes: ['R01'], fees: { integration: 'course' } }, locale);
+  const cases: [
+    (locale: 'zh-CN' | 'en') => string,
+    string,
+    string | undefined,
+    string,
+  ][] = [
+    [
+      citizenship,
+      'de-nat-R08-spouse-endedOn',
+      undefined,
+      '婚姻或登记伴侣关系依法终结之日，或德国籍配偶去世之日',
+    ],
+    [
+      settlement,
+      'de-route-R11-childEducation',
+      'school',
+      '在读普通学校，目标为认可的学校毕业文凭',
+    ],
+    [
+      settlement,
+      'de-route-R11-childPermitBasis',
+      'family',
+      '家庭原因居留许可（AufenthG 第 2 章第 6 节）',
+    ],
+    [
+      settlement,
+      'de-route-R11-childPermitBasis',
+      'humanitarian',
+      '人道、政治或国际法原因居留许可（第 2 章第 5 节，含 § 25 Abs. 1–2 保护身份）',
+    ],
+    [
+      settlement,
+      'de-route-R18-freedom-periods-0-basis',
+      'family',
+      '作为欧盟／EEA 公民的家庭成员',
+    ],
+    [
+      citizenship,
+      'de-nat-R16-family-relation',
+      'other',
+      '其他亲属关系（不适用随同入籍）',
+    ],
+    [
+      citizenship,
+      'de-nat-R16-family-relation',
+      'child',
+      '主申请人的未成年子女',
+    ],
+    [
+      citizenship,
+      'de-nat-currentTitle',
+      'unverified',
+      '居留头衔或适用条文尚待核实',
+    ],
+    [
+      settlement,
+      'de-route-R15-formerSpouseMaintenance',
+      'insufficient',
+      '扶养款与本人收入合计不足以维持生计',
+    ],
+    [
+      settlement,
+      'de-route-R06-euRetirementProvision',
+      'under-review',
+      '主管机关仍在审核中',
+    ],
+    [
+      settlement,
+      'de-route-R06-euCareCover',
+      'inadequate',
+      '保障不足或尚未建立',
+    ],
+    [
+      settlement,
+      'de-route-R13-stateConsent',
+      'not-required',
+      '依法无需州主管机关同意',
+    ],
+    [
+      settlement,
+      'de-route-R11-childSchoolCredit',
+      'ordinary',
+      '未另行认定：境外上学天数不计入，可计期间相应顺延',
+    ],
+    [fees, 'de-fees-reduction', 'ordinary', '无减免，按法定标准收费'],
+    [
+      citizenship,
+      'de-nat-incomeException',
+      'partner',
+      '配偶或登记伴侣近 24 个月内全职工作至少 20 个月，且与申请人及未成年子女共同生活（§ 10 Abs. 1 Nr. 3c）',
+    ],
+    [
+      citizenship,
+      'de-nat-historicalWorker-applicant',
+      'worker',
+      '申请人本人即该历史劳工',
+    ],
+    [
+      citizenship,
+      'de-nat-historicalWorker-applicant',
+      'spouse',
+      '申请人为该劳工的配偶',
+    ],
+    [
+      settlement,
+      'de-route-R06-euMobility-periods-0-kind',
+      'ineligible',
+      '不可按 § 9b 计入的居留期间',
+    ],
+    [
+      settlement,
+      'de-route-R05-protectionTitle',
+      'other',
+      '其他居留许可（不属上列保护或重新安置身份）',
+    ],
+    [
+      settlement,
+      'de-route-R10-businessPermit',
+      'other',
+      '其他居留许可（非 § 21）',
+    ],
+    [
+      settlement,
+      'de-route-R15-formerSpousePermanentTitle',
+      'other',
+      '其他（非永久）居留许可',
+    ],
+    [
+      settlement,
+      'de-route-R06-euMobility-periods-0-kind',
+      undefined,
+      '该期间的居留类别（§ 9b） *',
+    ],
+    [settlement, 'de-route-R11-childJudgments-0-kind', undefined, '裁判类型 *'],
+    [
+      settlement,
+      'de-route-R18-freedom-subsequentTrips-0-nonTemporary',
+      undefined,
+      '本次离德在性质上属非暂时性原因（§ 4a Abs. 7 FreizügG/EU）',
+    ],
+    [citizenship, 'de-nat-historicalWorker-kind', undefined, '历史劳工类别 *'],
+    [citizenship, 'de-nat-knowledge-kind', undefined, '知识证明方式 *'],
+    [citizenship, 'de-nat-criminalRecord-kind', undefined, '刑事记录情形 *'],
+    [fees, 'de-fees-courseExemption', 'ordinary', '未获免除，按普通标准分担'],
+  ];
+  for (const [render, id, value, zh] of cases) {
+    const html = render('zh-CN');
+    expect(value ? option(html, id, value) : label(html, id)).toBe(zh);
+    expect(
+      value ? option(render('en'), id, value) : label(render('en'), id),
+    ).not.toMatch(
+      /^missing|guest worker|contracted last working day|co-insurance|Registration evidence|without the required visa|licence is under review|retirement provision is not established|regulated work|first arrival on or after|Regelbedarfsstufe|Completed a recognised German school|lasting purpose|does not qualify under §§ 18a|Permit or document type|§ 51 Abs. 1 Nr. 6/,
+    );
+  }
+  // Group headings are distinct too.
+  const zh = settlement('zh-CN');
+  expect(zh).toContain('自由流动居住期间及每段的权利依据');
+  const r18 = zh.slice(
+    zh.indexOf('<h2>自由流动永久居住权（§ 4a FreizügG/EU）</h2>'),
+  );
+  expect(r18).toContain('<h2>');
+  expect(r18).not.toContain('跨欧盟居留与离欧区间明细');
+});

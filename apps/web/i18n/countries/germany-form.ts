@@ -326,6 +326,7 @@ export const deFormZh = {
     '来德前紧接持有另一欧盟成员国签发的欧盟蓝卡',
   'de.field.germanBlueSince': '在德国开始持有欧盟蓝卡的日期',
   'de.field.periods': '跨欧盟居留与离欧区间明细（须连续覆盖申请日前期间）',
+  'de.field.euPeriodKind': '该期间的居留类别（§ 9b）',
 
   // R09 Humanitarian
   'de.field.humanitarianCurrentTitle':
@@ -372,6 +373,7 @@ export const deFormZh = {
     '被依少年法院法（JGG § 27）推迟裁定少年刑罚',
   'de.field.childJudgments':
     '近 3 年内的刑事裁判记录（§ 35 Abs. 3 Satz 1 Nr. 2）',
+  'de.field.judgmentKind': '裁判类型',
   'de.field.judgmentDate': '判决生效日期',
   'de.field.intentional': '属于故意犯罪',
   'de.field.amount': '少年刑或自由刑月数，或罚金日额（Tagessätze）数',
@@ -419,6 +421,8 @@ export const deFormZh = {
   'de.field.permanentRightPreviouslyAcquired':
     '此前已依法取得自由流动永久居住权',
   'de.field.basis': '自由流动居留权依据',
+  'de.field.freedomPeriods': '自由流动居住期间及每段的权利依据',
+  'de.field.earlyBasis': '适用的提前取得情形',
   'de.field.seekingWithGenuineProspects':
     '求职满 6 个月后，仍有有据可查的持续求职与录用前景',
   'de.field.searchSince': '实际开始在德求职的日期（若早于本段起始日）',
@@ -459,6 +463,8 @@ export const deFormZh = {
     '该劳动者本人已依 § 4a Abs. 2 提前取得永久居住权',
   'de.field.subsequentTrips':
     '取得永久居住权后的离德记录（核查连续离德是否超 2 年）',
+  'de.field.freedomNonTemporary':
+    '本次离德在性质上属非暂时性原因（§ 4a Abs. 7 FreizügG/EU）',
   'de.field.lossDecision': '关于自由流动永久居住权存续或丧失的机关认定',
 
   // Step 4 Citizenship
@@ -502,6 +508,7 @@ export const deFormZh = {
     '机关已确认适用该生计例外及持续供养预测',
   'de.field.historicalWorker':
     '西德招募劳工（Gastarbeiter）或东德合同工（Vertragsarbeitnehmer）身份',
+  'de.field.historicalWorkerKind': '历史劳工类别',
   'de.field.workerArrivedOn': '劳工首次按协议或合同入境的日期',
   'de.field.applicant': '申请人在历史劳工家庭中的身份',
   'de.field.spouseJoinedInConnection': '作为配偶系在时间上关联的家庭团聚中赴德',
@@ -517,9 +524,11 @@ export const deFormZh = {
     '入籍德语与公民知识要求的法定豁免类别（§ 10 Abs. 4a、6）',
   'de.field.knowledge':
     '公民知识与入籍考试（Einbürgerungstest / LiD，§ 10 Abs. 1 Nr. 7）',
+  'de.field.knowledgeKind': '知识证明方式',
   'de.field.correct': '考试答对题数（共 33 题，至少 17 题合格）',
   'de.field.criminalRecord':
     '刑事记录与待决侦查／诉讼（StAG §§ 10 Abs. 1 Nr. 5、12a）',
+  'de.field.criminalRecordKind': '刑事记录情形',
   'de.field.disregard': '机关对境外判决或保安处分的核定结论',
   'de.field.dayRates': '各次生效罚金判决的日额（Tagessätze，每项一笔判决）',
   'de.field.lowerCombinedDayRates':
@@ -544,6 +553,8 @@ export const deFormZh = {
     '曾有长期分居时，机关对可计居住期间的核定结论（无长期分居可留空）',
   'de.field.sharedGermanChildBornOn':
     '双方共同未成年德国籍子女的出生日期（关系终结特例 § 9 Abs. 2）',
+  'de.field.spouseEndedOn':
+    '婚姻或登记伴侣关系依法终结之日，或德国籍配偶去世之日',
   'de.field.custodyAndFamilyLifeWithChild':
     '申请人对该未成年德国籍子女享有监护权并与其共同生活',
   'de.field.publicInterestShortening':
@@ -753,13 +764,13 @@ export const deFormZh = {
   'de.option.satisfied': '已持有全部所需的就业批准及长期执业许可',
   'de.option.not-required': '收入不依赖需许可的就业，或该职业无需特别许可',
   'de.option.missing': '缺少所需的就业批准或执业许可',
-  'de.option.under-review': '就业或执业许可仍在审核中',
+  'de.option.under-review': '主管机关仍在审核中',
 
   'de.option.adequate-own': '本人已具备充足的预期退休养老保障',
   'de.option.adequate-cohabiting-spouse':
     '同住配偶已具备充足的预期退休养老保障',
   'de.option.medical-exemption': '因疾病或残障适用法定养老免除',
-  'de.option.inadequate': '尚未建立充足的养老保障',
+  'de.option.inadequate': '保障不足或尚未建立',
 
   'de.option.equivalent-accepted':
     '已确认具有与法定医保及护理险同等的长期保险保障',
@@ -917,6 +928,36 @@ export const deFormZh = {
   'de.option.course': '参加 BAMF 整合课程（按课程单元计算个人分担）',
   'de.option.commercial-or-repeat':
     '商业语言考试（如 telc / Goethe）或自费重考（填机构报价）',
+
+  // Options worded for one question
+  'de.option.childEducation.school': '在读普通学校，目标为认可的学校毕业文凭',
+  'de.option.childPermitBasis.family':
+    '家庭原因居留许可（AufenthG 第 2 章第 6 节）',
+  'de.option.childPermitBasis.humanitarian':
+    '人道、政治或国际法原因居留许可（第 2 章第 5 节，含 § 25 Abs. 1–2 保护身份）',
+  'de.option.childPermitBasis.other': '其他居留许可',
+  'de.option.freedomBasis.family': '作为欧盟／EEA 公民的家庭成员',
+  'de.option.familyRelation.child': '主申请人的未成年子女',
+  'de.option.familyRelation.other': '其他亲属关系（不适用随同入籍）',
+  'de.option.protectionTitle.other':
+    '其他居留许可（不属上列保护或重新安置身份）',
+  'de.option.businessPermit.other': '其他居留许可（非 § 21）',
+  'de.option.formerSpouseTitle.other': '其他（非永久）居留许可',
+  'de.option.currentTitle.unverified': '居留头衔或适用条文尚待核实',
+  'de.option.maintenance.insufficient': '扶养款与本人收入合计不足以维持生计',
+  'de.option.stateConsent.not-required': '依法无需州主管机关同意',
+  'de.option.schoolCredit.ordinary':
+    '未另行认定：境外上学天数不计入，可计期间相应顺延',
+  'de.option.feeReduction.ordinary': '无减免，按法定标准收费',
+  'de.option.courseExemption.ordinary': '未获免除，按普通标准分担',
+  'de.option.incomeException.partner':
+    '配偶或登记伴侣近 24 个月内全职工作至少 20 个月，且与申请人及未成年子女共同生活（§ 10 Abs. 1 Nr. 3c）',
+  'de.option.historicalApplicant.worker': '申请人本人即该历史劳工',
+  'de.option.historicalApplicant.spouse': '申请人为该劳工的配偶',
+  'de.option.languageException.legacy-worker':
+    '历史西德招募劳工或东德合同工及其配偶（§ 10 Abs. 4 Satz 3）',
+  'de.option.careCover.statutory': '德国法定医疗及护理保险',
+  'de.option.euPeriod.ineligible': '不可按 § 9b 计入的居留期间',
 } as const;
 
 export const deFormEn: Record<keyof typeof deFormZh, string> = {
@@ -1327,6 +1368,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'Date you started holding the German EU Blue Card',
   'de.field.periods':
     'Contiguous cross-EU residence and absence periods up to the application date',
+  'de.field.euPeriodKind': 'Residence category in this period (§ 9b)',
 
   // R09 Humanitarian
   'de.field.humanitarianCurrentTitle':
@@ -1383,6 +1425,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'Imposition of a youth sentence was deferred under JGG § 27',
   'de.field.childJudgments':
     'Criminal convictions in the last 3 years (§ 35 Abs. 3 Satz 1 Nr. 2)',
+  'de.field.judgmentKind': 'Type of sentence',
   'de.field.judgmentDate': 'Date of final judgment',
   'de.field.intentional': 'Intentional offence',
   'de.field.amount':
@@ -1436,6 +1479,9 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
   'de.field.permanentRightPreviouslyAcquired':
     'Previously acquired the permanent right of residence under free-movement law',
   'de.field.basis': 'Free-movement residence basis',
+  'de.field.freedomPeriods':
+    'Free-movement residence periods and the basis for each',
+  'de.field.earlyBasis': 'Ground for early acquisition',
   'de.field.seekingWithGenuineProspects':
     'After the initial 6 months of job-seeking, continuing search with genuine prospects of being engaged',
   'de.field.searchSince':
@@ -1485,6 +1531,8 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'The worker acquired permanent residence early under § 4a Abs. 2',
   'de.field.subsequentTrips':
     'Trips outside Germany since acquiring the permanent right (checked against the 2-year loss rule)',
+  'de.field.freedomNonTemporary':
+    'Departure was for a reason that is not merely temporary in nature (§ 4a Abs. 7 FreizügG/EU)',
   'de.field.lossDecision':
     'Authority status on retention or loss of the free-movement permanent right',
 
@@ -1536,6 +1584,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'Authority confirmed the livelihood exception and continuing support forecast',
   'de.field.historicalWorker':
     'West German guest worker (Gastarbeiter) or East German contract worker (Vertragsarbeitnehmer) status',
+  'de.field.historicalWorkerKind': 'Former worker category',
   'de.field.workerArrivedOn':
     'Date the worker first arrived under the agreement or contract',
   'de.field.applicant': 'Applicant’s role in the historical worker family',
@@ -1553,10 +1602,12 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'Statutory exemption from the language and civic knowledge requirements (§ 10 Abs. 4a, 6)',
   'de.field.knowledge':
     'Civic knowledge and naturalisation test (Einbürgerungstest / LiD, § 10 Abs. 1 Nr. 7)',
+  'de.field.knowledgeKind': 'Form of evidence',
   'de.field.correct':
     'Correct answers in the test (out of 33, at least 17 required to pass)',
   'de.field.criminalRecord':
     'Criminal convictions and pending investigations/proceedings (StAG §§ 10 Abs. 1 Nr. 5, 12a)',
+  'de.field.criminalRecordKind': 'Criminal record situation',
   'de.field.disregard':
     'Authority decision on foreign convictions or detention/security measures',
   'de.field.dayRates':
@@ -1588,6 +1639,8 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'Where there was a prolonged separation, authority assessment of the counted residence period (leave blank if none)',
   'de.field.sharedGermanChildBornOn':
     'Date of birth of a shared minor German child (post-termination exception under § 9 Abs. 2)',
+  'de.field.spouseEndedOn':
+    'Date the marriage or registered partnership legally ended, or the German spouse died',
   'de.field.custodyAndFamilyLifeWithChild':
     'Applicant has custody of and lives in a family household with that minor German child',
   'de.field.publicInterestShortening':
@@ -1845,8 +1898,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'Income does not rely on regulated work, or no licence is required',
   'de.option.missing':
     'Required employment approval or professional licence is missing',
-  'de.option.under-review':
-    'Employment or professional licence is under review',
+  'de.option.under-review': 'Still under review by the authority',
 
   'de.option.adequate-own':
     'Applicant has adequate projected retirement provision',
@@ -1854,7 +1906,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'Cohabiting spouse has adequate projected retirement provision',
   'de.option.medical-exemption':
     'Statutory medical or disability exemption applies',
-  'de.option.inadequate': 'Adequate retirement provision is not established',
+  'de.option.inadequate': 'Not adequate or not yet in place',
 
   'de.option.equivalent-accepted':
     'Accepted lasting cover equivalent to statutory health and long-term care insurance',
@@ -2053,4 +2105,41 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'BAMF integration course (personal share calculated from course units)',
   'de.option.commercial-or-repeat':
     'Commercial language exam (such as telc / Goethe) or self-paid retake (enter provider quote)',
+
+  // Options worded for one question
+  'de.option.childEducation.school':
+    'Attending school towards a recognised school-leaving qualification',
+  'de.option.childPermitBasis.family':
+    'Residence permit for family reasons (AufenthG Chapter 2 Part 6)',
+  'de.option.childPermitBasis.humanitarian':
+    'Residence permit on international-law, humanitarian or political grounds (Chapter 2 Part 5, including protection under § 25 Abs. 1–2)',
+  'de.option.childPermitBasis.other': 'Another residence permit',
+  'de.option.freedomBasis.family': 'As a family member of an EU/EEA citizen',
+  'de.option.familyRelation.child': 'Minor child of the principal applicant',
+  'de.option.familyRelation.other':
+    'Another relationship (joint naturalisation does not apply)',
+  'de.option.protectionTitle.other':
+    'Another permit (none of the protection or resettlement titles above)',
+  'de.option.businessPermit.other': 'Another permit (not § 21)',
+  'de.option.formerSpouseTitle.other': 'Another (non-permanent) permit',
+  'de.option.currentTitle.unverified':
+    'Title or applicable section not yet verified',
+  'de.option.maintenance.insufficient':
+    'Maintenance and own income together do not secure livelihood',
+  'de.option.stateConsent.not-required': 'No state consent is required by law',
+  'de.option.schoolCredit.ordinary':
+    'No separate recognition: days at school abroad are not credited and the period is extended accordingly',
+  'de.option.feeReduction.ordinary': 'No reduction; the scheduled fee applies',
+  'de.option.courseExemption.ordinary':
+    'No exemption; the ordinary contribution applies',
+  'de.option.incomeException.partner':
+    'Spouse or registered partner worked full time for at least 20 of the last 24 months and lives with the applicant and a minor child (§ 10 Abs. 1 Nr. 3c)',
+  'de.option.historicalApplicant.worker': 'The applicant is the former worker',
+  'de.option.historicalApplicant.spouse':
+    'The applicant is the worker’s spouse',
+  'de.option.languageException.legacy-worker':
+    'Former West German guest worker or East German contract worker, or their spouse (§ 10 Abs. 4 Satz 3)',
+  'de.option.careCover.statutory':
+    'German statutory health and long-term care insurance',
+  'de.option.euPeriod.ineligible': 'Period not creditable under § 9b',
 };

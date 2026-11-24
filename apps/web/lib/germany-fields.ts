@@ -24,6 +24,8 @@ export type GermanyField = {
   required?: boolean;
   actualDate?: true;
   when?: (record: Record<string, unknown>) => boolean;
+  /** Wording for options whose shared text does not fit this question. */
+  optionLabels?: Partial<Record<string, GermanyOption>>;
 } & (
   | {
       type:
@@ -169,6 +171,18 @@ const list = (
   fields,
   hint,
 });
+// The same answer name can mean different things in different routes.
+const labelled = (
+  field: GermanyField,
+  label: GermanyFieldName,
+): GermanyField => ({ ...field, label });
+const worded = (
+  field: GermanyField,
+  optionLabels: Partial<Record<string, GermanyOption>>,
+): GermanyField => ({ ...field, optionLabels });
+
+export const optionKey = (field: GermanyField, option: string) =>
+  `de.option.${field.optionLabels?.[option] ?? (option as GermanyOption)}` as const;
 
 export const GERMANY_ROUTE_GROUPS = {
   settlement: [
@@ -437,41 +451,50 @@ export const blueCardFields: GermanyField[] = [
 
 export const freeMovementFields: GermanyField[] = [
   ...flags('withinPersonalScope', 'permanentRightPreviouslyAcquired'),
-  list('periods', [
-    date('from', true),
-    date('to'),
-    choice('basis', [
-      'work',
-      'self-employment',
-      'services',
-      'seeking-work',
-      'inactive',
-      'family',
-      'retained',
-      'none',
+  labelled(
+    list('periods', [
+      date('from', true),
+      date('to'),
+      worded(
+        choice('basis', [
+          'work',
+          'self-employment',
+          'services',
+          'seeking-work',
+          'inactive',
+          'family',
+          'retained',
+          'none',
+        ]),
+        { family: 'freedomBasis.family' },
+      ),
+      bool('seekingWithGenuineProspects'),
+      date('searchSince'),
+      ...flags(
+        'resourcesAndInsurance',
+        'familyRightConfirmed',
+        'retainedPersonalRightConfirmed',
+      ),
     ]),
-    bool('seekingWithGenuineProspects'),
-    date('searchSince'),
-    ...flags(
-      'resourcesAndInsurance',
-      'familyRightConfirmed',
-      'retainedPersonalRightConfirmed',
-    ),
-  ]),
+    'freedomPeriods',
+  ),
   numberList('annualOrdinaryAbsenceMonths'),
   list('importantAbsences', [number('months', true), bool('reasonAccepted')]),
   group('early', [
-    choice(
-      'basis',
-      [
-        'none',
-        'retirement',
-        'disability',
-        'frontier',
-        'bereaved',
-        'family-of-worker',
-      ],
-      true,
+    labelled(
+      choice(
+        'basis',
+        [
+          'none',
+          'retirement',
+          'disability',
+          'frontier',
+          'bereaved',
+          'family-of-worker',
+        ],
+        true,
+      ),
+      'earlyBasis',
     ),
     bool('qualifyingWorker', false, (r) =>
       Boolean(r.basis && r.basis !== 'none'),
@@ -523,7 +546,7 @@ export const freeMovementFields: GermanyField[] = [
   list('subsequentTrips', [
     date('departed', true),
     date('returned'),
-    bool('nonTemporary'),
+    labelled(bool('nonTemporary'), 'freedomNonTemporary'),
   ]),
   choice('lossDecision', ['clear', 'pending', 'lost']),
 ];
@@ -584,13 +607,16 @@ export const settlementRouteFields = {
   ],
   R05: [
     bool('germanC1'),
-    choice('protectionTitle', [
-      'section25-asylum',
-      'section25-refugee',
-      'section23-4',
-      'legacy-resettlement',
-      'other',
-    ]),
+    worded(
+      choice('protectionTitle', [
+        'section25-asylum',
+        'section25-refugee',
+        'section23-4',
+        'legacy-resettlement',
+        'other',
+      ]),
+      { other: 'protectionTitle.other' },
+    ),
     bool('resettlementWithdrawalGrounds'),
     choice('bamfNotice', [
       'confirmed-none',
@@ -633,30 +659,39 @@ export const settlementRouteFields = {
       'inadequate',
       'under-review',
     ]),
-    choice('euCareCover', [
-      'statutory',
-      'equivalent-accepted',
-      'inadequate',
-      'under-review',
-    ]),
+    worded(
+      choice('euCareCover', [
+        'statutory',
+        'equivalent-accepted',
+        'inadequate',
+        'under-review',
+      ]),
+      { statutory: 'careCover.statutory' },
+    ),
     group('euMobility', [
       ...flags('personalScope', 'immediatelyPriorOtherStateBlueCard'),
       actualDate('germanBlueSince'),
       list('periods', [
-        choice(
-          'kind',
-          [
-            'german-blue',
-            'other-eu-blue',
-            'higher-employment',
-            'research',
-            'study',
-            'protection',
-            'outside-eu',
-            'ineligible',
-            'unconfirmed',
-          ],
-          true,
+        labelled(
+          worded(
+            choice(
+              'kind',
+              [
+                'german-blue',
+                'other-eu-blue',
+                'higher-employment',
+                'research',
+                'study',
+                'protection',
+                'outside-eu',
+                'ineligible',
+                'unconfirmed',
+              ],
+              true,
+            ),
+            { ineligible: 'euPeriod.ineligible' },
+          ),
+          'euPeriodKind',
         ),
         date('from', true),
         date('until', true),
@@ -669,12 +704,15 @@ export const settlementRouteFields = {
     choice('humanitarianDecision', decisionOptions),
   ],
   R10: [
-    choice('businessPermit', [
-      'entrepreneur',
-      'freelance',
-      'mixed-or-ancillary',
-      'other',
-    ]),
+    worded(
+      choice('businessPermit', [
+        'entrepreneur',
+        'freelance',
+        'mixed-or-ancillary',
+        'other',
+      ]),
+      { other: 'businessPermit.other' },
+    ),
     actualDate('continuousBusinessSince'),
     choice('businessSustainability', decisionOptions),
     choice('businessGrant', decisionOptions),
@@ -690,28 +728,41 @@ export const settlementRouteFields = {
     ]),
   ],
   R11: [
-    choice('childPermitBasis', ['family', 'humanitarian', 'other']),
+    worded(choice('childPermitBasis', ['family', 'humanitarian', 'other']), {
+      family: 'childPermitBasis.family',
+      humanitarian: 'childPermitBasis.humanitarian',
+      other: 'childPermitBasis.other',
+    }),
     choice('childHumanitarianReferral', decisionOptions),
     actualDate('childPermitSince'),
     integer('childForeignSchoolDays'),
-    choice('childSchoolCredit', [
-      'ordinary',
-      'recognised-full',
-      'under-review',
-    ]),
+    worded(
+      choice('childSchoolCredit', [
+        'ordinary',
+        'recognised-full',
+        'under-review',
+      ]),
+      { ordinary: 'schoolCredit.ordinary' },
+    ),
     ...flags('childLanguageB1', 'childSecureLivelihood'),
-    choice('childEducation', [
-      'school',
-      'vocational',
-      'university',
-      'unconfirmed',
-      'none',
-    ]),
+    worded(
+      choice('childEducation', [
+        'school',
+        'vocational',
+        'university',
+        'unconfirmed',
+        'none',
+      ]),
+      { school: 'childEducation.school' },
+    ),
     choice('childLanguageMedicalWaiver', decisionOptions),
     choice('childLivelihoodMedicalWaiver', decisionOptions),
     ...flags('childPersonalExpulsionInterest', 'childYouthSentenceDeferred'),
     list('childJudgments', [
-      choice('kind', ['youth', 'prison', 'fine'], true),
+      labelled(
+        choice('kind', ['youth', 'prison', 'fine'], true),
+        'judgmentKind',
+      ),
       actualDate('judgmentDate', true),
       bool('intentional'),
       number('amount', true),
@@ -728,7 +779,10 @@ export const settlementRouteFields = {
   R13: [
     bool('highlyQualifiedAcademic'),
     choice('exceptionalAcademicPost', decisionOptions),
-    choice('stateConsent', ['given', 'not-required', 'refused', 'pending']),
+    worded(
+      choice('stateConsent', ['given', 'not-required', 'refused', 'pending']),
+      { 'not-required': 'stateConsent.not-required' },
+    ),
     choice('integrationProspects', decisionOptions),
   ],
   R14: [
@@ -737,18 +791,24 @@ export const settlementRouteFields = {
   ],
   R15: [
     actualDate('formerFamilyLifeEnded'),
-    choice('formerSpousePermanentTitle', [
-      'settlement',
-      'eu-long-term',
-      'other',
-      'unconfirmed',
-    ]),
-    choice('formerSpouseMaintenance', [
-      'own-funds-enforceable-and-sufficient',
-      'insufficient',
-      'third-party',
-      'under-review',
-    ]),
+    worded(
+      choice('formerSpousePermanentTitle', [
+        'settlement',
+        'eu-long-term',
+        'other',
+        'unconfirmed',
+      ]),
+      { other: 'formerSpouseTitle.other' },
+    ),
+    worded(
+      choice('formerSpouseMaintenance', [
+        'own-funds-enforceable-and-sufficient',
+        'insufficient',
+        'third-party',
+        'under-review',
+      ]),
+      { insufficient: 'maintenance.insufficient' },
+    ),
   ],
   R18: [group('freedom', freeMovementFields)],
 } as const;
@@ -794,7 +854,9 @@ export const citizenshipSections = {
       'representedByLaw',
       'lawfulHabitualResidence',
     ),
-    choice('currentTitle', citizenshipTitles),
+    worded(choice('currentTitle', citizenshipTitles), {
+      unverified: 'currentTitle.unverified',
+    }),
     actualDate('countedResidenceSince'),
     ...flags(
       'constitutionalAndLoyaltyDeclaration',
@@ -805,29 +867,66 @@ export const citizenshipSections = {
   ],
   natLivelihood: [
     ...flags('sustainableHouseholdSupport', 'withoutSgbIIorXII'),
-    choice('incomeException', ['none', 'worker', 'partner', 'legacy-worker']),
-    group('fullTime', [bool('workingFullTimeNow'), integer('monthsInWindow')]),
-    group('partnerFullTime', [
-      bool('workingFullTimeNow'),
-      integer('monthsInWindow'),
-    ]),
-    ...flags('livesWithPartnerAndMinorChild', 'exceptionForecastAccepted'),
-    group('historicalWorker', [
-      choice('kind', ['west-agreement', 'east-contract', 'none'], true),
-      actualDate(
-        'workerArrivedOn',
-        false,
-        'workerArrivedOn',
-        undefined,
-        (r) => r.kind !== 'none',
+    worded(
+      choice('incomeException', ['none', 'worker', 'partner', 'legacy-worker']),
+      { partner: 'incomeException.partner' },
+    ),
+    group(
+      'fullTime',
+      [bool('workingFullTimeNow'), integer('monthsInWindow')],
+      (r) => r.incomeException === 'worker',
+    ),
+    group(
+      'partnerFullTime',
+      [bool('workingFullTimeNow'), integer('monthsInWindow')],
+      (r) => r.incomeException === 'partner',
+    ),
+    bool(
+      'livesWithPartnerAndMinorChild',
+      false,
+      (r) => r.incomeException === 'partner',
+    ),
+    bool('exceptionForecastAccepted', false, (r) =>
+      ['worker', 'partner', 'legacy-worker'].includes(
+        r.incomeException as string,
       ),
-      choice('applicant', ['worker', 'spouse'], true, (r) => r.kind !== 'none'),
-      bool(
-        'spouseJoinedInConnection',
-        false,
-        (r) => r.kind !== 'none' && r.applicant === 'spouse',
-      ),
-    ]),
+    ),
+    group(
+      'historicalWorker',
+      [
+        labelled(
+          choice('kind', ['west-agreement', 'east-contract', 'none'], true),
+          'historicalWorkerKind',
+        ),
+        actualDate(
+          'workerArrivedOn',
+          false,
+          'workerArrivedOn',
+          undefined,
+          (r) => r.kind !== 'none',
+        ),
+        worded(
+          choice(
+            'applicant',
+            ['worker', 'spouse'],
+            true,
+            (r) => r.kind !== 'none',
+          ),
+          {
+            worker: 'historicalApplicant.worker',
+            spouse: 'historicalApplicant.spouse',
+          },
+        ),
+        bool(
+          'spouseJoinedInConnection',
+          false,
+          (r) => r.kind !== 'none' && r.applicant === 'spouse',
+        ),
+      ],
+      (r) =>
+        r.incomeException === 'legacy-worker' ||
+        r.languageException === 'legacy-worker',
+    ),
     bool('benefitsNotAttributable'),
   ],
   natLanguageConduct: [
@@ -838,24 +937,30 @@ export const citizenshipSections = {
       'none',
     ]),
     ...flags('ageAppropriateGerman', 'oralEverydayGerman'),
-    choice('languageException', [
-      'none',
-      'legacy-worker',
-      'approved-oral-hardship',
-      'medical-age-accepted',
-      'pending',
-    ]),
+    worded(
+      choice('languageException', [
+        'none',
+        'legacy-worker',
+        'approved-oral-hardship',
+        'medical-age-accepted',
+        'pending',
+      ]),
+      { 'legacy-worker': 'languageException.legacy-worker' },
+    ),
     group('knowledge', [
-      choice(
-        'kind',
-        [
-          'naturalisation-test',
-          'lid',
-          'accepted-equivalent',
-          'none',
-          'pending',
-        ],
-        true,
+      labelled(
+        choice(
+          'kind',
+          [
+            'naturalisation-test',
+            'lid',
+            'accepted-equivalent',
+            'none',
+            'pending',
+          ],
+          true,
+        ),
+        'knowledgeKind',
       ),
       integer(
         'correct',
@@ -864,20 +969,23 @@ export const citizenshipSections = {
       ),
     ]),
     group('criminalRecord', [
-      choice(
-        'kind',
-        [
-          'none',
-          'juvenile-educational-measure',
-          'pending-proceedings',
-          'bar-confirmed',
-          'foreign-record',
-          'security-measure',
-          'fines',
-          'mixed-sentences',
-          'custody',
-        ],
-        true,
+      labelled(
+        choice(
+          'kind',
+          [
+            'none',
+            'juvenile-educational-measure',
+            'pending-proceedings',
+            'bar-confirmed',
+            'foreign-record',
+            'security-measure',
+            'fines',
+            'mixed-sentences',
+            'custody',
+          ],
+          true,
+        ),
+        'criminalRecordKind',
       ),
       choice(
         'disregard',
@@ -919,6 +1027,9 @@ export const citizenshipSections = {
   ],
 } satisfies Record<string, GermanyField[]>;
 
+const ended = (r: Record<string, unknown>) =>
+  r.status === 'died' || r.status === 'legally-ended';
+
 export const citizenshipRouteFields = {
   R08: [
     actualDate('marriedOn'),
@@ -927,16 +1038,25 @@ export const citizenshipRouteFields = {
       choice('status', ['continuing', 'died', 'legally-ended', 'unrecognised']),
       ...flags('recognisedGermanRelationship', 'genuineFamilyLife'),
       choice('prolongedSeparationPeriod', decisionOptions),
-      actualDate('endedOn'),
-      actualDate('sharedGermanChildBornOn'),
-      bool('custodyAndFamilyLifeWithChild'),
+      actualDate('endedOn', false, 'spouseEndedOn', undefined, ended),
+      actualDate(
+        'sharedGermanChildBornOn',
+        false,
+        'sharedGermanChildBornOn',
+        undefined,
+        ended,
+      ),
+      bool('custodyAndFamilyLifeWithChild', false, ended),
       choice('publicInterestShortening', decisionOptions),
     ]),
   ],
   R16: [
     group('family', [
       choice('mainRoute', ['section-9', 'section-10']),
-      choice('relation', ['spouse-or-registered-partner', 'child', 'other']),
+      worded(
+        choice('relation', ['spouse-or-registered-partner', 'child', 'other']),
+        { child: 'familyRelation.child', other: 'familyRelation.other' },
+      ),
       bool('mainNaturalisationAndTimelyJointApplication'),
       actualDate('actualFamilyLifeSince'),
       ...flags('custodyAndFamilyLife', 'independentlyEligible'),
@@ -954,6 +1074,8 @@ export const citizenshipRouteFields = {
   ],
 } as const;
 
+const course = (r: Record<string, unknown>) => r.integration === 'course';
+
 export const feeFields: GermanyField[] = [
   date('applicationDate'),
   choice('stage', [
@@ -962,19 +1084,26 @@ export const feeFields: GermanyField[] = [
     'after-substantive-review',
     'jurisdiction-or-capacity-only',
   ]),
-  choice('reduction', [
-    'ordinary',
-    'section52-protection-or-admission',
-    'association-right',
-    'authority-set',
-    'pending',
-  ]),
-  number('assessedFee'),
+  worded(
+    choice('reduction', [
+      'ordinary',
+      'section52-protection-or-admission',
+      'association-right',
+      'authority-set',
+      'pending',
+    ]),
+    { ordinary: 'feeReduction.ordinary' },
+  ),
+  choice('euDocument', ['certificate', 'family-card', 'replacement']),
+  number(
+    'assessedFee',
+    false,
+    (r) => r.reduction === 'authority-set' || r.euDocument === 'replacement',
+  ),
   number('paid'),
   ...flags('expressAccepted', 'personalTaxableIncome'),
-  choice('euDocument', ['certificate', 'family-card', 'replacement']),
   choice('citizenshipTest', ['already-proved-or-exempt', 'bamf', 'state']),
-  number('stateTestQuote'),
+  number('stateTestQuote', false, (r) => r.citizenshipTest === 'state'),
   choice('integration', [
     'none',
     'covered-first-exam',
@@ -982,9 +1111,23 @@ export const feeFields: GermanyField[] = [
     'course',
     'commercial-or-repeat',
   ]),
-  number('providerQuote'),
-  number('courseReimbursementBase'),
-  choice('courseExemption', ['granted', 'pending', 'ordinary']),
-  number('employeeGrossAnnual'),
-  integer('qualifyingChildren'),
+  number(
+    'providerQuote',
+    false,
+    (r) => r.integration === 'commercial-or-repeat',
+  ),
+  number('courseReimbursementBase', false, course),
+  worded(
+    choice(
+      'courseExemption',
+      ['granted', 'pending', 'ordinary'],
+      false,
+      course,
+    ),
+    {
+      ordinary: 'courseExemption.ordinary',
+    },
+  ),
+  number('employeeGrossAnnual', false, course),
+  integer('qualifyingChildren', false, course),
 ];
