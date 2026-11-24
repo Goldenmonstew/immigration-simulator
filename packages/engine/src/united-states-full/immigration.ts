@@ -1,7 +1,6 @@
 import { addDays, daysBetween } from '../dates';
 import { afterYears } from '../pilot';
 import type { IsoDate } from '../types';
-import { nextUsBusinessDay } from '../united-states';
 import {
   all,
   any,
@@ -21,6 +20,8 @@ import {
   beneficiaryAtLeastAge,
   carryForward,
   currentFamilyPetitioner,
+  employmentPetitionDates,
+  immigrantPetitionReceipt,
   isFamilyCategory,
   originalEmploymentAtFiling,
   reportedAgeAtLeast,
@@ -392,11 +393,10 @@ export function supportChecks(
   ];
 }
 
-function permRecruitment(a: UsEmploymentAnswers, i140Date?: IsoDate): Answer {
+function permRecruitment(a: UsEmploymentAnswers, receipt?: IsoDate): Answer {
   const record = a.permRecruitment;
   const law = v.perm.value;
   const scheduleA = a.perm === 'schedule-a';
-  const receipt = scheduleA ? i140Date : record?.laborCertificationFiledOn;
   const inWindow = (on: IsoDate) => {
     if (!receipt) return undefined;
     const days = daysBetween(on, receipt);
@@ -439,6 +439,7 @@ function permRecruitment(a: UsEmploymentAnswers, i140Date?: IsoDate): Answer {
 }
 
 type WageYear = NonNullable<UsEmploymentAnswers['wageYears']>[number];
+type WagePeriod = WageYear & { from: IsoDate; through: IsoDate };
 
 function wageEvidence(
   proffered: number,
@@ -455,28 +456,89 @@ function wageEvidence(
   );
 }
 
+function coveredAmount(
+  records: WagePeriod[],
+  from: IsoDate,
+  through: IsoDate,
+  field: 'paidUsd' | 'netIncomeUsd',
+): number | undefined {
+  const totals = new Map<IsoDate, number | null>();
+  for (const row of records) {
+    const amount = row[field];
+    if (amount === undefined || row.through > through) continue;
+    const previous = row.from <= from ? 0 : totals.get(addDays(row.from, -1));
+    if (previous === undefined) continue;
+    const total = previous === null ? null : previous + amount;
+    const existing = totals.get(row.through);
+    // Overlapping reports cannot be added, and conflicting totals need review.
+    totals.set(
+      row.through,
+      existing === undefined || existing === total ? total : null,
+    );
+  }
+  return totals.get(through) ?? undefined;
+}
+
+function wagesAlreadyPaid(records: WagePeriod[]): number | undefined {
+  const totals: { through: IsoDate; paidUsd: number }[] = [];
+  for (const row of records) {
+    if (row.paidUsd === undefined) continue;
+    // Cumulative and overlapping payroll records can describe the same wages.
+    let previous = 0;
+    for (const total of totals) {
+      if (total.through >= row.from) break;
+      previous = total.paidUsd;
+    }
+    totals.push({
+      through: row.through,
+      paidUsd: Math.max(totals.at(-1)?.paidUsd ?? 0, previous + row.paidUsd),
+    });
+  }
+  return totals.at(-1)?.paidUsd;
+}
+
+function payForPeriod(
+  records: WagePeriod[],
+  from: IsoDate,
+  through: IsoDate,
+  proffered: number,
+  prorated: boolean,
+): Answer {
+  const flows = prorated ? records.filter((row) => row.from >= from) : records;
+  const completeWages = coveredAmount(flows, from, through, 'paidUsd');
+  const netIncomeUsd = coveredAmount(flows, from, through, 'netIncomeUsd');
+  // SRC-305, 6 USCIS-PM E.4(D)(1): the applicable part of the priority
+  // year must be documented by wages, net income, or both to use proration.
+  if (prorated && completeWages === undefined && netIncomeUsd === undefined)
+    return undefined;
+  const assetValues = new Set(
+    records.flatMap((row) =>
+      row.through === through && row.netCurrentAssetsUsd !== undefined
+        ? [row.netCurrentAssetsUsd]
+        : [],
+    ),
+  );
+  const netCurrentAssetsUsd =
+    assetValues.size === 1 ? [...assetValues][0] : undefined;
+  const pay = wageEvidence(proffered, {
+    paidUsd: wagesAlreadyPaid(flows),
+    netIncomeUsd,
+    netCurrentAssetsUsd,
+  });
+  return pay === false && completeWages === undefined ? undefined : pay;
+}
+
 function annualPay(
   a: UsEmploymentAnswers,
+  dates: ReturnType<typeof employmentPetitionDates>,
   coverage: IsoDate,
   through: IsoDate,
 ): Answer {
   const { profferedWageUsd: proffered, wageYears, priorityYearProration } = a;
   if (proffered === undefined || !wageYears?.length) return undefined;
 
-  const ordinaryPerm =
-    (a.category === 'eb2-perm' || a.category === 'eb3') &&
-    a.perm !== 'schedule-a';
-  const priorityDate =
-    (ordinaryPerm
-      ? a.permRecruitment?.laborCertificationFiledOn
-      : a.i140FiledOn) ?? a.priorityDate;
-  if (priorityDate && priorityDate > through) return undefined;
-
-  // A PERM certification or I-140 receipt bounds the latest possible priority
-  // date but cannot prove when the DOL received the PERM application.
-  const latestPriority =
-    priorityDate ??
-    [a.permCertifiedOn, a.i140FiledOn].filter(Boolean).sort()[0];
+  const { priorityDate, latestPriorityDate, recordedPriorityDate } = dates;
+  if (recordedPriorityDate && recordedPriorityDate > through) return undefined;
 
   const initialEvidence =
     (a.wagePeriodComplete === true && through <= coverage) || undefined;
@@ -485,7 +547,10 @@ function annualPay(
     ({ year, through }) => year !== undefined || through !== undefined,
   );
   if (!dated) {
-    if (latestPriority && Number(latestPriority.slice(0, 4)) < stageYear)
+    if (
+      latestPriorityDate &&
+      Number(latestPriorityDate.slice(0, 4)) < stageYear
+    )
       return undefined;
     // Legacy undated evidence for a single year.
     const summary = all(
@@ -497,17 +562,17 @@ function annualPay(
       ),
     );
     return summary === false &&
-      priorityDate &&
-      !priorityDate.endsWith('-01-01') &&
+      recordedPriorityDate &&
+      !recordedPriorityDate.endsWith('-01-01') &&
       priorityYearProration?.finding !== 'barred'
       ? undefined
       : summary;
   }
 
-  if (!latestPriority || latestPriority > through) return undefined;
-  const firstYear = Number(latestPriority.slice(0, 4));
+  if (!latestPriorityDate || latestPriorityDate > through) return undefined;
+  const firstYear = Number(latestPriorityDate.slice(0, 4));
 
-  const byYear = new Map<number, { row: WageYear; cutoff: IsoDate }[]>();
+  const byYear = new Map<number, WagePeriod[]>();
   for (const row of wageYears) {
     const year =
       row.year ?? (row.through ? Number(row.through.slice(0, 4)) : undefined);
@@ -515,9 +580,18 @@ function annualPay(
     const cutoff =
       row.through ??
       (String(year) === coverage.slice(0, 4) ? coverage : `${year}-12-31`);
-    if (cutoff > through || (priorityDate && cutoff < priorityDate)) continue;
+    const yearStart = `${year}-01-01`;
+    const from = row.from ?? yearStart;
+    if (
+      from < yearStart ||
+      from > cutoff ||
+      cutoff > `${year}-12-31` ||
+      cutoff > through ||
+      (priorityDate && cutoff < priorityDate)
+    )
+      continue;
     const records = byYear.get(year) ?? [];
-    records.push({ row, cutoff });
+    records.push({ ...row, from, through: cutoff });
     byYear.set(year, records);
   }
 
@@ -525,13 +599,17 @@ function annualPay(
   for (let year = firstYear; year <= stageYear; year++) {
     const records = byYear.get(year);
     if (!records) return undefined;
-    const latest = records.reduce(
-      (latest, { cutoff }) => (cutoff > latest ? cutoff : latest),
-      records[0].cutoff,
-    );
-    const current = records.filter(({ cutoff }) => cutoff === latest);
-    const fullWage = any(
-      ...current.map(({ row }) => wageEvidence(proffered, row)),
+    records.sort((left, right) => left.through.localeCompare(right.through));
+    const yearEnd = `${year}-12-31`;
+    const periodFrom =
+      year === firstYear && priorityDate ? priorityDate : `${year}-01-01`;
+    const periodThrough = year === stageYear ? through : yearEnd;
+    const fullWage = payForPeriod(
+      records,
+      periodFrom,
+      periodThrough,
+      proffered,
+      false,
     );
     if (
       year !== firstYear ||
@@ -554,31 +632,20 @@ function annualPay(
       (priorityDate.endsWith('-01')
         ? (proffered * (13 - Number(priorityDate.slice(5, 7)))) / 12
         : undefined);
-    const postPriority = current.filter(
-      ({ row }) =>
-        row.from === priorityDate &&
-        (row.paidUsd !== undefined || row.netIncomeUsd !== undefined),
-    );
     annual.push(
-      prorated !== undefined && postPriority.length
-        ? any(
-            ...postPriority.map(({ row, cutoff }) =>
-              wageEvidence(prorated, {
-                ...row,
-                netCurrentAssetsUsd:
-                  cutoff === `${year}-12-31`
-                    ? row.netCurrentAssetsUsd
-                    : undefined,
-              }),
-            ),
-          )
+      prorated !== undefined
+        ? payForPeriod(records, priorityDate, yearEnd, prorated, true)
         : undefined,
     );
   }
   return all(initialEvidence, priorityDate ? true : undefined, ...annual);
 }
 
-function abilityToPay(request: UsFullRequest, through: IsoDate): Answer {
+function abilityToPay(
+  request: UsFullRequest,
+  dates: ReturnType<typeof employmentPetitionDates>,
+  through: IsoDate,
+): Answer {
   const a = request.employment ?? {};
   const officer = all(
     atLeast(a.employerEmployees, v.pay.value.financialOfficerMinEmployees),
@@ -586,7 +653,7 @@ function abilityToPay(request: UsFullRequest, through: IsoDate): Answer {
   );
   return any(
     officer,
-    annualPay(a, a.wagePeriodThrough ?? request.simulationDate, through),
+    annualPay(a, dates, a.wagePeriodThrough ?? request.simulationDate, through),
     reviewed(a.abilityToPayTotality),
   );
 }
@@ -614,14 +681,6 @@ export function employmentChecks(
       ? admission.i485BasisTransfer
       : undefined;
   const petitionApproved = underlyingPetitionApproved(admission);
-  const petitionAlreadyFiled =
-    admission?.petitionStatus === 'pending' || petitionApproved;
-  const prospectivePetitionReceipt =
-    admission?.process === 'adjustment'
-      ? receipt
-      : request.fees?.channel === 'paper'
-        ? nextUsBusinessDay(date)
-        : date;
   const category = a.category;
   const based = [
     check(
@@ -643,10 +702,10 @@ export function employmentChecks(
     category === 'eb3'
   ) {
     const needsPerm = category === 'eb2-perm' || category === 'eb3';
-    const priorI140 = petitionAlreadyFiled || a.i140FiledOn !== undefined;
+    const dates = employmentPetitionDates(request, receipt);
+    const { i140FiledOn, i140Receipt: i140Date } = dates;
     const inconsistentI140Date =
-      a.i140FiledOn !== undefined && a.i140FiledOn > date;
-    const i140Date = priorI140 ? a.i140FiledOn : prospectivePetitionReceipt;
+      i140FiledOn !== undefined && i140FiledOn > date;
     const valid =
       a.permCertifiedOn && i140Date && !inconsistentI140Date
         ? a.permCertifiedOn <= i140Date &&
@@ -683,7 +742,14 @@ export function employmentChecks(
         carryForward(facts.has('permWage'), wages),
         carryForward(
           facts.has('permRecruitment'),
-          permRecruitment(a, inconsistentI140Date ? undefined : i140Date),
+          permRecruitment(
+            a,
+            a.perm === 'schedule-a'
+              ? inconsistentI140Date
+                ? undefined
+                : i140Date
+              : dates.permFiledOn,
+          ),
         ),
       );
     const portability =
@@ -728,14 +794,12 @@ export function employmentChecks(
       !transfer &&
       petitionApproved;
     const approvedEmployment = facts.has('employmentClassification');
-    const payAtReceipt = abilityToPay(request, receipt);
+    const payAtReceipt = abilityToPay(request, dates, receipt);
     const pay = abilityToPay(
       request,
-      port === true &&
-        !petitionApproved &&
-        !inconsistentI140Date &&
-        a.i140FiledOn
-        ? a.i140FiledOn
+      dates,
+      port === true && !petitionApproved && !inconsistentI140Date && i140FiledOn
+        ? i140FiledOn
         : (decision ?? receipt),
     );
     const payAtDecision =
@@ -930,9 +994,7 @@ export function employmentChecks(
               }),
             ),
     );
-    const petitionReceipt =
-      admission?.petitionFiledOn ??
-      (petitionAlreadyFiled ? undefined : prospectivePetitionReceipt);
+    const petitionReceipt = immigrantPetitionReceipt(request, receipt);
     const current =
       petitionReceipt !== undefined &&
       (!admission?.petitionFiledOn || petitionReceipt <= date) &&

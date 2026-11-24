@@ -1126,3 +1126,43 @@ PROGRESS 617 建议提交为 `Fix: 逐年核对美国雇主支付能力并修正
 ### 4. 发现与建议
 
 - 后续问卷可收集本请愿优先日、各年度金额和金额截止日，以及首年工资与净收入的起算日期。个案按比例获接受时，月中起算可另填确认后的承诺工资；期间和裁量资料缺失时按 PD-277 待核。
+
+## 第二十六轮审核修正（review86-26）
+
+### 1. 做了什么
+
+PROGRESS 618 建议提交为 `Fix: 统一美国优先日并按期间核对雇主支付能力（review86-26）`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+`employmentPetitionDates` 集中确定普通 PERM 的 DOL 收件日、其它 I-140 的实际或候选收件日及适用优先日。已收件案件缺相应日期时可填本请愿的优先日。普通 PERM 的认证日与 I-140 收件日可约束最晚可能的优先日。来源为 SRC-302，8 CFR §204.5(d)。[8 CFR §204.5(d)](https://www.ecfr.gov/current/title-8/section-204.5#p-204.5(d))
+
+| 调用点 | 共用日期的用途 |
+| --- | --- |
+| `immigration.ts` → `employmentChecks` → C28 | 用普通 PERM 的 DOL 收件日核对招聘。以实际或候选 I-140 收件日核对 Schedule A 通知及适用的 PERM 有效期。见 SRC-305，20 CFR §§656.10(d)、656.15(b)(2)、656.30(b)(1)。 |
+| `immigration.ts` → `employmentChecks` → `abilityToPay` → C29 | 递交和核准共用优先日起点。首次同时递交的 Schedule A、EB-1B、EB-1C 采用同一个候选 I-140 收件日。适格待决职业转换以实际 I-140 收件日截止。见 SRC-302，8 CFR §204.5(d)、(g)(2)，SRC-305，6 USCIS-PM E.4(D)(5)。 |
+| `admission.ts` → `adjustmentChecks` → C33 | 按同一 I-140 收件日口径核对基础请愿时序。名额沿用对应阶段的排期证据，核准仍须确认基础请愿获批。见 SRC-309，8 CFR §245.2(a)(2)(i)(A)–(C) 与 7 USCIS-PM A.6(A)、(C)(4)–(5)。 |
+
+C29 对每个适用期间分别核对已付工资、净收入和净流动资产。已证实的工资可独立达到承诺工资，也可用完整适用期的净收入或期末净流动资产补足差额。同年资料分开填写时按实际期间合并，重叠的金额只计一次。首年按比例时检查优先日至当年末的工资或净收入覆盖，净流动资产按同年年末余额核对。缺适用期证据且没有其他足够依据时输出 `UNKNOWN` 并省略相应日期，已补入 PD-277。见 SRC-302，8 CFR §204.5(g)(2)，SRC-305，6 USCIS-PM E.4(A)、(C)(1)–(2)、(D)(1) 与注 24。[USCIS 支付能力手册](https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4)
+
+### 2. 怎么验证的
+
+- 用 `git archive 62b7c25` 建立基线，在两版回放同一批输入。美国 Engine 两个测试文件基线 755 项通过，修正后 767 项通过。基线测试捕获的 2,495 次完整版调用，以及前 25 轮留存的美国专项和审核复现中的 2,759 次完整版调用，完整结果逐字段一致。两批各含 43 次旧 `evaluateUnitedStates` 调用，结果也逐字段一致。两批包含重复输入。
+- 新增测试在基线出现 10 项预期失败及 2 项通过，修正后 12 项均通过。另在两版对照新增测试捕获的 58 次调用，50 次仅 C29 检查及相应阶段结果变化，其余 8 次完整一致。第 25 轮缺优先年度、足额按比例工资及 §245(k) 历史累计复现均保留基线结论。
+- 美国 Web 单测 `vitest run test/united-states.test.tsx` 在基线和本轮各通过 8 项。两组美国 Engine 单测和 Web 单测均以 Vitest JSON 报告检查逐用例耗时，均低于 1.5 秒。
+- 设置 `VITEST_MAX_WORKERS=2`，`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。全仓 6,001 项测试通过，1 项既有测试跳过。构建生成 27 个静态页面，包含美国页面。
+- `pnpm --filter e2e exec playwright test united-states.spec.ts --project=desktop --workers=1` 对基线与本轮静态产物各通过 1 项。基线归档用 `next build --webpack` 构建，两次 E2E 均用临时 Chromium 单进程配置。
+- `git diff --check` 通过。USCIS 手册公开页面返回 HTTP 403，已用 SHA-256 与 SRC-305 登记一致的官方存档核对各节及注 24，并用 eCFR 实时核对 SRC-302 法规。
+
+| 代表性复现 | `62b7c25` 递交／核准 | 本轮递交／核准 |
+| --- | --- | --- |
+| 首年按比例证据只有第三季度净收入 | `MET`／`MET`，有日期 | `UNKNOWN`／`UNKNOWN`，省略日期 |
+| 首年第三、四季度净收入合计足额且连续覆盖 | `UNKNOWN`／`UNKNOWN` | `MET`／`MET` |
+| 同年已付足工资，之后追加独立财报 | `UNKNOWN`／`UNKNOWN` | `MET`／`MET` |
+| Schedule A、EB-1B、EB-1C 首次同缴并提供足额工资证据 | `UNKNOWN`／`UNKNOWN` | `MET`／`UNKNOWN`，递交日为 `2026-11-23`，核准日待基础请愿获批 |
+
+### 3. 没做或没验证的
+
+- 按要求保留工作树改动，交由 Fable 提交。
+
+### 4. 发现与建议
+
+- 同年度分别填报工资、净收入与净流动资产时，保留各自的金额起止日或余额日期，便于确认期间覆盖和区分累计记录。

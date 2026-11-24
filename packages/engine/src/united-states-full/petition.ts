@@ -1,5 +1,6 @@
 import { afterYears } from '../pilot';
 import type { IsoDate } from '../types';
+import { nextUsBusinessDay } from '../united-states';
 import { reviewed, v } from './check';
 import type { Answer } from './check';
 import type {
@@ -152,6 +153,64 @@ export function isI140Category(
     category === 'eb2-perm' ||
     category === 'eb3'
   );
+}
+
+export function immigrantPetitionReceipt(
+  request: UsFullRequest,
+  adjustmentReceipt: IsoDate,
+  filedOn = request.admission?.petitionFiledOn,
+) {
+  const { admission, simulationDate } = request;
+  if (
+    filedOn ||
+    admission?.petitionStatus === 'pending' ||
+    underlyingPetitionApproved(admission)
+  )
+    return filedOn;
+  if (admission?.process === 'adjustment') return adjustmentReceipt;
+  return request.fees?.channel === 'paper'
+    ? nextUsBusinessDay(simulationDate)
+    : simulationDate;
+}
+
+export function employmentPetitionDates(
+  request: UsFullRequest,
+  adjustmentReceipt: IsoDate,
+) {
+  const { admission, employment } = request;
+  const category = employment?.category;
+  const usesI140 = isI140Category(category);
+  const i140FiledOn =
+    employment?.i140FiledOn ??
+    (usesI140 ? admission?.petitionFiledOn : undefined);
+  const i140Receipt = usesI140
+    ? immigrantPetitionReceipt(request, adjustmentReceipt, i140FiledOn)
+    : i140FiledOn;
+
+  // SRC-302, 8 CFR 204.5(d): ordinary PERM uses DOL receipt. Schedule A
+  // and petitions exempt from labor certification use proper I-140 filing.
+  const ordinaryPerm =
+    (category === 'eb2-perm' || category === 'eb3') &&
+    employment?.perm !== 'schedule-a';
+  const permFiledOn = ordinaryPerm
+    ? employment?.permRecruitment?.laborCertificationFiledOn
+    : undefined;
+  const recordedPriorityDate =
+    (ordinaryPerm ? permFiledOn : i140FiledOn) ?? employment?.priorityDate;
+  const priorityDate =
+    recordedPriorityDate ?? (ordinaryPerm ? undefined : i140Receipt);
+  // Certification and I-140 receipt can bound an unknown DOL receipt.
+  const latestPriorityDate =
+    priorityDate ??
+    [employment?.permCertifiedOn, i140FiledOn].filter(Boolean).sort()[0];
+  return {
+    i140FiledOn,
+    i140Receipt,
+    permFiledOn,
+    recordedPriorityDate,
+    priorityDate,
+    latestPriorityDate,
+  };
 }
 
 export function beneficiaryAtLeastAge(

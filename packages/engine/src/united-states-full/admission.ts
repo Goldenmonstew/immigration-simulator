@@ -24,6 +24,7 @@ import {
 } from './naturalization';
 import {
   carryForward,
+  employmentPetitionDates,
   immediateRelative,
   isFamilyCategory,
   isI140Category,
@@ -805,8 +806,14 @@ export function adjustmentChecks(
   const i140Category = isI140Category(employment?.category);
   const usesI140 =
     category === 'employment' && (i140Category || !employment?.category);
-  const i140FiledOn = usesI140 ? employment?.i140FiledOn : undefined;
+  const i140 = usesI140
+    ? employmentPetitionDates(request, filingReceipt)
+    : undefined;
+  const i140FiledOn = i140?.i140FiledOn;
   const petitionFiledOn = i140FiledOn ?? a?.petitionFiledOn;
+  const petitionReceipt =
+    petitionFiledOn ??
+    (a?.process === 'adjustment' ? i140?.i140Receipt : undefined);
   const awaitingPetition = petitionApprovalUnconfirmed(
     petition,
     petitionFiledOn,
@@ -862,7 +869,9 @@ export function adjustmentChecks(
       )
     : all(
         inconsistentPetitionDate ||
-          (filedI485On && petitionFiledOn && petitionFiledOn > filedI485On)
+          (petitionReceipt &&
+            a?.process === 'adjustment' &&
+            petitionReceipt > filingReceipt)
           ? undefined
           : true,
         filingBasis,
@@ -895,7 +904,7 @@ export function adjustmentChecks(
         )
       : undefined
     : all(
-        decision && petitionFiledOn && petitionFiledOn > decision
+        decision && petitionReceipt && petitionReceipt > decision
           ? undefined
           : true,
         petitionApproved || (category !== undefined && !requiresPetition)

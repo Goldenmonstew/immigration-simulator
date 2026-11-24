@@ -8589,4 +8589,153 @@ describe('review86-25 regressions', () => {
       expect(condition(prorated, 'C29-ABILITY-TO-PAY').status).toBe(status);
     },
   );
+
+  describe('review86-26 period coverage', () => {
+    const thirdQuarter = { ...first, through: '2025-09-30', paidUsd: 0 };
+    const fourthQuarter = {
+      ...first,
+      from: '2025-10-01',
+      through: '2025-12-31',
+      paidUsd: 0,
+    };
+
+    test.each([
+      [[{ ...thirdQuarter, netIncomeUsd: 30000 }], 'UNKNOWN'],
+      [
+        [
+          { ...thirdQuarter, netIncomeUsd: 20000 },
+          { ...fourthQuarter, netIncomeUsd: 10000 },
+        ],
+        'MET',
+      ],
+      [
+        [
+          { ...thirdQuarter, netIncomeUsd: 30000 },
+          { ...fourthQuarter, from: '2025-10-02' },
+        ],
+        'UNKNOWN',
+      ],
+      [
+        [
+          { ...thirdQuarter, netIncomeUsd: 30000 },
+          { ...fourthQuarter, from: '2025-09-30' },
+        ],
+        'UNKNOWN',
+      ],
+      [
+        [
+          { ...thirdQuarter, netIncomeUsd: 30000 },
+          { ...fourthQuarter, netIncomeUsd: -10000 },
+        ],
+        'NOT_MET',
+      ],
+    ] as const)(
+      'requires the entire prorated period (%j)',
+      (firstYear, status) => {
+        const prorated = {
+          ...request,
+          employment: {
+            ...request.employment,
+            priorityYearProration: { finding: 'cleared' as const },
+            wageYears: [...firstYear, current],
+          },
+        };
+        expect(condition(prorated, 'C29-ABILITY-TO-PAY').status).toBe(status);
+        expect(path(prorated)).toMatchObject({
+          status,
+          approvalStatus: status,
+        });
+        expect(path(prorated).earliestDate).toBe(
+          status === 'MET' ? request.simulationDate : undefined,
+        );
+        expect(path(prorated).approvalEarliestDate).toBe(
+          status === 'MET' ? request.admission.decisionOn : undefined,
+        );
+      },
+    );
+
+    test.each([
+      [60000, { netIncomeUsd: 0, netCurrentAssetsUsd: 0 }],
+      [45000, { netIncomeUsd: 15000, netCurrentAssetsUsd: 0 }],
+      [45000, { netIncomeUsd: 0, netCurrentAssetsUsd: 15000 }],
+    ])(
+      'combines earlier wages of %s with a separate year-end statement',
+      (paidUsd, financials) => {
+        const split = {
+          ...request,
+          employment: {
+            ...request.employment,
+            wageYears: [
+              { year: 2025, through: '2025-11-01', paidUsd },
+              { year: 2025, through: '2025-12-31', ...financials },
+              current,
+            ],
+          },
+        };
+        expect(condition(split, 'C29-ABILITY-TO-PAY').status).toBe('MET');
+        expect(path(split)).toMatchObject({
+          status: 'MET',
+          earliestDate: request.simulationDate,
+          approvalStatus: 'MET',
+          approvalEarliestDate: request.admission.decisionOn,
+        });
+      },
+    );
+
+    test('uses a separate year-end asset balance for a documented prorated payroll shortfall', () => {
+      const split = {
+        ...request,
+        employment: {
+          ...request.employment,
+          priorityYearProration: { finding: 'cleared' as const },
+          wageYears: [
+            { ...first, paidUsd: 15000, netCurrentAssetsUsd: undefined },
+            { year: 2025, through: '2025-12-31', netCurrentAssetsUsd: 15000 },
+            current,
+          ],
+        },
+      };
+      expect(condition(split, 'C29-ABILITY-TO-PAY').status).toBe('MET');
+      expect(path(split)).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'MET',
+      });
+    });
+  });
+});
+
+describe('review86-26 concurrent filing', () => {
+  test.each(['eb3', 'eb1b', 'eb1c'] as const)(
+    'uses the first concurrent I-140 receipt for %s',
+    (category) => {
+      const request = withEmployment(
+        {
+          category,
+          perm: category === 'eb3' ? 'schedule-a' : undefined,
+          permCertifiedOn: undefined,
+          permRecruitment: {
+            notice: { method: 'union', notifiedOn: '2026-10-24' },
+            employerPaidPermCosts: true,
+          },
+          wageYears: [{ year: 2026, through: '2026-11-23', paidUsd: 60000 }],
+        },
+        'filed-with-i485',
+      );
+      for (const pathway of ['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const) {
+        const input = { ...request, pathway };
+        expect(condition(input, 'C28-OFFER-PERM').status).toBe('MET');
+        expect(condition(input, 'C29-ABILITY-TO-PAY').status).toBe('MET');
+        expect(condition(input, 'C33-VISA-AND-ENTRY')).toMatchObject({
+          filingStatus: 'MET',
+          status: 'UNKNOWN',
+        });
+        expect(path(input)).toMatchObject({
+          status: 'MET',
+          earliestDate: '2026-11-23',
+          approvalStatus: 'UNKNOWN',
+        });
+        expect(path(input).approvalEarliestDate).toBeUndefined();
+      }
+    },
+  );
 });

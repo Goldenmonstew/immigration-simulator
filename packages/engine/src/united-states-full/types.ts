@@ -383,13 +383,13 @@ export interface UsEmploymentAnswers {
   employerEmployees?: number;
   employerNonprofit?: boolean;
   officerStatementAccepted?: UsReview;
-  /** One entry for each legally required year from the priority date. */
+  /** Amounts documented for each required year, with separate entries for separate periods or records. */
   wageYears?: {
     /** Calendar year of these amounts. Defaults to the year of through, if supplied. */
     year?: number;
     /** Last date represented by all amounts in this entry, inclusive. */
     through?: IsoDate;
-    /** First date of the wages and net income, for evidence specific to the prorated period. */
+    /** First date of the wages and net income. Defaults to the first day of the year. */
     from?: IsoDate;
     paidUsd?: number;
     netIncomeUsd?: number;
