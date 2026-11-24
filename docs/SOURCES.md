@@ -713,7 +713,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-071 Immigration Act 2009（新西兰）
 
-- s71(1)(a) 允许在境外且拟赴新西兰定居的人申请。s71(1)(b) 允许在境内持 temporary visa 或 resident visa 且不受 s150 约束的人申请。s71(4) 禁止 Interim Visa、limited visa、transit visa 持有人及依法可被遣返者申请居民类签证。s71(5) 保留部长酌情授签权。第 71 条已核对现行法条，本站另存的 INZ RA5(a)–(b) 明载同一禁令及酌情权限（SRC-230）。[Immigration Act 2009 s71](https://www.legislation.govt.nz/act/public/2009/51/en/latest/sections/DLM1440686/)
+- s71(1)(a) 允许在境外且拟赴新西兰定居的人申请。s71(1)(b) 允许在境内持 temporary visa 或 resident visa 且不受 s150 约束的人申请。s71(1)(c) 对在管制区等指定地点申请的人规定了适用免签和法定类别要求。s71(2)–(3) 要求邀请制类别按期凭邀请递交。s71(3A) 禁止曾按 s75A 被取消居民签证的人申请。s71(4) 禁止 Interim Visa、limited visa、transit visa 持有人及依法可被遣返者申请居民类签证。s71(5) 保留部长对 s71(4) 所列人士的酌情授签权。第 71 条已核对现行法条，本站另存的 INZ RA5(a)–(b) 明载同一禁令及酌情权限（SRC-230）。[Immigration Act 2009 s71](https://www.legislation.govt.nz/act/public/2009/51/en/latest/sections/DLM1440686/)
 - 任务 84 衔接居民签与永久居民签的身份和旅行权利；签发及失效后的具体路径由 SRC-072、230 的 INZ 条文规定。
 - `policy-sources/2026-07-10-nz-immigration-act-2009-ss73-74.html` → <https://www.legislation.govt.nz/act/public/2009/51/en/latest/>
 - 同 SRC-070，快照是浏览器中现行版（Version as at 10 July 2026）的 s73–s74 节选（元素 `DLM1440688`、`DLM1440689`），每周核对需人工处理。
@@ -725,6 +725,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-08-12-nz-ops-r5-66.html` → <https://www.immigration.govt.nz/opsmanual/44894.htm>
 - 新西兰的 Immigration Instructions 相当于英国的 Immigration Rules，按段落号定位，如 `RV2.5.1`。各页底部的 `Effective` 日期即快照文件名中的日期。
 - `RV2.5`：(a) 申请时持居民签证且已连续持有满 24 个月（或申请前 90 天内曾持有、到期前已连续持有满 24 个月）；(b) 首次以居民身份在新西兰之日（R5.66.1）在申请前至少 24 个月；(c) 以 RV2.5.1–RV2.5.20 任一方式表明对新西兰的承诺；(d) 满足 s49(1)、s50 条件；(e) 品格。`RV2.5.1`：申请前 24 个月的两个 12 个月里，各以居民身份在新西兰合计不少于 184 天。`RV2.5.5`：两个 12 个月里各不少于 41 天，且申请前 24 个月具有税务居民身份（RV1.15.10）。`RV2.5.10`–`RV2.5.20`（投资、经营、在新西兰安家）试点不建模。
+- R5.66.5(b)(i)–(ii) 以获签时所在地确定首个居民日。境内获签取获签日，境外获签取首次凭该居民签获准入境之日。RV2.5(b) 从该日计算永居首入条件。[INZ R5.66](https://www.immigration.govt.nz/opsmanual/44894.htm)
 - `RV2.10`：Migrant Investment、Parent Retirement、Active Investor Plus 类别的居民签证转永居，看是否已满足投资条件，不看在境天数。
 - `RV1.15.5` 注：以居民身份在新西兰的期间，入境日与出境日都计入。
 - `RV1.5`：居民签证持有人离开新西兰时签证已没有有效的旅行条件，或旅行条件在其身处境外时到期，居民签证即失效（法条依据为 Immigration Act s63(2)，试点未存档该条）。失效后可在 90 天内以前持有人身份申请永久居民签证（RV2.5(a)(ii)），或按 RV4 另行申请居民签证。`RV3.1` 另规定只有签证仍有效时才能变更旅行条件（试点未存档该页）。

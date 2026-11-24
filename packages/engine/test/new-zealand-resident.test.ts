@@ -19,6 +19,8 @@ const base: NzFullRequest = {
   common: {
     character: 'clear',
     residenceFiling: {
+      currentVisa: 'other-eligible-temporary-or-resident',
+      statutoryBar: 'none',
       atImmigrationControlArea: false,
       hasOmittedRelationshipVisaDependant: false,
     },
@@ -107,17 +109,63 @@ describe('required facts at filing', () => {
     expiredOn: '2026-10-01',
     formerResidentIssue: 'none',
   };
+  it.each([
+    ['onshore work visa', false, 'work', 'MET'],
+    ['onshore Interim Visa', false, 'interim-work-renewal', 'NOT_MET'],
+    ['offshore without a visa', true, 'none', 'MET'],
+  ] as const)(
+    'checks ordinary RV2 and RV4 filing for %s',
+    (_label, filingFromOverseas, currentVisa, status) => {
+      const req = {
+        common: {
+          ...base.common,
+          residenceFiling: {
+            ...base.common?.residenceFiling,
+            filingFromOverseas,
+            currentVisa,
+          },
+        },
+      };
+      // Both applications use a former resident who is still within the RV2 grace period.
+      for (const path of [prv(former, req), travel(subsequent, req, former)]) {
+        expectOutcome(path, 'NZ-RESIDENCE-FILING', status);
+      }
+    },
+  );
   it('allows a former resident to lodge alone at the border under RV4', () => {
     const common = {
       ...base.common,
       residenceFiling: {
+        statutoryBar: 'none' as const,
         atImmigrationControlArea: true,
+        visaWaiverAtControlArea: true,
         dependentChildrenUnlawfullyInNz: [{ dateOfBirth: '2008-10-01' }],
       },
     };
     const alone = travel(subsequent, { common }, former);
     expectOutcome(alone, 'NZ-FAMILY-FILING', 'MET');
     expect(alone.checks.some((c) => c.id === 'NZ-R5-125')).toBe(false);
+    for (const [visaWaiverAtControlArea, status] of [
+      [undefined, 'UNKNOWN'],
+      [false, 'NOT_MET'],
+    ] as const)
+      expectOutcome(
+        travel(
+          subsequent,
+          {
+            common: {
+              ...common,
+              residenceFiling: {
+                ...common.residenceFiling,
+                visaWaiverAtControlArea,
+              },
+            },
+          },
+          former,
+        ),
+        'NZ-RESIDENCE-FILING',
+        status,
+      );
     const joint = travel(
       subsequent,
       {
@@ -274,6 +322,7 @@ describe('RV1.20 joint PRV application', () => {
   };
   const partner = {
     relation: 'partner' as const,
+    residenceFiling: base.common?.residenceFiling,
     partnershipRequirementsMet: true,
     identityDocuments: true,
     character: 'clear' as const,
@@ -403,6 +452,7 @@ describe('RV1.20 joint PRV application', () => {
   });
   const child: Included = {
     relation: 'child',
+    residenceFiling: base.common?.residenceFiling,
     dateOfBirth: '2017-02-01',
     identityDocuments: true,
     character: 'clear',
@@ -468,6 +518,67 @@ describe('RV1.20 joint PRV application', () => {
       expect(result.earliestDate).toBe('2027-11-01');
     },
   );
+
+  const departureDayGrant = {
+    ...application,
+    firstArrival: '2020-01-01',
+    trips: [{ departed: '2025-11-01', returned: '2025-12-01' }],
+  };
+  it.each([
+    ['offshore', undefined, '2027-12-01'],
+    ['offshore', '2025-12-01', '2027-12-01'],
+    [undefined, '2025-12-01', '2027-12-01'],
+    ['onshore', undefined, '2027-11-01'],
+  ] as const)(
+    'uses the first resident day for a grant on departure (location %s, explicit entry %s)',
+    (grantLocation, firstResidentEntry, due) => {
+      const travel: Travel = {
+        ...application.travel,
+        firstEntryClass: 'standard',
+        grantLocation,
+        firstResidentEntry,
+      };
+      const family = {
+        ...child,
+        prvApplication: { ...departureDayGrant, travel },
+      };
+      const alone = pathway(
+        'NZ-PRV',
+        { prv: prvReady, travel },
+        departureDayGrant,
+      );
+      for (const result of [alone, together(family)]) {
+        expect(result.status).toBe('FUTURE');
+        expect(result.earliestDate).toBe(due);
+      }
+      expectOutcome(
+        together(family, { simulationDate: due }),
+        'NZ-P2-CHILD-1',
+        'MET',
+        due,
+      );
+    },
+  );
+  it('withholds a joint date if a grant and departure cannot be ordered', () => {
+    const family = {
+      ...child,
+      prvApplication: {
+        ...departureDayGrant,
+        travel: { ...application.travel, firstEntryClass: 'standard' as const },
+      },
+    };
+    const result = together(family, { simulationDate: '2027-11-01' });
+    expectOutcome(result, 'NZ-P2-CHILD-1', 'UNKNOWN');
+    expect(check(result, 'NZ-P2-CHILD-1').pendingDetails).toContain('PD-222');
+    expect(together(family).earliestDate).toBeUndefined();
+    const legacy = evaluateNewZealand({
+      simulationDate: base.simulationDate,
+      dateOfBirth: child.dateOfBirth!,
+      ...departureDayGrant,
+    }).pathways.find((path) => path.id === 'NZ-PRV');
+    expect(legacy?.status).toBe('FUTURE');
+    expect(legacy?.earliestDate).toBe('2027-11-01');
+  });
 
   it('uses the reported first resident entry when the travel history suggests an earlier date', () => {
     const family = {

@@ -27,6 +27,7 @@ const base: NzCommonAnswers = {
   requiredFeePaid: true,
   testSpecificallyRequested: false,
   residenceFiling: {
+    statutoryBar: 'none',
     hasOmittedRelationshipVisaDependant: false,
     atImmigrationControlArea: false,
     dependentChildrenUnlawfullyInNz: [],
@@ -501,6 +502,11 @@ test.each([
 
 const child: NzDependantAnswers = {
   relation: 'child',
+  residenceFiling: {
+    filingFromOverseas: false,
+    currentVisa: 'other-eligible-temporary-or-resident',
+    statutoryBar: 'none',
+  },
   dateOfBirth: '2001-11-23',
   single: true,
   hasOwnChildren: false,
@@ -511,6 +517,55 @@ const child: NzDependantAnswers = {
   evidence,
   english: ielts,
 };
+
+test.each([
+  [
+    'a current deportation liability',
+    true,
+    'work',
+    'liable-for-deportation',
+    'NOT_MET',
+  ],
+  [
+    'a section 75A cancellation',
+    false,
+    'work',
+    'section-75A-cancellation',
+    'NOT_MET',
+  ],
+  [
+    'an onshore section 150 restriction',
+    false,
+    'work',
+    'section-150',
+    'NOT_MET',
+  ],
+  ['no visa onshore', false, 'none', 'none', 'NOT_MET'],
+  ['an Interim Visa without work rights', false, 'interim', 'none', 'NOT_MET'],
+  ['a missing statutory answer', false, 'work', undefined, 'UNKNOWN'],
+  ['a transit visa offshore', true, 'transit', 'none', 'NOT_MET'],
+  ['offshore residence with no NZ visa', true, 'none', 'none', 'MET'],
+] as const)(
+  'checks %s for the principal and for an included child',
+  (_label, filingFromOverseas, currentVisa, statutoryBar, status) => {
+    const filing = { filingFromOverseas, currentVisa, statutoryBar };
+    for (const path of [
+      tierOnePath({ residenceFiling: { ...base.residenceFiling, ...filing } }),
+      tierOnePath({
+        dependants: [
+          { ...child, dateOfBirth: '2002-11-23', residenceFiling: filing },
+        ],
+      }),
+    ]) {
+      const check = path.checks.find((c) => c.id === 'NZ-RESIDENCE-FILING');
+      expect(check?.status).toBe(status);
+      if (status === 'UNKNOWN')
+        expect(check?.pendingDetails).toEqual(['PD-220']);
+      expect(path.status).toBe(status);
+      expect(path.earliestDate).toBe(status === 'MET' ? date : undefined);
+    }
+  },
+);
 
 test.each([
   [true, 'NOT_MET'],
@@ -666,6 +721,7 @@ test.each([
   (_label, children, status) => {
     const path = tierOnePath({
       residenceFiling: {
+        ...base.residenceFiling,
         hasOmittedRelationshipVisaDependant: false,
         atImmigrationControlArea: false,
         dependentChildrenUnlawfullyInNz: children,
@@ -741,6 +797,7 @@ test('applies child rules to the relevant immigration paths and stages', () => {
       },
     ],
     residenceFiling: {
+      currentVisa: 'interim-work-renewal' as const,
       hasOmittedRelationshipVisaDependant: true,
       atImmigrationControlArea: false,
       dependentChildrenUnlawfullyInNz: [{ dateOfBirth: '2008-10-01' }],
@@ -758,6 +815,9 @@ test('applies child rules to the relevant immigration paths and stages', () => {
     const condition = (id: string) =>
       path.checks.find((c) => c.id === id)?.status;
     expect(condition('NZ-FAMILY-FILING'), path.id).toBe(
+      path.id === 'NZ-CITIZENSHIP' ? undefined : 'NOT_MET',
+    );
+    expect(condition('NZ-RESIDENCE-FILING'), path.id).toBe(
       path.id === 'NZ-CITIZENSHIP' ? undefined : 'NOT_MET',
     );
     if (path.id !== 'NZ-CITIZENSHIP') {
@@ -783,6 +843,9 @@ test('applies child rules to the relevant immigration paths and stages', () => {
     expect(checks.find((c) => c.id === 'NZ-FAMILY-FILING')?.status).toBe(
       stage === 'work' ? undefined : 'NOT_MET',
     );
+    expect(checks.find((c) => c.id === 'NZ-RESIDENCE-FILING')?.status).toBe(
+      stage === 'work' ? undefined : 'NOT_MET',
+    );
     expect(checks.find((c) => c.id === 'NZ-R5-125')?.status).toBe(
       stage === 'work' ? undefined : 'NOT_MET',
     );
@@ -792,6 +855,9 @@ test('applies child rules to the relevant immigration paths and stages', () => {
     'NOT_MET',
   );
   expect(variation.checks.some((c) => c.id === 'NZ-FAMILY-FILING')).toBe(false);
+  expect(variation.checks.some((c) => c.id === 'NZ-RESIDENCE-FILING')).toBe(
+    false,
+  );
   expect(variation.checks.some((c) => c.id === 'NZ-R5-125')).toBe(false);
   const monitoring = paths({
     family: {
@@ -805,4 +871,7 @@ test('applies child rules to the relevant immigration paths and stages', () => {
     false,
   );
   expect(monitoring.checks.some((c) => c.id === 'NZ-R5-125')).toBe(false);
+  expect(monitoring.checks.some((c) => c.id === 'NZ-RESIDENCE-FILING')).toBe(
+    false,
+  );
 });

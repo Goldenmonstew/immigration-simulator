@@ -17,6 +17,9 @@ const common: Request['common'] = {
     police: [{ issued: '2026-11-01' }],
   },
   residenceFiling: {
+    filingFromOverseas: false,
+    currentVisa: 'work',
+    statutoryBar: 'none',
     hasOmittedRelationshipVisaDependant: false,
     atImmigrationControlArea: false,
     dependentChildrenUnlawfullyInNz: [],
@@ -71,6 +74,15 @@ const partner: NonNullable<NzFamilyAnswers['partner']> = {
   sponsorFreeOfDeportationLiabilityAndS4Bar: true,
   sponsorCharacter: 'accepted',
   sponsorPoliceEvidence: true,
+};
+const directPartner: NonNullable<NzFamilyAnswers['partner']> = {
+  ...partner,
+  goal: 'direct-prv',
+  sponsorStatus: 'citizen',
+  monthsTogetherAfterBothAdult: 60,
+  citizenOffshore: false,
+  citizenLastReturn: '2026-08-23',
+  citizenNzMonthsPerYear: [2, 2, 2, 2, 2],
 };
 const sponsor = {
   age: 30,
@@ -155,6 +167,7 @@ const business: NonNullable<
 };
 const religious: NonNullable<NzFamilyAnswers['religious']> = {
   inNz: true,
+  holdsQualifyingWorkVisa: true,
   compliantVisaYears: 3,
   qualifyingTrainingOrWorkYears: 5,
   eligibleSponsorAndLongTermNeed: 'accepted',
@@ -170,6 +183,127 @@ const religious: NonNullable<NzFamilyAnswers['religious']> = {
     atTestCentre: true,
   },
 };
+
+describe('family, investor and religious residence lodgement', () => {
+  const cases: [string, string, NzFamilyAnswers, string?][] = [
+    ['partner', 'NZ-P7', { partner }],
+    ['partner direct permanent residence', 'NZ-P7', { partner: directPartner }],
+    ['parent', 'NZ-P8', { parent }],
+    [
+      'Active Investor Plus',
+      'NZ-P9',
+      { investment: { route: 'active', active: investor } },
+    ],
+    [
+      'Business Investor residence',
+      'NZ-P9',
+      {
+        investment: {
+          route: 'business',
+          business: { ...business, stage: 'residence' },
+        },
+      },
+      'NZ-P9-3',
+    ],
+    ['religious worker', 'NZ-P10', { religious }, 'NZ-P10-1'],
+  ];
+
+  it.each(cases)(
+    '%s compares the same application onshore and offshore',
+    (_name, pathId, family, offshoreFailure) => {
+      const facts = pathId === 'NZ-P7' ? partnerCommon : common;
+      const workVisa = family.religious
+        ? 'religious-work'
+        : family.investment?.route === 'business'
+          ? 'business-investor-work'
+          : 'work';
+      for (const [filingFromOverseas, currentVisa] of [
+        [false, workVisa],
+        [false, 'interim-work-renewal'],
+        [true, 'none'],
+      ] as const) {
+        const path = run(pathId, family, {
+          common: {
+            ...facts,
+            residenceFiling: {
+              ...facts.residenceFiling,
+              filingFromOverseas,
+              currentVisa,
+            },
+          },
+        });
+        const filingStatus =
+          currentVisa === 'interim-work-renewal' ? 'NOT_MET' : 'MET';
+        expectDecision(
+          path,
+          'NZ-RESIDENCE-FILING',
+          filingStatus,
+          filingFromOverseas && offshoreFailure ? 'NOT_MET' : filingStatus,
+        );
+        if (filingFromOverseas && offshoreFailure)
+          expect(
+            path.checks.find((c) => c.id === offshoreFailure)?.status,
+          ).toBe('NOT_MET');
+      }
+    },
+  );
+
+  it.each([
+    [undefined, 'UNKNOWN'],
+    [false, 'NOT_MET'],
+    [true, 'MET'],
+  ] as const)(
+    'checks the required work visa subtype for a generic work visa (%s)',
+    (held, status) => {
+      expectDecision(
+        run('NZ-P10', {
+          religious: { ...religious, holdsQualifyingWorkVisa: held },
+        }),
+        'NZ-P10-1',
+        status,
+      );
+      expectDecision(
+        run('NZ-P9', {
+          investment: {
+            route: 'business',
+            business: {
+              ...business,
+              stage: 'residence',
+              holdsBusinessInvestorWorkVisa: held,
+            },
+          },
+        }),
+        'NZ-P9-3',
+        status,
+      );
+    },
+  );
+
+  it('reads the existing Green List filing facts when evaluating a partnership application', () => {
+    const path = run(
+      'NZ-P7',
+      { partner },
+      {
+        common: {
+          ...partnerCommon,
+          residenceFiling: {
+            ...partnerCommon.residenceFiling,
+            currentVisa: undefined,
+            filingFromOverseas: undefined,
+          },
+        },
+        skilled: {
+          green: {
+            tier: 'straight',
+            filingFromOverseas: false,
+            currentVisa: 'interim-work-renewal',
+          },
+        },
+      },
+    );
+    expectDecision(path, 'NZ-RESIDENCE-FILING', 'NOT_MET');
+  });
+});
 
 describe('non-test English evidence', () => {
   const alternative = { method: 'accepted-alternative' } as const;
@@ -372,24 +506,15 @@ describe('F2 partnership', () => {
     ).toBe('NOT_MET');
   });
   it('checks all five strictly sub-three-month intervals and the onshore return window', () => {
-    const direct = {
-      ...partner,
-      goal: 'direct-prv' as const,
-      sponsorStatus: 'citizen' as const,
-      monthsTogetherAfterBothAdult: 60,
-      citizenOffshore: false,
-      citizenLastReturn: '2026-08-23',
-      citizenNzMonthsPerYear: [2, 2, 2, 2, 2],
-    };
-    expect(run('NZ-P7', { partner: direct }).status).toBe('MET');
+    expect(run('NZ-P7', { partner: directPartner }).status).toBe('MET');
     expect(
       check('NZ-P7-4', {
-        partner: { ...direct, citizenNzMonthsPerYear: [2, 2, 3, 2, 2] },
+        partner: { ...directPartner, citizenNzMonthsPerYear: [2, 2, 3, 2, 2] },
       }).status,
     ).toBe('NOT_MET');
     expect(
       check('NZ-P7-4', {
-        partner: { ...direct, citizenLastReturn: '2026-08-22' },
+        partner: { ...directPartner, citizenLastReturn: '2026-08-22' },
       }).status,
     ).toBe('NOT_MET');
   });
@@ -889,7 +1014,19 @@ describe('RW7 religious workers', () => {
     [true, 'MET'],
   ] as const)('requires the current onshore answer (%s)', (inNz, status) => {
     expectDecision(
-      run('NZ-P10', { religious: { ...religious, inNz } }),
+      run(
+        'NZ-P10',
+        { religious: { ...religious, inNz } },
+        {
+          common: {
+            ...common,
+            residenceFiling: {
+              ...common.residenceFiling,
+              filingFromOverseas: undefined,
+            },
+          },
+        },
+      ),
       'NZ-P10-1',
       status,
     );

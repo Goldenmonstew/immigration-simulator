@@ -15,11 +15,7 @@ import {
   type NzContext,
   type NzDependantAnswers,
 } from './new-zealand-checks';
-import {
-  evaluateNewZealand,
-  type NzResult,
-  type NzPathway,
-} from './new-zealand';
+import { evaluateNewZealandTime, type NzPathway } from './new-zealand';
 import { afterYears } from './pilot';
 
 const time = newZealand2026_11.values;
@@ -39,6 +35,8 @@ interface TravelEvidence {
   firstEntryClass?: 'standard' | 'pacific-quota' | 'aip-child';
   parentFirstEntry?: 'completed' | { deadline: string };
   parentTravelEnd?: string;
+  /** Location when the visa was granted, including grants on a departure day. */
+  grantLocation?: 'onshore' | 'offshore';
   firstResidentEntry?: string | null;
   /** Current location if an open trip has no return date yet. */
   currentlyInNz?: boolean;
@@ -159,20 +157,39 @@ export interface NzResidentAnswers {
 const hasDate = (d: string | undefined, by: string) =>
   d === undefined ? undefined : d <= by;
 
+function inferFirstResidentDay(req: NzContext['time'], t: TravelEvidence) {
+  const granted = req.residentVisa?.granted;
+  if (!granted) return undefined;
+  if (t.grantLocation === 'onshore') return granted;
+  if (req.firstArrival && req.firstArrival > granted) return req.firstArrival;
+  const trip = req.trips?.find(
+    (trip) => trip.departed <= granted && granted < trip.returned,
+  );
+  if (trip) {
+    if (trip.departed < granted || t.grantLocation === 'offshore')
+      return trip.returned;
+    // R5.66.5(b): on the departure day either ordering is possible.
+    if (
+      t.firstResidentEntry === granted ||
+      t.firstResidentEntry === trip.returned
+    )
+      return t.firstResidentEntry;
+    return undefined;
+  }
+  if (t.grantLocation === 'offshore')
+    return req.firstArrival === granted ||
+      req.trips?.some((trip) => trip.returned === granted)
+      ? granted
+      : undefined;
+  return req.firstArrival && req.trips ? granted : undefined;
+}
+
 function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
   const req = ctx.time;
   const t = a.travel ?? {};
   const granted = req.residentVisa?.granted;
   const trips = req.trips;
-  const abroadAtGrant =
-    granted &&
-    trips?.find((trip) => trip.departed < granted && granted < trip.returned);
-  const inferredFirst =
-    granted &&
-    req.firstArrival &&
-    (req.firstArrival > granted
-      ? req.firstArrival
-      : trips && (abroadAtGrant ? abroadAtGrant.returned : granted));
+  const inferredFirst = inferFirstResidentDay(req, t);
   const first =
     t.firstResidentEntry === null
       ? undefined
@@ -221,6 +238,7 @@ function residentRecord(ctx: NzContext, a: NzResidentAnswers) {
   );
   // A completed-trip list alone cannot tell us whether the person has left again.
   const onshore =
+    not(ctx.answers.residenceFiling?.filingFromOverseas) ??
     t.currentlyInNz ??
     (tripOnDate
       ? tripOnDate.departed === ctx.date || tripOnDate.returned === ctx.date
@@ -447,8 +465,9 @@ function travelPath(
         ? undefined
         : (initialEntry?.met ?? r.entered),
       ref('SRC-072', 'R5.66(c), R5.66.1, R5.66.5(b)–(c); RV1.5(d)'),
-      `核对首次居民入境日${r.first ?? '（未填写）'}与境外获批首入期限${r.deadline ?? '（见签证或父母条件）'}。再次申请须曾以居民身份入境。`,
-      `Check first resident entry ${r.first ?? '(not supplied)'} against the offshore entry deadline ${r.deadline ?? '(see the visa or parent’s conditions)'}. A further application requires prior resident entry.`,
+      `核对首次居民入境日${r.first ?? '（待确认）'}与境外获批首入期限${r.deadline ?? '（见签证或父母条件）'}。若获签与离境同日，须确认获签时的所在地或实际首入日。再次申请须曾以居民身份入境。`,
+      `Check first resident entry ${r.first ?? '(unconfirmed)'} against the offshore entry deadline ${r.deadline ?? '(see the visa or parent’s conditions)'}. For a grant on a departure day, confirm the location at grant or actual first resident entry. A further application requires prior resident entry.`,
+      'PD-222',
     ),
   );
   if (initial) {
@@ -705,9 +724,7 @@ function travelPath(
       : p.residentFeeReference.value.subsequent;
   checks.push(
     ...residentFilingChecks(ctx),
-    ...(action === 'subsequent'
-      ? [ctx.residenceFamilyFiling('subsequent')]
-      : []),
+    ...(action === 'subsequent' ? ctx.residenceFilingChecks('subsequent') : []),
     ctx.check(
       'NZ-P1-FEE',
       '旅行申请费用',
@@ -879,7 +896,7 @@ function prvPath(
       '原申请身份与首次居民入境',
       'Original application role and first resident entry',
       all(r.entered, roleEligible),
-      ref('SRC-072', 'RV1.5(d), RV1.20(b), RV1.20.1–.20'),
+      ref('SRC-072', 'RV1.5(d), RV1.20(b), RV1.20.1–.20; R5.66.5(b)'),
       '随同者通常随原主申获永居，无需自行满足在境天数。离异、保护令、主申定罪、死亡或入籍时，核对独立评估或子女的监护及居住证明。',
       'Linked applicants normally qualify through their original principal. For separation, protection orders, convictions, death or citizenship, verify independent assessment or the child’s custody and household.',
       'PD-222',
@@ -1028,10 +1045,14 @@ function prvPath(
 }
 
 function assessPrv(ctx: NzContext, answers: NzResidentAnswers) {
-  const old =
-    ctx.history &&
-    evaluateNewZealand(ctx.history).pathways.find((p) => p.id === 'NZ-PRV');
-  return prvPath(ctx, answers, residentRecord(ctx, answers), old);
+  const record = residentRecord(ctx, answers);
+  const projection = standardProjection(ctx, record);
+  return prvPath(
+    ctx,
+    answers,
+    record,
+    projection?.pathways.find((p) => p.id === 'NZ-PRV'),
+  );
 }
 
 function includedPrv(ctx: NzContext, member: NzDependantAnswers, date: string) {
@@ -1068,7 +1089,7 @@ function jointPrvPath(
   const members = (ctx.answers.dependants ?? []).filter(
     (person) => person.relation === 'partner' || person.relation === 'child',
   );
-  const filing = ctx.residenceFamilyFiling('permanent');
+  const filing = ctx.residenceFilingChecks('permanent');
 
   const individual = members.map((member) =>
     includedPrv(ctx, member, ctx.date),
@@ -1109,17 +1130,18 @@ function jointPrvPath(
     principal.id,
     '永久居民签证',
     'Permanent Resident Visa',
-    [...principal.checks, filing, ...memberChecks],
+    [...principal.checks, ...filing, ...memberChecks],
     ['NZ-P2-7'],
   );
   const results = [principal, ...individual];
   if (
-    filing.status === 'NOT_MET' ||
+    filing.some((condition) => condition.status === 'NOT_MET') ||
     results.some((result) => result?.status === 'NOT_MET')
   )
     return joint;
   const allDatesKnown =
-    filing.status === 'MET' && results.every((result) => result?.earliestDate);
+    filing.every((condition) => condition.status === 'MET') &&
+    results.every((result) => result?.earliestDate);
   const date = results.reduce(
     (latest, result) =>
       result?.earliestDate && result.earliestDate > latest
@@ -1545,12 +1567,18 @@ function citizenshipPath(
   };
 }
 
+function standardProjection(ctx: NzContext, record: ResidentRecord) {
+  return ctx.history && record.standardTimeline && record.first
+    ? evaluateNewZealandTime(ctx.history, record.first)
+    : undefined;
+}
+
 export function residentPathways(
   ctx: NzContext,
   answers: NzResidentAnswers,
-  pilot?: NzResult,
 ): CountryPathway[] {
   const record = residentRecord(ctx, answers);
+  const pilot = standardProjection(ctx, record);
   const find = (id: NzPathway['id']) =>
     pilot?.pathways.find((item) => item.id === id);
   const permanent = prvPath(ctx, answers, record, find('NZ-PRV'));

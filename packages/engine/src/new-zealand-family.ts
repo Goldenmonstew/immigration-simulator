@@ -166,6 +166,8 @@ interface BusinessAnswers {
 }
 interface ReligiousAnswers {
   inNz?: boolean;
+  /** When only a generic work visa was reported, confirm that it qualifies under RW7.5. */
+  holdsQualifyingWorkVisa?: boolean;
   compliantVisaYears?: number;
   qualifyingTrainingOrWorkYears?: number;
   eligibleSponsorAndLongTermNeed?: Assessment;
@@ -908,6 +910,17 @@ function businessExperience(segments: BusinessAnswers['experience']) {
   return years >= business.experienceYears;
 }
 
+function holdsSpecificWorkVisa(
+  ctx: NzContext,
+  required: 'business-investor-work' | 'religious-work',
+  confirmed?: boolean,
+) {
+  const visa = ctx.answers.residenceFiling?.currentVisa;
+  return visa === undefined || visa === 'work' || visa === 'other'
+    ? confirmed
+    : visa === required;
+}
+
 function businessChecks(ctx: NzContext, a: BusinessAnswers): CountryCheck[] {
   const c = ctx.check;
   const ref = (loc: string) => source('SRC-245', loc);
@@ -966,7 +979,11 @@ function businessChecks(ctx: NzContext, a: BusinessAnswers): CountryCheck[] {
       '经营年限与双轨收购额',
       'Operating term and qualifying purchase',
       all(
-        a.holdsBusinessInvestorWorkVisa,
+        holdsSpecificWorkVisa(
+          ctx,
+          'business-investor-work',
+          a.holdsBusinessInvestorWorkVisa,
+        ),
         a.retainedOwnershipAndSameApprovedBusiness,
         any(standard, fast),
       ),
@@ -1026,7 +1043,9 @@ function investmentPath(
         (a.route === 'active' &&
           !(
             a.active?.goal === 'investment-conditions' &&
-            (c.id === 'NZ-R5-125' || c.id === 'NZ-FAMILY-FILING')
+            (c.id === 'NZ-R5-125' ||
+              c.id === 'NZ-FAMILY-FILING' ||
+              c.id === 'NZ-RESIDENCE-FILING')
           )) ||
         (a.route === 'business' && stage === 'residence') ||
         c.id === 'NZ-C1' ||
@@ -1132,14 +1151,15 @@ function religiousPath(ctx: NzContext, a: ReligiousAnswers): CountryPathway {
       '境内申请、年龄与宗教经验',
       'Onshore application, age and religious experience',
       all(
-        a.inNz,
+        not(ctx.answers.residenceFiling?.filingFromOverseas),
+        holdsSpecificWorkVisa(ctx, 'religious-work', a.holdsQualifyingWorkVisa),
         atMost(ctx.age, religious.maxAge),
         atLeast(a.compliantVisaYears, religious.visaYears),
         atLeast(a.qualifyingTrainingOrWorkYears, religious.experienceYears),
       ),
-      ref('RW7.5(a),(d),(f) and Note'),
-      `须在新西兰递交，年龄不超过 ${religious.maxAge} 岁，合规持宗教工签满 ${religious.visaYears} 年，宗教培训或工作经验满 ${religious.experienceYears} 年。`,
-      `Apply in New Zealand at age ${religious.maxAge} or younger with ${religious.visaYears} compliant visa years and ${religious.experienceYears} years of qualifying religious training or work.`,
+      ref('RW7.5 opening paragraph, (a),(d),(f) and Note'),
+      `须在新西兰持适用的宗教类工签递交，年龄不超过 ${religious.maxAge} 岁，合规持签满 ${religious.visaYears} 年，宗教培训或工作经验满 ${religious.experienceYears} 年。`,
+      `Apply in New Zealand holding a qualifying religious work visa, at age ${religious.maxAge} or younger, with ${religious.visaYears} compliant visa years and ${religious.experienceYears} years of qualifying religious training or work.`,
       'PD-229',
     ),
     c(

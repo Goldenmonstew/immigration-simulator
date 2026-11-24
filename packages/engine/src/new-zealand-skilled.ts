@@ -7,6 +7,7 @@ import {
   atLeast,
   atMost,
   type NzContext,
+  type NzFilingVisa,
 } from './new-zealand-checks';
 
 type SmcRoute = 'points' | 'experience' | 'trades';
@@ -19,8 +20,6 @@ type Visa =
   | 'WI21'
   | 'WI22'
   | 'other';
-type CurrentVisa =
-  Visa | 'other-eligible-temporary-or-resident' | 'limited' | 'transit';
 
 interface Employment {
   occupationCode?: string;
@@ -131,7 +130,8 @@ interface WorkPeriod extends WageLock {
 }
 
 interface WorkResidenceAnswers extends WageLock {
-  currentVisa?: CurrentVisa;
+  /** Older requests supplied the filing visa here. New requests use common.residenceFiling. */
+  currentVisa?: NzFilingVisa;
   periods?: WorkPeriod[];
   distinctMonthsAndEarningsVerified?: boolean;
   maintainedRemovedOccupation?: boolean;
@@ -144,7 +144,7 @@ export interface NzSkilledAnswers {
   smc?: SmcAnswers;
   green?: WorkResidenceAnswers & {
     tier?: 'straight' | 'work';
-    /** Where the applicant will lodge their Straight to Residence application. */
+    /** Older filing location, used when common.residenceFiling omits it. */
     filingFromOverseas?: boolean;
     rowRequirementsVerified?: boolean;
     telecomLevelThreeCertificate?: boolean;
@@ -620,21 +620,17 @@ function smcPath(ctx: NzContext, input: NzSkilledAnswers) {
   );
 }
 
-const visaAllowsLodgement = (visa?: CurrentVisa) =>
+const holdsWorkRouteVisa = (visa?: NzFilingVisa) =>
   visa === undefined
     ? undefined
-    : ['work', 'critical-purpose-work', 'WI21', 'WI22'].includes(visa);
-
-function straightToResidenceVisa(
-  visa?: CurrentVisa,
-  filingFromOverseas?: boolean,
-) {
-  if (visa === undefined || visa === 'other')
-    return filingFromOverseas ? true : undefined;
-  return (
-    visa === 'other-eligible-temporary-or-resident' || visaAllowsLodgement(visa)
-  );
-}
+    : [
+        'work',
+        'business-investor-work',
+        'religious-work',
+        'critical-purpose-work',
+        'WI21',
+        'WI22',
+      ].includes(visa);
 
 function roadTransition(t: TransportHistory = {}) {
   const timely = (d?: string) =>
@@ -829,25 +825,18 @@ function greenPath(ctx: NzContext, input: NzSkilledAnswers) {
     ...ctx.common('skilled'),
     ageCheck(ctx, 'NZ-P5-1-AGE', greenRef('SR4.5(b)(ii), SR5.5(b)(v)')),
   ];
-  const visa =
-    tier === 'straight'
-      ? straightToResidenceVisa(g.currentVisa, g.filingFromOverseas)
-      : tier === 'work'
-        ? visaAllowsLodgement(g.currentVisa)
-        : undefined;
   checks.push(
     ctx.check(
       'NZ-P5-1',
       '层级与申请时签证',
       'Tier and visa at lodgement',
-      visa,
-      [
-        ...greenRef('SR4.5(b)–(c), SR5.5(b)(i)'),
-        ...ref('SRC-071', 's71(1)(a)–(b), (4)–(5)'),
-        ...ref('SRC-230', 'RA5(a)–(b)'),
-      ],
-      '直通居留使用指定在线表格。可从境外申请，境内须持符合递交资格的临时签证或居民签证。持 Interim、Limited 或 Transit Visa 时无法递交普通居民签申请。工签转居留在递交时须持有效工签或有工作条件的关键目的访客签。',
-      'Use the approved online form for Straight to Residence. Apply from offshore or with an eligible temporary or resident visa onshore. Holders of interim, limited or transit visas cannot lodge an ordinary residence application. Work to Residence requires a work visa or a critical purpose visitor visa with work conditions at lodgement.',
+      tier === undefined
+        ? undefined
+        : tier === 'straight' ||
+            holdsWorkRouteVisa(ctx.answers.residenceFiling?.currentVisa),
+      greenRef('SR4.5(b)–(c), SR5.5(b)(i)'),
+      '选择绿名单层级。Tier 1 使用指定在线表格。Tier 2 递交时还须持有效工签或带工作条件的关键目的访客签。',
+      'Select the Green List tier. Tier 1 uses the approved online form. Tier 2 also requires a work visa or a critical purpose visitor visa with work conditions at lodgement.',
     ),
   );
   if (tier === 'straight') {
@@ -966,7 +955,10 @@ function sectorPath(ctx: NzContext, input: NzSkilledAnswers) {
       'NZ-P6-VISA',
       '所选行业与申请时签证',
       'Sector and visa at lodgement',
-      all(s.category ? true : undefined, visaAllowsLodgement(s.currentVisa)),
+      all(
+        s.category ? true : undefined,
+        holdsWorkRouteVisa(ctx.answers.residenceFiling?.currentVisa),
+      ),
       sectorRef('SR6.5(b)(i), SR7.5(b)(i)'),
       '须指明申请行业，递交当天持有效工签或带工作条件的关键目的访客签。',
       'Select the sector and hold a work visa or critical purpose visitor visa with work conditions at lodgement.',

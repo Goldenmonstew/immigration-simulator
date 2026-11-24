@@ -215,3 +215,37 @@ P2 核对了首入、旅行条件截止日、当前所在地及失效日的显�
 ### 4. 发现与建议
 
 问卷接入 P5 时可用 `skilled.green.filingFromOverseas` 确认是否从境外递交，用 `currentVisa` 记录递交当天的签证。PD-220 记录了资料不足时的判断，PD-234 记录了到埠居民签例外的适用范围。
+
+## 第五轮审核修正（review84-5）
+
+### 1. 做了什么
+
+PROGRESS 第 537 项。建议提交 `Fix: 统一新西兰居民签证递交检查并修正离境日获签的首入日期（review84-5）`。
+
+`NZ-RESIDENCE-FILING` 在普通居民申请、RV2 永居和 RV4 再次居民签递交时，逐人核对所在地、当前签证和法定限制。普通递交受 SRC-071 s71(1)、(3A)–(5) 及 SRC-230 RA5(a)–(b) 约束。RV4 在管制区递交另核免签和单人申请资格（SRC-230 R2.40.2）。漏答足以改变结论的事实时，该条件为 UNKNOWN，并指向 PD-220。邀请制类别继续核对本类别的邀请及有效期。
+
+同一类别的三组回归只改变递交日地点和签证。下表为整条路径的结果，模拟日为 2026-11-23，其他必要资料均已达标。MET 的最早日期为模拟日，NOT_MET 的日期留空。
+
+| 居民申请 | 境内持有效工签 | 境内持续签期间的 Interim Visa | 境外为定居递交、无新西兰签证 | 类别依据 |
+|---|---|---|---|---|
+| SMC、绿名单 Tier 1、伴侣居留及伴侣直获永居、父母、Active Investor Plus 居民签 | MET | NOT_MET | MET | SRC-236 SR3、SRC-237 SR4、SRC-242 F2、SRC-243 F4、SRC-244 BN |
+| 绿名单 Tier 2、护理及运输行业转居留 | MET | NOT_MET | NOT_MET | SRC-237 SR5.5(b)(i)、SRC-238 SR6.5(b)(i) 和 SR7.5(b)(i) 要求递交日持合资格工签或带工作条件的关键目的访客签 |
+| Business Investor 居民签、宗教工作者居留 | MET，持对应类别工签 | NOT_MET | NOT_MET | SRC-245 BI2.1(a)(i) 核对 Business Investor 工签。SRC-246 RW7.5 开头、(a) 与 Note 核对适用宗教工签及境内递交 |
+| RV2、RV4，以已达标的前居民身份普通递交 | MET | NOT_MET | MET | SRC-072 RV2.5(a)(ii)、SRC-230 RV4.1–5 |
+
+首入日按 SRC-072 R5.66.5(b)(i)–(ii)、RV2.5(a)–(b) 计算。审核用例中的子女于 2025-11-01 先离境再获签，2025-12-01 首次凭居民签返新。确认在境外获签后从行程推导，或直接填写实际首入日，单独与同表申请均预测为 FUTURE / 2027-12-01，届日同表重算为 MET。若同日先在境内获签再离境，则预测为 2027-11-01。缺少事件先后和准确首入日时，首入条件为 UNKNOWN，同表无预测日期（PD-222）。
+
+### 2. 怎么验证的
+
+- 对 SMC 和伴侣复跑审核中的旧输入。仅在 `skilled.green` 填写境内 Interim Visa，也会使这两条路径返回 NOT_MET 且无日期。
+- 设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整链退出码 0。全仓 5,494 项通过（引擎 3,461、游戏 1,348、网页 660、policy-data 23、error-report 2），1 项既有测试跳过。构建生成 27/27 个静态页面，`test -s apps/web/out/new-zealand.html` 通过。
+- 回归覆盖上述各类别的三组对照、同表主申与子女分别受限、普通工签与专属工签、第 150 条、第 75A 条、驱逐责任、管制区免签资料不足。旅行条件变更、入籍、BI 前置工签及 AIP 获批后投资核查均有适用范围断言。
+- 从 `git show 0ec5bb1:packages/engine/src/new-zealand.ts` 读取基线实现，与工作树的旧入口并排运行。境内获签、离境日获签、行程中途获签、境外获签后逾期首入及已持永居五组输入各用中英文计算，10 份完整返回值均通过 `deepStrictEqual`。其中离境日获签仍返回 FUTURE / 2027-11-01。原有时间测试文件与网页入口均与基线一致。
+
+### 3. 没做或没验证的
+
+按要求保留未提交的工作树。本轮修改规则引擎，网页继续使用原时间入口。
+
+### 4. 发现与建议
+
+问卷接入完整版时，在 `common.residenceFiling` 填主申的 `filingFromOverseas`、`currentVisa`、`statutoryBar`，随行人使用本人的 `residenceFiling`。同日获签与离境可填写 `travel.grantLocation` 或实际 `firstResidentEntry`。同表永居使用各自的居民签及行程记录。

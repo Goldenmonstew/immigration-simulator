@@ -90,6 +90,7 @@ interface NzEvidence {
 /** One person's facts. Give each included family member a separate record. */
 export interface NzPersonAnswers {
   dateOfBirth?: IsoDate;
+  residenceFiling?: ApplicantFiling;
   identityDocuments?: boolean;
   health?:
     | 'clear'
@@ -151,13 +152,44 @@ export interface NzDependantAnswers extends NzPersonAnswers {
 
 type ResidenceFiling = 'first' | 'permanent' | 'subsequent';
 
+export type NzFilingVisa =
+  | 'work'
+  | 'critical-purpose-work'
+  | 'business-investor-work'
+  | 'religious-work'
+  | 'WI21'
+  | 'WI22'
+  | 'interim'
+  | 'interim-work-renewal'
+  | 'other-interim-work'
+  | 'limited'
+  | 'transit'
+  | 'other-eligible-temporary-or-resident'
+  | 'other'
+  | 'none';
+
 type InclusionCategory = 'partner' | 'parent' | 'business-work';
+
+interface ApplicantFiling {
+  /** Offshore lodgement with the intention of settling in New Zealand, s71(1)(a). */
+  filingFromOverseas?: boolean;
+  /** Visa actually held at lodgement. "none" confirms the absence of a visa. */
+  currentVisa?: NzFilingVisa;
+  /** Report a s71(3A) or (4) bar in preference to an onshore-only s150 restriction. */
+  statutoryBar?:
+    | 'none'
+    | 'section-150'
+    | 'section-75A-cancellation'
+    | 'liable-for-deportation';
+}
 
 export interface NzCommonAnswers extends Omit<NzPersonAnswers, 'dateOfBirth'> {
   /** An explicitly empty list confirms there are no accompanying applicants. */
   dependants?: NzDependantAnswers[];
-  residenceFiling?: {
+  residenceFiling?: ApplicantFiling & {
     atImmigrationControlArea?: boolean;
+    /** Applicable visa waiver for a former resident lodging on arrival, s71(1)(c). */
+    visaWaiverAtControlArea?: boolean;
     /** Eligibility for separate Australian residence on arrival (R5.30.1), outside the modelled first residence categories. */
     eligibleForFirstResidenceAtControlArea?: boolean;
     /** Any omitted partner or dependent child holding or applying for temporary entry on the basis of their relationship to the principal. */
@@ -215,7 +247,7 @@ export interface NzContext {
   identityDocumentsComplete?: boolean;
   testSpecificallyRequested?: boolean;
   dependantEligibility(category?: InclusionCategory): CountryCheck;
-  residenceFamilyFiling(kind: ResidenceFiling): CountryCheck;
+  residenceFilingChecks(kind: ResidenceFiling): CountryCheck[];
   partnerCommon(otherRequirements: CountryCheck[]): CountryCheck[];
   character(): CountryCheck;
 }
@@ -658,6 +690,59 @@ export function createNzContext(
 
   const filing = answers.residenceFiling;
 
+  function eligibleToLodge(facts?: ApplicantFiling, atBorder?: Answer): Answer {
+    const visa = facts?.currentVisa;
+    const bar = facts?.statutoryBar;
+    const barredVisa =
+      visa === 'interim' ||
+      visa === 'interim-work-renewal' ||
+      visa === 'other-interim-work' ||
+      visa === 'limited' ||
+      visa === 'transit';
+    const onshoreVisa =
+      visa === undefined || visa === 'other'
+        ? undefined
+        : visa !== 'none' && !barredVisa;
+    const locationEligible = filing?.atImmigrationControlArea
+      ? atBorder
+      : any(facts?.filingFromOverseas, all(onshoreVisa, bar !== 'section-150'));
+    return all(
+      visa === 'other' ? undefined : !barredVisa,
+      bar === undefined ? undefined : bar === 'none' || bar === 'section-150',
+      locationEligible,
+    );
+  }
+
+  function residenceFilingChecks(kind: ResidenceFiling): CountryCheck[] {
+    const applicants = answers.dependants?.map((person) =>
+      all(
+        person.prvApplication?.prv?.deportationLiability !== 'liable',
+        eligibleToLodge(person.residenceFiling, false),
+      ),
+    );
+    return [
+      check(
+        'NZ-RESIDENCE-FILING',
+        '递交日的居民类签证申请资格',
+        'Eligibility to lodge a residence class application',
+        all(
+          eligibleToLodge(
+            filing,
+            kind === 'subsequent' && filing?.visaWaiverAtControlArea,
+          ),
+          applicants && all(...applicants),
+        ),
+        [
+          { srcId: 'SRC-071', locator: 's71(1)(a)–(c), (3A), (4)–(5)' },
+          { srcId: 'SRC-230', locator: 'RA5(a)–(b); R2.40.2(a)–(b)' },
+        ],
+        '逐人核对递交资格。境外可为赴新定居递交。境内须持合资格临时签证或居民签证，并确认不受第 150 条限制。管制区另核免签及递交资格。持 Interim、Limited 或 Transit Visa、负有驱逐责任，或曾按第 75A 条被取消居民签证，均不能普通递交。',
+        'Check each applicant. Applicants overseas may apply to settle in New Zealand. Onshore applicants need an eligible temporary or resident visa and must be free of section 150 restrictions. Border lodgement requires an applicable visa waiver and filing procedure. An interim, limited or transit visa, deportation liability or cancellation under section 75A bars ordinary lodgement.',
+      ),
+      residenceFamilyFiling(kind),
+    ];
+  }
+
   function residenceFamilyFiling(kind: ResidenceFiling): CountryCheck {
     if (filing?.atImmigrationControlArea)
       return check(
@@ -705,7 +790,7 @@ export function createNzContext(
         '确认每人的身份证件、照片、规定表格及声明齐备，并确认应缴费已付或已按认可方式安排付款。',
         'Confirm identity documents, photos, required forms and declarations for everyone included, and confirm payment or an accepted arrangement for fees due.',
       ),
-      residenceFamilyFiling('first'),
+      ...residenceFilingChecks('first'),
       dependantEligibility(
         category === 'partner' || category === 'parent' ? category : undefined,
       ),
@@ -886,7 +971,7 @@ export function createNzContext(
     identityDocumentsComplete,
     testSpecificallyRequested: answers.testSpecificallyRequested,
     dependantEligibility,
-    residenceFamilyFiling,
+    residenceFilingChecks,
     partnerCommon: (otherRequirements) =>
       common('partner', undefined, otherRequirements),
     answers,
