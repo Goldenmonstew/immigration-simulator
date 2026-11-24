@@ -9,6 +9,7 @@ import { canadaFull2026_11 } from './canada-2026-11';
 import { currentLaw2026_11 } from './current-law-2026-11';
 import { earnedSettlement2026_11 } from './earned-settlement-2026-11';
 import { germanyFull2026_11 } from './germany-2026-11';
+import { greeceFull2026_11 } from './greece-2026-11';
 import { newZealandFull2026_11 } from './new-zealand-2026-11';
 import { spainFull2026_11 } from './spain-2026-11';
 
@@ -19,6 +20,7 @@ export const PARAMETERS_BY_COUNTRY = {
   es: { [spainFull2026_11.ruleSetId]: spainFull2026_11 },
   ca: { [canadaFull2026_11.ruleSetId]: canadaFull2026_11 },
   nz: { [newZealandFull2026_11.ruleSetId]: newZealandFull2026_11 },
+  gr: { [greeceFull2026_11.ruleSetId]: greeceFull2026_11 },
   uk: {
     [currentLaw2026_11.ruleSetId]: currentLaw2026_11,
     [earnedSettlement2026_11.ruleSetId]: earnedSettlement2026_11,
