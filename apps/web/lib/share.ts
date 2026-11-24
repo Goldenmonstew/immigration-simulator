@@ -1,4 +1,8 @@
-import type { CountryDraft, CountryModule } from './country-module';
+import type {
+  CountryDraft,
+  CountryModule,
+  DraftReadMode,
+} from './country-module';
 
 type ShareModule<D extends CountryDraft> = Pick<
   CountryModule<D, never>,
@@ -27,7 +31,7 @@ export function encodeDraft<D extends CountryDraft>(
 export function decodeDraft<D extends CountryDraft>(
   country: ShareModule<D>,
   encoded: string,
-  forResult = false,
+  mode: DraftReadMode = false,
 ): D | undefined {
   try {
     if (!/^[A-Za-z0-9_-]+$/.test(encoded)) return undefined;
@@ -42,7 +46,7 @@ export function decodeDraft<D extends CountryDraft>(
     if ('country' in value || 'v' in value) {
       if (value.country !== country.id || value.v !== country.version)
         return undefined;
-      const draft = country.decodeDraft(value.draft, forResult);
+      const draft = country.decodeDraft(value.draft, mode);
       return draft && (country.activeAnswers?.(draft) ?? draft);
     }
     // Before country envelopes, only UK questionnaires produced share links.

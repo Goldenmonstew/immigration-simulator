@@ -1,6 +1,5 @@
 import {
   sameJapanTrip,
-  shareJapanTripAnswers,
   type JpFullReentryRequest,
 } from '@uk-immigration/engine';
 import { JapanWhatIfControls } from '../app/japan/whatif/controls';
@@ -101,10 +100,9 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     );
     const pr = compared.permanentResidence;
     const nat = compared.naturalisation;
-    const travel = shareJapanTripAnswers(compared.trips, compared.reentry);
     return activeJapanAnswers({
       ...compared,
-      trips: knobs.noTrips ? [] : travel.trips,
+      trips: knobs.noTrips ? [] : compared.trips,
       permanentResidence: {
         ...pr,
         evidence: {
@@ -130,7 +128,7 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
           requiredInterviewAndAssessmentComplete: knobs.interview,
         },
       },
-      reentry: travel.reentry.map((item) => {
+      reentry: compared.reentry.map((item) => {
         const returnOn = knobs.returns[item.route] || undefined;
         if (item.returnOn === returnOn) return item;
         const baseline = compared.trips.find((trip) =>

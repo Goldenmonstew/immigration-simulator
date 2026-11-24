@@ -18,6 +18,52 @@ import {
 } from '../lib/storage';
 import styles from '../app/site.module.css';
 
+interface ResultPageState<D> {
+  draft?: D;
+  result?: CountryResult;
+  correction?: string;
+  shared?: boolean;
+  mock?: boolean;
+}
+
+export function readPageResult<D extends CountryDraft, K>(
+  country: CountryModule<D, K>,
+  locale: Locale,
+  source: D | string | null = null,
+): ResultPageState<D> {
+  const shared = typeof source === 'string';
+  function assess(draft?: D): ResultPageState<D> {
+    if (!draft) return {};
+    if (!draft.completed) {
+      if (country.incompleteResultMessage) {
+        return {
+          draft: shared ? undefined : draft,
+          correction: country.incompleteResultMessage(draft, locale),
+        };
+      }
+      // Older UK comparison links can carry an otherwise complete draft.
+      if (!shared || !country.decodeDraft({ ...draft, completed: true }))
+        return {};
+    }
+    const result =
+      (!shared && getRememberedResult(country, draft, locale)) ||
+      country.run(draft, locale);
+    if (shared) {
+      draftStorage(country, draft);
+      rememberResult(country, draft, result, locale);
+    }
+    return { draft, result, shared };
+  }
+
+  if (!shared) return assess(source ?? draftStorage(country).draft);
+  try {
+    return assess(decodeDraft(country, source, 'show-correction'));
+  } catch {
+    // A malformed external scenario must not replace the saved draft.
+    return {};
+  }
+}
+
 export function ResultPage<D extends CountryDraft, K>({
   country,
   preview,
@@ -27,66 +73,32 @@ export function ResultPage<D extends CountryDraft, K>({
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
-  const [result, setResult] = useState<CountryResult>();
-  const [draft, setDraft] = useState<D>();
-  const [shared, setShared] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [mock, setMock] = useState(false);
+  const [page, setPage] = useState<ResultPageState<D>>();
   useEffect(() => {
     const load = () => {
-      setResult(undefined);
-      setDraft(undefined);
-      setShared(false);
-      setMock(false);
-      const hash = new URLSearchParams(window.location.hash.slice(1));
+      const encoded = new URLSearchParams(window.location.hash.slice(1)).get(
+        's',
+      );
       const previewId = new URLSearchParams(window.location.search).get('mock');
-      if (hash.has('s')) {
-        const incoming = decodeDraft(country, hash.get('s')!, true);
-        try {
-          if (
-            incoming &&
-            (incoming.completed ||
-              country.decodeDraft({ ...incoming, completed: true }))
-          ) {
-            const nextResult = country.run(incoming, locale);
-            draftStorage(country, incoming);
-            rememberResult(country, incoming, nextResult, locale);
-            setDraft(incoming);
-            setResult(nextResult);
-            setShared(true);
-          }
-        } catch {
-          // A malformed external scenario must not replace the saved draft.
-        }
-      } else {
-        const example = previewId && preview?.(previewId, locale);
-        if (example) {
-          setResult(example);
-          setMock(true);
-          setReady(true);
-          return;
-        }
-        const { draft } = draftStorage(country);
-        if (draft?.completed) {
-          setDraft(draft);
-          setResult(
-            getRememberedResult(country, draft, locale) ??
-              country.run(draft, locale),
-          );
-        }
-      }
-      setReady(true);
+      const example =
+        encoded === null && previewId && preview?.(previewId, locale);
+      setPage(
+        example
+          ? { result: example, mock: true }
+          : readPageResult(country, locale, encoded),
+      );
     };
     load();
     window.addEventListener('hashchange', load);
     return () => window.removeEventListener('hashchange', load);
   }, [country, locale, preview]);
 
+  const { draft, result, shared, mock, correction } = page ?? {};
   const principalResult = draft && country.principal?.(draft, locale);
 
   return (
     <main id="main" className={styles.main}>
-      {!ready ? (
+      {!page ? (
         <p role="status">{t('result.loading')}</p>
       ) : result ? (
         <>
@@ -164,25 +176,20 @@ export function ResultPage<D extends CountryDraft, K>({
       ) : (
         <div className={styles.narrow}>
           <h1>{t('result.title')}</h1>
-          <p>{t('result.empty')}</p>
+          <p>{correction ?? t('result.empty')}</p>
           <Link
             className={styles.button}
             href={countryPath(country.id, 'simulate')}
           >
-            {t('home.start')}
+            {t(correction && draft ? 'result.edit' : 'home.start')}
           </Link>
         </div>
       )}
-      {ready && (
+      {page && (
         <SavedScenarios
           country={country}
           draft={draft}
-          onLoad={(next) => {
-            setDraft(next);
-            setResult(country.run(next, locale));
-            setShared(false);
-            setMock(false);
-          }}
+          onLoad={(next) => setPage(readPageResult(country, locale, next))}
         />
       )}
       {result && (

@@ -21,6 +21,7 @@ export function updateAnswer<T extends object>(
 interface FieldsProps {
   fields: JapanField[];
   values: object;
+  displayValues?: object;
   prefix: string;
   errors: Record<string, TranslationKey>;
   change: (
@@ -39,13 +40,15 @@ export function EvidenceFields(props: FieldsProps) {
 function Question({
   field,
   values,
+  displayValues = values,
   prefix,
   errors,
   change,
 }: FieldsProps & { field: JapanField }) {
   const { t } = useTranslation();
   const id = prefix + '-' + field.name;
-  const answers = values as Record<string, unknown>;
+  const answers = displayValues as Record<string, unknown>;
+  const entered = (values as Record<string, unknown>)[field.name];
   const value = answers[field.name];
   if (field.name === 'reentryPermit' && answers.departure !== 'permit')
     return null;
@@ -64,12 +67,14 @@ function Question({
   const nested = (
     definitions: JapanField[],
     record: object,
+    display: object,
     key: string,
     replace: (next: object, name: string) => void,
   ) => (
     <EvidenceFields
       fields={definitions}
       values={record}
+      displayValues={display}
       prefix={key}
       errors={errors}
       change={(name, answer) => {
@@ -93,7 +98,7 @@ function Question({
     />
   );
   if (field.type === 'group') {
-    const record = (value ?? {}) as object;
+    const record = (entered ?? {}) as object;
     // Status-specific evidence is relevant only for the Business Manager category.
     if (field.name === 'businessManager' && answers.kind !== 'businessManager')
       return null;
@@ -103,14 +108,15 @@ function Question({
         {field.fields.some((child) => child.required) && (
           <p className={form.hint}>{t('jp.form.optionalGroup')}</p>
         )}
-        {nested(field.fields, record, id, (next) =>
+        {nested(field.fields, record, (value ?? {}) as object, id, (next) =>
           set(Object.keys(next).length ? next : undefined),
         )}
       </fieldset>
     );
   }
   if (field.type === 'list') {
-    const rows = (value ?? []) as object[];
+    const rows = (entered ?? []) as object[];
+    const displayRows = (value ?? []) as object[];
     const requiredList = field.name === 'trips';
     const supportsUnknown = !requiredList && field.name !== 'excluded';
     return (
@@ -121,12 +127,17 @@ function Question({
             <legend>
               {label} {i + 1}
             </legend>
-            {nested(field.fields, row, id + '-' + i, (next, name) =>
-              change(
-                field.name,
-                rows.map((old, index) => (index === i ? next : old)),
-                { index: i, field: name },
-              ),
+            {nested(
+              field.fields,
+              row,
+              displayRows[i],
+              id + '-' + i,
+              (next, name) =>
+                change(
+                  field.name,
+                  rows.map((old, index) => (index === i ? next : old)),
+                  { index: i, field: name },
+                ),
             )}
             <button
               type="button"

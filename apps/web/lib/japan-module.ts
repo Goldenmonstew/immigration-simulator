@@ -34,21 +34,23 @@ function formatCheckAmounts(
   );
 }
 
-function run(draft: JapanDraft, locale: Locale) {
-  const confirmed = clearUnconfirmedJapanDeclaration(activeJapanAnswers(draft));
-  const invalid = invalidJapanFactStep(confirmed);
+function factCorrection(draft: JapanDraft, locale: Locale) {
+  const invalid = invalidJapanFactStep(draft);
   if (invalid)
     return {
-      policyAsOf: japanFull2026_11.asOf,
-      columns: [],
-      shortCircuit: {
-        reason: invalid.reason,
-        message: t(invalid.message, locale).replace(
-          '{step}',
-          t(invalid.title, locale),
-        ),
-      },
+      reason: invalid.reason,
+      message: t(invalid.message, locale).replace(
+        '{step}',
+        t(invalid.title, locale),
+      ),
     };
+}
+
+function run(draft: JapanDraft, locale: Locale) {
+  const confirmed = clearUnconfirmedJapanDeclaration(activeJapanAnswers(draft));
+  const shortCircuit = factCorrection(confirmed, locale);
+  if (shortCircuit)
+    return { policyAsOf: japanFull2026_11.asOf, columns: [], shortCircuit };
   const deemed = confirmed.reentry.find((route) => route.route === 'deemed');
   const itineraries = japanTripOccurrences(
     confirmed,
@@ -95,6 +97,12 @@ export const japanModule: CountryModule<JapanDraft, JapanWhatIf> = {
   restoreStoredDraft: restoreStoredJapanDraft,
   validateStep: validateJapanStep,
   decodeDraft: decodeJapanDraft,
+  incompleteResultMessage(draft, locale) {
+    return (
+      factCorrection(draft, locale)?.message ??
+      t('jp.result.finishQuestionnaire', locale)
+    );
+  },
   run,
   whatif: japanWhatIf,
   policy: japanPolicy,

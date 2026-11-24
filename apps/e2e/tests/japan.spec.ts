@@ -37,9 +37,7 @@ async function begin(page: Page, dict: Dict) {
         .getByRole('button', { name: '中文', exact: true })
         .getByText('中', { exact: true }),
     ).toBeVisible();
-    await header
-      .getByRole('button', { name: 'English', exact: true })
-      .click();
+    await header.getByRole('button', { name: 'English', exact: true }).click();
   }
   await main
     .getByRole('link', { name: dict['home.start'], exact: true })
@@ -57,7 +55,7 @@ async function begin(page: Page, dict: Dict) {
   await page.locator('#jp-simulationDate').fill('2027-04-03');
 }
 
-test('an old named plan stays incomplete on load and reload, then shares after correcting the renewal', async ({
+test('an old named plan shows the same renewal correction from home, results, reload and a shared link', async ({
   page,
   context,
   browser,
@@ -108,17 +106,54 @@ test('an old named plan stays incomplete on load and reload, then shares after c
     tab.evaluate(() =>
       JSON.parse(localStorage.getItem('jp-immigration-draft-v1') ?? 'null'),
     );
+  const correction = zhCN['jp.result.correctRenewalAtDeparture'].replace(
+    '{step}',
+    zhCN['jp.form.step6'],
+  );
+  async function expectCorrection(tab: Page) {
+    // Saved plan summaries can repeat the message below the actual result.
+    const heading = tab.getByRole('heading', {
+      level: 1,
+      name: zhCN['result.title'],
+    });
+    await expect(
+      heading.locator('..').getByText(correction, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      tab.getByRole('button', { name: zhCN['share.copy'], exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      tab.getByText(zhCN['result.empty'], { exact: true }),
+    ).toHaveCount(0);
+  }
+
   await load.click();
   await expect
     .poll(() => stored(page))
     .toMatchObject({ completed: false, step: 6 });
-  await expect(share).toHaveCount(0);
+  await expectCorrection(page);
   await page.reload();
   await expect(load).toBeVisible();
-  await expect(share).toHaveCount(0);
+  await expectCorrection(page);
   expect(await stored(page)).toMatchObject({ completed: false, step: 6 });
 
-  await page.goto(path('simulate'));
+  await page.evaluate(() => localStorage.removeItem('jp-immigration-draft-v1'));
+  await page.goto(path());
+  await load.click();
+  await expect(page).toHaveURL(path('result'));
+  await expectCorrection(page);
+
+  const legacyShare = Buffer.from(
+    JSON.stringify({
+      country: 'jp',
+      v: 1,
+      draft: { ...(await stored(page)), completed: true },
+    }),
+  ).toString('base64url');
+
+  await page
+    .getByRole('link', { name: zhCN['result.edit'], exact: true })
+    .click();
   await page
     .locator('#jp-travel-ordinary-renewalDecisionOn')
     .fill('2024-04-05');
@@ -135,6 +170,11 @@ test('an old named plan stays incomplete on load and reload, then shares after c
   const link = await copyResult(page);
   const receiver = await browser.newPage();
   try {
+    await receiver.goto(
+      new URL(path('result') + '#s=' + legacyShare, link).href,
+    );
+    await expectCorrection(receiver);
+    expect(await stored(receiver)).toBeNull();
     await receiver.goto(link);
     await expect(
       receiver.getByText(zhCN['share.loaded'], { exact: true }),
@@ -306,9 +346,12 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
     .filter({ hasText: /^Met\s*\(/ })
     .click();
   await expect(
-    result.getByText('Ordinary permit eligibility and documents', {
-      exact: true,
-    }),
+    result.getByText(
+      'Eligibility and documents for a new ordinary re-entry permit',
+      {
+        exact: true,
+      },
+    ),
   ).toBeVisible();
   await expect(result.locator('time[datetime="2027-04-05"]')).toBeVisible();
   await noHorizontalScroll(page);

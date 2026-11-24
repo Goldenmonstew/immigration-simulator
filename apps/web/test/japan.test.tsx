@@ -766,6 +766,41 @@ test('moving the filing date clears ordinary permit evidence for the original da
   );
 });
 
+test('sharing a later filing date keeps the issued permit valid for the planned November trip', () => {
+  const baseline = travelDraft();
+  baseline.simulationDate = '2026-11-24';
+  baseline.reentry = [
+    {
+      ...ordinary,
+      departureOn: '2026-11-26',
+      returnOn: '2026-11-30',
+      permit: {
+        effectiveOn: '2026-11-01',
+        expiresOn: '2027-11-01',
+        extensionApproved: false,
+      },
+    },
+  ];
+  const knobs = {
+    ...jp.whatif.initial(baseline),
+    applicationDate: '2026-11-27',
+  };
+  const compared = jp.whatif.apply(baseline, knobs);
+  expect(jp.whatif.validate(compared, knobs)).toEqual({});
+  for (const [draft, eligibility] of [
+    [baseline, 'MET'],
+    [compared, 'NOT_MET'],
+  ] as const) {
+    const shared = decodeDraft(jp, encodeDraft(jp, draft), true)!;
+    const checks = jp.run(shared, 'en').columns[0].pathways[0].checks;
+    const status = (id: string) =>
+      checks.find((check) => check.id === 'jp.reentry.' + id)?.status;
+    expect(status('ordinary-eligibility')).toBe(eligibility);
+    expect(status('ordinary-validity')).toBe('MET');
+    expect(status('return-continuity')).toBe('MET');
+  }
+});
+
 test('the filing date knob clears dated residence and talent answers without altering the original evidence', () => {
   const baseline: JapanDraft = {
     ...jp.createDraft(),

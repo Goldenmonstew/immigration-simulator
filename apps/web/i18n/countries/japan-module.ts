@@ -304,8 +304,8 @@ export const japanConditionTitles = {
     'Special merit and approval of the Diet',
   ],
   'jp.reentry.ordinary-eligibility': [
-    '普通再入国资格与材料',
-    'Ordinary permit eligibility and documents',
+    '新申请普通再入国许可的资格与材料',
+    'Eligibility and documents for a new ordinary re-entry permit',
   ],
   'jp.reentry.ordinary-validity': [
     '普通许可期限与延期',

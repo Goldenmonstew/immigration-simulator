@@ -16,6 +16,9 @@ export interface CountryDraft {
   simulationDate: string;
 }
 
+// Result pages can explain an invalid share without importing it.
+export type DraftReadMode = boolean | 'show-correction';
+
 export interface CountryModule<D extends CountryDraft, K> {
   id: CountryId;
   version: number;
@@ -25,7 +28,8 @@ export interface CountryModule<D extends CountryDraft, K> {
   // Return a new draft when a local correction needs to be persisted.
   restoreStoredDraft?(draft: D, forResult?: boolean): D;
   validateStep(draft: D): Record<string, TranslationKey>;
-  decodeDraft(value: unknown, forResult?: boolean): D | undefined;
+  decodeDraft(value: unknown, mode?: DraftReadMode): D | undefined;
+  incompleteResultMessage?(draft: D, locale: Locale): string;
   run(draft: D, locale: Locale): CountryResult;
   whatif: CountryWhatIf<D, K>;
   policy: CountryPolicy;

@@ -4,6 +4,8 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { prEvidence } from '../../../packages/engine/test/japan-pr-fixture';
 import JapanSimulatePage from '../app/japan/simulate/page';
 import { ShareLink } from '../components/share-link';
+import { readPageResult } from '../components/result-page';
+import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
 import { japanSteps, type JapanDraft } from '../lib/japan-draft';
 import { japanModule as jp } from '../lib/japan-module';
@@ -265,15 +267,27 @@ test.each([
       fields.get(id)!({ target: { value } });
     };
     edit(1, 'jp-trips-0-' + historyKey, first);
-    for (const route of draft.reentry.slice(0, 2))
-      expect(route[travelKey]).toBe(first === 'yes' ? true : first);
+    const displayed = form({ ...draft, step: 6 });
+    for (const route of draft.reentry.slice(0, 2)) {
+      expect(route[travelKey]).toBeUndefined();
+      const input = displayed.split(
+        'id="jp-travel-' + route.route + '-' + travelKey + '"',
+      )[1];
+      expect(input).toBeDefined();
+      if (first === 'yes')
+        expect(input.split('</select>')[0]).toContain(
+          '<option value="yes" selected',
+        );
+      else expect(input.split('/>')[0]).toContain('value="' + first + '"');
+    }
     expect(draft.reentry[2][travelKey]).toBeUndefined();
     edit(6, 'jp-travel-ordinary-' + travelKey, second);
     const restored = decodeDraft(jp, encodeDraft(jp, draft))!;
-    expect(restored.trips[0][historyKey]).toBe(
+    expect(restored.trips[0][historyKey]).toBeUndefined();
+    expect(restored.reentry[0][travelKey]).toBeUndefined();
+    expect(restored.reentry[1][travelKey]).toBe(
       second === 'no' ? false : second,
     );
-    expect(restored.reentry[0][travelKey]).toBe(restored.trips[0][historyKey]);
     edit(1, 'jp-trips-0-' + historyKey, '');
     for (const route of draft.reentry) expect(route[travelKey]).toBeUndefined();
   },
@@ -307,13 +321,13 @@ test('editing one shared answer leaves other explicit disagreements visible unti
   expect(draft.reentry[0]).toMatchObject({
     stayExpiresOn: '2026-11-16',
     timelyRenewalPending: true,
-    renewalDecisionOn: '2026-11-13',
   });
+  expect(draft.trips[0].renewalDecisionOn).toBe('2026-11-13');
+  expect(draft.reentry[0].renewalDecisionOn).toBeUndefined();
   edit('renewalPending', 'no');
-  expect(draft.reentry[0]).toMatchObject({
-    stayExpiresOn: '2026-11-16',
-    timelyRenewalPending: false,
-  });
+  expect(draft.reentry[0].stayExpiresOn).toBe('2026-11-16');
+  expect(draft.reentry[0].timelyRenewalPending).toBeUndefined();
+  expect(draft.trips[0].renewalPending).toBe(false);
 });
 
 test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
@@ -399,7 +413,29 @@ test('loading, refreshing and sharing an old named plan agree about a renewal pe
     expect(JSON.parse(storage.get(draftKey)!)).toEqual(loaded);
     return refreshed;
   };
+  const unfinished = jp.createDraft();
+  draftStorage(jp, unfinished);
+  const finish = t('jp.result.finishQuestionnaire', 'en');
+  expect(readPageResult(jp, 'en')).toEqual({
+    draft: unfinished,
+    correction: finish,
+  });
+  expect(readPageResult(jp, 'en', encodeDraft(jp, unfinished))).toEqual({
+    correction: finish,
+  });
+
   const invalid = readAndLoad();
+  const legacyShare = encodeDraft(jp, plan.draft);
+  const correction = t('jp.result.correctRenewalAtDeparture', 'en').replace(
+    '{step}',
+    t('jp.form.step6', 'en'),
+  );
+  expect(readPageResult(jp, 'en', invalid)).toEqual({
+    draft: invalid,
+    correction,
+  });
+  expect(readPageResult(jp, 'en')).toEqual({ draft: invalid, correction });
+  expect(readPageResult(jp, 'en', legacyShare)).toEqual({ correction });
   expect(invalid).toMatchObject({ completed: false, step: 6 });
   expect(renderToStaticMarkup(<ShareLink country={jp} draft={invalid} />)).toBe(
     '',
@@ -412,6 +448,10 @@ test('loading, refreshing and sharing an old named plan agree about a renewal pe
   storage.set(planKey, JSON.stringify([plan]));
   const corrected = readAndLoad();
   expect(corrected.completed).toBe(true);
+  expect(readPageResult(jp, 'en', legacyShare)).toEqual({ correction });
+  expect(JSON.parse(storage.get(draftKey)!)).toEqual(corrected);
+  expect(readPageResult(jp, 'en').result).toEqual(jp.run(corrected, 'en'));
+
   const writeText = vi
     .fn<(url: string) => Promise<void>>()
     .mockResolvedValue(undefined);
@@ -443,6 +483,11 @@ test('loading, refreshing and sharing an old named plan agree about a renewal pe
   expect(url.pathname).toMatch(/\/japan\/result$/);
   const encoded = new URLSearchParams(url.hash.slice(1)).get('s')!;
   expect(decodeDraft(jp, encoded, true)).toEqual(corrected);
+  expect(readPageResult(jp, 'en', encoded)).toEqual({
+    draft: corrected,
+    result: jp.run(corrected, 'en'),
+    shared: true,
+  });
   expect(decodeDraft(jp, encodeDraft(jp, plan.draft), true)).toEqual(corrected);
 });
 
@@ -587,7 +632,7 @@ test('both forms display, edit and clear the renewal decision for the same itine
 });
 
 test.each([false, true])(
-  'clearing a landing used as the sole return date removes only its saved copies (different explicit answer: %s)',
+  'clearing a landing used as the sole return date preserves other explicit answers (different explicit answer: %s)',
   (conflict) => {
     let draft = generalTripDraft();
     const trip = draft.trips[0];
@@ -624,8 +669,9 @@ test.each([false, true])(
         newLandingOn: '2026-11-09',
       });
     draft = decodeDraft(jp, encodeDraft(jp, draft))!;
-    expect(draft.trips[0].newLandingOn).toBe(trip.returned);
-    expect(draft.reentry[1].newLandingOn).toBe(trip.returned);
+    expect(draft.trips[0].newLandingOn).toBeUndefined();
+    expect(draft.reentry[1].newLandingOn).toBeUndefined();
+    expect(draft.reentry[0].newLandingOn).toBe(trip.returned);
     edit('newLandingOn', '');
     const saved = decodeDraft(jp, encodeDraft(jp, draft))!;
     expect(saved.trips[0].newLandingOn).toBeUndefined();
@@ -665,9 +711,13 @@ test.each([1, 6])(
       step === 1 ? 'jp-trips-0-stayExpiry' : 'jp-travel-deemed-stayExpiresOn';
     fields.get(input)!({ target: { value: '2026-12-03' } });
     const saved = decodeDraft(jp, encodeDraft(jp, draft))!;
-    expect(saved.trips[0].stayExpiry).toBe('2026-12-03');
+    expect(saved.trips[0].stayExpiry).toBe(
+      step === 1 ? '2026-12-03' : undefined,
+    );
     expect(saved.trips[0]).not.toHaveProperty('reentryStayExpiry');
-    expect(saved.reentry[0].stayExpiresOn).toBe('2026-12-03');
+    expect(saved.reentry[0].stayExpiresOn).toBe(
+      step === 6 ? '2026-12-03' : undefined,
+    );
     expect(saved.reentry[0]).not.toHaveProperty('historyStayExpiry');
     expect(jp.run(saved, 'en').columns[0].pathways[0].summary).not.toContain(
       'Check both records',
@@ -695,11 +745,15 @@ test('changing travel dates in a saved comparison releases the original history 
     fields.get('jp-travel-ordinary-' + key)!({ target: { value } });
   };
   edit('timelyRenewalPending', 'yes');
-  expect(draft.trips[0].renewalPending).toBe(true);
+  expect(draft.trips[0].renewalPending).toBeUndefined();
+  expect(form({ ...draft, step: 1 })).toMatch(
+    /id="jp-trips-0-renewalPending"[^>]*>.*?<option value="yes" selected/s,
+  );
   edit('returnOn', '2026-11-13');
   expect(draft.reentry[0].comparisonHistoryReturnOn).toBeUndefined();
   edit('timelyRenewalPending', 'no');
-  expect(draft.trips[0].renewalPending).toBe(true);
+  expect(draft.trips[0].renewalPending).toBeUndefined();
+  expect(draft.reentry[0].timelyRenewalPending).toBe(false);
 });
 
 test('a new landing before departure has a field error even without a separate return date', () => {
@@ -1520,4 +1574,130 @@ test('the empty-selection error describes the focusable group containing all thr
   const corrected = form(selected, undefined, jp.validateStep(draft));
   expect(corrected).not.toContain('jp-routes-error');
   expect(corrected).not.toContain('aria-invalid="true"');
+});
+
+test.each([
+  ['history', 'travel', 'UNKNOWN'],
+  ['history', 'history', 'UNKNOWN'],
+  ['travel', 'travel', 'NOT_MET'],
+  ['travel', 'history', 'MET'],
+] as const)(
+  'an expiry entered in %s follows its source when %s changes itinerary',
+  (source, changed, validity) => {
+    let draft = generalTripDraft();
+    draft.simulationDate = '2026-11-24';
+    draft.completed = true;
+    const expiry = '2026-11-25';
+    draft.trips = [
+      {
+        departed: '2026-11-20',
+        returned: '2026-11-24',
+        departure: 'deemed',
+        ...(source === 'history' && { stayExpiry: expiry }),
+      },
+    ];
+    draft.reentry = [
+      {
+        route: 'deemed',
+        departureOn: '2026-11-20',
+        returnOn: '2026-11-23',
+        specialPermanentResident: false,
+        timelyRenewalPending: false,
+        ...(source === 'travel' && { stayExpiresOn: expiry }),
+      },
+    ];
+    function edit(step: number, id: string, value: string) {
+      draft.step = step;
+      form(draft, (patch) => {
+        draft = { ...draft, ...patch };
+      });
+      fields.get(id)!({ target: { value } });
+    }
+    function term(answers: JapanDraft) {
+      return jp
+        .run(answers, 'en')
+        .columns[0].pathways.find((path) => path.id === 'jp.reentry.deemed')!
+        .checks.find((check) => check.id === 'jp.reentry.deemed-validity')!
+        .status;
+    }
+    function checkStored(answers: JapanDraft) {
+      expect(answers.trips[0].stayExpiry).toBe(
+        source === 'history' ? expiry : undefined,
+      );
+      expect(answers.reentry[0].stayExpiresOn).toBe(
+        source === 'travel' ? expiry : undefined,
+      );
+    }
+    edit(6, 'jp-travel-deemed-returnOn', '2026-11-24');
+    edit(6, 'jp-travel-deemed-passportValid', 'yes');
+    edit(1, 'jp-trips-0-departure', 'deemed');
+    const linked = decodeDraft(jp, encodeDraft(jp, draft))!;
+    checkStored(linked);
+    expect(term(linked)).toBe('MET');
+    const compared = jp.whatif.apply(linked, {
+      ...jp.whatif.initial(linked),
+      returns: { deemed: '2026-11-28' },
+    });
+    const savedComparison = decodeDraft(jp, encodeDraft(jp, compared))!;
+    checkStored(savedComparison);
+    expect(term(savedComparison)).toBe('NOT_MET');
+    if (changed === 'travel') {
+      draft = savedComparison;
+      edit(6, 'jp-travel-deemed-departureOn', '2026-11-26');
+    } else {
+      edit(1, 'jp-trips-0-returned', '2026-11-23');
+    }
+    const detached = decodeDraft(jp, encodeDraft(jp, draft))!;
+    checkStored(detached);
+    expect(term(detached)).toBe(validity);
+  },
+);
+
+test('correcting a borrowed expiry only keeps independent entries of the new value after detaching', () => {
+  let draft = generalTripDraft();
+  const trip = draft.trips[0];
+  trip.stayExpiry = '2026-11-25';
+  const dates = { departureOn: trip.departed, returnOn: trip.returned };
+  draft.reentry = [
+    { route: 'deemed', ...dates },
+    {
+      route: 'ordinary',
+      ...dates,
+      returnOn: '2026-11-15',
+      stayExpiresOn: '2026-11-30',
+    },
+  ];
+  draft.step = 6;
+  const edit = (id: string, value: string) => {
+    form(draft, (patch) => {
+      draft = { ...draft, ...patch };
+    });
+    fields.get(id)!({ target: { value } });
+  };
+  const inherited = 'jp-travel-deemed-stayExpiresOn';
+  expect(form(draft)).toMatch(
+    new RegExp('id="' + inherited + '"[^>]*value="2026-11-25"'),
+  );
+  edit(inherited, '2026-11-30');
+  draft = decodeDraft(jp, encodeDraft(jp, draft))!;
+  expect(draft.trips[0].stayExpiry).toBeUndefined();
+  expect(form({ ...draft, step: 1 })).toMatch(
+    /id="jp-trips-0-stayExpiry"[^>]*value="2026-11-30"/,
+  );
+  edit('jp-travel-deemed-returnOn', '2026-11-11');
+  expect(form({ ...draft, step: 1 })).toMatch(
+    /id="jp-trips-0-stayExpiry"[^>]*value=""/,
+  );
+
+  edit(inherited, '2026-11-27');
+  edit('jp-travel-ordinary-returnOn', dates.returnOn);
+  edit('jp-travel-deemed-returnOn', dates.returnOn);
+  edit(inherited, '2026-11-30');
+  edit('jp-travel-deemed-returnOn', '2026-11-11');
+  const detached = decodeDraft(jp, encodeDraft(jp, draft))!;
+  expect(detached.trips[0].stayExpiry).toBeUndefined();
+  expect(detached.reentry.map((route) => route.stayExpiresOn)).toEqual([
+    '2026-11-30',
+    '2026-11-30',
+  ]);
 });

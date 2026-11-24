@@ -385,7 +385,9 @@ export function assessJapanReentry(
               ' Confirm whether the counter opens on the proposed filing date.',
             ]
           : ['', ''];
-    const departureDocuments = all(
+    // SRC-116, 再入国許可 paras 2–5: use the permit held for this trip.
+    // SRC-461, 申請期間: the proposed filing date concerns a new application.
+    eligibleAtDeparture = all(
       route.passportOrApprovedAlternative,
       route.residentCardOrCertificate,
     );
@@ -397,17 +399,12 @@ export function assessJapanReentry(
       departure && !sameDayDeparture ? date < departure : undefined,
       filingAvailable,
       route.channel === 'online' ? onlineEligible : true,
-      departureDocuments,
+      eligibleAtDeparture,
     );
-    // SRC-116, 再入国許可 paras 2–5: once abroad, use the permit held at departure.
-    eligibleAtDeparture =
-      route.occurrence.departed
-        ? departureDocuments
-        : filingEligibility;
     r(
       'ordinary-eligibility',
-      '普通再入国资格与材料',
-      'Ordinary permit eligibility and documents',
+      '新申请普通再入国许可的资格与材料',
+      'Eligibility and documents for a new ordinary re-entry permit',
       filingEligibility,
       [
         ...routeSources,

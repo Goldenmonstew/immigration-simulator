@@ -11,7 +11,7 @@ import {
   type JpNaturalisationEvidence,
 } from '@uk-immigration/engine';
 import type { TranslationKey } from '../i18n';
-import type { CountryDraft } from './country-module';
+import type { CountryDraft, DraftReadMode } from './country-module';
 import { today, validDate } from './questionnaire';
 import {
   basicFields,
@@ -637,7 +637,7 @@ function validRoutes(value: unknown, definitions: object) {
 
 export function decodeJapanDraft(
   value: unknown,
-  forResult = false,
+  mode: DraftReadMode = false,
 ): JapanDraft | undefined {
   if (
     !isRecord(value) ||
@@ -672,9 +672,14 @@ export function decodeJapanDraft(
   // Validate containers before checking date relationships across their rows.
   if (titles.some((_, i) => Object.keys(checkStep(draft, i, false)).length))
     return undefined;
-  const restored = restoreStoredJapanDraft(draft, forResult);
-  return ((forResult || draft.completed) && !restored.completed) ||
-    !japanSteps(restored).some(({ step }) => step === restored.step)
-    ? undefined
-    : restored;
+  const restored = restoreStoredJapanDraft(draft, !!mode);
+  if (!japanSteps(restored).some(({ step }) => step === restored.step))
+    return undefined;
+  if (
+    !restored.completed &&
+    mode !== 'show-correction' &&
+    (mode || draft.completed)
+  )
+    return undefined;
+  return restored;
 }

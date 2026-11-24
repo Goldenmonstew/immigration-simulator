@@ -1,6 +1,9 @@
 'use client';
 
-import { shareJapanTripAnswers } from '@uk-immigration/engine';
+import {
+  editJapanTripAnswer,
+  shareJapanTripAnswers,
+} from '@uk-immigration/engine';
 import { QuestionnaireShell } from '../../../components/questionnaire-shell';
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
@@ -52,11 +55,15 @@ function JapanStep({ draft, errors, update }: StepProps) {
     active.trips,
     active.reentry,
   );
-  const routes = { pr: pr.routes, nat: nat.routes, travel: reentry };
+  const routes = { pr: pr.routes, nat: nat.routes, travel: active.reentry };
   const residence = hasJapanResidenceRoute(draft);
   const routeError = !residence && !draft.reentry.length && errors['jp-routes'];
   // Required answers remain blank while a route is being edited. The shell
   // validates each selected route before any request is sent to the engine.
+  const saveTravel = (records: Pick<JapanDraft, 'trips' | 'reentry'>) => {
+    const { trips, reentry } = activeJapanAnswers({ ...draft, ...records });
+    update(residence ? { trips, reentry } : { reentry });
+  };
   const setRoutes = (
     group: RouteGroup,
     selected: { route: string }[],
@@ -73,19 +80,18 @@ function JapanStep({ draft, errors, update }: StepProps) {
     else {
       const next = selected as typeof reentry;
       const travel = next.find((route) => route.route === edited?.route);
-      const previous = reentry.find((route) => route.route === edited?.route);
-      const shared = shareJapanTripAnswers(
-        trips,
-        next,
-        edited && travel && previous
-          ? { travel, previous, field: edited.field }
-          : undefined,
+      saveTravel(
+        edited && travel
+          ? editJapanTripAnswer(active.trips, next, {
+              travel,
+              field: edited.field,
+            })
+          : { trips: active.trips, reentry: next },
       );
-      update(residence ? shared : { reentry: shared.reentry });
     }
   };
   const routeQuestions = (group: RouteGroup) =>
-    routes[group].map((route) => {
+    routes[group].map((route, index) => {
       const fields = (routeFields[group] as Record<string, JapanField[]>)[
         route.route
       ];
@@ -114,6 +120,7 @@ function JapanStep({ draft, errors, update }: StepProps) {
               )}
               prefix={'jp-' + group + '-' + route.route}
               values={route}
+              displayValues={group === 'travel' ? reentry[index] : route}
               errors={errors}
               change={(key, value) =>
                 setRoutes(
@@ -300,17 +307,19 @@ function JapanStep({ draft, errors, update }: StepProps) {
           <p>{t('jp.form.history')}</p>
           <EvidenceFields
             fields={[tripList]}
-            values={{ trips }}
+            values={{ trips: active.trips }}
+            displayValues={{ trips }}
             prefix="jp"
             errors={errors}
             change={(_, value, row) => {
               const next = value as typeof trips;
-              update(
-                shareJapanTripAnswers(
-                  next,
-                  reentry,
-                  row && { history: next[row.index], field: row.field },
-                ),
+              saveTravel(
+                row
+                  ? editJapanTripAnswer(next, active.reentry, {
+                      history: next[row.index],
+                      field: row.field,
+                    })
+                  : { trips: next, reentry: active.reentry },
               );
             }}
           />

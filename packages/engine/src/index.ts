@@ -185,6 +185,7 @@ export type {
 } from './japan';
 export { evaluateJapanFull } from './japan-full';
 export {
+  editJapanTripAnswer,
   japanDepartureByRoute,
   japanTripOccurrences,
   japanTripReturnOn,

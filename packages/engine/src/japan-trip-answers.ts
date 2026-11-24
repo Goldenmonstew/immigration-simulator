@@ -118,104 +118,77 @@ export const japanTripAnswerFields = [
   readonly [keyof JpTrip, keyof JpFullReentryRequest]
 >;
 
-type TripEdit<T> =
-  | { history: JpTrip; field: string }
-  | { travel: T; previous: T; field: string };
-
-/** Missing copies may inherit one agreed answer. Only an explicit edit resolves a disagreement. */
+/** Resolve agreed answers for display and assessment without modifying the entered records. */
 export function shareJapanTripAnswers<T extends JpFullReentryRequest>(
   trips: JpTrip[],
   routes: T[],
-  edited?: TripEdit<T>,
 ) {
-  const correctedExpiryTrips =
-    edited && 'history' in edited && edited.field === 'stayExpiry'
-      ? [edited.history]
-      : edited && 'travel' in edited && edited.field === 'stayExpiresOn'
-        ? trips.filter((trip) => sameJapanTrip(trip, edited.travel))
-        : [];
-  const reentry = routes.map((route) => {
-    if (
-      route.route === 'deemed' &&
-      route.historyStayExpiry &&
-      ((edited &&
-        'travel' in edited &&
-        edited.travel === route &&
-        edited.field === 'stayExpiresOn') ||
-        correctedExpiryTrips.some((trip) => sameJapanTrip(trip, route)))
-    )
-      return { ...route, historyStayExpiry: undefined };
-    return route;
-  });
+  const reentry = [...routes];
   const history = trips.map((trip) => {
     const matches = routes.filter((route) => sameJapanTrip(trip, route));
-    // If the landing date was the only return date, clearing/changing it
-    // detaches this route from its old itinerary. Remove its old copy too.
-    const detachedLanding =
-      edited &&
-      'travel' in edited &&
-      edited.field === 'newLandingOn' &&
-      sameJapanTrip(trip, edited.previous) &&
-      !matches.includes(edited.travel)
-        ? edited.previous.newLandingOn
-        : undefined;
+    if (!matches.length) return trip;
     let result = trip;
-    if (trip.reentryStayExpiry && correctedExpiryTrips.includes(trip)) {
-      result = { ...result };
-      delete result.reentryStayExpiry;
-    }
-    if (detachedLanding) {
-      if (result.newLandingOn === detachedLanding) {
-        result = { ...result };
-        delete result.newLandingOn;
-      }
-      for (const route of matches) {
-        if (route.newLandingOn !== detachedLanding) continue;
-        const i = routes.indexOf(route);
-        reentry[i] = { ...reentry[i] };
-        delete reentry[i].newLandingOn;
-      }
-    }
-    if (!matches.length) return result;
     for (const [historyKey, travelKey] of japanTripAnswerFields) {
-      if (detachedLanding && historyKey === 'newLandingOn') continue;
-      let answer: string | boolean | undefined;
-      if (
-        edited &&
-        'history' in edited &&
-        edited.history === trip &&
-        edited.field === historyKey
-      )
-        answer = trip[historyKey] ?? undefined;
-      else if (
-        edited &&
-        'travel' in edited &&
-        matches.includes(edited.travel) &&
-        edited.field === travelKey
-      )
-        answer = edited.travel[travelKey];
-      else {
-        const known = new Set([
-          trip[historyKey],
-          ...matches.map((route) => route[travelKey]),
-        ]);
-        known.delete(null);
-        known.delete(undefined);
-        if (known.size !== 1) continue;
-        answer = [...known][0] ?? undefined;
-      }
-      if (result[historyKey] !== answer) {
+      const known = new Set([
+        trip[historyKey],
+        ...matches.map((route) => route[travelKey]),
+      ]);
+      known.delete(null);
+      known.delete(undefined);
+      if (known.size !== 1) continue;
+      const answer = [...known][0];
+      if (result[historyKey] !== answer)
         result = { ...result, [historyKey]: answer };
-        if (answer === undefined) delete result[historyKey];
-      }
       for (const route of matches) {
         if (route[travelKey] === answer) continue;
         const i = routes.indexOf(route);
         reentry[i] = { ...reentry[i], [travelKey]: answer };
-        if (answer === undefined) delete reentry[i][travelKey];
       }
     }
     return result;
   });
   return { trips: history, reentry };
+}
+
+/** Keep the corrected answer at its source and discard superseded answers for this trip. */
+export function editJapanTripAnswer<T extends JpFullReentryRequest>(
+  trips: JpTrip[],
+  reentry: T[],
+  edited: { history: JpTrip; field: string } | { travel: T; field: string },
+) {
+  const keys = japanTripAnswerFields.find(
+    ([history, travel]) =>
+      edited.field === ('history' in edited ? history : travel),
+  );
+  if (!keys) return { trips, reentry };
+  const [historyKey, travelKey] = keys;
+  const answer =
+    'history' in edited ? edited.history[historyKey] : edited.travel[travelKey];
+  const matches =
+    'history' in edited
+      ? [edited.history]
+      : trips.filter((trip) => sameJapanTrip(trip, edited.travel));
+  function correct<R extends object>(
+    record: R,
+    key: string,
+    oldExpiry: string,
+  ): R {
+    const next = { ...record } as R & Record<string, unknown>;
+    if (answer == null || next[key] !== answer) delete next[key];
+    if (historyKey === 'stayExpiry') delete next[oldExpiry];
+    return next;
+  }
+  return {
+    trips: trips.map((trip) =>
+      matches.includes(trip)
+        ? correct(trip, historyKey, 'reentryStayExpiry')
+        : trip,
+    ),
+    reentry: reentry.map((route) =>
+      matches.some((trip) => sameJapanTrip(trip, route)) ||
+      ('travel' in edited && edited.travel === route)
+        ? correct(route, travelKey, 'historyStayExpiry')
+        : route,
+    ),
+  };
 }

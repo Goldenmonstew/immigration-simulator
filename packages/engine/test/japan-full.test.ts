@@ -1761,6 +1761,40 @@ describe('re-entry and travel documents', () => {
     stayExpiresOn: '2028-10-02',
   } as const;
 
+  test.each([
+    ['planned', '2026-11-24'],
+    ['abroad', '2026-11-28'],
+    ['returned', '2026-12-01'],
+  ])(
+    'changing only the filing date keeps the issued permit valid for a %s trip',
+    (_, simulationDate) => {
+      const trip = {
+        ...ordinary,
+        departureOn: '2026-11-26',
+        returnOn: '2026-11-30',
+        permit: {
+          effectiveOn: '2026-11-01',
+          expiresOn: '2027-11-01',
+          extensionApproved: false,
+        },
+      };
+      const before = reentry(trip, {
+        simulationDate,
+        applicationDate: '2026-11-24',
+      });
+      const after = reentry(trip, {
+        simulationDate,
+        applicationDate: '2026-11-27',
+      });
+      expect(status(before, 'ordinary-eligibility')).toBe('MET');
+      expect(status(after, 'ordinary-eligibility')).toBe('NOT_MET');
+      for (const id of ['ordinary-validity', 'return-continuity']) {
+        expect(status(before, id)).toBe('MET');
+        expect(condition(after, id)).toEqual(condition(before, id));
+      }
+    },
+  );
+
   test('holding an ordinary permit does not establish that it was used for a recorded departure without permission', () => {
     const returned = '2026-10-07';
     const [pr, travel] = evaluateJapanFull({
@@ -1786,7 +1820,12 @@ describe('re-entry and travel documents', () => {
       trips: [trip],
       permanentResidence: { routes: [general] },
       reentry: [
-        { ...ordinary, departureOn: trip.departed, returnOn: trip.returned },
+        {
+          ...ordinary,
+          departureOn: trip.departed,
+          returnOn: trip.returned,
+          permitVoided: true,
+        },
         {
           route: 'refugee-travel-document',
           departureOn: trip.departed,
