@@ -624,6 +624,7 @@
 | 732 | 任务 100 审核修正（review100-1 风险 3）：德国五页加入离线清单后递增离线缓存版本到 `2026-11-24-v6`，已安装旧缓存的浏览器会重新缓存新的 `/germany` 子页；`about-page.test.tsx` 同步。 | apps/web/public/sw.js、apps/web/test/about-page.test.tsx |
 | 733 | 任务 100 审核修正（review100-1）：对比页日期早于已发生事项的提示只举首次入境（许可起始日不按已发生事实校验）。 | apps/web/i18n/countries/germany-module.ts |
 | 734 | 任务 100 审核修正（review100-1 建议 4）：德国 e2e 补对比页旋钮按路径显示、入籍生计旋钮使 R07 的 DE-C49 满足、日期早于首次入境时在日期控件报错，以及 375px 下嵌套记录与展开的定居通用条件不横向滚动；单测补入籍生计单独调整的状态。 | apps/e2e/tests/germany.spec.ts、apps/web/test/germany.test.tsx |
+| 735 | 任务 100 审核修正（review100-1）报告：在任务报告末尾补「审核修正（review100-1）」四段，逐条对应审核编号，列出共用组件待任务 93 处理的条目。 | docs/tasks/reports/100-de-pages.md |
 | 740 | 任务 91：登记日本完整版使用的官方法条、指南、手续费及办事材料，校对调研哈希，补 PD-360–379 与网页来源索引。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 741 | 任务 91：加入永住审查过渡、许可期间、教育与证据窗口、人才分值、帰化特例、再入国和手续费参数。 | packages/policy-data/src/{index.ts,parameters/japan-2026-11.ts} |
 | 742 | 任务 91：新增日本完整版评估入口，复用原时间结果，逐项检查永住、帰化与再入国并补边界测试。 | packages/engine/src/{index.ts,japan-full*.ts}、packages/engine/test/japan-full.test.ts、docs/tasks/reports/91-jp-rules.md |
