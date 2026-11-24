@@ -288,33 +288,47 @@ test('the result view separates a future time milestone, an unknown filing date,
   );
 });
 
-test('a planned deemed departure leaves the declaration pending and labels the planned day', () => {
+test('a planned deemed departure leaves continuity pending and a shared negative declaration rules it out', () => {
   const draft = travelDraft();
-  draft.reentry = [
-    {
-      route: 'deemed',
-      departureOn: '2027-04-12',
-      returnOn: '2027-04-19',
-      stayIndefinite: true,
-      specialPermanentResident: false,
-      lawfulStatus: true,
-      temporaryVisitor: false,
-      passportValid: true,
-      residentCardOrCertificate: true,
-      formalPermitRequired: false,
-      permitVoided: false,
-    },
-  ];
+  const deemed = {
+    route: 'deemed',
+    departureOn: '2027-04-12',
+    returnOn: '2027-04-19',
+    stayIndefinite: true,
+    specialPermanentResident: false,
+    lawfulStatus: true,
+    temporaryVisitor: false,
+    passportValid: true,
+    residentCardOrCertificate: true,
+    formalPermitRequired: false,
+    permitVoided: false,
+  } satisfies JpFullReentryRequest;
+  draft.reentry = [deemed];
   const path = jp.run(draft, 'en').columns[0].pathways[0];
   expect(path).toMatchObject({ status: 'UNKNOWN' });
   expect(path.earliestDate).toBeUndefined();
   expect(path.summary).toContain('2027-04-12');
-  expect(path.checks).toContainEqual(
-    expect.objectContaining({
-      id: 'jp.reentry.deemed-eligibility',
-      status: 'UNKNOWN',
-    }),
-  );
+  const departed = '2024-04-01';
+  draft.reentry[0] = {
+    ...deemed,
+    departureOn: departed,
+    returnOn: '2024-04-07',
+    declaredIntentAtDeparture: false,
+    declarationForDepartureOn: departed,
+  };
+  const shared = jp.run(decodeDraft(jp, encodeDraft(jp, draft))!, 'en')
+    .columns[0].pathways[0];
+  for (const id of [
+    'jp.reentry.deemed-eligibility',
+    'jp.reentry.return-continuity',
+  ]) {
+    expect(path.checks.find((check) => check.id === id)?.status).toBe(
+      'UNKNOWN',
+    );
+    expect(shared.checks.find((check) => check.id === id)?.status).toBe(
+      'NOT_MET',
+    );
+  }
 });
 
 test.each(['zh-CN', 'en'] as const)(
@@ -514,6 +528,66 @@ test('language, household evidence and travel knobs update only the comparison',
   expect(compared.reentry[0].returnOn).toBe('2027-04-20');
   expect(draft).toEqual(original);
 });
+
+test.each([
+  ['matching special status', '2025-10-01', true, undefined, 'MET'],
+  ['matching ordinary status', '2025-10-01', false, undefined, 'NOT_MET'],
+  ['conflicting answers', '2025-10-01', true, false, 'UNKNOWN'],
+  ['another return', '2025-09-30', true, undefined, 'UNKNOWN'],
+] as const)(
+  'changing the deemed return date preserves the baseline evidence for %s',
+  (_case, historyReturn, historyStatus, routeStatus, expected) => {
+    const departed = '2024-04-01';
+    const baseline: JapanDraft = {
+      ...travelDraft(),
+      naturalisation: {
+        routes: [{ route: 'general', homeMajorityAge: 18 }],
+        evidence: {},
+      },
+      trips: [
+        {
+          departure: 'deemed',
+          departed,
+          returned: historyReturn,
+          specialPermanentResident: historyStatus,
+        },
+      ],
+      reentry: [
+        {
+          route: 'deemed',
+          departureOn: departed,
+          returnOn: '2025-10-01',
+          specialPermanentResident: routeStatus,
+          stayIndefinite: true,
+          declaredIntentAtDeparture: true,
+          declarationForDepartureOn: departed,
+          permitVoided: false,
+        },
+      ],
+    };
+    const continuity = (draft: JapanDraft) =>
+      jp
+        .run(draft, 'en')
+        .columns[0].pathways.find((path) => path.id === 'jp.reentry.deemed')!
+        .checks.find((check) => check.id === 'jp.reentry.return-continuity')!
+        .status;
+    const knobs = {
+      ...jp.whatif.initial(baseline),
+      returns: { deemed: '2025-10-02' },
+    };
+    expect(continuity(baseline)).toBe(expected);
+    const compared = jp.whatif.apply(baseline, knobs);
+    expect(jp.whatif.validate(compared, knobs)).toEqual({});
+    expect(compared.reentry[0].returnOn).toBe('2025-10-02');
+    expect(continuity(compared)).toBe(expected);
+    expect(continuity(decodeDraft(jp, encodeDraft(jp, compared))!)).toBe(
+      expected,
+    );
+    expect(baseline.reentry[0].returnOn).toBe('2025-10-01');
+    expect(baseline.reentry[0].specialPermanentResident).toBe(routeStatus);
+    expect(baseline.trips[0].specialPermanentResident).toBe(historyStatus);
+  },
+);
 
 test('each re-entry continuity gap links to the return date for its own route', () => {
   const draft = travelDraft();

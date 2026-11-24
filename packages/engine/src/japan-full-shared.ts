@@ -149,11 +149,11 @@ export function scheduleFiling(
   result: JpFullPathway,
   L: JpText,
   assessOnDate: (date: IsoDate) => JpFullPathway,
+  candidateDate = result.earliestDate,
 ): JpFullPathway {
-  const { earliestDate } = result;
-  if (earliestDate === undefined) return result;
+  if (candidateDate === undefined) return result;
 
-  const { date: next, open } = nextCounterFilingDay(earliestDate);
+  const { date: next, open } = nextCounterFilingDay(candidateDate);
   if (open === undefined)
     return {
       ...result,
@@ -166,7 +166,7 @@ export function scheduleFiling(
         ),
       pendingDetails: [...new Set([...(result.pendingDetails ?? []), 'PD-370'])],
     };
-  if (next === earliestDate) return result;
+  if (next === candidateDate) return result;
 
   const filing = assessOnDate(next);
   return {

@@ -15,40 +15,49 @@ export interface JpFullRequest extends JpFullContext {
   reentry?: JpFullReentryRequest[];
 }
 
-/** Evaluates selected routes for one person at the requested filing date. */
-export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
-  const { L } = filingContext(req);
-  const pr = req.permanentResidence;
-  const naturalisation = req.naturalisation;
-  // SRC-442 art. 23(2): share status at departure only for the same deemed trip.
+/** SRC-442 art. 23(2): share status at departure only for the same deemed trip. */
+export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
+  trips: JpTrip[],
+  routes: T[],
+) {
   const matches = (trip: JpTrip, route: JpFullReentryRequest) =>
     trip.departure === 'deemed' &&
     route.route === 'deemed' &&
     trip.departed === route.departureOn &&
     trip.returned === route.returnOn;
-  const history = {
-    ...req,
-    trips: req.trips.map((trip) => {
-      const matched = req.reentry?.filter((route) => matches(trip, route));
-      if (!matched?.length) return trip;
-      const answers = new Set([
-        trip.specialPermanentResident,
-        ...matched.map((route) => route.specialPermanentResident),
-      ]);
-      answers.delete(undefined);
-      return {
-        ...trip,
-        specialPermanentResident:
-          answers.size === 1 ? [...answers][0] : undefined,
-      };
-    }),
-  };
-  const reentry = req.reentry?.map((route) => {
-    const trip = history.trips.find((trip) => matches(trip, route));
+  const history = trips.map((trip) => {
+    const matched = routes.filter((route) => matches(trip, route));
+    if (!matched.length) return trip;
+    const answers = new Set([
+      trip.specialPermanentResident,
+      ...matched.map((route) => route.specialPermanentResident),
+    ]);
+    answers.delete(undefined);
+    return {
+      ...trip,
+      specialPermanentResident:
+        answers.size === 1 ? [...answers][0] : undefined,
+    };
+  });
+  const reentry = routes.map((route) => {
+    const trip = history.find((trip) => matches(trip, route));
     return trip
       ? { ...route, specialPermanentResident: trip.specialPermanentResident }
       : route;
   });
+  return { trips: history, reentry };
+}
+
+/** Evaluates selected routes for one person at the requested filing date. */
+export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
+  const { L } = filingContext(req);
+  const pr = req.permanentResidence;
+  const naturalisation = req.naturalisation;
+  const { trips, reentry } = resolveJapanDeemedTripStatuses(
+    req.trips,
+    req.reentry ?? [],
+  );
+  const history = { ...req, trips };
   return {
     policyAsOf: japanFull2026_11.asOf,
     columns: [
@@ -66,7 +75,7 @@ export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
               naturalisation.evidence ?? {},
             ),
           ) ?? []),
-          ...(reentry?.map((route) => assessJapanReentry(req, route)) ?? []),
+          ...reentry.map((route) => assessJapanReentry(req, route)),
         ],
       },
     ],

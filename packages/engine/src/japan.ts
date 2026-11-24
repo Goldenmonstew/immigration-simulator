@@ -309,7 +309,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
 
 export function evaluateJapanTimeline(
   req: JpRequest,
-  inferLegacyDeparture = false,
+  legacyTimeOnly = false,
 ): JpResult {
   const L = textFor(req);
   const sim = req.simulationDate;
@@ -323,11 +323,11 @@ export function evaluateJapanTimeline(
 
   // The old time calculator assumed the ordinary deemed term (PD-136).
   const departureOf = (t: JpTrip) => {
-    if (t.departure || !inferLegacyDeparture) return t.departure;
+    if (t.departure || !legacyTimeOnly) return t.departure;
     return t.reentryPermit ? 'permit' : 'deemed';
   };
   const specialResidentOf = (t: JpTrip) =>
-    t.specialPermanentResident ?? (inferLegacyDeparture ? false : undefined);
+    t.specialPermanentResident ?? (legacyTimeOnly ? false : undefined);
   const lapseOf = (t: JpTrip) =>
     jpTripLapses(t, departureOf(t), specialResidentOf(t));
   const lapsed = req.trips.filter((t) => lapseOf(t) === true);
@@ -494,7 +494,7 @@ export function evaluateJapanTimeline(
   const reentry = L(
     `未持再入国许可出境，或持普通许可出境但逾期返日的，在留从返日重新起算。使用みなし再入国许可，通常须在出境后 ${v.deemedReentryYears.value} 年内返回。特別永住者为 ${specialDeemedYears} 年（含届满日）。如有在留期限，须同时核对。出境时有待决的按期续期申请，按获准且在原期限届满后 ${v.renewalPendingMonths.value} 个月内返回估算。未填在留期限时，假设它没有先到期（PD-136）。`,
     `If you left without re-entry permission or your ordinary permit expired before return, the stay starts again when you return. With deemed re-entry you must return within ${count(v.deemedReentryYears.value, 'year')} of departure, or ${count(specialDeemedYears, 'year')} for a special permanent resident, including the anniversary. Any applicable period of stay must also cover the return. For a timely renewal pending at departure, the projection assumes approval and allows up to ${v.renewalPendingMonths.value} months after the original expiry. A blank period of stay is assumed not to have ended before return (PD-136).`,
-  ) + (inferLegacyDeparture && req.trips.some((t) => !t.departure)
+  ) + (legacyTimeOnly && req.trips.some((t) => !t.departure)
     ? L(
         '旧版时间计算中，未填出境方式的行程根据普通许可是否标为有效区分普通和みなし。',
         ' For trips without a departure method, the original time calculator assumes an ordinary permit if marked valid and deemed re-entry otherwise.',
@@ -525,6 +525,8 @@ export function evaluateJapanTimeline(
     office: 'isa' | 'bureau',
     candidate = false,
   ) => {
+    // Full permanent residence checks the evidence again on the counter day.
+    if (office === 'isa' && !legacyTimeOnly) return '';
     const state = jpOfficeClosed(d);
     if (state === 'no') return '';
     // Only a day that passed the checks, within the search horizon.

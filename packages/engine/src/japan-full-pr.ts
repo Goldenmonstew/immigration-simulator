@@ -453,8 +453,14 @@ export function assessJapanPr(
   e: JpPrCommonEvidence,
 ): JpFullPathway {
   const { L } = filingContext(req);
+  const result = assessJapanPrOnDate(req, route, e);
+  // Time alone can identify the counter day whose evidence still needs checking.
+  const candidateDate =
+    result.status === 'UNKNOWN' && result.timeStatus === 'MET'
+      ? result.timeEarliestDate
+      : result.earliestDate;
   return scheduleFiling(
-    assessJapanPrOnDate(req, route, e),
+    result,
     L,
     (applicationDate) => {
       const filing = assessJapanPrOnDate({ ...req, applicationDate }, route, {
@@ -477,23 +483,24 @@ export function assessJapanPr(
             ? full.jSkip.value.stayYears
             : old.highlySkilledYears.value[route.route];
         const past = afterYears(applicationDate, -years);
-        filing.summary +=
-          L(
-            `请在问卷中把拟递交日改为 ${applicationDate}，再填写该日的${route.route === 'j-skip' ? 'J-Skip 资格' : '高度人材积分'}证据。`,
-            ` Set the proposed filing date in the questionnaire to ${applicationDate}, then enter the ${route.route === 'j-skip' ? 'J-Skip eligibility' : 'highly skilled points'} evidence for that day.`,
-          ) +
-          (route.mode === 'retrospective'
-            ? L(
-                `回溯证明还需补录 ${past} 的历史证据。`,
-                ` For retrospective proof, also enter historical evidence for ${past}.`,
-              )
-            : L(
-                '请重新确认认定后持续符合条件。',
-                ' Reconfirm that the requirements have been maintained since recognition.',
-              ));
+        filing.summary += L(
+          `请在问卷中把拟递交日改为 ${applicationDate}，再填写该日的${route.route === 'j-skip' ? 'J-Skip 资格' : '高度人材积分'}证据。`,
+          ` Set the proposed filing date in the questionnaire to ${applicationDate}, then enter the ${route.route === 'j-skip' ? 'J-Skip eligibility' : 'highly skilled points'} evidence for that day.`,
+        );
+        if (route.mode !== 'recognised')
+          filing.summary += L(
+            `采用回溯证明时，还需补录 ${past} 的历史证据。`,
+            ` For retrospective proof, also enter historical evidence for ${past}.`,
+          );
+        if (route.mode !== 'retrospective')
+          filing.summary += L(
+            '采用认定证明时，请重新确认认定后持续符合条件。',
+            ' For proof based on recognition, reconfirm that the requirements have been maintained since recognition.',
+          );
       }
       return filing;
     },
+    candidateDate,
   );
 }
 

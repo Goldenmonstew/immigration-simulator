@@ -146,7 +146,7 @@ export type {
   JpResult,
   JpTrip,
 } from './japan';
-export { evaluateJapanFull } from './japan-full';
+export { evaluateJapanFull, resolveJapanDeemedTripStatuses } from './japan-full';
 export type { JpFullRequest } from './japan-full';
 export type {
   JpFullCheck,

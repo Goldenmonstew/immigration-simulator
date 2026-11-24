@@ -8,10 +8,15 @@ import {
   policyChangelog,
   ROUTE_GROUP_SOURCES,
 } from '@uk-immigration/policy-data';
+import { esIndividualD } from '../../../packages/policy-data/fixtures/es-individual-d-public-funds';
+import JapanPolicyPage from '../app/japan/policy/page';
 import PolicyPage from '../app/uk/policy/page';
+import { ResultView } from '../components/result-view';
 import { SiteShell } from '../components/site-shell';
 import { LocaleContext } from '../i18n/locale';
+import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
+import { ukModule } from '../lib/uk-module';
 
 const parameterSets = [currentLaw2026_11, earnedSettlement2026_11];
 const render = (locale: 'zh-CN' | 'en' = 'zh-CN') =>
@@ -123,8 +128,15 @@ test('every displayed metadata source and route-group source has a registered cl
   ];
   const html = render();
   const listed = [...html.matchAll(/data-source="([^"]+)"/g)].map((m) => m[1]);
-  expect(listed.sort()).toEqual([...new Set(refs.map((r) => r.srcId))].sort());
+  // The original UK catalogue includes background and advice sources as well as rules.
+  const originalUkIds = Array.from(
+    { length: 60 },
+    (_, index) => 'SRC-' + String(index + 1).padStart(3, '0'),
+  );
+  expect(listed).toEqual(expect.arrayContaining(originalUkIds));
+  expect(listed).not.toContain('SRC-110');
   for (const ref of refs) {
+    expect(listed).toContain(ref.srcId);
     expect(sourceUrls[ref.srcId], ref.srcId).toMatch(/^https:\/\//);
     expect(html).toContain(`href="${sourceUrls[ref.srcId]}"`);
   }
@@ -142,4 +154,53 @@ test('every displayed metadata source and route-group source has a registered cl
       .find((line) => line.startsWith(`| ${id} |`));
     expect(line).toContain(url);
   }
+});
+
+function expectResultSourcesListed(resultHtml: string, policyHtml: string) {
+  const cited = new Set(resultHtml.match(/\bSRC-\d+\b/g));
+  // Advice links name the organisation in their label and only expose the URL.
+  for (const [id, url] of Object.entries(sourceUrls)) {
+    if (resultHtml.includes(`href="${url.replaceAll('&', '&amp;')}"`))
+      cited.add(id);
+  }
+  expect(cited.size).toBeGreaterThan(0);
+  for (const id of cited) expect(policyHtml).toContain(`data-source="${id}"`);
+}
+
+test('the UK policy catalogue includes every citation and advice link in the rendered result', () => {
+  const draft = { ...ukModule.createDraft(), ...esIndividualD.request };
+  const result = renderToStaticMarkup(
+    <ResultView
+      country={ukModule}
+      result={ukModule.run(draft, 'zh-CN')}
+      draft={draft}
+    />,
+  );
+  expect(result).toContain('SRC-037');
+  expect(result).toContain(`href="${sourceUrls['SRC-016']}"`);
+  expectResultSourcesListed(result, render());
+});
+
+test('the Japan policy catalogue includes every citation in residence, naturalisation and re-entry results', () => {
+  const draft = japanModule.createDraft();
+  draft.simulationDate = '2027-04-05';
+  draft.stayStart = '2014-04-01';
+  draft.permanentResidence.routes = [
+    { route: 'general', statusStart: draft.stayStart },
+  ];
+  draft.naturalisation.routes = [{ route: 'general' }];
+  draft.reentry = [
+    { route: 'ordinary' },
+    { route: 'deemed' },
+    { route: 'refugee-travel-document' },
+  ];
+  const result = renderToStaticMarkup(
+    <ResultView
+      country={japanModule}
+      result={japanModule.run(draft, 'zh-CN')}
+      draft={draft}
+    />,
+  );
+  expect(result).toContain('SRC-461');
+  expectResultSourcesListed(result, renderToStaticMarkup(<JapanPolicyPage />));
 });

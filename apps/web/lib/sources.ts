@@ -1,5 +1,5 @@
-// URLs transcribed from docs/SOURCES.md.
-export const sourceUrls: Record<string, string> = {
+// URLs transcribed from docs/SOURCES.md, including UK advice and background sources.
+export const ukSourceUrls: Record<string, string> = {
   'SRC-001':
     'https://assets.publishing.service.gov.uk/media/6ae90b0e5b14ba0182a272a4/A_Fairer_Pathway_to_Settlement_-_Government_response_to_the_consultation.pdf',
   'SRC-002':
@@ -111,6 +111,10 @@ export const sourceUrls: Record<string, string> = {
     'https://www.gov.uk/government/publications/immigration-status-and-enforcement-action-caseworker-guidance/cancellation-and-curtailment-of-permission-accessible',
   'SRC-060':
     'https://www.gov.uk/government/publications/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024/statement-of-changes-to-the-immigration-rules-hc-590-14-march-2024-accessible-version',
+};
+
+export const sourceUrls: Record<string, string> = {
+  ...ukSourceUrls,
   'SRC-061':
     'https://www.legislation.gov.au/C2007A00020/2026-06-04/2026-06-04/text',
   'SRC-062':

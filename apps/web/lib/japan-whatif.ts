@@ -1,4 +1,7 @@
-import type { JpFullReentryRequest } from '@uk-immigration/engine';
+import {
+  resolveJapanDeemedTripStatuses,
+  type JpFullReentryRequest,
+} from '@uk-immigration/engine';
 import { JapanWhatIfControls } from '../app/japan/whatif/controls';
 import type { TranslationKey } from '../i18n';
 import {
@@ -95,9 +98,15 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     );
     const pr = compared.permanentResidence;
     const nat = compared.naturalisation;
+    const deemed = compared.reentry.find((item) => item.route === 'deemed');
+    // Match the baseline itinerary before a control separates the two records.
+    const travel =
+      deemed && (knobs.noTrips || knobs.returns.deemed !== deemed.returnOn)
+        ? resolveJapanDeemedTripStatuses(compared.trips, compared.reentry)
+        : compared;
     return {
       ...compared,
-      trips: knobs.noTrips ? [] : draft.trips,
+      trips: knobs.noTrips ? [] : travel.trips,
       permanentResidence: {
         ...pr,
         evidence: {
@@ -123,7 +132,7 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
           requiredInterviewAndAssessmentComplete: knobs.interview,
         },
       },
-      reentry: compared.reentry.map((item) => ({
+      reentry: travel.reentry.map((item) => ({
         ...item,
         returnOn: knobs.returns[item.route] || undefined,
       })),

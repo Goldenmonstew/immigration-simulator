@@ -419,6 +419,7 @@ describe('permanent residence', () => {
     const result = pr(general, prEvidence, { simulationDate: '2028-03-18' });
     expect(result.timeEarliestDate).toBe('2028-03-18');
     expect(result.earliestDate).toBeUndefined();
+    expect(result.summary).not.toContain('you can file from');
     expect(result.pendingDetails).toContain('PD-370');
   });
 
@@ -1026,18 +1027,20 @@ describe('highly skilled routes', () => {
     maintained: true,
     current: snapshot,
   } as const;
+  const saturday = '2027-04-03';
+  const monday = '2027-04-05';
+  const saturdayRoute = {
+    route: 'hsp70',
+    statusStart: '2024-04-01',
+    maintained: true,
+    mode: 'retrospective',
+    current: { on: saturday, confirmedPoints: 80 },
+    historical: { on: '2024-04-03', confirmedPoints: 80 },
+  } as const;
   test.each(['en', 'zh-CN'] as const)(
     'a closed counter gives dates for both replacement points records and confirms the corrected filing in %s',
     (locale) => {
-      const saturday = '2027-04-03';
-      const monday = '2027-04-05';
-      const route = {
-        ...hsp70,
-        mode: 'retrospective',
-        current: { on: saturday, confirmedPoints: 80 },
-        historical: { on: '2024-04-03', confirmedPoints: 80 },
-      } as const;
-      const shifted = pr(route, prEvidence, {
+      const shifted = pr(saturdayRoute, prEvidence, {
         applicationDate: saturday,
         locale,
       });
@@ -1051,7 +1054,7 @@ describe('highly skilled routes', () => {
 
       const corrected = pr(
         {
-          ...route,
+          ...saturdayRoute,
           current: { on: monday, confirmedPoints: 80 },
           historical: { on: '2024-04-05', confirmedPoints: 80 },
         },
@@ -1059,6 +1062,42 @@ describe('highly skilled routes', () => {
         { applicationDate: monday, locale },
       );
       expect(corrected).toMatchObject({ status: 'MET', earliestDate: monday });
+    },
+  );
+  test.each(['en', 'zh-CN'] as const)(
+    'the next counter day requires fresh points evidence even with other requirements unknown in %s',
+    (locale) => {
+      const pointsOnly = {
+        route: saturdayRoute.route,
+        statusStart: saturdayRoute.statusStart,
+        current: saturdayRoute.current,
+        historical: saturdayRoute.historical,
+      };
+      const result = pr(pointsOnly, {}, {
+        simulationDate: saturday,
+        locale,
+      });
+      expect(result).toMatchObject({
+        status: 'UNKNOWN',
+        timeStatus: 'MET',
+        timeEarliestDate: saturday,
+      });
+      expect(result.earliestDate).toBeUndefined();
+      expect(status(result, 'hsp-current-points')).toBe('UNKNOWN');
+      expect(status(result, 'hsp-history')).toBe('UNKNOWN');
+      expect(result.summary).not.toContain(
+        locale === 'en' ? 'you can file from' : '最早可在',
+      );
+      expect(result.summary).toContain(
+        locale === 'en'
+          ? `Set the proposed filing date in the questionnaire to ${monday}`
+          : `请在问卷中把拟递交日改为 ${monday}`,
+      );
+      expect(result.summary).toContain(
+        locale === 'en'
+          ? 'enter historical evidence for 2024-04-05'
+          : '补录 2024-04-05 的历史证据',
+      );
     },
   );
   test('70 points, the birthday band, salary minimum and continuous history', () => {
@@ -2116,6 +2155,79 @@ describe('re-entry and travel documents', () => {
     }
   });
 
+  test.each([
+    [false, '2024-04-01', '2024-04-07', 'NOT_MET'],
+    [undefined, '2027-04-02', '2027-04-07', 'UNKNOWN'],
+    [true, '2024-04-01', '2024-04-07', 'MET'],
+  ] as const)(
+    'deemed continuity depends on declaration %s for departure on %s',
+    (declaredIntentAtDeparture, departureOn, returnOn, expected) => {
+      const result = reentry({
+        ...deemed,
+        departureOn,
+        returnOn,
+        declaredIntentAtDeparture,
+      });
+      expect(status(result, 'deemed-eligibility')).toBe(expected);
+      expect(status(result, 'return-continuity')).toBe(expected);
+      expect(status(result, 'deemed-validity')).toBe('MET');
+    },
+  );
+
+  test.each(['en', 'zh-CN'] as const)(
+    'reports a deemed deadline only when the possible status limits agree (%s)',
+    (locale) => {
+      const trip = {
+        ...deemed,
+        departureOn: '2024-04-01',
+        returnOn: '2025-10-01',
+        specialPermanentResident: undefined,
+        stayIndefinite: true,
+        stayExpiresOn: undefined,
+      };
+      const pending = reentry(trip, { locale });
+      for (const key of ['deemed-validity', 'return-continuity']) {
+        const check = condition(pending, key);
+        expect(check.status).toBe('UNKNOWN');
+        expect(check.explanation).toContain(
+          locale === 'en' ? 'deadline is unconfirmed' : '截止日待确认',
+        );
+        expect(check.explanation).toContain(
+          locale === 'en'
+            ? '1 year, or 2 years for special permanent residents'
+            : '通常为 1 年，特別永住者为 2 年',
+        );
+        expect(check.explanation).not.toContain('2025-04-01');
+      }
+      for (const [specialPermanentResident, deadline, expected] of [
+        [false, '2025-04-01', 'NOT_MET'],
+        [true, '2026-04-01', 'MET'],
+      ] as const) {
+        const result = reentry(
+          { ...trip, specialPermanentResident },
+          { locale },
+        );
+        for (const key of ['deemed-validity', 'return-continuity']) {
+          expect(status(result, key)).toBe(expected);
+          expect(condition(result, key).explanation).toContain(deadline);
+        }
+      }
+      const earlyExpiry = reentry(
+        {
+          ...trip,
+          stayIndefinite: false,
+          stayExpiresOn: '2024-09-01',
+          timelyRenewalPending: false,
+        },
+        { locale },
+      );
+      for (const key of ['deemed-validity', 'return-continuity']) {
+        expect(status(earlyExpiry, key)).toBe('NOT_MET');
+        expect(condition(earlyExpiry, key).explanation).toContain('2024-09-01');
+      }
+    },
+  );
+
   test('deemed term ends at the earlier date including a pending-renewal period', () => {
     expect(reentry(deemed).status).toBe('MET');
     expect(
@@ -2130,12 +2242,6 @@ describe('re-entry and travel documents', () => {
         'deemed-eligibility',
       ),
     ).toBe('NOT_MET');
-    expect(
-      status(
-        reentry({ ...deemed, declaredIntentAtDeparture: undefined }),
-        'deemed-eligibility',
-      ),
-    ).toBe('UNKNOWN');
     expect(
       status(reentry({ ...deemed, returnOn: '2027-10-03' }), 'deemed-validity'),
     ).toBe('NOT_MET');

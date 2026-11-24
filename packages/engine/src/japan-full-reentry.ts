@@ -102,7 +102,7 @@ export function assessJapanReentry(
       ref('SRC-461', '再入国許可申請「審査基準」「必要書類」'),
     ],
     deemed: [
-      ref('SRC-110', '第19条の3・第26条の2'),
+      ref('SRC-110', '第19条の3・第26条の2第1–3項'),
       ref('SRC-440', '第29条の4、別表第2「永住者」'),
       ref('SRC-442', '第23条第2項'),
       ref('SRC-116', 'Q57–61・みなし再入国許可'),
@@ -195,6 +195,7 @@ export function assessJapanReentry(
       ? addYears(permit.expiresOn, rr.extensionYears)
       : undefined;
   let permitEnd: IsoDate | undefined;
+  let verifiedLimit: IsoDate | undefined;
   const returnWithinPermit = () => {
     if (!returned || !departure || !permitEnd) return undefined;
     if (returned < departure) return false;
@@ -336,6 +337,7 @@ export function assessJapanReentry(
       withinStay(confirmedThrough),
     );
     permitEnd = confirmedThrough;
+    if (!extensionEndUnknown) verifiedLimit = limitedByStay(permitEnd);
     r(
       'ordinary-validity',
       '普通许可期限与延期',
@@ -414,14 +416,26 @@ export function assessJapanReentry(
       : old.deemedReentryYears.value;
     permitEnd = departure && addYears(departure, years);
     const limit = limitedByStay(permitEnd);
+    if (
+      !possibleSpecialDeemedLimit ||
+      limit === limitedByStay(possibleSpecialDeemedLimit)
+    )
+      verifiedLimit = limit;
+    const termZh = `从出境日起，通常为 ${old.deemedReentryYears.value} 年，特別永住者为 ${rr.specialPermanentDeemedYears} 年。`;
+    const termEn = `The term from departure is normally ${old.deemedReentryYears.value} year, or ${rr.specialPermanentDeemedYears} years for special permanent residents.`;
+    if (route.specialPermanentResident === undefined && !verifiedLimit)
+      documentNotice = [
+        `返日截止日待确认。${termZh}请核对出境时的身份及适用的在留期限。`,
+        `The return deadline is unconfirmed. ${termEn} Confirm your status at departure and any applicable expiry of stay.`,
+      ];
     r(
       'deemed-validity',
       'みなし再入国期限',
       'Deemed re-entry period',
       all(returnWithinPermit(), withinStay(returned)),
       [...routeSources, ...old.renewalPendingMonths.sources],
-      `通常从出境起 ${years} 年，若在留到期更早则取较早日。境外不可延长。${limit ? `截止 ${limit}。` : ''}`,
-      `Normally ${years} year(s) from departure or the earlier expiry of stay. This cannot be extended abroad.${limit ? ` Return by ${limit}.` : ''}`,
+      `${documentNotice?.[0] ?? termZh}若在留到期更早则取较早日。境外不可延长。${verifiedLimit ? `截止 ${verifiedLimit}。` : ''}`,
+      `${documentNotice?.[1] ?? termEn} An earlier expiry of stay takes precedence. This cannot be extended abroad.${verifiedLimit ? ` Return by ${verifiedLimit}.` : ''}`,
       ['PD-136', 'PD-379'],
     );
     fee = fees.deemed;
@@ -489,6 +503,7 @@ export function assessJapanReentry(
             ? (entryLimit ?? (extensionEndUnknown ? undefined : permitEnd))
             : undefined,
       };
+      verifiedLimit = travelDate.date;
       if (!entryLimit && p?.entryDeadlineNotSpecified === false)
         documentNotice = [
           '请补录证件上另行指定的入境期限，再核对返日日期。',
@@ -535,6 +550,7 @@ export function assessJapanReentry(
       ? extensionCeiling
       : undefined;
   const validity = all(
+    route.route === 'deemed' ? route.declaredIntentAtDeparture : true,
     specialEvidenceMissing ? undefined : returnWithinPermit(),
     !missedExtensionLimit,
     withinEntryDeadline,
@@ -545,12 +561,6 @@ export function assessJapanReentry(
       ? excluded(route.previouslyUsedSingleEntry)
       : true,
   );
-  const verifiedLimit =
-    route.route === 'refugee-travel-document'
-      ? travelDate?.date
-      : extensionEndUnknown
-        ? undefined
-        : limitedByStay(permitEnd);
   if (
     missedExtensionLimit &&
     !route.permitVoided &&
@@ -583,8 +593,8 @@ export function assessJapanReentry(
       ref('SRC-116', '再入国失效与继续在留'),
       ...(usesStay ? old.renewalPendingMonths.sources : []),
     ],
-    `${deadlineZh}遗失须核对官方期限证明，许可失效后原身份不能靠原许可恢复。${route.newLandingOn ? `已填重新上陆日 ${route.newLandingOn}。` : ''}`,
-    `${deadlineEn ? `${deadlineEn} ` : ''}Check official validity evidence if documents are lost. An expired permit cannot restore the previous status.${route.newLandingOn ? ` New landing reported on ${route.newLandingOn}.` : ''}`,
+    `${deadlineZh}${route.route === 'deemed' ? '凭みなし再入国继续原在留身份，须在出境时表明再入国意图。' : ''}遗失须核对官方期限证明，许可失效后原身份不能靠原许可恢复。${route.newLandingOn ? `已填重新上陆日 ${route.newLandingOn}。` : ''}`,
+    `${deadlineEn ? `${deadlineEn} ` : ''}${route.route === 'deemed' ? 'Continuity under deemed re-entry requires declaring your intent to return at departure. ' : ''}Check official validity evidence if documents are lost. An expired permit cannot restore the previous status.${route.newLandingOn ? ` New landing reported on ${route.newLandingOn}.` : ''}`,
     ['PD-136', 'PD-379'],
   );
 
