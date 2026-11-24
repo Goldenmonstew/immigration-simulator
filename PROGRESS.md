@@ -488,3 +488,4 @@
 | 490 | 任务 82：网站改名 immigration-simulator——Cloudflare 新项目与部署变量、仓库改名与 GitHub Pages 新路径；旧 Cloudflare 项目与新建的旧名仓库只做跳转并自行注销旧 service worker；部署文档补记。 | docs/deploy.md |
 | 491 | GitHub Pages 部署拆成 build 与 deploy 两个 job：同一 job 里刚上传的产物偶尔查不到（554dc5f、083fefa 两次失败，重跑后成功）。 | .github/workflows/github-pages.yml |
 | 770 | 任务 92：归档葡萄牙完整版官方快照，登记 SRC-470–492 与 PD-380–399，补存续期条例及 ARI FAQ 原文。 | policy-sources/、docs/SOURCES.md、docs/pending-details.md、apps/web/lib/sources.ts |
+| 771 | 任务 92：新增成年、刑期、生计、医保材料、投资、自由流动与费表参数，记录对应法条与生效日期。 | packages/policy-data/src/parameters/portugal-2026-11.ts、packages/policy-data/src/index.ts |

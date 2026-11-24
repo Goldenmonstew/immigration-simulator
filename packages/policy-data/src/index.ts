@@ -22,7 +22,10 @@ export { unitedStates2026_11 } from './parameters/united-states-2026-11';
 export { spain2026_11 } from './parameters/spain-2026-11';
 export { greece2026_11 } from './parameters/greece-2026-11';
 export { ireland2026_11 } from './parameters/ireland-2026-11';
-export { portugal2026_11 } from './parameters/portugal-2026-11';
+export {
+  portugal2026_11,
+  portugalFull2026_11,
+} from './parameters/portugal-2026-11';
 export { japan2026_11 } from './parameters/japan-2026-11';
 export { germany2026_11 } from './parameters/germany-2026-11';
 export { publicFundsBenefits } from './data/public-funds-benefits';
