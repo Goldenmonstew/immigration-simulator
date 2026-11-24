@@ -15,6 +15,7 @@ import { australiaModule as au } from '../lib/australia-module';
 import { readPageResult } from '../lib/page-result';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { ukModule } from '../lib/uk-module';
+import { gapRules } from '../lib/gap-summary';
 import { diffPathways } from '../lib/whatif';
 
 const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
@@ -566,4 +567,118 @@ test('a no-trips assumption from a comparison stays visible in the questionnaire
       'AU-CIT-time-absences',
     ),
   ).toBe('NOT_MET');
+});
+
+function rrvDraft(): AustraliaDraft {
+  return {
+    ...au.createDraft(),
+    completed: true,
+    simulationDate: '2026-11-23',
+    pathway: 'AU-RRV',
+    firstArrival: '2025-01-01',
+    locationAtApplication: 'onshore',
+    locationAtDecision: 'onshore',
+    noFurtherStay: 'clear',
+    section48History: 'none',
+    visas: [{ subclass: '189', from: '2025-01-01' }],
+    trips: [],
+    rrv: {
+      status: 'current-pr',
+      ties: 'none',
+      familyBasis: 'none',
+      compassionateDeparture: 'none',
+      returnApplicationBar: false,
+    },
+    publicInterest: {
+      officialPassport: true,
+      character: 'clear-history',
+      returnBan5001: false,
+    },
+  };
+}
+
+test.each(['zh-CN', 'en'] as const)(
+  'the projected date is labelled as meeting the assessed requirements in results, gaps and comparisons (%s)',
+  (locale) => {
+    const draft = rrvDraft();
+    const result = au.run(draft, locale);
+    expect(result.columns[0].pathways[0]).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2027-01-01',
+    });
+    const html = render(
+      <ResultView country={au} result={result} draft={draft} />,
+      locale,
+    );
+    expect(html).toContain(`<dt>${t('au.result.earliest', locale)}</dt>`);
+    expect(html).toContain(
+      t('au.result.earliest', locale) +
+        (locale === 'en' ? ': ' : '：') +
+        '2027-01-01',
+    );
+    expect(html).toContain(t('au.result.timing', locale));
+    expect(html).not.toContain(t('result.earliest', locale));
+    const whatIf = render(<WhatIfView country={au} draft={draft} />, locale);
+    expect(whatIf).toContain(`<dt>${t('au.result.earliest', locale)}</dt>`);
+    expect(whatIf).not.toContain(t('result.earliest', locale));
+  },
+);
+
+test('Resident Return alternatives, the fee budget and the citizenship pledge are labelled apart and left out of the gaps', () => {
+  const rrv = au.run(rrvDraft(), 'zh-CN').columns[0].pathways[0];
+  const kinds = Object.fromEntries(rrv.checks.map((c) => [c.id, c.kind]));
+  expect(kinds).toMatchObject({
+    'AU-RRV-option-residence': 'alternative',
+    'AU-RRV-option-ties': 'alternative',
+    'AU-RRV-basis': 'requirement',
+    'AU-FEES-APPLICATION': 'budget',
+  });
+  expect(gapRules(rrv).map((c) => c.id)).toEqual(['AU-RRV-basis']);
+
+  const citizenship = au.run(
+    {
+      ...rrvDraft(),
+      pathway: 'AU-CITIZENSHIP',
+      dateOfBirth: '1990-01-01',
+      firstArrival: '2020-01-01',
+      visas: [
+        { subclass: '482', from: '2020-01-01', to: '2025-12-31' },
+        { subclass: '189', from: '2026-01-01' },
+      ],
+    },
+    'zh-CN',
+  ).columns[0].pathways[0];
+  const ids = citizenship.checks.map((c) => [c.id, c.kind]);
+  expect(ids).toContainEqual(['AU-CIT-pledge', 'afterApproval']);
+  expect(ids).toContainEqual(['AU-CIT-time-permanent', 'time']);
+  expect(gapRules(citizenship).map((c) => c.id)).toContain(
+    'AU-CIT-time-permanent',
+  );
+  for (const id of ['AU-CIT-pledge', 'AU-FEES-APPLICATION'])
+    expect(gapRules(citizenship).map((c) => c.id)).not.toContain(id);
+
+  const html = render(
+    <ResultView
+      country={au}
+      result={au.run(rrvDraft(), 'zh-CN')}
+      draft={rrvDraft()}
+    />,
+  );
+  for (const kind of ['alternative', 'budget', 'requirement'] as const)
+    expect(html).toContain(`· ${t(`country.check.${kind}`)}`);
+});
+
+test('case-by-case pending details are not presented as details awaiting a government decision', () => {
+  const draft: AustraliaDraft = { ...rrvDraft(), pathway: 'AU-PARTNER' };
+  const result = au.run(draft, 'zh-CN');
+  const partner = result.columns[0].pathways[0];
+  expect(
+    partner.checks.find((c) => c.id === 'AU-PARTNER-evidence')?.pendingDetails,
+  ).toEqual(['PD-213']);
+  const html = render(
+    <ResultView country={au} result={result} draft={draft} />,
+  );
+  expect(html).toContain(t('pilot.pending'));
+  expect(html).not.toContain(t('result.pendingDetails'));
+  expect(html).not.toContain(t('gap.pending'));
 });

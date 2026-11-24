@@ -38,6 +38,9 @@ export const auModuleZh = {
     '问卷中没有 186 雇主提名记录，调整薪资不会改变结果。请先在问卷的雇主担保一步填写提名。',
   'au.result.finishQuestionnaire':
     '请返回问卷，完成必填项目并修正有误日期后再查看结果。',
+  'au.result.earliest': '预计满足评估条件的日期',
+  'au.result.timing':
+    '“预计满足评估条件的日期”按所填记录同时核对递交时和决定时的条件，不是允许递交的日期，也不是批准日期。191 的合资格财年须在递交前结束，ATO 评税通知在决定前提供；适用的第二期签证费在批签前缴纳。费用预算和入籍获批后的宣誓分开列出，不影响这个日期。',
 } as const;
 
 export const auModuleEn: Record<keyof typeof auModuleZh, string> = {
@@ -87,4 +90,7 @@ export const auModuleEn: Record<keyof typeof auModuleZh, string> = {
     'There is no 186 employer nomination in the questionnaire, so changing the salary has no effect. Add the nomination in the employer step first.',
   'au.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields to view your results.',
+  'au.result.earliest': 'Projected date the assessed requirements are met',
+  'au.result.timing':
+    'The projected date checks requirements at both application and decision on your records. It is not a date from which you may apply, nor a grant date. For 191, the qualifying income years must end before you apply and the ATO notices are provided before the decision; any second instalment is paid before grant. The fee budget and the citizenship pledge after approval are listed separately and do not change this date.',
 };

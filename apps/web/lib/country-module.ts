@@ -39,6 +39,8 @@ export interface CountryModule<D extends CountryDraft, K> {
   policy: CountryPolicy;
   principal?(draft: D, locale: Locale): CountryResult | undefined;
   resultNotes?(draft?: D): { notices: TranslationKey[]; dependant?: boolean };
+  // Label for a pathway's earliestDate where it is not an application date.
+  earliestLabel?: TranslationKey;
   advice?: {
     text: TranslationKey;
     sourceId: string;
@@ -77,12 +79,15 @@ export function pathwayTitle(
       );
 }
 
-export function pathwayDate(pathway?: CountryPathway) {
+export function pathwayDate(
+  pathway?: CountryPathway,
+  earliestLabel: TranslationKey = 'result.earliest',
+) {
   if (!pathway || pathway.travelDate === null) return undefined;
   return pathway.travelDate
     ? {
         label: `country.${pathway.travelDate.kind}` as const,
         date: pathway.travelDate.date,
       }
-    : { label: 'result.earliest' as const, date: pathway.earliestDate };
+    : { label: earliestLabel, date: pathway.earliestDate };
 }
