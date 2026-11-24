@@ -14,7 +14,11 @@ import { useTranslation } from '../i18n/locale';
 import type { CountryDraft, CountryModule } from '../lib/country-module';
 import { countryPath } from '../lib/site-countries';
 import { draftStorage } from '../lib/storage';
-import { linkedResultDraft, takeResultEdit } from '../lib/share';
+import {
+  linkedResultDraft,
+  takeResultEdit,
+  watchScenarioHash,
+} from '../lib/share';
 import site from '../app/site.module.css';
 import form from '../app/simulate/form.module.css';
 
@@ -37,54 +41,59 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
   const router = useRouter();
   const [draft, setDraft] = useState<D>();
   const [available, setAvailable] = useState(true);
-  const [editingResult, setEditingResult] = useState(false);
+  const [editHash, setEditHash] = useState<string>();
   const [errors, setErrors] = useState<Errors>({});
   const heading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    const linked = linkedResultDraft(country, hash);
-    const savedEdit = linked && window.history.state?.resultEdit;
-    const resumed =
-      savedEdit?.hash === hash && country.decodeDraft(savedEdit.draft);
-    const stored = linked ? undefined : draftStorage(country);
-    const restored = linked
-      ? resumed || country.decodeDraft(takeResultEdit(hash)) || linked.draft
-      : country.decodeDraft(stored?.draft);
-    let next = restored ?? country.createDraft();
-    // Reopening a result starts at the first step for editing.
-    const visible = steps(next);
-    if (
-      !resumed &&
-      (next.completed || !visible.some(({ step }) => step === next.step))
-    )
-      next = { ...next, step: visible[0].step };
-    if (linked) {
-      next = { ...next, completed: false };
-      window.history.replaceState(
-        { ...window.history.state, resultEdit: { hash, draft: next } },
-        '',
-      );
-    }
-    setEditingResult(!!linked);
-    setDraft(next);
-    setAvailable(stored?.available ?? true);
+    const open = (hash: string) => {
+      const linked = linkedResultDraft(country, hash);
+      const savedEdit = linked && window.history.state?.resultEdit;
+      const resumed =
+        savedEdit?.hash === hash && country.decodeDraft(savedEdit.draft);
+      const stored = linked ? undefined : draftStorage(country);
+      const restored = linked
+        ? resumed || country.decodeDraft(takeResultEdit(hash)) || linked.draft
+        : country.decodeDraft(stored?.draft);
+      let next = restored ?? country.createDraft();
+      // Reopening a result starts at the first step for editing.
+      const visible = steps(next);
+      if (
+        !resumed &&
+        (next.completed || !visible.some(({ step }) => step === next.step))
+      )
+        next = { ...next, step: visible[0].step };
+      if (linked) {
+        next = { ...next, completed: false };
+        window.history.replaceState(
+          { ...window.history.state, resultEdit: { hash, draft: next } },
+          '',
+        );
+      }
+      setEditHash(linked ? hash : undefined);
+      setDraft(next);
+      setAvailable(stored?.available ?? true);
+      setErrors({});
+    };
+    open(window.location.hash);
+    if (country.id === 'jp') return watchScenarioHash(open);
   }, [country, steps]);
 
   useEffect(() => {
     if (!draft) return;
-    if (editingResult) {
+    if (editHash !== undefined) {
+      if (window.history.state?.resultEdit?.hash !== editHash) return;
       window.history.replaceState(
         {
           ...window.history.state,
-          resultEdit: { hash: window.location.hash, draft },
+          resultEdit: { hash: editHash, draft },
         },
         '',
       );
     } else {
       setAvailable(draftStorage(country, draft).available);
     }
-  }, [country, draft, editingResult]);
+  }, [country, draft, editHash]);
   useEffect(() => {
     heading.current?.focus();
   }, [draft?.step]);
@@ -148,7 +157,7 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
         </h1>
         <p role="status" className={available ? form.saved : site.notice}>
           {t(
-            editingResult
+            editHash !== undefined
               ? 'jp.form.editResult'
               : available
                 ? 'form.saved'

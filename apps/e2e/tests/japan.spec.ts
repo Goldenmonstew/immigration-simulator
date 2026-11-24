@@ -488,28 +488,84 @@ test('returning to results after another tab submits uses the same draft for dis
 
 const departure = '2026-11-23';
 const draftKey = 'jp-immigration-draft-v1';
-const deemedShare =
-  path('result') +
-  '#s=' +
-  Buffer.from(
-    JSON.stringify({
-      country: 'jp',
-      v: 1,
-      draft: {
-        version: 1,
-        step: 0,
-        completed: true,
-        simulationDate: '2026-11-26',
-        stayStart: '',
-        trips: [],
-        permanentResidence: { routes: [], evidence: {} },
-        naturalisation: { routes: [], evidence: {} },
-        reentry: [
-          { route: 'deemed', departureOn: departure, returnOn: '2026-11-27' },
-        ],
-      },
-    }),
-  ).toString('base64url');
+function shareFragment(route: 'deemed' | 'ordinary', returnOn: string) {
+  const draft = {
+    version: 1,
+    step: 0,
+    completed: true,
+    simulationDate: '2026-11-26',
+    stayStart: '',
+    trips: [],
+    permanentResidence: { routes: [], evidence: {} },
+    naturalisation: { routes: [], evidence: {} },
+    reentry: [{ route, departureOn: departure, returnOn }],
+  };
+  return (
+    '#s=' +
+    Buffer.from(JSON.stringify({ country: 'jp', v: 1, draft })).toString(
+      'base64url',
+    )
+  );
+}
+const deemedHash = shareFragment('deemed', '2026-11-27');
+const deemedShare = path('result') + deemedHash;
+
+test('switching Japanese scenario links in one tab restores the selected route, dates and edit history', async ({
+  page,
+}) => {
+  const ordinaryHash = shareFragment('ordinary', '2026-12-03');
+  const switchToOrdinary = () =>
+    page.evaluate((hash) => {
+      location.hash = hash;
+    }, ordinaryHash);
+  const title = (name: string) =>
+    assessment(page, zhCN).getByRole('heading', { name, exact: true });
+  await page.goto(deemedShare);
+  await expect(title('みなし再入国許可')).toBeVisible();
+  await switchToOrdinary();
+  await expect(title('普通再入国許可')).toBeVisible();
+  await page.goBack();
+  await expect(title('みなし再入国許可')).toBeVisible();
+  const main = page.getByRole('main');
+  const edit = await main
+    .getByRole('link', { name: zhCN['result.edit'], exact: true })
+    .first()
+    .getAttribute('href');
+  await main
+    .getByRole('link', { name: zhCN['whatif.title'], exact: true })
+    .first()
+    .click();
+  await expect(page.locator('#jp-whatif-deemed')).toHaveValue('2026-11-27');
+  await switchToOrdinary();
+  await expect(title('普通再入国許可')).toBeVisible();
+  await expect(page.locator('#jp-whatif-ordinary')).toHaveValue('2026-12-03');
+  await expect(page.locator('#jp-whatif-deemed')).toHaveCount(0);
+
+  await page.goto(edit!);
+  await expect(page.locator('#jp-route-travel-deemed')).toBeChecked();
+  await switchToOrdinary();
+  await expect(page.locator('#jp-route-travel-ordinary')).toBeChecked();
+  await expect(page.locator('#jp-route-travel-deemed')).not.toBeChecked();
+  await questionnaire(page)
+    .getByRole('button', { name: zhCN['form.continue'], exact: true })
+    .click();
+  const returnDate = page.locator('#jp-travel-ordinary-returnOn');
+  await expect(returnDate).toHaveValue('2026-12-03');
+  await returnDate.fill('2026-12-04');
+  await page.goBack();
+  await expect(page.locator('#jp-route-travel-deemed')).toBeChecked();
+  await page.goForward();
+  await expect(returnDate).toHaveValue('2026-12-04');
+  await page.reload();
+  await expect(returnDate).toHaveValue('2026-12-04');
+  const saved = await page.evaluate(
+    (key) => JSON.parse(localStorage.getItem(key)!),
+    draftKey,
+  );
+  expect(saved.reentry).toEqual([
+    { route: 'deemed', departureOn: departure, returnOn: '2026-11-27' },
+  ]);
+});
 
 test('a shared result keeps its scenario for comparison and editing after another tab saves a draft', async ({
   page,
@@ -618,22 +674,52 @@ test('a shared result keeps its scenario for comparison and editing after anothe
 test.describe('device in Japan', () => {
   test.use({ timezoneId: 'Asia/Tokyo' });
 
-  test('a continuously visible Japanese result updates at device midnight', async ({
-    page,
-  }) => {
-    await page.clock.install({ time: new Date('2026-11-23T23:59:00+09:00') });
-    await page.goto(deemedShare);
-    const main = page.getByRole('main');
-    const planned = zhCN['jp.result.plannedDeparture'].replace(
-      '{date}',
-      departure,
-    );
-    await expect(main).toContainText(planned);
-    expect(await page.evaluate(() => document.visibilityState)).toBe('visible');
-    await page.clock.fastForward('01:01');
-    await expect(main).toContainText(
-      zhCN['jp.result.confirmDeparture'].replace('{date}', departure),
-    );
-    await expect(main).not.toContainText(planned);
-  });
+  for (const shared of [true, false]) {
+    test(`a continuously visible Japanese ${shared ? 'shared' : 'local'} result keeps its scenario at device midnight`, async ({
+      page,
+      context,
+    }) => {
+      const other = await context.newPage();
+      await other.goto(path());
+      await page.bringToFront();
+      await page.clock.install({ time: new Date('2026-11-23T23:59:00+09:00') });
+      await page.goto(deemedShare);
+      const main = page.getByRole('main');
+      const planned = zhCN['jp.result.plannedDeparture'].replace(
+        '{date}',
+        departure,
+      );
+      await expect(main).toContainText(planned);
+      if (!shared) {
+        await page.goto(path('result'));
+        await expect(main).not.toContainText(zhCN['share.loaded']);
+        await expect(main).toContainText(planned);
+      }
+      const unfinished = await other.evaluate((key) => {
+        const draft = JSON.parse(localStorage.getItem(key)!);
+        draft.completed = false;
+        draft.reentry = [{ route: 'ordinary' }];
+        const saved = JSON.stringify(draft);
+        localStorage.setItem(key, saved);
+        return saved;
+      }, draftKey);
+      expect(await page.evaluate(() => document.visibilityState)).toBe(
+        'visible',
+      );
+      await page.clock.fastForward('01:01');
+      await expect(main).toContainText(
+        zhCN['jp.result.confirmDeparture'].replace('{date}', departure),
+      );
+      await expect(main).not.toContainText(planned);
+      await expect(
+        assessment(page, zhCN).getByRole('heading', {
+          name: 'みなし再入国許可',
+          exact: true,
+        }),
+      ).toBeVisible();
+      expect(
+        await other.evaluate((key) => localStorage.getItem(key), draftKey),
+      ).toBe(unfinished);
+    });
+  }
 });

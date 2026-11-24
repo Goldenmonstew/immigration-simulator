@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CountryResult, Locale } from '@uk-immigration/engine';
 import { PrincipalAssessment, ResultView } from './result-view';
 import { ResultScenarioHash } from './gap-summary';
@@ -12,7 +12,11 @@ import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import type { CountryDraft, CountryModule } from '../lib/country-module';
 import { readPageResult, type ResultPageState } from '../lib/page-result';
-import { encodeDraft, rememberResultEdit } from '../lib/share';
+import {
+  encodeDraft,
+  rememberResultEdit,
+  watchScenarioHash,
+} from '../lib/share';
 import styles from '../app/site.module.css';
 
 export { readPageResult };
@@ -27,26 +31,30 @@ export function ResultPage<D extends CountryDraft, K>({
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const [page, setPage] = useState<ResultPageState<D> & { mock?: boolean }>();
+  const displayedSource = useRef<D | string | undefined>(undefined);
   useEffect(() => {
-    const load = (mode: 'result' | 'refresh') => {
-      const encoded = new URLSearchParams(window.location.hash.slice(1)).get(
-        's',
-      );
+    const open = (hash: string) => {
+      const encoded = new URLSearchParams(hash.slice(1)).get('s');
       const previewId = new URLSearchParams(window.location.search).get('mock');
       const example =
         encoded === null && previewId && preview?.(previewId, locale);
-      setPage(
-        example
-          ? { result: example, mock: true }
-          : readPageResult(country, locale, encoded, mode),
-      );
+      if (example) {
+        displayedSource.current = undefined;
+        setPage({ result: example, mock: true });
+      } else {
+        const next = readPageResult(country, locale, encoded);
+        displayedSource.current = encoded ?? next.draft;
+        setPage(next);
+      }
     };
-    const open = () => load('result');
-    open();
-    window.addEventListener('hashchange', open);
-    if (country.id !== 'jp')
-      return () => window.removeEventListener('hashchange', open);
+    const openLocation = () => open(window.location.hash);
+    openLocation();
+    if (country.id !== 'jp') {
+      window.addEventListener('hashchange', openLocation);
+      return () => window.removeEventListener('hashchange', openLocation);
+    }
 
+    const stopWatching = watchScenarioHash(open);
     let timer: number;
     const scheduleMidnight = () => {
       const now = new Date();
@@ -57,14 +65,16 @@ export function ResultPage<D extends CountryDraft, K>({
     function refresh() {
       window.clearTimeout(timer);
       if (document.visibilityState !== 'visible') return;
-      load('refresh');
+      const source = displayedSource.current;
+      if (source !== undefined)
+        setPage(readPageResult(country, locale, source, 'refresh'));
       scheduleMidnight();
     }
     if (document.visibilityState === 'visible') scheduleMidnight();
     document.addEventListener('visibilitychange', refresh);
     return () => {
       window.clearTimeout(timer);
-      window.removeEventListener('hashchange', open);
+      stopWatching();
       document.removeEventListener('visibilitychange', refresh);
     };
   }, [country, locale, preview]);
@@ -174,7 +184,10 @@ export function ResultPage<D extends CountryDraft, K>({
         <SavedScenarios
           country={country}
           draft={result ? draft : undefined}
-          onLoad={(next) => setPage(readPageResult(country, locale, next))}
+          onLoad={(next) => {
+            displayedSource.current = next;
+            setPage(readPageResult(country, locale, next));
+          }}
         />
       )}
       {result && (

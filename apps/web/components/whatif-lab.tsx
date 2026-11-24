@@ -17,7 +17,7 @@ import { readPageResult } from '../lib/page-result';
 import { displayedColumns } from '../lib/policy';
 import { countryPath } from '../lib/site-countries';
 import { draftStorage } from '../lib/storage';
-import { linkedResultDraft } from '../lib/share';
+import { linkedResultDraft, watchScenarioHash } from '../lib/share';
 import {
   diffPathways,
   parseWhatIfFocus,
@@ -402,45 +402,53 @@ function StoredWhatIfPage<D extends CountryDraft, K>({
   country: CountryModule<D, K>;
 }) {
   const { t } = useTranslation();
-  const [draft, setDraft] = useState<D>();
-  const [ready, setReady] = useState(false);
-  const [target, setTarget] = useState<WhatIfTarget>();
-  const [resultHash, setResultHash] = useState('');
+  const [page, setPage] = useState<{
+    hash: string;
+    draft?: D;
+    target?: WhatIfTarget;
+    resultHash: string;
+  }>();
   const loaded = useRef<CountryModule<D, K> | undefined>(undefined);
   useEffect(() => {
-    if (loaded.current === country) return;
-    loaded.current = country;
-    const url = new URL(window.location.href);
-    const linked = linkedResultDraft(country, url.hash);
-    setDraft(linked ? linked.draft : draftStorage(country).draft);
-    setResultHash(linked?.resultHash ?? '');
-    setTarget(
-      takeWhatIfTarget(
-        country.id,
-        parseWhatIfFocus(
-          country.whatif.focusControls,
-          url.searchParams.get('focus'),
+    const open = (hash: string) => {
+      const url = new URL(window.location.href);
+      const linked = linkedResultDraft(country, hash);
+      setPage({
+        hash,
+        draft: linked ? linked.draft : draftStorage(country).draft,
+        resultHash: linked?.resultHash ?? '',
+        target: takeWhatIfTarget(
+          country.id,
+          parseWhatIfFocus(
+            country.whatif.focusControls,
+            url.searchParams.get('focus'),
+          ),
         ),
-      ),
-    );
-    if (url.searchParams.has('focus')) {
-      url.searchParams.delete('focus');
-      window.history.replaceState(
-        window.history.state,
-        '',
-        `${url.pathname}${url.search}${url.hash}`,
-      );
+      });
+      if (url.searchParams.has('focus')) {
+        url.searchParams.delete('focus');
+        window.history.replaceState(
+          window.history.state,
+          '',
+          `${url.pathname}${url.search}${url.hash}`,
+        );
+      }
+    };
+    if (loaded.current !== country) {
+      loaded.current = country;
+      open(window.location.hash);
     }
-    setReady(true);
+    if (country.id === 'jp') return watchScenarioHash(open);
   }, [country]);
   return (
     <main id="main" className={site.main}>
-      {ready ? (
+      {page ? (
         <WhatIfView
+          key={page.hash}
           country={country}
-          draft={draft}
-          target={target}
-          resultHash={resultHash}
+          draft={page.draft}
+          target={page.target}
+          resultHash={page.resultHash}
         />
       ) : (
         <p role="status">{t('result.loading')}</p>

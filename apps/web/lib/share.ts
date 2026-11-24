@@ -73,6 +73,25 @@ export function linkedResultDraft<D extends CountryDraft>(
   };
 }
 
+// A history traversal can deliver both events for the same fragment.
+export function watchScenarioHash(open: (hash: string) => void) {
+  const { pathname } = window.location;
+  let traversedHash: string | undefined;
+  const changed = (event: Event) => {
+    if (window.location.pathname !== pathname) return;
+    const { hash } = window.location;
+    const paired = event.type === 'hashchange' && hash === traversedHash;
+    traversedHash = event.type === 'popstate' ? hash : undefined;
+    if (!paired) open(hash);
+  };
+  window.addEventListener('hashchange', changed);
+  window.addEventListener('popstate', changed);
+  return () => {
+    window.removeEventListener('hashchange', changed);
+    window.removeEventListener('popstate', changed);
+  };
+}
+
 // Keep any inactive local questionnaire answers out of the link itself.
 let pendingEdit: { hash: string; draft: CountryDraft } | undefined;
 
