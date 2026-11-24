@@ -320,7 +320,14 @@ describe('permanent residence', () => {
   );
 
   test('moves Saturday filing to the next open day and preserves the time result', () => {
-    const result = pr(general, prEvidence, { simulationDate: '2027-04-03' });
+    const saturday = { simulationDate: '2027-04-03' };
+    const stale = pr(general, prEvidence, saturday);
+    expect(status(stale, 'filing-in-japan')).toBe('UNKNOWN');
+    expect(stale.earliestDate).toBeUndefined();
+    const result = pr(general, prEvidence, {
+      ...saturday,
+      residenceEvidenceOn: '2027-04-05',
+    });
     expect(result).toMatchObject({
       status: 'MET',
       earliestDate: '2027-04-05',
@@ -341,6 +348,7 @@ describe('permanent residence', () => {
     (departure, reentryPermit, expected, filing, time) => {
       const result = pr(general, prEvidence, {
         simulationDate: '2027-04-03',
+        residenceEvidenceOn: '2027-04-05',
         trips: [
           {
             departure,
@@ -416,8 +424,24 @@ describe('permanent residence', () => {
         },
         { simulationDate: '2027-04-03' },
       );
-      expect(status(result, 'lawful-filing-status')).toBe('NOT_MET');
-      expect(result.status).toBe('NOT_MET');
+      expect(status(result, 'lawful-filing-status')).toBe('UNKNOWN');
+      expect(result.status).toBe('UNKNOWN');
+      const confirmed = pr(
+        general,
+        {
+          ...prEvidence,
+          status: {
+            ...prEvidence.status,
+            expiresOn: '2027-04-04',
+            timelyRenewalPending: false,
+          },
+        },
+        {
+          simulationDate: '2027-04-03',
+          residenceEvidenceOn: '2027-04-05',
+        },
+      );
+      expect(status(confirmed, 'lawful-filing-status')).toBe('NOT_MET');
       expect(result.timeEarliestDate).toBe('2027-04-03');
       expect(result.earliestDate).toBeUndefined();
     },
@@ -1308,8 +1332,15 @@ describe('highly skilled routes', () => {
 
 describe('naturalisation', () => {
   test('moves ordinary naturalisation filing from Saturday to the next open day', () => {
+    const old = nat({ route: 'general' }, natEvidence, {
+      simulationDate: '2027-04-03',
+    });
+    expect(status(old, 'filing-in-japan')).toBe('UNKNOWN');
+    expect(status(old, 'lawful-domicile')).toBe('UNKNOWN');
+    expect(old.earliestDate).toBeUndefined();
     const result = nat({ route: 'general' }, natEvidence, {
       simulationDate: '2027-04-03',
+      residenceEvidenceOn: '2027-04-05',
     });
     expect(status(result, 'domicile-years')).toBe('MET');
     expect(status(result, 'filing-in-japan')).toBe('MET');
@@ -2051,6 +2082,8 @@ describe('re-entry and travel documents', () => {
       const result = reentry(
         {
           ...ordinary,
+          lawfulStatusOn: earliestDate,
+          filingEvidenceOn: earliestDate,
           channel,
           onlineConcurrentEligibleApplication,
           stayIndefinite: false,

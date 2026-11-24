@@ -2,6 +2,7 @@
 
 import {
   editJapanTripAnswer,
+  japanTalentHistoricalDate,
   shareJapanTripAnswers,
 } from '@uk-immigration/engine';
 import { QuestionnaireShell } from '../../../components/questionnaire-shell';
@@ -13,7 +14,10 @@ import {
   hasJapanResidenceRoute,
   japanDepartureTiming,
   japanSteps,
-  ordinaryStatusDate,
+  datedJapanAnswers,
+  ordinaryAnswersForDate,
+  ordinaryFilingDays,
+  residenceFilingDay,
   withJapanFilingDate,
   type JapanDraft,
 } from '../../../lib/japan-draft';
@@ -45,8 +49,72 @@ interface StepProps {
   update: (patch: Partial<JapanDraft>) => void;
 }
 
-function JapanStep({ draft, errors, update }: StepProps) {
+function editTravelField(
+  draft: JapanDraft,
+  route: JapanDraft['reentry'][number],
+  key: string,
+  value: unknown,
+) {
+  const next = updateAnswer(route, key, value);
+  if (['departureOn', 'returnOn', 'newLandingOn'].includes(key))
+    delete next.comparisonHistoryReturnOn;
+  const departureChanged = key === 'departureOn' && value !== route.departureOn;
+  if (departureChanged) {
+    delete next.timelyRenewalPending;
+    delete next.specialPermanentResident;
+  }
+  if (route.route === 'ordinary' && next.route === 'ordinary') {
+    const days = ordinaryFilingDays(draft, next);
+    if (key === 'lawfulStatus')
+      return {
+        ...next,
+        lawfulStatusOn: value === undefined ? undefined : days?.statusDate,
+      };
+    if (key === 'inJapanWhenApplying' || key === 'excludedStatusOrDetention')
+      return { ...next, filingEvidenceOn: days?.date };
+    if (departureChanged) {
+      delete next.previouslyUsedSingleEntry;
+      delete next.passportOrApprovedAlternative;
+      delete next.residentCardOrCertificate;
+    }
+    return ordinaryAnswersForDate(draft, next, draft, route);
+  }
+  if (next.route === 'refugee-travel-document' && departureChanged) {
+    delete next.refugeeRecognition;
+    delete next.hasJapaneseTravelDocument;
+  }
+  if (next.route !== 'deemed') return next;
+  if (departureChanged) {
+    delete next.lawfulStatus;
+    delete next.temporaryVisitor;
+    delete next.passportValid;
+    delete next.formalPermitRequired;
+    delete next.residentCardOrCertificate;
+    delete next.alreadyDeparted;
+  }
+  if (departureChanged || (key === 'alreadyDeparted' && value !== true)) {
+    delete next.declaredIntentAtDeparture;
+    delete next.declarationForDepartureOn;
+  }
+  if (key === 'declaredIntentAtDeparture') {
+    if (value !== undefined) next.alreadyDeparted = true;
+    next.declarationForDepartureOn =
+      value === undefined ? undefined : next.departureOn;
+  }
+  return next;
+}
+
+function JapanStep({ draft: stored, errors, update: save }: StepProps) {
+  const draft = datedJapanAnswers(stored);
   const { t } = useTranslation();
+  const residence = hasJapanResidenceRoute(draft);
+  const residenceDay = residence ? residenceFilingDay(draft) : undefined;
+  const update = (patch: Partial<JapanDraft>) =>
+    save({
+      ...draft,
+      ...(residence && { residenceEvidenceOn: residenceDay }),
+      ...patch,
+    });
   const pr = draft.permanentResidence;
   const nat = draft.naturalisation;
   const routeLabel = (group: RouteGroup, route: string) =>
@@ -57,7 +125,6 @@ function JapanStep({ draft, errors, update }: StepProps) {
     active.reentry,
   );
   const routes = { pr: pr.routes, nat: nat.routes, travel: active.reentry };
-  const residence = hasJapanResidenceRoute(draft);
   const routeError = !residence && !draft.reentry.length && errors['jp-routes'];
   // Required answers remain blank while a route is being edited. The shell
   // validates each selected route before any request is sent to the engine.
@@ -96,6 +163,10 @@ function JapanStep({ draft, errors, update }: StepProps) {
       const fields = (routeFields[group] as Record<string, JapanField[]>)[
         route.route
       ];
+      const ordinaryDays =
+        route.route === 'ordinary'
+          ? ordinaryFilingDays(draft, route)
+          : undefined;
       const planned =
         route.route === 'deemed' && !canConfirmJapanDeparture(draft, route);
       const sameDay =
@@ -105,10 +176,33 @@ function JapanStep({ draft, errors, update }: StepProps) {
       return (
         <section key={route.route} className={styles.section}>
           <h2>{routeLabel(group, route.route)}</h2>
-          {group === 'pr' &&
-            ['hsp70', 'hsp80', 'j-skip'].includes(route.route) && (
-              <p>{t('jp.form.talent')}</p>
+          {residenceDay &&
+            (route.route === 'hsp70' ||
+              route.route === 'hsp80' ||
+              route.route === 'j-skip') && (
+              <p>
+                {t('jp.form.talent')
+                  .replace('{date}', residenceDay)
+                  .replace(
+                    '{past}',
+                    japanTalentHistoricalDate(route.route, residenceDay),
+                  )}
+              </p>
             )}
+          {ordinaryDays && (
+            <p>
+              {t(
+                ordinaryDays.held
+                  ? 'jp.form.ordinaryHeldDay'
+                  : 'jp.form.ordinaryFilingDay',
+              ).replace(
+                '{date}',
+                (ordinaryDays.held
+                  ? ordinaryDays.statusDate
+                  : ordinaryDays.date) ?? t('jp.form.unknown'),
+              )}
+            </p>
+          )}
           {fields.length ? (
             <EvidenceFields
               fields={fields.filter(
@@ -128,46 +222,13 @@ function JapanStep({ draft, errors, update }: StepProps) {
                   group,
                   routes[group].map((r) => {
                     if (r.route !== route.route) return r;
-                    let next = updateAnswer(r, key, value);
                     if (
-                      group === 'travel' &&
-                      ['departureOn', 'returnOn', 'newLandingOn'].includes(key)
+                      r.route === 'ordinary' ||
+                      r.route === 'deemed' ||
+                      r.route === 'refugee-travel-document'
                     )
-                      next = updateAnswer(
-                        next,
-                        'comparisonHistoryReturnOn',
-                        undefined,
-                      );
-                    if (
-                      r.route === 'ordinary' &&
-                      next.route === 'ordinary' &&
-                      ordinaryStatusDate(draft, r) !==
-                        ordinaryStatusDate(draft, next)
-                    )
-                      next = updateAnswer(next, 'lawfulStatus', undefined);
-                    if (r.route !== 'deemed') return next;
-                    if (key === 'declaredIntentAtDeparture')
-                      return {
-                        ...next,
-                        alreadyDeparted:
-                          value === undefined ? r.alreadyDeparted : true,
-                        declarationForDepartureOn:
-                          value === undefined ? undefined : r.departureOn,
-                      };
-                    if (key === 'departureOn' && value !== r.departureOn)
-                      return {
-                        ...next,
-                        alreadyDeparted: undefined,
-                        declaredIntentAtDeparture: undefined,
-                        declarationForDepartureOn: undefined,
-                      };
-                    if (key === 'alreadyDeparted' && value !== true)
-                      return {
-                        ...next,
-                        declaredIntentAtDeparture: undefined,
-                        declarationForDepartureOn: undefined,
-                      };
-                    return next;
+                      return editTravelField(draft, r, key, value);
+                    return updateAnswer(r, key, value);
                   }),
                   { route: route.route, field: key },
                 )
@@ -346,6 +407,14 @@ function JapanStep({ draft, errors, update }: StepProps) {
             }}
           />
         </>
+      )}
+      {draft.step >= 2 && draft.step <= 5 && (
+        <p>
+          {t('jp.form.residenceFilingDay').replace(
+            '{date}',
+            residenceDay ?? t('jp.form.unknown'),
+          )}
+        </p>
       )}
       {draft.step === 2 && routeQuestions('pr')}
       {draft.step === 3 && evidence(prStatusSections, 'pr')}

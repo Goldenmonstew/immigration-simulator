@@ -34,9 +34,17 @@ const messages = {
     '留空时按模拟日期评估。改动评估所用的递交日后，请重新确认当天的在日情况、合法在留及适用的高度人材证据。',
     'Leave blank to use the simulation date. If the filing date changes, confirm presence in Japan, lawful status and any applicable highly skilled evidence for the new date.',
   ],
-  'jp.form.ordinaryLawfulStatus': [
-    '若这份普通许可已在模拟日生效，请按本次出境日作答。若为新申请，请按拟递交日作答。',
-    'If the ordinary permit is already effective on the simulation date, answer for the date of departure on this trip. For a new application, answer for the intended filing date.',
+  'jp.form.ordinaryFilingDay': [
+    '候选受理日为 {date}。请按这一天确认合法在留、排除资格或收容情况，以及申请时是否在日本。同时在线递交的申请按原拟递交日确认。',
+    'The candidate filing date is {date}. Confirm lawful status, any exclusion or detention, and presence in Japan on that day. Answer the concurrent online application question for the originally requested date.',
+  ],
+  'jp.form.ordinaryHeldDay': [
+    '这份普通许可已生效。请按本次出境日 {date} 确认合法在留。',
+    'This ordinary permit is already effective. Confirm lawful status on the departure date for this trip, {date}.',
+  ],
+  'jp.form.residenceFilingDay': [
+    '请按候选受理日 {date} 确认递交时的在日、在留或住所情况，并核对适用的人才资格和申报记录。',
+    'For filing-day questions, confirm presence in Japan, status or domicile, and any applicable skilled-worker or notification evidence for {date}.',
   ],
   'jp.form.history': [
     '每次出境和返日各记为一段行程，可包含计划行程。出境方式选“无”表示原在留随出境结束，返日须以新身份上陆。没有行程可直接继续。',
@@ -51,8 +59,8 @@ const messages = {
     'Check your departure record for the re-entry permission or refugee travel document used. For an ordinary permit, check its validity on return. For a refugee travel document, enter its validity and any separate entry deadline on the travel document route for the same trip.',
   ],
   'jp.form.talent': [
-    '当前和历史积分证据须分别注明基准日。遇窗口休息日顺延，请核对顺延后递交日的证据。',
-    'Date each current and historical record separately. If the counter is closed, check the evidence for the next filing day.',
+    '当前证据按候选受理日 {date} 核对。采用回溯证明时，请填写 {past} 的历史证据。',
+    'Enter current evidence for the candidate filing date, {date}. For retrospective proof, enter the historical record for {past}.',
   ],
   'jp.form.travelHint': [
     '拟出境可先填行程。只有实际出境时已经表明返日意图，才能将该项选为“是”。',

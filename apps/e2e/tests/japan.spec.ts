@@ -311,6 +311,10 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
   await field('returnOn').fill('2027-04-19');
   await field('permit-effectiveOn').fill('2027-04-06');
   await field('permit-expiresOn').fill('2028-04-04');
+  await field('channel').selectOption('counter');
+  await expect(questionnaire(page)).toContainText(
+    'The candidate filing date is 2027-04-05',
+  );
   for (const key of [
     'lawfulStatus',
     'inJapanWhenApplying',
@@ -329,7 +333,6 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
     await field(key).selectOption('no');
   }
   await field('visits').selectOption('multiple');
-  await field('channel').selectOption('counter');
   await noHorizontalScroll(page);
   await questionnaire(page)
     .getByRole('button', { name: en['form.results'], exact: true })

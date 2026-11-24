@@ -1,6 +1,8 @@
 import type { CountryResult, Locale } from '@uk-immigration/engine';
 import type { CountryDraft, CountryModule } from './country-module';
 
+import { today } from './questionnaire';
+
 type DraftModule<D extends CountryDraft> = Pick<
   CountryModule<D, never>,
   'id' | 'version' | 'createDraft' | 'restoreStoredDraft'
@@ -14,7 +16,12 @@ function storageKey(country: StorageCountry, kind: 'draft' | 'scenarios') {
 const memoryDrafts = new Map<string, CountryDraft>();
 const memoryResults = new Map<
   string,
-  { result: CountryResult; locale: Locale; draftJSON: string }
+  {
+    result: CountryResult;
+    locale: Locale;
+    draftJSON: string;
+    deviceDay?: string;
+  }
 >();
 
 // A single storage boundary handles unavailable storage and invalid JSON.
@@ -56,15 +63,21 @@ export function draftStorage<D extends CountryDraft>(
   return { draft, available };
 }
 
+export function resultDeviceDay(country: StorageCountry) {
+  return country.id === 'jp' ? today() : undefined;
+}
+
 export function rememberResult(
   country: StorageCountry,
   draft: CountryDraft,
   result: CountryResult,
   locale: Locale,
+  deviceDay = resultDeviceDay(country),
 ): void {
   memoryResults.set(storageKey(country, 'draft'), {
     result,
     locale,
+    deviceDay,
     draftJSON: JSON.stringify(draft),
   });
 }
@@ -72,9 +85,12 @@ export function getRememberedResult(
   country: StorageCountry,
   draft: CountryDraft,
   locale: Locale,
+  deviceDay = resultDeviceDay(country),
 ): CountryResult | undefined {
   const cached = memoryResults.get(storageKey(country, 'draft'));
-  return cached?.locale === locale && cached.draftJSON === JSON.stringify(draft)
+  return cached?.locale === locale &&
+    cached.deviceDay === deviceDay &&
+    cached.draftJSON === JSON.stringify(draft)
     ? cached.result
     : undefined;
 }

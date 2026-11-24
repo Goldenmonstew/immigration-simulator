@@ -193,6 +193,12 @@ export {
   shareJapanTripAnswers,
 } from './japan-trip-answers';
 export type { JpFullRequest } from './japan-full';
+export { nextCounterFilingDay } from './japan-full-shared';
+export {
+  clearJapanPrFilingEvidence,
+  clearJapanTalentMaintenance,
+  japanTalentHistoricalDate,
+} from './japan-full-pr';
 export type {
   JpFullCheck,
   JpFullPathway,

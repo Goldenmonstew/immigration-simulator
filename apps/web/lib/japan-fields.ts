@@ -286,7 +286,7 @@ export const natRouteFields = {
   'article-9-special-merit': flags('specialMeritConfirmed', 'dietApproval'),
 } satisfies Record<JpFullNaturalisationRoute['route'], JapanField[]>;
 
-const travelCommon = (lawfulStatus = bool('lawfulStatus')) => [
+const travelCommon = () => [
   date('returnOn'),
   date('stayExpiresOn'),
   bool('stayIndefinite'),
@@ -301,7 +301,7 @@ const travelCommon = (lawfulStatus = bool('lawfulStatus')) => [
     'renewalDecisionHint',
   ),
   bool('specialPermanentResident'),
-  lawfulStatus,
+  bool('lawfulStatus'),
   ...flags('permitVoided', 'travelDocumentLost', 'expiryCertificateObtained'),
   actualDate('newLandingOn'),
 ];
@@ -319,7 +319,7 @@ const consular = [
 export const travelRouteFields = {
   ordinary: [
     date('departureOn'),
-    ...travelCommon({ ...bool('lawfulStatus'), hint: 'ordinaryLawfulStatus' }),
+    ...travelCommon(),
     ...flags(
       'excludedStatusOrDetention',
       'inJapanWhenApplying',

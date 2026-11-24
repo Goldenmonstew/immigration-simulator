@@ -49,7 +49,13 @@ function travelDraft(): JapanDraft {
     completed: true,
     simulationDate: '2027-04-03',
     stayStart: '2014-04-01',
-    reentry: [structuredClone(ordinary)],
+    reentry: [
+      {
+        ...structuredClone(ordinary),
+        lawfulStatusOn: '2027-04-05',
+        filingEvidenceOn: '2027-04-05',
+      },
+    ],
   };
 }
 
@@ -178,7 +184,21 @@ test('general permanent residence preserves the old and revised status-start cho
 test('a counter application made on Saturday is met on the next open day, while missing eligibility remains pending', () => {
   const draft = travelDraft();
   expect(jp.validateStep(draft)).toEqual({});
-  const assessed = jp.run(draft, 'en').columns[0].pathways[0];
+  const share = (scenario: JapanDraft) =>
+    readPageResult(jp, 'en', encodeDraft(jp, scenario)).result!.columns[0]
+      .pathways[0];
+  for (const lawfulStatusOn of [undefined, '2027-04-03']) {
+    const originalDay = {
+      ...draft,
+      reentry: [
+        { ...ordinary, lawfulStatusOn, filingEvidenceOn: '2027-04-05' },
+      ],
+    };
+    const stale = share(originalDay);
+    expect(stale.status).toBe('UNKNOWN');
+    expect(stale.earliestDate).toBeUndefined();
+  }
+  const assessed = share(draft);
   expect(assessed).toMatchObject({
     id: 'jp.reentry.ordinary',
     title: 'Ordinary re-entry permit',
@@ -197,7 +217,14 @@ test('a counter application made on Saturday is met on the next open day, while 
   const pending = jp.run(
     {
       ...draft,
-      reentry: [{ ...ordinary, inJapanWhenApplying: undefined }],
+      reentry: [
+        {
+          ...ordinary,
+          lawfulStatusOn: '2027-04-05',
+          filingEvidenceOn: '2027-04-05',
+          inJapanWhenApplying: undefined,
+        },
+      ],
     },
     'zh-CN',
   ).columns[0].pathways[0];
@@ -758,7 +785,13 @@ test('moving the filing date clears ordinary permit evidence for the original da
   const baseline = travelDraft();
   const permit = { ...ordinary.permit, effectiveOn: '2027-04-06' };
   baseline.reentry = [
-    { ...ordinary, permit, onlineConcurrentEligibleApplication: true },
+    {
+      ...ordinary,
+      permit,
+      lawfulStatusOn: '2027-04-05',
+      filingEvidenceOn: '2027-04-05',
+      onlineConcurrentEligibleApplication: true,
+    },
   ];
   const initial = jp.whatif.initial(baseline);
   const knobs = { ...initial, applicationDate: '2027-04-06' };
@@ -965,7 +998,7 @@ test('the filing date knob clears dated residence and talent answers without alt
   const check = (draft: JapanDraft, key: string) =>
     pr(draft).checks.find((item) => item.id === key)?.status;
   expect(check(baseline, 'jp.pr.lawful-filing-status')).toBe('MET');
-  expect(check(adjusted, 'jp.pr.lawful-filing-status')).toBe('NOT_MET');
+  expect(check(adjusted, 'jp.pr.lawful-filing-status')).toBe('UNKNOWN');
   expect(pr(adjusted).earliestDate).toBeUndefined();
   expect(check(adjusted, 'jp.pr.hsp-current-points')).toBe('UNKNOWN');
   expect(adjusted.permanentResidence.evidence).toMatchObject({
@@ -1064,6 +1097,7 @@ function generalPrTravelDraft(
 ): JapanDraft {
   return {
     ...travelDraft(),
+    residenceEvidenceOn: '2027-04-05',
     dateOfBirth: '1990-05-01',
     permanentResidence: {
       routes: [
@@ -1535,6 +1569,7 @@ test.each([
       const onRestartedAnniversary: JapanDraft = {
         ...shared,
         applicationDate: timeEarliestDate,
+        residenceEvidenceOn: timeEarliestDate,
         permanentResidence: {
           ...shared.permanentResidence,
           evidence: {
@@ -1676,3 +1711,30 @@ test.each(['zh-CN', 'en'] as const)(
     );
   },
 );
+
+test('weekday evidence from an older draft remains usable when the requested weekend leads to that same counter day', () => {
+  const draft: JapanDraft = {
+    ...travelDraft(),
+    applicationDate: '2027-04-05',
+    dateOfBirth: '1990-05-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2015-04-01',
+          newStatusStart: '2015-04-01',
+        },
+      ],
+      evidence: prEvidence,
+    },
+    reentry: [ordinary],
+  };
+  const adjusted = jp.whatif.apply(draft, {
+    ...jp.whatif.initial(draft),
+    applicationDate: '2027-04-03',
+  });
+  const paths = readPageResult(jp, 'en', encodeDraft(jp, adjusted)).result!
+    .columns[0].pathways;
+  for (const path of paths)
+    expect(path).toMatchObject({ status: 'MET', earliestDate: '2027-04-05' });
+});

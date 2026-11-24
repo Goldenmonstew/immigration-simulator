@@ -1,5 +1,9 @@
 import {
+  clearJapanPrFilingEvidence,
+  clearJapanTalentMaintenance,
   japanOrdinaryFiling,
+  japanTalentHistoricalDate,
+  nextCounterFilingDay,
   japanTripReturnOn,
   jpStayLimit,
   sameJapanTrip,
@@ -53,90 +57,109 @@ export function createJapanDraft(): JapanDraft {
   };
 }
 
-export function ordinaryStatusDate(
-  draft: Pick<JapanDraft, 'simulationDate' | 'applicationDate'>,
-  route: Extract<JpFullReentryRequest, { route: 'ordinary' }>,
-) {
-  return route.permit?.effectiveOn &&
-    route.permit.effectiveOn <= draft.simulationDate
-    ? route.departureOn
-    : (draft.applicationDate ?? draft.simulationDate);
+type Dates = Pick<JapanDraft, 'simulationDate' | 'applicationDate'>;
+type Ordinary = Extract<JpFullReentryRequest, { route: 'ordinary' }>;
+const requestedDay = (draft: Dates) =>
+  draft.applicationDate ?? draft.simulationDate;
+
+export function ordinaryFilingDays(draft: Dates, route: Ordinary) {
+  const requested = requestedDay(draft);
+  if (!validDate(requested)) return undefined;
+  return japanOrdinaryFiling(route, draft.simulationDate, requested);
 }
 
-export function withJapanFilingDate(
-  draft: JapanDraft,
-  applicationDate: string | undefined,
-  simulationDate = draft.simulationDate,
-): JapanDraft {
-  const next = clearUnconfirmedJapanDeclaration({
-    ...draft,
-    simulationDate,
-    applicationDate,
-  });
-  const filingChanged =
-    (applicationDate ?? simulationDate) !==
-    (draft.applicationDate ?? draft.simulationDate);
-  const reentry = next.reentry.map((route) => {
-    if (route.route !== 'ordinary') return route;
-    const statusChanged =
-      ordinaryStatusDate(draft, route) !== ordinaryStatusDate(next, route);
-    if (!filingChanged && !statusChanged) return route;
-    return {
-      ...route,
-      ...(filingChanged && {
-        inJapanWhenApplying: undefined,
-        onlineConcurrentEligibleApplication: undefined,
-      }),
-      ...(statusChanged && { lawfulStatus: undefined }),
-    };
-  });
-  if (!filingChanged) return { ...next, reentry };
+export function residenceFilingDay(draft: Dates) {
+  const requested = requestedDay(draft);
+  return validDate(requested)
+    ? nextCounterFilingDay(requested).date
+    : undefined;
+}
 
+// Legacy shares contain bare booleans for the originally requested date.
+export function ordinaryAnswersForDate(
+  draft: Dates,
+  route: Ordinary,
+  previous = draft,
+  original = route,
+): Ordinary {
+  const days = ordinaryFilingDays(draft, route);
+  const recorded = ordinaryFilingDays(previous, original);
+  if (route.lawfulStatus !== undefined) {
+    if (!days?.statusDate || recorded?.statusEvidenceOn !== days.statusDate)
+      route = { ...route, lawfulStatus: undefined, lawfulStatusOn: undefined };
+    else if (days.statusEvidenceOn !== days.statusDate)
+      route = { ...route, lawfulStatusOn: days.statusDate };
+  }
+  if (
+    route.inJapanWhenApplying !== undefined ||
+    route.excludedStatusOrDetention !== undefined
+  ) {
+    if (!days || recorded?.filingEvidenceOn !== days.date)
+      route = {
+        ...route,
+        inJapanWhenApplying: undefined,
+        excludedStatusOrDetention: undefined,
+        filingEvidenceOn: undefined,
+      };
+    else if (days.filingEvidenceOn !== days.date)
+      route = { ...route, filingEvidenceOn: days.date };
+  }
+  return route;
+}
+
+export function datedJapanAnswers(
+  draft: JapanDraft,
+  previous = draft,
+): JapanDraft {
+  const reentry = draft.reentry.map((route) => {
+    if (route.route !== 'ordinary') return route;
+    if (requestedDay(draft) !== requestedDay(previous))
+      route = { ...route, onlineConcurrentEligibleApplication: undefined };
+    return ordinaryAnswersForDate(draft, route, previous);
+  });
+  if (reentry.some((route, i) => route !== draft.reentry[i]))
+    draft = { ...draft, reentry };
+  if (!hasJapanResidenceRoute(draft)) return draft;
+  const day = residenceFilingDay(draft);
+  if (day === (previous.residenceEvidenceOn ?? requestedDay(previous))) {
+    return day !== (draft.residenceEvidenceOn ?? requestedDay(draft))
+      ? { ...draft, residenceEvidenceOn: day }
+      : draft;
+  }
   const pr = draft.permanentResidence;
   const nat = draft.naturalisation;
-  const status = pr.evidence.status;
-  const datedNotices = (notices: JpPrCommonEvidence['addressNotices']) =>
-    notices?.map((notice) =>
-      notice.notifiedOn === null
-        ? { ...notice, notifiedOn: undefined }
-        : notice,
-    );
   return {
-    ...next,
-    reentry,
+    ...draft,
+    residenceEvidenceOn: day,
     permanentResidence: {
+      ...pr,
       routes: pr.routes.map((route) => {
-        if (route.route === 'hsp70' || route.route === 'hsp80')
+        const next = clearJapanTalentMaintenance(route);
+        if (
+          (next.route === 'hsp70' ||
+            next.route === 'hsp80' ||
+            next.route === 'j-skip') &&
+          requestedDay(draft) !== requestedDay(previous)
+        ) {
+          const past = day && japanTalentHistoricalDate(next.route, day);
           return {
-            ...route,
-            current: undefined,
-            historical: undefined,
-            maintained: undefined,
+            ...next,
+            current: next.current?.on === day ? next.current : undefined,
+            historical:
+              next.historical?.on === past ? next.historical : undefined,
           };
-        if (route.route === 'j-skip')
-          return {
-            ...route,
-            current: undefined,
-            historical: undefined,
-            remainedRecognised: undefined,
-          };
-        return route;
+        }
+        return next;
       }),
-      evidence: {
-        ...pr.evidence,
-        inJapan: undefined,
-        status: status && {
-          ...status,
-          valid: undefined,
-          timelyRenewalPending:
-            status.timelyRenewalPending === false ? false : undefined,
-        },
-        affiliationNotices: datedNotices(pr.evidence.affiliationNotices),
-        addressNotices: datedNotices(pr.evidence.addressNotices),
-      },
+      evidence: clearJapanPrFilingEvidence(pr.evidence),
     },
     naturalisation: {
       ...nat,
+      routes: nat.routes.map((route) =>
+        route.route === 'spouse'
+          ? { ...route, stillJapaneseSpouse: undefined }
+          : route,
+      ),
       evidence: {
         ...nat.evidence,
         inJapan: undefined,
@@ -144,6 +167,21 @@ export function withJapanFilingDate(
       },
     },
   };
+}
+
+export function withJapanFilingDate(
+  draft: JapanDraft,
+  applicationDate: string | undefined,
+  simulationDate = draft.simulationDate,
+): JapanDraft {
+  return datedJapanAnswers(
+    clearUnconfirmedJapanDeclaration({
+      ...draft,
+      simulationDate,
+      applicationDate,
+    }),
+    draft,
+  );
 }
 
 export function hasJapanResidenceRoute(draft: JapanDraft): boolean {
@@ -228,6 +266,7 @@ export function japanSteps(draft: JapanDraft) {
 // The local questionnaire may keep answers for a route the user deselected.
 // Only evidence from currently visible steps can leave that editing context.
 export function activeJapanAnswers(draft: JapanDraft): JapanDraft {
+  draft = datedJapanAnswers(draft);
   const visible = japanSteps(draft).map(({ step }) => step);
   const history = visible.includes(1);
   const trips = history ? draft.trips : [];
@@ -635,7 +674,7 @@ export function restoreStoredJapanDraft(
   draft: JapanDraft,
   forResult = false,
 ): JapanDraft {
-  let confirmed = clearUnconfirmedJapanDeclaration(draft);
+  let confirmed = datedJapanAnswers(clearUnconfirmedJapanDeclaration(draft));
   // Older travel-only drafts could be saved on the shared trip-history step.
   if (
     confirmed.step === 1 &&

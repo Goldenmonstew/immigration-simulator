@@ -1,7 +1,12 @@
 import type { CountryResult, Locale } from '@uk-immigration/engine';
 import type { CountryDraft, CountryModule } from './country-module';
 import { decodeDraft } from './share';
-import { draftStorage, getRememberedResult, rememberResult } from './storage';
+import {
+  draftStorage,
+  getRememberedResult,
+  rememberResult,
+  resultDeviceDay,
+} from './storage';
 
 export interface ResultPageState<D> {
   draft?: D;
@@ -32,11 +37,13 @@ export function readPageResult<D extends CountryDraft, K>(
         if (!country.decodeDraft({ ...draft, completed: true })) return {};
       } else if (mode !== 'preview' || country.id !== 'uk') return {};
     }
-    const cached = !shared && getRememberedResult(country, draft, locale);
+    const deviceDay = resultDeviceDay(country);
+    const cached =
+      !shared && getRememberedResult(country, draft, locale, deviceDay);
     const result = cached || country.run(draft, locale);
     if (shared) draftStorage(country, draft);
     if (!cached && (shared || source === null))
-      rememberResult(country, draft, result, locale);
+      rememberResult(country, draft, result, locale, deviceDay);
     return { draft, result, shared };
   }
 

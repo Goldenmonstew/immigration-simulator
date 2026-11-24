@@ -448,27 +448,96 @@ function incomeEvidence(e: JpPrCommonEvidence, L: JpText): string {
   );
 }
 
+export function clearJapanPrFilingEvidence(
+  e: JpPrCommonEvidence,
+): JpPrCommonEvidence {
+  const notices = (rows: JpPrNotice[] | undefined) =>
+    rows?.map((row) =>
+      row.notifiedOn === null ? { ...row, notifiedOn: undefined } : row,
+    );
+  return {
+    ...e,
+    inJapan: undefined,
+    status: e.status && {
+      ...e.status,
+      valid: undefined,
+      timelyRenewalPending: undefined,
+      firstApplicationAfterTransition: undefined,
+    },
+    affiliationNotices: notices(e.affiliationNotices),
+    addressNotices: notices(e.addressNotices),
+  };
+}
+
+export function japanTalentHistoricalDate(
+  route: 'hsp70' | 'hsp80' | 'j-skip',
+  filing: IsoDate,
+) {
+  const years =
+    route === 'j-skip'
+      ? full.jSkip.value.stayYears
+      : old.highlySkilledYears.value[route];
+  return afterYears(filing, -years);
+}
+
+export function clearJapanTalentMaintenance(
+  route: JpFullPrRoute,
+): JpFullPrRoute {
+  if (route.route === 'hsp70' || route.route === 'hsp80')
+    return { ...route, maintained: undefined };
+  if (route.route === 'j-skip')
+    return { ...route, remainedRecognised: undefined };
+  return route;
+}
+
 export function assessJapanPr(
   req: JpFullContext,
   route: JpFullPrRoute,
   e: JpPrCommonEvidence,
 ): JpFullPathway {
-  const { L } = filingContext(req);
-  const result = assessJapanPrOnDate(req, route, e);
+  const { date, L } = filingContext(req);
+  const evidenceOn = req.residenceEvidenceOn ?? date;
+  const assess = (applicationDate: IsoDate) =>
+    assessJapanPrOnDate(
+      { ...req, applicationDate },
+      evidenceOn === applicationDate
+        ? route
+        : clearJapanTalentMaintenance(route),
+      evidenceOn === applicationDate ? e : clearJapanPrFilingEvidence(e),
+    );
+  const result = assess(date);
+  // A separate unmet requirement must not hide answers confirmed for the counter day.
+  const datedEvidence =
+    evidenceOn !== date &&
+    (e.inJapan !== undefined ||
+      e.status?.valid !== undefined ||
+      e.status?.timelyRenewalPending !== undefined ||
+      e.status?.firstApplicationAfterTransition !== undefined ||
+      e.affiliationNotices?.some((n) => n.notifiedOn === null) ||
+      e.addressNotices?.some((n) => n.notifiedOn === null) ||
+      ((route.route === 'hsp70' ||
+        route.route === 'hsp80' ||
+        route.route === 'j-skip') &&
+        (route.current?.on === evidenceOn ||
+          route.historical?.on ===
+            japanTalentHistoricalDate(route.route, evidenceOn) ||
+          (route.route === 'j-skip'
+            ? route.remainedRecognised
+            : route.maintained) !== undefined)));
   // Time alone can identify the counter day whose evidence still needs checking.
   const candidateDate =
-    result.status === 'UNKNOWN' && result.timeStatus === 'MET'
-      ? result.timeEarliestDate
-      : result.earliestDate;
+    datedEvidence && result.status !== 'NOT_APPLICABLE'
+      ? date
+      : result.status === 'UNKNOWN' && result.timeStatus === 'MET'
+        ? result.timeEarliestDate
+        : result.earliestDate;
   return scheduleFiling(
     result,
     L,
     (applicationDate) => {
-      const filing = assessJapanPrOnDate({ ...req, applicationDate }, route, {
-        ...e,
-        status: e.status && { ...e.status, valid: undefined },
-      });
+      const filing = assess(applicationDate);
       if (
+        result.timeStatus === 'MET' &&
         (route.route === 'hsp70' ||
           route.route === 'hsp80' ||
           route.route === 'j-skip') &&
@@ -479,11 +548,7 @@ export function assessJapanPr(
             item.status === 'UNKNOWN',
         )
       ) {
-        const years =
-          route.route === 'j-skip'
-            ? full.jSkip.value.stayYears
-            : old.highlySkilledYears.value[route.route];
-        const past = afterYears(applicationDate, -years);
+        const past = japanTalentHistoricalDate(route.route, applicationDate);
         filing.summary += L(
           `请在问卷中把拟递交日改为 ${applicationDate}，再填写该日的${route.route === 'j-skip' ? 'J-Skip 资格' : '高度人材积分'}证据。`,
           ` Set the proposed filing date in the questionnaire to ${applicationDate}, then enter the ${route.route === 'j-skip' ? 'J-Skip eligibility' : 'highly skilled points'} evidence for that day.`,
@@ -1422,8 +1487,7 @@ function assessJapanPrOnDate(
     case 'hsp70':
     case 'hsp80': {
       const thresholdPoints = v.hsp.value.routePoints[route.route];
-      const years = old.highlySkilledYears.value[route.route];
-      const past = afterYears(date, -years);
+      const past = japanTalentHistoricalDate(route.route, date);
       const now = hspAssessment(route.current, date, thresholdPoints);
       const previous = hspAssessment(route.historical, past, thresholdPoints);
       p(
@@ -1474,7 +1538,7 @@ function assessJapanPrOnDate(
     }
     case 'j-skip': {
       const now = jSkipAssessment(route.current, date);
-      const past = afterYears(date, -v.jSkip.value.stayYears);
+      const past = japanTalentHistoricalDate(route.route, date);
       const earlier =
         route.mode === 'recognised'
           ? all(

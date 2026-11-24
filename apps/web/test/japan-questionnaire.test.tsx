@@ -78,7 +78,9 @@ test('ordinary permit edits keep lawful status only for the date the answer desc
   expect(draft.applicationDate).toBe('2026-11-24');
   expect(draft.reentry[0].lawfulStatus).toBeUndefined();
   draft.step = 6;
-  expect(form(draft)).toContain(t('jp.form.ordinaryLawfulStatus', 'en'));
+  expect(form(draft)).toContain(
+    t('jp.form.ordinaryHeldDay', 'en').replace('{date}', '2026-11-26'),
+  );
   answer('jp-travel-ordinary-lawfulStatus', 'no');
   answer('jp-travel-ordinary-permit-effectiveOn', '2026-11-25');
   expect(draft.reentry[0].lawfulStatus).toBe(false);
@@ -170,6 +172,7 @@ function generalTripDraft(): JapanDraft {
     ...jp.createDraft(),
     step: 1,
     simulationDate: '2027-04-03',
+    residenceEvidenceOn: '2027-04-05',
     stayStart: '2015-04-01',
     permanentResidence: {
       routes: [
@@ -1717,7 +1720,12 @@ test.each([
     }
     const detached = decodeDraft(jp, encodeDraft(jp, draft))!;
     checkStored(detached);
-    expect(term(detached)).toBe(validity);
+    if (changed === 'travel' && source === 'travel') {
+      expect(term(detached)).toBe('UNKNOWN');
+      edit(6, 'jp-travel-deemed-timelyRenewalPending', 'no');
+      edit(6, 'jp-travel-deemed-specialPermanentResident', 'no');
+    }
+    expect(term(decodeDraft(jp, encodeDraft(jp, draft))!)).toBe(validity);
   },
 );
 
@@ -1768,4 +1776,184 @@ test('correcting a borrowed expiry only keeps independent entries of the new val
     '2026-11-30',
     '2026-11-30',
   ]);
+});
+
+test.each([
+  ['2027-04-03', '2027-04-05', '2027-04-12', '2027-04-19'],
+  ['2027-05-03', '2027-05-06', '2027-05-10', '2027-05-12'],
+])(
+  'ordinary questionnaire and shared result use the counter day for %s',
+  (requested, counterDay, departureOn, returnOn) => {
+    const route = {
+      route: 'ordinary' as const,
+      departureOn,
+      returnOn,
+      channel: 'counter' as const,
+      lawfulStatus: true,
+      inJapanWhenApplying: true,
+      excludedStatusOrDetention: false,
+      intendsReturn: true,
+      passportOrApprovedAlternative: true,
+      residentCardOrCertificate: true,
+      permitVoided: false,
+      stayIndefinite: true,
+      visits: 'multiple' as const,
+      permit: {
+        effectiveOn: counterDay,
+        expiresOn: '2028-04-01',
+        extensionApproved: false,
+      },
+    };
+    const original: JapanDraft = {
+      ...jp.createDraft(),
+      step: 6,
+      completed: true,
+      simulationDate: requested,
+      applicationDate: requested,
+      reentry: [route],
+    };
+    const legacy = encodeDraft({ ...jp, activeAnswers: undefined }, original);
+    const page = readPageResult(jp, 'en', legacy);
+    let draft = page.draft!;
+    expect(page.result!.columns[0].pathways[0].status).toBe('UNKNOWN');
+    expect(page.result!.columns[0].pathways[0].earliestDate).toBeUndefined();
+    expect(form(draft)).toContain('The candidate filing date is ' + counterDay);
+    function answer(key: string, value: string) {
+      form(draft, (patch) => {
+        draft = { ...draft, ...patch };
+      });
+      fields.get('jp-travel-ordinary-' + key)!({ target: { value } });
+    }
+    const path = () =>
+      readPageResult(jp, 'en', encodeDraft(jp, draft)).result!.columns[0]
+        .pathways[0];
+    answer('lawfulStatus', 'yes');
+    expect(path().earliestDate).toBeUndefined();
+    answer('inJapanWhenApplying', 'yes');
+    expect(path().earliestDate).toBeUndefined();
+    answer('excludedStatusOrDetention', 'no');
+    expect(path()).toMatchObject({ status: 'MET', earliestDate: counterDay });
+    const same = jp.whatif.apply(draft, {
+      ...jp.whatif.initial(draft),
+      applicationDate: counterDay,
+    });
+    expect(
+      readPageResult(jp, 'en', encodeDraft(jp, same)).result!.columns[0]
+        .pathways[0].earliestDate,
+    ).toBe(counterDay);
+    answer('channel', 'online');
+    expect(form(draft)).toContain('The candidate filing date is ' + requested);
+    expect(draft.reentry[0].lawfulStatus).toBeUndefined();
+    expect(path().earliestDate).toBeUndefined();
+    answer('channel', 'counter');
+    expect(path().status).toBe('UNKNOWN');
+  },
+);
+
+test('reading the same Japanese result across local midnight reassesses the actual departure', () => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(2026, 10, 22, 23, 59));
+  const country = { ...jp, run: vi.fn(jp.run) };
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '2026-11-26',
+    completed: true,
+    reentry: [
+      { route: 'deemed', departureOn: '2026-11-23', returnOn: '2026-11-27' },
+    ],
+  };
+  draftStorage(country, draft);
+  const read = () =>
+    readPageResult(country, 'en').result!.columns[0].pathways[0];
+  const planned = read();
+  expect(planned.status).toBe('UNKNOWN');
+  expect(planned.summary).toContain('Planned departure on 2026-11-23');
+  expect(read()).toBe(planned);
+  vi.setSystemTime(new Date(2026, 10, 23, 0, 1));
+  expect(read().summary).toContain('Planned departure on 2026-11-23');
+  vi.setSystemTime(new Date(2026, 10, 24, 0, 1));
+  const actual = read();
+  expect(actual.status).toBe('UNKNOWN');
+  expect(actual.summary).toContain('when you departed on 2026-11-23');
+  expect(read()).toBe(actual);
+  expect(country.run).toHaveBeenCalledTimes(3);
+});
+
+test('residence and talent questions keep evidence for the assessed counter day after sharing', () => {
+  const requested = '2027-04-03';
+  const candidate = '2027-04-05';
+  const oldDraft: JapanDraft = {
+    ...generalTripDraft(),
+    completed: true,
+    trips: [],
+    residenceEvidenceOn: undefined,
+    simulationDate: requested,
+    dateOfBirth: '1990-01-05',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'hsp70',
+          statusStart: '2014-01-01',
+          mode: 'recognised',
+          recognisedOn: '2014-01-01',
+          recognisedPoints: 80,
+          maintained: true,
+          current: { on: requested, confirmedPoints: 80 },
+        },
+      ],
+      evidence: prEvidence,
+    },
+    naturalisation: {
+      routes: [{ route: 'general', homeMajorityAge: 18 }],
+      evidence: { inJapan: false, lawfulDomicile: true },
+    },
+  };
+  let draft = readPageResult(
+    jp,
+    'en',
+    encodeDraft({ ...jp, activeAnswers: undefined }, oldDraft),
+  ).draft!;
+  const paths = () =>
+    readPageResult(jp, 'en', encodeDraft(jp, draft)).result!.columns[0]
+      .pathways;
+  const check = (id: string) =>
+    paths()
+      .flatMap((path) => path.checks)
+      .find((c) => c.id === id)?.status;
+  const show = (step: number) =>
+    form({ ...draft, step }, (patch) => {
+      draft = { ...draft, ...patch };
+    });
+  const answer = (step: number, id: string, value: string) => {
+    show(step);
+    fields.get(id)!({ target: { value } });
+  };
+  expect(show(2)).toContain('historical record for 2024-04-05');
+  expect(show(3)).toContain(candidate);
+  expect(show(5)).toContain(candidate);
+  expect(check('jp.pr.hsp-current-points')).toBe('UNKNOWN');
+  expect(check('jp.pr.hsp-history')).toBe('UNKNOWN');
+  expect(check('jp.pr.filing-in-japan')).toBe('UNKNOWN');
+  expect(check('jp.nat.lawful-domicile')).toBe('UNKNOWN');
+  answer(2, 'jp-pr-hsp70-current-on', candidate);
+  expect(check('jp.pr.hsp-current-points')).toBe('UNKNOWN');
+  answer(2, 'jp-pr-hsp70-current-confirmedPoints', '80');
+  answer(2, 'jp-pr-hsp70-maintained', 'yes');
+  answer(3, 'jp-pr-inJapan', 'yes');
+  expect(paths()[0]).toMatchObject({
+    status: 'MET',
+    earliestDate: candidate,
+    timeEarliestDate: requested,
+  });
+  answer(5, 'jp-nat-lawfulDomicile', 'yes');
+  expect(check('jp.nat.lawful-domicile')).toBe('UNKNOWN');
+  answer(5, 'jp-nat-inJapan', 'no');
+  expect(check('jp.nat.lawful-domicile')).toBe('NOT_MET');
+  answer(5, 'jp-nat-inJapan', 'yes');
+  expect(check('jp.nat.lawful-domicile')).toBe('MET');
+  answer(3, 'jp-pr-goodConductConfirmed', 'no');
+  answer(5, 'jp-nat-goodConductConfirmed', 'no');
+  expect(paths().map((path) => path.status)).toEqual(['NOT_MET', 'NOT_MET']);
+  expect(check('jp.pr.filing-in-japan')).toBe('MET');
+  expect(check('jp.nat.lawful-domicile')).toBe('MET');
 });

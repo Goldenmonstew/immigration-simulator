@@ -78,7 +78,32 @@ function Question({
       prefix={key}
       errors={errors}
       change={(name, answer) => {
-        let updated = updateAnswer(record, name, answer);
+        const changedReference =
+          (field.name === 'current' || field.name === 'historical') &&
+          name === 'on' &&
+          answer !== (record as { on?: string }).on;
+        let updated = updateAnswer(
+          changedReference ? {} : record,
+          name,
+          answer,
+        );
+        if (
+          field.name === 'trips' &&
+          answer !== (record as Record<string, unknown>)[name]
+        ) {
+          if (name === 'returned')
+            updated = updateAnswer(updated, 'reentryPermit', undefined);
+          if (name === 'departed') {
+            updated = updateAnswer(updated, 'departure', undefined);
+            updated = updateAnswer(updated, 'renewalPending', undefined);
+            updated = updateAnswer(
+              updated,
+              'specialPermanentResident',
+              undefined,
+            );
+            updated = updateAnswer(updated, 'reentryPermit', undefined);
+          }
+        }
         if (field.name === 'trips' && name === 'departure') {
           updated = updateAnswer(updated, 'reentryPermit', undefined);
           updated = updateAnswer(

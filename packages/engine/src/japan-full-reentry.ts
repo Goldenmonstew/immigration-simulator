@@ -66,6 +66,9 @@ export type JpFullReentryRequest = JpTravelDates &
   (
     | {
         route: 'ordinary';
+        /** An untagged legacy answer refers to the date originally requested (or departure for a held permit). */
+        lawfulStatusOn?: IsoDate;
+        filingEvidenceOn?: IsoDate;
         excludedStatusOrDetention?: boolean;
         inJapanWhenApplying?: boolean;
         intendsReturn?: boolean;
@@ -125,11 +128,16 @@ export function japanOrdinaryFiling(
     channel === 'counter' ? nextCounterFilingDay(requestedDate) : undefined;
   const date = counter?.date ?? requestedDate;
   const start = route.permit?.effectiveOn;
+  const held = !!start && start <= simulationDate;
   return {
     date,
     channel,
     counter,
-    held: !!start && start <= simulationDate,
+    held,
+    statusDate: held ? route.departureOn : date,
+    statusEvidenceOn:
+      route.lawfulStatusOn ?? (held ? route.departureOn : requestedDate),
+    filingEvidenceOn: route.filingEvidenceOn ?? requestedDate,
     afterEffectiveDate: !!start && simulationDate < start && date > start,
   };
 }
@@ -395,6 +403,12 @@ export function assessJapanReentry(
         '这份普通许可已经生效，本项仅适用于申请新许可。',
         'This ordinary permit has already taken effect. This check only applies to a new application.',
       );
+    const lawfulStatus =
+      filing.statusDate && filing.statusDate === filing.statusEvidenceOn
+        ? route.lawfulStatus
+        : undefined;
+    const filingEvidenceMatches = filing.filingEvidenceOn === filing.date;
+    // The concurrent online application determines whether the requested day is available online.
     const onlineEligible = route.onlineConcurrentEligibleApplication;
     const { channel: filingChannel, counter: counterFiling } = filing;
     date = filing.date;
@@ -425,14 +439,16 @@ export function assessJapanReentry(
     // SRC-116, 再入国許可 paras 2–5: use the permit held for this trip.
     // SRC-461, 申請期間: the proposed filing date concerns a new application.
     eligibleAtDeparture = all(
-      filing.held ? route.lawfulStatus : true,
+      filing.held ? lawfulStatus : true,
       route.passportOrApprovedAlternative,
       route.residentCardOrCertificate,
     );
     const filingEligibility = all(
-      route.lawfulStatus,
-      excluded(route.excludedStatusOrDetention),
-      route.inJapanWhenApplying,
+      lawfulStatus,
+      filingEvidenceMatches
+        ? excluded(route.excludedStatusOrDetention)
+        : undefined,
+      filingEvidenceMatches ? route.inJapanWhenApplying : undefined,
       route.intendsReturn,
       !filing.afterEffectiveDate,
       departure && !sameDayDeparture ? date < departure : undefined,

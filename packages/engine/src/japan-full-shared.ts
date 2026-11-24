@@ -40,6 +40,8 @@ export interface JpFullContext extends Omit<
   dateOfBirth?: IsoDate;
   /** Days and ages are evaluated on the filing date. Defaults to simulationDate. */
   applicationDate?: IsoDate;
+  /** Reference date for filing-day PR and naturalisation answers in the questionnaire. */
+  residenceEvidenceOn?: IsoDate;
 }
 
 export type JpFiling =
@@ -167,11 +169,16 @@ export function scheduleFiling(
     };
   if (next === candidateDate) return result;
 
-  const filing = assessOnDate(next);
-  return {
-    ...filing,
+  const filing = {
+    ...assessOnDate(next),
     timeStatus: result.timeStatus,
     timeEarliestDate: result.timeEarliestDate,
+  };
+  // Date-specific answers can be checked even when the residence timeline is unresolved.
+  if (!filing.earliestDate && result.timeStatus && result.timeStatus !== 'MET')
+    return filing;
+  return {
+    ...filing,
     summary:
       filing.summary +
       (filing.earliestDate
