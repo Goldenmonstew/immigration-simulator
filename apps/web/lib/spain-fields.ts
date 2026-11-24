@@ -33,6 +33,8 @@ export type SpainField = {
       type: 'multi-choice';
       options: readonly SpainOption[];
       supportsUnknown?: boolean;
+      /** Wording for an empty selection that means something specific. */
+      none?: { confirm: Suffix<'form'>; confirmed: Suffix<'form'> };
     }
   | {
       type: 'group' | 'list';
@@ -97,12 +99,14 @@ const multiChoice = (
   name: SpainFieldName,
   options: readonly SpainOption[],
   supportsUnknown = false,
+  none?: { confirm: Suffix<'form'>; confirmed: Suffix<'form'> },
 ): SpainField => ({
   name,
   label: name,
   type: 'multi-choice',
   options,
   supportsUnknown,
+  none,
 });
 const group = (name: SpainFieldName, fields: SpainField[]): SpainField => ({
   name,
@@ -388,6 +392,7 @@ export const spainResidenceSections = {
         'contribution',
       ],
       true,
+      { confirm: 'ordinaryOnly', confirmed: 'ordinaryOnlyConfirmed' },
     ),
     bool('spanishContributoryRetirement'),
     choice('disabilityBenefit', [
@@ -420,6 +425,20 @@ export const spainResidenceSections = {
       date('cureDeadline'),
     ]),
   ],
+  // Absence reasons extend the trips in step 1 for both L and E.
+  resTrips: [
+    list('tripDetails', [
+      date('departed', true),
+      date('returned', true),
+      choice(
+        'reason',
+        ['ordinary', 'work', 'force-majeure', 'cooperation'],
+        false,
+        { ordinary: 'ordinary-absence' },
+      ),
+      ...flags('exceptionDocumented', 'irregularExit', 'outsideEu'),
+    ]),
+  ],
   resEu: [
     list('periods', [
       date('from', true),
@@ -446,17 +465,6 @@ export const spainResidenceSections = {
       bool('protectionGranted'),
       date('protectionDecisionDate'),
     ]),
-    list('tripDetails', [
-      date('departed', true),
-      date('returned', true),
-      choice(
-        'reason',
-        ['ordinary', 'work', 'force-majeure', 'cooperation'],
-        false,
-        { ordinary: 'ordinary-absence' },
-      ),
-      ...flags('exceptionDocumented', 'irregularExit', 'outsideEu'),
-    ]),
     group('blueMobility', [
       bool('exercisedLawfully'),
       date('firstCardFrom'),
@@ -481,11 +489,20 @@ const mobilityApplicationCommon: SpainField[] = [
   ),
 ];
 
-const mobilityGrantFields: SpainField[] = [
+const grantEntryFields: SpainField[] = [
   date('notifiedOn'),
   bool('inSpainWhenNotified'),
   date('enteredAfterGrantOn'),
+];
+
+const holderGrantFields: SpainField[] = [
+  ...grantEntryFields,
   date('registeredSocialSecurityOn'),
+  date('appliedForCardOn'),
+];
+
+const familyGrantFields: SpainField[] = [
+  ...grantEntryFields,
   date('appliedForCardOn'),
   date('permitEnd'),
   choice('cardCategory', [
@@ -579,7 +596,7 @@ export const spainMobilitySections = {
         'separateWorkFeePaid',
         'spanishEuLongTermGranted',
       ),
-      group('grant', mobilityGrantFields),
+      group('grant', holderGrantFields),
     ]),
   ],
   mobFamily: [
@@ -624,7 +641,7 @@ export const spainMobilitySections = {
       group('resources', familyResourcesFields),
       group('healthCover', healthCoverFields),
       group('fee', applicationFeeFields),
-      group('grant', mobilityGrantFields),
+      group('grant', familyGrantFields),
     ]),
   ],
 } satisfies Record<string, SpainField[]>;

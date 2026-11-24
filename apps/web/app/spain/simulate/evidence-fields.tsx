@@ -238,7 +238,7 @@ function Question({
           })}
         </div>
         {supportsUnknown && Array.isArray(value) && !selected.length && (
-          <p>{t('es.form.emptyConfirmed')}</p>
+          <p>{t(`es.form.${field.none?.confirmed ?? 'emptyConfirmed'}`)}</p>
         )}
         {supportsUnknown && !selected.length && (
           <div className={site.actions}>
@@ -249,7 +249,7 @@ function Question({
             >
               {t(
                 value === undefined
-                  ? 'es.form.noRecords'
+                  ? `es.form.${field.none?.confirm ?? 'noRecords'}`
                   : 'es.form.resetRecords',
               )}
             </button>

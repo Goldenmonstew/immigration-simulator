@@ -144,7 +144,7 @@ test('Spanish questionnaire assesses pathways, saves scenarios, shares links and
     .click();
   await page
     .locator('#es-res-nationalAlternatives')
-    .getByRole('button', { name: zhCN['es.form.noRecords'], exact: true })
+    .getByRole('button', { name: zhCN['es.form.ordinaryOnly'], exact: true })
     .click();
   await page
     .getByRole('group', { name: zhCN['es.field.children'], exact: true })
@@ -270,7 +270,7 @@ test('English mobile questionnaire compares dates on what-if and shows Spanish p
     .click();
   await page
     .locator('#es-res-nationalAlternatives')
-    .getByRole('button', { name: en['es.form.noRecords'], exact: true })
+    .getByRole('button', { name: en['es.form.ordinaryOnly'], exact: true })
     .click();
   await page
     .getByRole('group', { name: en['es.field.children'], exact: true })

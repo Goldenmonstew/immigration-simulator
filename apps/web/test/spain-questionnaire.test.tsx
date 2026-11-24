@@ -5,7 +5,7 @@ import SpainSimulatePage from '../app/spain/simulate/page';
 import { LocaleContext } from '../i18n/locale';
 import { readPageResult } from '../lib/page-result';
 import { encodeDraft } from '../lib/share';
-import type { SpainDraft } from '../lib/spain-draft';
+import { activeSpainAnswers, type SpainDraft } from '../lib/spain-draft';
 import { spainModule as es } from '../lib/spain-module';
 
 type Change = (name: string, value: unknown) => void;
@@ -312,4 +312,60 @@ test('labels shared across questions read correctly in each place', () => {
   expect(step(4)).toContain('Relationship category');
   expect(step(6)).toContain('Retirement (early free-movement acquisition)');
   expect(step(3, 'zh-CN')).not.toContain('散星');
+});
+
+test('each route only shows and keeps the questions its assessment reads', () => {
+  const html = (draft: SpainDraft) => form(draft, () => {}, {});
+  const residence: SpainDraft['residence'] = {
+    nationalAlternatives: [],
+    periods: [{ from: '2017-01-01', territory: 'spain', kind: 'residence' }],
+    tripDetails: [],
+  };
+  const national = {
+    ...history(),
+    step: 3,
+    targets: ['L'] as const,
+    residence,
+  };
+  const l = html({ ...national, targets: ['L'] });
+  expect(l).toContain('id="es-res-nationalAlternatives"');
+  expect(l).toContain('Absence reasons and continuity exceptions');
+  expect(l).not.toContain('es-res-periods');
+  expect(l).toContain('Confirmed: ordinary residence period only');
+  expect(activeSpainAnswers({ ...national, targets: ['L'] }).residence).toEqual(
+    {
+      nationalAlternatives: [],
+      tripDetails: [],
+    },
+  );
+  const e = html({ ...national, targets: ['E'] });
+  expect(e).not.toContain('id="es-res-nationalAlternatives"');
+  expect(e).toContain('es-res-periods');
+  expect(activeSpainAnswers({ ...national, targets: ['E'] }).residence).toEqual(
+    {
+      periods: residence.periods,
+      tripDetails: [],
+    },
+  );
+
+  const mobility = { ...history(), step: 4 };
+  const holder = html({ ...mobility, targets: ['M'] });
+  expect(holder).toContain(
+    'id="es-mob-holder-grant-registeredSocialSecurityOn"',
+  );
+  expect(holder).not.toContain('es-mob-holder-grant-permitEnd');
+  expect(holder).not.toContain('es-mob-holder-grant-cardCategory');
+  const family = html({ ...mobility, targets: ['F'] });
+  expect(family).toContain('id="es-mob-family-grant-cardCategory"');
+  expect(family).not.toContain(
+    'es-mob-family-grant-registeredSocialSecurityOn',
+  );
+
+  // Free-movement history does not use Spanish residence permits.
+  const free = { ...history(), targets: ['U'] as SpainDraft['targets'] };
+  expect(html(free)).not.toContain('Spanish residence permits');
+  expect(activeSpainAnswers(free).permits).toBeUndefined();
+  expect(
+    es.validateStep({ ...free, permits: [{ from: 'x' } as never] }),
+  ).toEqual({});
 });

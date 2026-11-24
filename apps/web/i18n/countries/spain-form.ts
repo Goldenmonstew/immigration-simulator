@@ -43,6 +43,14 @@ const messages = {
   'es.form.noRecords': ['确认没有此类记录', 'Confirm there are no records'],
   'es.form.emptyConfirmed': ['已确认没有此类记录', 'Confirmed no records'],
   'es.form.resetRecords': ['改为待确认', 'Mark as unconfirmed'],
+  'es.form.ordinaryOnly': [
+    '仅按普通居留年限申请，不主张直接取得事由',
+    'Only the ordinary residence period; no direct ground claimed',
+  ],
+  'es.form.ordinaryOnlyConfirmed': [
+    '已确认仅按普通居留年限申请',
+    'Confirmed: ordinary residence period only',
+  ],
   'es.form.remove': ['删除这条记录', 'Remove this record'],
   'es.form.routeError': [
     '请至少选择一条要评估的路径。',
@@ -85,9 +93,13 @@ const messages = {
     '国内长居直接取得事由与学龄子女入学',
     'National long-term direct grounds and compulsory schooling',
   ],
+  'es.form.resTrips': [
+    '出境原因与连续性例外（国内与欧盟长居）',
+    'Absence reasons and continuity exceptions (national and EU long-term)',
+  ],
   'es.form.resEu': [
-    '欧盟长居详细居留段、出境原因、蓝卡流动、资源与医保',
-    'EU long-term detailed periods, absence reasons, Blue Card mobility, resources and insurance',
+    '欧盟长居详细居留段、蓝卡流动、资源与医保',
+    'EU long-term detailed periods, Blue Card mobility, resources and insurance',
   ],
   'es.form.mobCommon': [
     '原成员国欧盟长居身份与迁居目的',

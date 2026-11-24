@@ -104,6 +104,42 @@ export function spainSteps(draft: SpainDraft) {
   });
 }
 
+// Free-movement history does not use Spanish residence permits.
+const usesPermits = (targets: readonly EsFullTarget[]) =>
+  targets.some((t) => t === 'N' || t === 'L' || t === 'E');
+
+export function spainHistoryFieldsFor(targets: readonly EsFullTarget[]) {
+  return usesPermits(targets)
+    ? spainHistoryFields
+    : spainHistoryFields.filter((field) => field.name !== 'permits');
+}
+
+// National grounds are read only for L, the detailed EU record only for E.
+export function spainResidenceSectionsFor(
+  targets: readonly EsFullTarget[],
+): Record<string, SpainField[]> {
+  return Object.fromEntries(
+    Object.entries(spainResidenceSections).filter(([section]) =>
+      section === 'resNational'
+        ? targets.includes('L')
+        : section === 'resEu'
+          ? targets.includes('E')
+          : true,
+    ),
+  );
+}
+
+function shownResidence(draft: SpainDraft): SpainDraft['residence'] {
+  const names = new Set(
+    Object.values(spainResidenceSectionsFor(draft.targets))
+      .flat()
+      .map((field) => field.name),
+  );
+  return Object.fromEntries(
+    Object.entries(draft.residence).filter(([name]) => names.has(name)),
+  );
+}
+
 export function activeSpainAnswers(draft: SpainDraft): SpainDraft {
   const visible = new Set(spainSteps(draft).map(({ step }) => step));
   const hasHistory = visible.has(1);
@@ -114,7 +150,7 @@ export function activeSpainAnswers(draft: SpainDraft): SpainDraft {
   return {
     ...draft,
     timeRecordsComplete: hasHistory ? draft.timeRecordsComplete : undefined,
-    permits: hasHistory ? draft.permits : undefined,
+    permits: usesPermits(draft.targets) ? draft.permits : undefined,
     trips: hasHistory ? draft.trips : undefined,
     route: visible.has(2) ? draft.route : undefined,
     marriedToSpaniard:
@@ -122,7 +158,7 @@ export function activeSpainAnswers(draft: SpainDraft): SpainDraft {
         ? draft.marriedToSpaniard
         : undefined,
     nationality: visible.has(2) ? draft.nationality : {},
-    residence: visible.has(3) ? draft.residence : {},
+    residence: visible.has(3) ? shownResidence(draft) : {},
     mobility: visible.has(4) ? draft.mobility : {},
     recovery: visible.has(5) && hasRecovery ? draft.recovery : {},
     longTermCard: visible.has(5) && hasCard ? draft.longTermCard : {},
@@ -283,7 +319,7 @@ function checkStep(draft: SpainDraft, step: number, submitting: boolean) {
         errors['es-targets'] = 'es.form.routeError';
       break;
     case 1:
-      fields(spainHistoryFields, draft, 'es');
+      fields(spainHistoryFieldsFor(draft.targets), draft, 'es');
       break;
     case 2:
       fields(spainNatTopFields, draft, 'es-nat');
@@ -304,7 +340,9 @@ function checkStep(draft: SpainDraft, step: number, submitting: boolean) {
       }
       break;
     case 3:
-      for (const section of Object.values(spainResidenceSections))
+      for (const section of Object.values(
+        spainResidenceSectionsFor(draft.targets),
+      ))
         fields(section, draft.residence, 'es-res');
       break;
     case 4:

@@ -4,16 +4,19 @@ import { ES_FULL_TARGETS, type EsFullTarget } from '@uk-immigration/engine';
 import { QuestionnaireShell } from '../../../components/questionnaire-shell';
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
-import { spainSteps, type SpainDraft } from '../../../lib/spain-draft';
+import {
+  spainHistoryFieldsFor,
+  spainResidenceSectionsFor,
+  spainSteps,
+  type SpainDraft,
+} from '../../../lib/spain-draft';
 import {
   spainFreeMovementSections,
-  spainHistoryFields,
   spainLongTermCardFields,
   spainMobilitySections,
   spainNatSections,
   spainNatTopFields,
   spainRecoverySections,
-  spainResidenceSections,
   spainStep0Fields,
   type SpainField,
 } from '../../../lib/spain-fields';
@@ -119,7 +122,7 @@ function SpainStep({ draft, errors, update }: StepProps) {
         <>
           <p>{t('es.form.historyHint')}</p>
           <EvidenceFields
-            fields={spainHistoryFields}
+            fields={spainHistoryFieldsFor(draft.targets)}
             values={draft}
             prefix="es"
             errors={errors}
@@ -150,7 +153,7 @@ function SpainStep({ draft, errors, update }: StepProps) {
       )}
       {draft.step === 3 &&
         renderSections(
-          spainResidenceSections,
+          spainResidenceSectionsFor(draft.targets),
           draft.residence,
           'es-res',
           (next) => update({ residence: next }),
