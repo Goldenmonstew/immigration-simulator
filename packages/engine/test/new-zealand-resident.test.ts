@@ -18,6 +18,10 @@ const base: NzFullRequest = {
   nonPrincipal: false,
   common: {
     character: 'clear',
+    residenceFiling: {
+      atImmigrationControlArea: false,
+      hasOmittedRelationshipVisaDependant: false,
+    },
     dependants: [],
     identityDocuments: true,
     requiredFeePaid: true,
@@ -180,6 +184,33 @@ describe('required facts at filing', () => {
       'MET',
     );
   });
+  it('keeps mandatory residence inclusion separate from eligibility for a special travel variation', () => {
+    const variation: Travel = {
+      action: 'variation',
+      variationBasis: 'partner',
+      nzCitizenPartnerSupportsInWriting: true,
+      sameOngoingSponsoredPartnership: true,
+      genuineCohabitationMonths: 12,
+    };
+    const req = {
+      common: {
+        ...base.common,
+        residenceFiling: {
+          atImmigrationControlArea: false,
+          hasOmittedRelationshipVisaDependant: true,
+        },
+      },
+    };
+    expectOutcome(prv({}, req), 'NZ-FAMILY-FILING', 'NOT_MET');
+    expectOutcome(
+      travel(subsequent, req, former),
+      'NZ-FAMILY-FILING',
+      'NOT_MET',
+    );
+    const baseline = travel(variation);
+    expectOutcome(baseline, 'NZ-P1-3', 'MET');
+    expect(travel(variation, req)).toEqual(baseline);
+  });
   it('requires an answer on entry bans for permanent residence and distinguishes outstanding DIA evidence', () => {
     for (const restrictedEntry of [true, undefined]) {
       expectOutcome(
@@ -223,14 +254,20 @@ describe('RV1.20 joint PRV application', () => {
   type Included = NonNullable<
     NonNullable<NzFullRequest['common']>['dependants']
   >[number];
-  const together = (person: Included, main: Partial<NzFullRequest> = {}) =>
+  const together = (
+    person: Included | Included[],
+    main: Partial<NzFullRequest> = {},
+  ) =>
     prv(
       {},
       {
         firstArrival: '2018-01-01',
         residentVisa: { granted: '2018-01-01', category: 'general' },
         ...main,
-        common: { ...base.common, dependants: [person] },
+        common: {
+          ...base.common,
+          dependants: Array.isArray(person) ? person : [person],
+        },
       },
     );
 
@@ -333,6 +370,175 @@ describe('RV1.20 joint PRV application', () => {
       }),
       'NZ-P2-PARTNER',
       'NOT_MET',
+    );
+  });
+  const child: Included = {
+    relation: 'child',
+    dateOfBirth: '2017-02-01',
+    identityDocuments: true,
+    character: 'clear',
+    single: true,
+    relocationAuthority: 'right-evidenced',
+    prvApplication: application,
+  };
+  const linkedChild = {
+    ...child,
+    prvApplication: {
+      ...application,
+      linkedToJointPrincipal: true,
+      prv: { ...prvReady, role: 'linked' as const },
+    },
+  };
+
+  it('uses the separately granted child’s own date, including when another child already qualifies', () => {
+    const alone = prv(prvReady, { ...recent, dateOfBirth: child.dateOfBirth });
+    const joint = together([linkedChild, child]);
+    expect(check(joint, 'NZ-P2-CHILD-1').status).toBe('MET');
+    expect(check(joint, 'NZ-P2-CHILD-2').status).toBe('NOT_MET');
+    expect(check(joint, 'NZ-P2-1').status).toBe('MET');
+    expect(joint.status).toBe('FUTURE');
+    expect(joint.earliestDate).toBe('2027-11-01');
+    expect([joint.status, joint.earliestDate]).toEqual([
+      alone.status,
+      alone.earliestDate,
+    ]);
+    expectOutcome(
+      together([linkedChild, child], { simulationDate: '2027-11-01' }),
+      'NZ-P2-CHILD-2',
+      'MET',
+      '2027-11-01',
+    );
+  });
+
+  it('requires the child’s original role, own residence history and applicable evidence', () => {
+    expectOutcome(
+      together({ ...child, prvApplication: undefined }),
+      'NZ-P2-CHILD-1',
+      'UNKNOWN',
+    );
+    expectOutcome(
+      together({ ...child, prvApplication: { prv: prvReady } }),
+      'NZ-P2-CHILD-1',
+      'UNKNOWN',
+    );
+    expectOutcome(
+      together({
+        ...child,
+        prvApplication: {
+          ...application,
+          prv: { ...prvReady, conditions: 'breached' },
+        },
+      }),
+      'NZ-P2-CHILD-1',
+      'NOT_MET',
+    );
+    expectOutcome(together(linkedChild), 'NZ-P2-CHILD-1', 'MET');
+    expectOutcome(
+      together({
+        ...linkedChild,
+        prvApplication: {
+          ...linkedChild.prvApplication,
+          travel: { ...application.travel, firstResidentEntry: null },
+        },
+      }),
+      'NZ-P2-CHILD-1',
+      'NOT_MET',
+    );
+  });
+
+  it.each([true, false])(
+    'rechecks the age of every child on the joint date (partner included: %s)',
+    (withPartner) => {
+      const readyPartner = {
+        ...partner,
+        prvApplication: {
+          ...application,
+          firstArrival: '2018-01-01',
+          residentVisa: { granted: '2018-01-01', category: 'general' as const },
+        },
+      };
+      const ageingChild = {
+        ...linkedChild,
+        hasOwnChildren: false,
+        financiallyDependent: true,
+      };
+      const family = (dateOfBirth: string) => [
+        ...(withPartner ? [readyPartner] : []),
+        { ...ageingChild, dateOfBirth },
+      ];
+      for (const birth of ['2002-02-01', '2002-11-01']) {
+        const joint = together(family(birth), recent);
+        expect(check(joint, 'NZ-DEPENDANTS').status).toBe('MET');
+        expectOutcome(joint, 'NZ-P2-JOINT-DATE', 'NOT_MET');
+        expectOutcome(
+          together(family(birth), { ...recent, simulationDate: '2027-11-01' }),
+          'NZ-DEPENDANTS',
+          'NOT_MET',
+        );
+      }
+      const eligible = together(family('2002-11-02'), recent);
+      expect(eligible.status).toBe('FUTURE');
+      expect(eligible.earliestDate).toBe('2027-11-01');
+      expectOutcome(
+        together(family('2002-11-02'), {
+          ...recent,
+          simulationDate: '2027-11-01',
+        }),
+        'NZ-DEPENDANTS',
+        'MET',
+        '2027-11-01',
+      );
+    },
+  );
+
+  it('rules out a joint date when a child with an unanswered original role must already have aged out', () => {
+    const joint = together(
+      {
+        ...linkedChild,
+        prvApplication: undefined,
+        dateOfBirth: '2002-02-01',
+        hasOwnChildren: false,
+        financiallyDependent: true,
+      },
+      recent,
+    );
+    expect(check(joint, 'NZ-P2-CHILD-1').status).toBe('UNKNOWN');
+    expectOutcome(joint, 'NZ-P2-JOINT-DATE', 'NOT_MET');
+  });
+
+  it('rechecks an earlier qualifying child’s expiry grace when a sibling sets the joint date', () => {
+    const former = {
+      ...child,
+      prvApplication: {
+        ...application,
+        firstArrival: '2019-01-01',
+        residentVisa: { granted: '2020-01-01', category: 'general' as const },
+        travelConditionsEnd: '2026-12-01',
+        trips: [{ departed: '2026-11-29', returned: '2026-12-07' }],
+      },
+    };
+    const joint = together([former, child]);
+    expect(check(joint, 'NZ-P2-CHILD-1').status).toBe('MET');
+    expectOutcome(joint, 'NZ-P2-JOINT-DATE', 'NOT_MET');
+    expectOutcome(
+      together([former, child], { simulationDate: '2027-11-01' }),
+      'NZ-P2-CHILD-1',
+      'NOT_MET',
+    );
+  });
+  it('withholds a date when ageing into the financial dependency test needs more evidence', () => {
+    const family = {
+      ...linkedChild,
+      dateOfBirth: '2006-05-01',
+      hasOwnChildren: false,
+    };
+    const joint = together(family, recent);
+    expect(check(joint, 'NZ-DEPENDANTS').status).toBe('MET');
+    expectOutcome(joint, 'NZ-P2-JOINT-DATE', 'UNKNOWN');
+    expectOutcome(
+      together(family, { ...recent, simulationDate: '2027-11-01' }),
+      'NZ-DEPENDANTS',
+      'UNKNOWN',
     );
   });
   it('does not project a joint date after the first applicant’s visa has lapsed outside the grace period', () => {

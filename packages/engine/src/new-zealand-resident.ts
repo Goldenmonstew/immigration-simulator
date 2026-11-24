@@ -13,6 +13,7 @@ import {
   createNzContext,
   not,
   type NzContext,
+  type NzDependantAnswers,
 } from './new-zealand-checks';
 import {
   evaluateNewZealand,
@@ -702,6 +703,9 @@ function travelPath(
       : p.residentFeeReference.value.subsequent;
   checks.push(
     ...residentFilingChecks(ctx),
+    ...(action === 'subsequent'
+      ? [ctx.residenceFamilyFiling('subsequent')]
+      : []),
     ctx.check(
       'NZ-P1-FEE',
       '旅行申请费用',
@@ -1021,124 +1025,183 @@ function prvPath(
   };
 }
 
+function assessPrv(ctx: NzContext, answers: NzResidentAnswers) {
+  const old =
+    ctx.history &&
+    evaluateNewZealand(ctx.history).pathways.find((p) => p.id === 'NZ-PRV');
+  return prvPath(ctx, answers, residentRecord(ctx, answers), old);
+}
+
+function includedPrv(ctx: NzContext, member: NzDependantAnswers, date: string) {
+  const application = member.prvApplication;
+  const role = application?.prv?.role;
+  if (!role || role === 'independent-review') return undefined;
+  const person = createNzContext(
+    {
+      ...application,
+      dateOfBirth: member.dateOfBirth,
+      simulationDate: date,
+      locale: ctx.locale,
+    },
+    { ...member, dependants: [], requiredFeePaid: ctx.requiredFeePaid },
+  );
+  return assessPrv(person, {
+    travel: application.travel,
+    prv: {
+      ...application.prv,
+      principalHoldsPrv: any(
+        application.prv?.principalHoldsPrv,
+        application.linkedToJointPrincipal,
+      ),
+    },
+  });
+}
+
 function jointPrvPath(
   ctx: NzContext,
   resident: NzResidentAnswers,
   principal: CountryPathway,
 ): CountryPathway {
-  const partner = ctx.answers.dependants?.find(
-    (person) => person.relation === 'partner',
+  if (principal.status === 'NOT_APPLICABLE') return principal;
+  const members = (ctx.answers.dependants ?? []).filter(
+    (person) => person.relation === 'partner' || person.relation === 'child',
   );
-  if (!partner || principal.status === 'NOT_APPLICABLE') return principal;
+  const filing = ctx.residenceFamilyFiling('permanent');
 
-  const application = partner.prvApplication;
-  const role = application?.prv?.role;
-  const partnerResident: NzResidentAnswers = {
-    travel: application?.travel,
-    prv: {
-      ...application?.prv,
-      // A linked partner on the same original application can qualify when the principal does.
-      principalHoldsPrv: any(
-        application?.prv?.principalHoldsPrv,
-        application?.linkedToJointPrincipal,
-      ),
-    },
-  };
-  const partnerCtx = createNzContext(
-    {
-      ...application,
-      dateOfBirth: partner.dateOfBirth,
-      simulationDate: ctx.date,
-      locale: ctx.locale,
-    },
-    { ...partner, dependants: [], requiredFeePaid: ctx.requiredFeePaid },
+  const individual = members.map((member) =>
+    includedPrv(ctx, member, ctx.date),
   );
-  function assess(person: NzContext, answers: NzResidentAnswers) {
-    const old =
-      person.history &&
-      evaluateNewZealand(person.history).pathways.find(
-        (p) => p.id === 'NZ-PRV',
-      );
-    return prvPath(person, answers, residentRecord(person, answers), old);
-  }
-  const own =
-    role && role !== 'independent-review'
-      ? assess(partnerCtx, partnerResident)
-      : undefined;
-  const blockers = own?.checks
-    .filter((c) => own.decidedBy?.includes(c.id) && c.status !== 'MET')
-    .map((c) => c.title);
-  const detail =
-    own?.status === 'FUTURE' ? own.earliestDate : blockers?.join(', ');
-  const check = ctx.check(
-    'NZ-P2-PARTNER',
-    '同表伴侣的永久居民资格',
-    'Permanent residence eligibility of the included partner',
-    !own || own.status === 'UNKNOWN' ? undefined : own.status === 'MET',
-    ref('SRC-072', 'RV1.20(a)–(b), Sue and Mike example; RV2.5, RV2.10'),
-    `核对伴侣原居民签证的申请角色。原主申请人须按自己的首次入境、持签、承诺和附加条件判断。${detail ? '伴侣个人评估：' + detail + '。' : ''}`,
-    `Check the partner’s original residence role. An original principal must qualify on their own entry, residence, commitment and visa conditions.${detail ? ' Individual assessment: ' + detail + '.' : ''}`,
-    'PD-222',
+  const firstPartner = members.findIndex(
+    (member) => member.relation === 'partner',
   );
+  const memberChecks = members.map((member, index) => {
+    const own = individual[index];
+    const partner = member.relation === 'partner';
+    const id =
+      partner && index === firstPartner
+        ? 'NZ-P2-PARTNER'
+        : `NZ-P2-${partner ? 'PARTNER' : 'CHILD'}-${index + 1}`;
+    const detail =
+      own?.status === 'FUTURE'
+        ? own.earliestDate
+        : own?.checks
+            .filter((c) => own.decidedBy?.includes(c.id) && c.status !== 'MET')
+            .map((c) => c.title)
+            .join(', ');
+    return ctx.check(
+      id,
+      partner
+        ? '同表伴侣的永久居民资格'
+        : `同表子女的永久居民资格（随行人 ${index + 1}）`,
+      partner
+        ? 'Permanent residence eligibility of the included partner'
+        : `Permanent residence eligibility of child (family member ${index + 1})`,
+      !own || own.status === 'UNKNOWN' ? undefined : own.status === 'MET',
+      ref('SRC-072', 'RV1.20(a)–(b), RV1.20.5 and examples; RV2.5, RV2.10'),
+      `核对本人原居民签的申请角色。独立获签者按自己的首入、持签、承诺和附加条件判断。原随同者按与原主申的关系核对。${detail ? '个人评估：' + detail + '。' : ''}`,
+      `Check this member’s original residence role. Independently granted residents qualify on their own entry, residence, commitment and conditions. Linked members qualify through their original principal.${detail ? ' Individual assessment: ' + detail + '.' : ''}`,
+      'PD-222',
+    );
+  });
   const joint = ctx.path(
     principal.id,
     '永久居民签证',
     'Permanent Resident Visa',
-    [...principal.checks, check],
+    [...principal.checks, filing, ...memberChecks],
     ['NZ-P2-7'],
   );
-  if (principal.status === 'NOT_MET' || own?.status === 'NOT_MET') return joint;
-  if (!principal.earliestDate || !own?.earliestDate)
-    return { ...joint, status: 'UNKNOWN', earliestDate: undefined };
-  const date =
-    principal.earliestDate > own.earliestDate
-      ? principal.earliestDate
-      : own.earliestDate;
-  if (date === ctx.date) return joint;
+  const results = [principal, ...individual];
+  if (
+    filing.status === 'NOT_MET' ||
+    results.some((result) => result?.status === 'NOT_MET')
+  )
+    return joint;
+  const allDatesKnown =
+    filing.status === 'MET' && results.every((result) => result?.earliestDate);
+  const date = results.reduce(
+    (latest, result) =>
+      result?.earliestDate && result.earliestDate > latest
+        ? result.earliestDate
+        : latest,
+    ctx.date,
+  );
+  if (date === ctx.date || !members.length) {
+    if (!allDatesKnown)
+      return { ...joint, status: 'UNKNOWN', earliestDate: undefined };
+    return {
+      ...joint,
+      status: date === ctx.date ? 'MET' : 'FUTURE',
+      earliestDate: date,
+      assumptions: principal.assumptions,
+    };
+  }
 
-  // A date that works for one applicant may be outside the other's rolling window or expiry grace.
-  const earlier = principal.earliestDate < date ? ctx : partnerCtx;
-  if (principal.earliestDate !== own.earliestDate) {
-    const laterCtx = createNzContext(
-      { ...earlier.time, simulationDate: date },
-      earlier.answers,
+  // Recheck the whole application on the first date everyone could file together.
+  const later = createNzContext(
+    { ...ctx.time, simulationDate: date },
+    ctx.answers,
+  );
+  const projected = [
+    assessPrv(later, resident),
+    ...members.map((member) => includedPrv(ctx, member, date)),
+  ];
+  if (!allDatesKnown || projected.some((result) => result?.status !== 'MET')) {
+    // Once any child ages out or a resident's expiry grace ends, waiting longer cannot help.
+    const agedOut = projected[0]?.checks.some(
+      (c) => c.id === 'NZ-DEPENDANTS' && c.status === 'NOT_MET',
     );
-    const later = assess(
-      laterCtx,
-      earlier === ctx ? resident : partnerResident,
+    const pastGrace = projected.some(
+      (result, index) =>
+        results[index]?.earliestDate &&
+        result?.checks.some(
+          (c) =>
+            (c.id === 'NZ-P2-1' || c.id === 'NZ-P2-3') &&
+            c.status === 'NOT_MET',
+        ),
     );
-    if (later.status !== 'MET') {
-      // This person already met the holding and first-entry periods. Only expiry
-      // beyond the applicable grace can make that same holding check fail later.
-      const pastGrace = later.checks.some(
-        (c) =>
-          (c.id === 'NZ-P2-1' || c.id === 'NZ-P2-3') && c.status === 'NOT_MET',
-      );
-      if (pastGrace)
-        return {
-          ...joint,
-          status: 'NOT_MET',
-          earliestDate: undefined,
-          summary: ctx.L(
-            `另一人最早可申请的 ${date} 已超过先达标者的失效宽限期。`,
-            `By the other applicant’s earliest date, ${date}, the first applicant’s expiry grace period has ended.`,
-          ),
-        };
-      return {
-        ...joint,
-        status: 'UNKNOWN',
-        earliestDate: undefined,
-        pendingDetails: [
-          ...new Set([...(joint.pendingDetails ?? []), 'PD-222']),
-        ],
-      };
-    }
+    const forecast = ctx.check(
+      'NZ-P2-JOINT-DATE',
+      '预测日的同表申请资格',
+      'Joint application eligibility on the projected date',
+      agedOut || pastGrace ? false : undefined,
+      [
+        ...ref('SRC-230', 'R2.1.30–35'),
+        ...ref('SRC-072', 'RV1.20, RV2.5, RV2.10'),
+      ],
+      agedOut
+        ? `到 ${date}，已有子女不符合该年龄段的随行条件。`
+        : pastGrace
+          ? `到 ${date}，先达标的申请人已超过签证失效宽限期。`
+          : `根据所填资料，无法确认所有申请人在 ${date} 同时满足永居条件。`,
+      agedOut
+        ? `By ${date}, a child no longer meets the inclusion requirements for their age.`
+        : pastGrace
+          ? `By ${date}, an applicant who qualified earlier is outside the visa expiry grace period.`
+          : `The evidence does not establish that all applicants qualify together on ${date}.`,
+      'PD-222',
+    );
+    return {
+      ...joint,
+      checks: [...joint.checks, forecast],
+      decidedBy: [...(joint.decidedBy ?? []), forecast.id],
+      pendingDetails: [
+        ...new Set([
+          ...(joint.pendingDetails ?? []),
+          ...(forecast.pendingDetails ?? []),
+        ]),
+      ],
+      summary: forecast.explanation,
+      status: forecast.status,
+      earliestDate: undefined,
+    };
   }
   return {
     ...joint,
     status: 'FUTURE',
     earliestDate: date,
-    assumptions: [...new Set([...principal.assumptions, ...own.assumptions])],
+    assumptions: [
+      ...new Set(results.flatMap((result) => result?.assumptions ?? [])),
+    ],
   };
 }
 

@@ -17,6 +17,7 @@ const common: Request['common'] = {
     police: [{ issued: '2026-11-01' }],
   },
   residenceFiling: {
+    hasOmittedRelationshipVisaDependant: false,
     atImmigrationControlArea: false,
     dependentChildrenUnlawfullyInNz: [],
   },

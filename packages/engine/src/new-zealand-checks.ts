@@ -125,7 +125,7 @@ export interface NzDependantAnswers extends NzPersonAnswers {
   relation?: 'partner' | 'child' | 'other';
   /** Includes the recognised relationship and the applicable partnership evidence. */
   partnershipRequirementsMet?: boolean;
-  /** The partner's own RV2 timeline and evidence. A linked role refers to the original principal. */
+  /** This family member's own RV2 timeline and evidence. Use the original resident visa role. */
   prvApplication?: Partial<
     Pick<
       NzRequest,
@@ -137,7 +137,7 @@ export interface NzDependantAnswers extends NzPersonAnswers {
     >
   > &
     Pick<NzResidentAnswers, 'travel' | 'prv'> & {
-      /** Whether the person filing jointly was the principal on this partner's original visa. */
+      /** The joint principal is this member's original principal, including a confirmed RV1.20(a)(ii) investor child. */
       linkedToJointPrincipal?: boolean;
     };
   /** For this child: applicable right/consent evidenced, an established exemption, or neither right nor consent. */
@@ -149,6 +149,8 @@ export interface NzDependantAnswers extends NzPersonAnswers {
   financiallyDependent?: boolean;
 }
 
+type ResidenceFiling = 'first' | 'permanent' | 'subsequent';
+
 type InclusionCategory = 'partner' | 'parent' | 'business-work';
 
 export interface NzCommonAnswers extends Omit<NzPersonAnswers, 'dateOfBirth'> {
@@ -156,6 +158,10 @@ export interface NzCommonAnswers extends Omit<NzPersonAnswers, 'dateOfBirth'> {
   dependants?: NzDependantAnswers[];
   residenceFiling?: {
     atImmigrationControlArea?: boolean;
+    /** For a first resident visa at the border: Australian citizen or holder of an Australian permanent residence visa, R2.40.2(a). */
+    eligibleForFirstResidenceAtControlArea?: boolean;
+    /** Any omitted partner or dependent child holding or applying for temporary entry on the basis of their relationship to the principal. */
+    hasOmittedRelationshipVisaDependant?: boolean;
     /** Every applicant's biological/adopted dependent children unlawfully in NZ, including those not applying. */
     dependentChildrenUnlawfullyInNz?: {
       dateOfBirth?: IsoDate;
@@ -209,6 +215,7 @@ export interface NzContext {
   identityDocumentsComplete?: boolean;
   testSpecificallyRequested?: boolean;
   dependantEligibility(category?: InclusionCategory): CountryCheck;
+  residenceFamilyFiling(kind: ResidenceFiling): CountryCheck;
   partnerCommon(otherRequirements: CountryCheck[]): CountryCheck[];
   character(): CountryCheck;
 }
@@ -649,6 +656,42 @@ export function createNzContext(
     );
   }
 
+  const filing = answers.residenceFiling;
+  const singleApplicant = answers.dependants && answers.dependants.length === 0;
+  const validFirstBorderFiling = all(
+    filing?.eligibleForFirstResidenceAtControlArea,
+    singleApplicant,
+  );
+
+  function residenceFamilyFiling(kind: ResidenceFiling): CountryCheck {
+    if (filing?.atImmigrationControlArea)
+      return check(
+        'NZ-FAMILY-FILING',
+        '入境管制区递交资格',
+        'Eligibility to lodge at an immigration control area',
+        kind === 'first'
+          ? validFirstBorderFiling
+          : kind === 'subsequent' && singleApplicant,
+        [{ srcId: 'SRC-230', locator: 'R2.40.2(a), (b)(ii); RV1.10.10' }],
+        '入境管制区每份申请仅限一人。首次申请居民签证者须为澳大利亚公民或持澳大利亚永久居民签证。前新西兰居民可在此申请再次居民签证。',
+        'Each border application covers one person. A first resident visa applicant must be an Australian citizen or Australian permanent visa holder. Former New Zealand residents may apply here for a subsequent resident visa.',
+      );
+    return check(
+      'NZ-FAMILY-FILING',
+      '必须同申的家属',
+      'Family members who must be included',
+      not(filing?.hasOmittedRelationshipVisaDependant),
+      [
+        {
+          srcId: 'SRC-230',
+          locator: 'R2.40(d); Immigration Regulations 2010, reg 20(2A)(a)–(b)',
+        },
+      ],
+      '确认已列入所有基于与主申请人的关系持有或正在申请临时入境类签证的伴侣及受抚养子女。',
+      'Include every partner or dependent child who holds or has applied for a temporary entry class visa based on their relationship to the principal applicant.',
+    );
+  }
+
   function common(
     category: ResidenceCategory,
     registered?: boolean,
@@ -664,6 +707,7 @@ export function createNzContext(
         '确认每人的身份证件、照片、规定表格及声明齐备，并确认应缴费已付或已按认可方式安排付款。',
         'Confirm identity documents, photos, required forms and declarations for everyone included, and confirm payment or an accepted arrangement for fees due.',
       ),
+      residenceFamilyFiling('first'),
       dependantEligibility(
         category === 'partner' || category === 'parent' ? category : undefined,
       ),
@@ -707,9 +751,8 @@ export function createNzContext(
     ];
     if (
       date >= p.unlawfulChildRuleFrom.value &&
-      !answers.residenceFiling?.atImmigrationControlArea
+      !(filing?.atImmigrationControlArea && validFirstBorderFiling === true)
     ) {
-      const filing = answers.residenceFiling;
       const children = filing?.dependentChildrenUnlawfullyInNz;
       // R5.125(b) lifts this bar only if every affected child meets the exception.
       const exceptions =
@@ -729,8 +772,14 @@ export function createNzContext(
           'NZ-R5-125',
           '在新西兰非法居留的受抚养子女',
           'Dependent children unlawfully in New Zealand',
-          any(filing?.atImmigrationControlArea, exceptions),
-          p.unlawfulChildRuleFrom.sources,
+          any(
+            all(filing?.atImmigrationControlArea, validFirstBorderFiling),
+            exceptions,
+          ),
+          [
+            ...p.unlawfulChildRuleFrom.sources,
+            { srcId: 'SRC-230', locator: 'R2.40.2(a), (b)(ii)' },
+          ],
           `核对所有申请人的亲生及收养受抚养子女，包括未随行子女。普通递交时，每名在新西兰非法居留的子女均须未满 ${p.childRemovalAge.value} 岁，且申请人能证明无权将其迁出监护或探视权授予国（未授予这些权利时为居住国），才可适用例外。`,
           `Include every applicant’s biological or adopted dependent children, even if not applying. At ordinary lodgement, each child unlawfully in New Zealand must be under ${p.childRemovalAge.value} and the applicant must demonstrate no right of removal from the country granting custody or visitation rights, or the country of residence if no such rights were granted.`,
           'PD-234',
@@ -845,6 +894,7 @@ export function createNzContext(
     identityDocumentsComplete,
     testSpecificallyRequested: answers.testSpecificallyRequested,
     dependantEligibility,
+    residenceFamilyFiling,
     partnerCommon: (otherRequirements) =>
       common('partner', undefined, otherRequirements),
     answers,

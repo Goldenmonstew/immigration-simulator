@@ -69,6 +69,7 @@ function result(
       health: 'clear',
       character: 'clear',
       residenceFiling: {
+        hasOmittedRelationshipVisaDependant: false,
         atImmigrationControlArea: false,
         dependentChildrenUnlawfullyInNz: [],
       },

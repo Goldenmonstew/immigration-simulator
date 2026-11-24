@@ -151,3 +151,35 @@ PROGRESS 第 534 项。建议提交 `Fix: 修正新西兰旅行权限、同表�
 - `common.dependants[].prvApplication` 记录同表伴侣原居民申请角色、本人持签和首入日期、行程、附加条件及永居证明。原随同者另需确认此次同表申请人是否为当时的主申，或原主申是否已持永居。
 - `common.dependants[].relocationAuthority` 逐个子女记录迁居权证明、另一方有效同意、已确认条款不适用，或明确无权且无同意。居留申请核对离异、分居或仅一方父母同申的情形。临时签证按 E4.1.15 的办理目的、拟停留期和另一方是否同行确认适用范围（SRC-230 R2.1.45–50、SRC-251 E4.1.15）。
 - `common.residenceFiling.dependentChildrenUnlawfullyInNz` 汇总每名申请人的受影响子女，记录子女生日及该申请人能否证明无权迁出。已逐人确认都没有时填写空名单。若递交地点会改变结论，另填 `atImmigrationControlArea`。此名单与随行名单分别填写。
+
+## 第三轮审核修正（review84-3）
+
+### 1. 做了什么
+
+PROGRESS 第 535 项。建议提交 `Fix: 修正新西兰永居家庭同表日期与家属递交条件（review84-3）`。
+
+| 审核项 | 条件与路径结果 | 依据 |
+|---|---|---|
+| P2 后来独立获签的子女 | 模拟日为 2026-11-23，主申自 2018-01-01 持签。子女于 2025-11-01 独立获签并首次以居民身份入境，个人永居条件在模拟日为 NOT_MET。同表与子女单独申请均为 FUTURE，最早为 2027-11-01。届日重算均满足。原随同子女按与原主申的关系、本人入境及适用限制评估，原角色或独立签证记录缺失时为 UNKNOWN。 | SRC-072 RV1.20(a)–(b)、RV1.20.5、RV2.5、RV2.10 |
+| P2 共同预测日 | 取所有已知个人日期中最晚的一天，在该日以整份申请复核随行资格，并逐人复核永居资格。主申最早可在 2027-11-01 申请，子女在此日前或当天满 25 岁时，模拟日的 `NZ-DEPENDANTS` 为 MET，预测条件 `NZ-P2-JOINT-DATE` 和路径为 NOT_MET，日期留空。生日在次日时可保留该日。若到该日刚进入需要经济依赖证明的年龄档而未答，条件和路径为 UNKNOWN，日期留空。 | SRC-230 R2.1.30–35；SRC-072 RV1.20 的 Andrea 示例、RV2.5 |
+| P5 及其他居民签证递交 | `NZ-FAMILY-FILING` 核对已持有或正在申请关系类临时签证的伴侣及受抚养子女。Tier 1 即使随行名单为空，明确漏列时条件和路径为 NOT_MET，未答为 UNKNOWN，两者都没有日期。确认全部列入且其他条件齐备时为 MET，日期为模拟日。覆盖 P4–P10 的居留递交、RV2 永居和 RV4 再次居民签。 | SRC-230 R2.40(d)、Immigration (Visa, Entry Permission, and Related Matters) Regulations 2010 第 20(2A)(a)–(b) 条 |
+| 入境管制区递交 | 在同一 Tier 1 用例中，有一名在新西兰非法居留的成年受抚养子女。申报管制区且单人申请，首次申请人的法定身份已确认时，适用 R5.125(c)(iii)，路径为 MET、日期为模拟日；身份未答时为 UNKNOWN，明确不符时为 NOT_MET，两者均无日期。管制区多人同表也为 NOT_MET。 | SRC-230 R2.40.2(a)、(b)(ii)；SRC-252 R5.125(a)–(c) |
+
+### 2. 怎么验证的
+
+回归覆盖多子女、原随同与独立获签混合、没有伴侣同表、子女在共同日超龄、手足有不同失效宽限、补齐递交资料，以及在预测日直接重算。测试同时核对决定条件、路径状态和最早日期。旅行条件变更、入籍、BI 前置工签和 AIP 获签后投资检查也有适用范围断言。
+
+- 最终工作树运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整链退出码 0。引擎 3,413 项、游戏 1,348 项、网页 660 项、policy-data 23 项、error-report 2 项通过，合计 5,446 项通过、1 项既有测试跳过。生产构建生成 27/27 个静态页面，已核对新西兰页面产物。
+- `git diff --check` 通过。`git diff --quiet 4a66f74 -- packages/engine/src/new-zealand.ts packages/engine/test/new-zealand.test.ts apps/web/app/new-zealand/new-zealand-content.tsx` 退出码 0。
+
+### 3. 没做或没验证的
+
+本轮按要求留在工作树，未提交。问卷接入留给任务 94。既有时间版 `evaluateNewZealand`、其测试及页面入口与 `4a66f74` 的文件一致。
+
+### 4. 发现与建议
+
+任务 94 可直接使用以下输入。缺失事实与共同日期的处理已补入 PD-220、PD-222、PD-234。
+
+- 每位同表子女或伴侣各填 `common.dependants[].prvApplication`，用 `prv.role` 区分原主申、原随同者及须独立评估的情况。独立获签者填写本人持签、首入、行程及附加条件。随同者填写与原主申的关联；RV1.20(a)(ii) 规定的投资者子女须核实适用身份及已持 Dependent Child Resident Visa 入境。
+- `common.residenceFiling.hasOmittedRelationshipVisaDependant` 询问是否仍漏列基于与主申的关系持有或正在申请临时签证的伴侣或受抚养子女。填写空随行名单之后仍须回答。
+- `common.residenceFiling.eligibleForFirstResidenceAtControlArea` 在首次居民签申请人申报入境管制区递交时询问其是否为澳大利亚公民或持澳大利亚永久居民签证。单人递交由随行名单核实。在新西兰非法居留的受抚养子女另按全体申请人填写，包括未随行子女。

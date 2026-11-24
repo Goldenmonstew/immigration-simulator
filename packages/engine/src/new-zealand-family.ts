@@ -1025,7 +1025,8 @@ function investmentPath(
       (c) =>
         (a.route === 'active' &&
           !(
-            a.active?.goal === 'investment-conditions' && c.id === 'NZ-R5-125'
+            a.active?.goal === 'investment-conditions' &&
+            (c.id === 'NZ-R5-125' || c.id === 'NZ-FAMILY-FILING')
           )) ||
         (a.route === 'business' && stage === 'residence') ||
         c.id === 'NZ-C1' ||
