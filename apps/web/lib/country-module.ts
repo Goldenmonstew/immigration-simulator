@@ -22,6 +22,9 @@ export type DraftReadMode = boolean | 'show-correction';
 export interface CountryModule<D extends CountryDraft, K> {
   id: CountryId;
   version: number;
+  // Result, edit and comparison links carry the scenario in the URL fragment,
+  // and opening a shared link never replaces an existing local draft.
+  scenarioLinks?: true;
   createDraft(): D;
   storedAnswers?: {
     encode(draft: D): object;

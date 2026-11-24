@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, test } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import AustraliaPage from '../app/australia/page';
 import AustraliaPolicyPage from '../app/australia/policy/page';
 import AustraliaSimulatePage from '../app/australia/simulate/page';
@@ -13,6 +13,7 @@ import { LocaleContext } from '../i18n/locale';
 import { australiaSteps, type AustraliaDraft } from '../lib/australia-draft';
 import { australiaModule as au } from '../lib/australia-module';
 import { readPageResult } from '../lib/page-result';
+import { draftStorage } from '../lib/storage';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { ukModule } from '../lib/uk-module';
 import { gapRules } from '../lib/gap-summary';
@@ -733,3 +734,67 @@ test.each(['zh-CN', 'en'] as const)(
     );
   },
 );
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+test('a bare share link opens only the earlier Australian form, never an older UK draft', () => {
+  const bare = (value: object) =>
+    Buffer.from(JSON.stringify(value), 'utf8').toString('base64url');
+  const ukDraft = { ...ukModule.createDraft(), simulationDate: '2026-11-23' };
+  expect(decodeDraft(ukModule, bare(ukDraft))).toBeDefined();
+  expect(decodeDraft(au, bare(ukDraft))).toBeUndefined();
+  expect(
+    decodeDraft(
+      au,
+      bare({
+        version: 1,
+        step: 0,
+        completed: true,
+        simulationDate: '2026-11-23',
+        screening: {},
+        timeline: {},
+      }),
+    ),
+  ).toBeUndefined();
+  const legacy = {
+    simulationDate: '2026-11-21',
+    dateOfBirth: '1990-05-01',
+    firstArrival: '2021-02-01',
+    visas: [{ subclass: '189', from: '2023-09-01', to: '' }],
+    trips: [],
+    sponsoredFullTime: false,
+    partner: false,
+    partnerLodged: '',
+    partnerStream: 'onshore',
+    longTermRelationship: false,
+    hongKong: false,
+    regionalSince: '',
+  };
+  expect(decodeDraft(au, bare(legacy))).toMatchObject({
+    version: 1,
+    simulationDate: '2026-11-21',
+  });
+  expect(decodeDraft(au, bare({ ...legacy, screening: {} }))).toBeUndefined();
+});
+
+test('opening an Australian share link keeps the existing local draft', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local: AustraliaDraft = {
+    ...au.createDraft(),
+    simulationDate: '2026-10-01',
+    dateOfBirth: '1985-01-01',
+  };
+  draftStorage(au, local);
+  const shared = fullAustraliaDraft();
+  const page = readPageResult(au, 'zh-CN', encodeDraft(au, shared));
+  expect(page.shared).toBe(true);
+  expect(page.draft?.simulationDate).toBe('2026-11-23');
+  expect(JSON.parse(storage.get('au-immigration-draft-v1')!)).toEqual(local);
+  expect(draftStorage(au).draft).toEqual(local);
+});

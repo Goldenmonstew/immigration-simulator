@@ -46,6 +46,7 @@ function run(draft: AustraliaDraft, locale: Locale) {
 export const australiaModule: CountryModule<AustraliaDraft, AustraliaWhatIf> = {
   id: 'au',
   version: 1,
+  scenarioLinks: true,
   createDraft: createAustraliaDraft,
   activeAnswers: activeAustraliaAnswers,
   validateStep: validateAustraliaStep,

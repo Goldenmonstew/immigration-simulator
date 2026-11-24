@@ -438,11 +438,28 @@ export function validateAustraliaStep(draft: AustraliaDraft): Errors {
   return checkAustraliaStep(draft, draft.step, true);
 }
 
+// The earlier single-page form had exactly these fields and no version.
+const legacyFormKeys = new Set([
+  'simulationDate',
+  'dateOfBirth',
+  'firstArrival',
+  'visas',
+  'trips',
+  'sponsoredFullTime',
+  'partner',
+  'partnerLodged',
+  'partnerStream',
+  'longTermRelationship',
+  'hongKong',
+  'regionalSince',
+]);
+
 // Migrate a legacy time-only AuForm into a versioned full AustraliaDraft.
 export function migrateLegacyAuForm(
   value: Record<string, unknown>,
 ): AustraliaDraft | undefined {
   if (
+    !Object.keys(value).every((key) => legacyFormKeys.has(key)) ||
     typeof value.simulationDate !== 'string' ||
     typeof value.partner !== 'boolean' ||
     typeof value.hongKong !== 'boolean' ||
@@ -531,7 +548,7 @@ export function decodeAustraliaDraft(
   mode: DraftReadMode = false,
 ): AustraliaDraft | undefined {
   if (!isRecord(value)) return undefined;
-  if (!('version' in value) && typeof value.partner === 'boolean') {
+  if (!('version' in value)) {
     const migrated = migrateLegacyAuForm(value);
     return migrated && decodeAustraliaDraft(migrated, mode);
   }

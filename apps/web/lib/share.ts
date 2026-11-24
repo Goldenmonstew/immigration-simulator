@@ -6,7 +6,12 @@ import type {
 
 type ShareModule<D extends CountryDraft> = Pick<
   CountryModule<D, never>,
-  'id' | 'version' | 'decodeDraft' | 'activeAnswers' | 'storedAnswers'
+  | 'id'
+  | 'version'
+  | 'decodeDraft'
+  | 'activeAnswers'
+  | 'storedAnswers'
+  | 'scenarioLinks'
 >;
 
 export function encodeDraft<D extends CountryDraft>(
@@ -50,8 +55,10 @@ export function decodeDraft<D extends CountryDraft>(
       const draft = country.decodeDraft(value.draft, mode);
       return draft && (country.activeAnswers?.(draft) ?? draft);
     }
-    // Before country envelopes, only UK questionnaires (and legacy Australia forms) produced bare objects.
-    return country.id === 'uk' || country.id === 'au'
+    // Before country envelopes, only UK questionnaires produced share links.
+    // Australia also reads its earlier single-page form, which had no version.
+    if (country.id === 'uk') return country.decodeDraft(value);
+    return country.id === 'au' && !('version' in value)
       ? country.decodeDraft(value)
       : undefined;
   } catch {
@@ -65,7 +72,7 @@ export function linkedResultDraft<D extends CountryDraft>(
   country: ShareModule<D>,
   hash: string,
 ) {
-  if (country.id !== 'jp' && country.id !== 'au') return undefined;
+  if (!country.scenarioLinks) return undefined;
   const params = new URLSearchParams(hash.slice(1));
   const shared = params.get('s');
   const encoded = shared ?? params.get('draft');
