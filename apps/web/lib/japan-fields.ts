@@ -19,6 +19,7 @@ export type JapanField = {
   label: FieldName;
   hint?: Suffix<'form'>;
   required?: boolean;
+  actualDate?: true | 'alreadyDeparted';
 } & (
   | {
       type:
@@ -47,6 +48,10 @@ const date = (
   label = name,
   hint?: Suffix<'form'>,
 ): JapanField => ({ name, label, required, hint, type: 'date' });
+const actualDate = (...args: Parameters<typeof date>): JapanField => ({
+  ...date(...args),
+  actualDate: true,
+});
 const number = (name: FieldName): JapanField => ({
   name,
   label: name,
@@ -77,13 +82,14 @@ const list = (name: FieldName, fields: JapanField[]): JapanField => ({
 
 export const basicFields = (hasResidenceRoute: boolean) => [
   date('simulationDate', true),
-  ...(hasResidenceRoute ? [date('stayStart', true)] : []),
+  ...(hasResidenceRoute ? [actualDate('stayStart', true)] : []),
   date('applicationDate', false, 'applicationDate', 'baseline'),
-  date('dateOfBirth'),
+  actualDate('dateOfBirth'),
 ];
 export const tripFields = [
   date('departed', true),
   date('returned', true),
+  actualDate('newLandingOn'),
   choice('departure', ['none', 'deemed', 'permit']),
   bool('reentryPermit'),
   {
@@ -92,7 +98,12 @@ export const tripFields = [
   } satisfies JapanField,
   date('stayExpiry', false, 'stayExpiry', 'tripExpiry'),
   bool('renewalPending'),
-  date('renewalDecisionOn', false, 'renewalDecisionOn', 'renewalDecisionHint'),
+  actualDate(
+    'renewalDecisionOn',
+    false,
+    'renewalDecisionOn',
+    'renewalDecisionHint',
+  ),
 ];
 export const tripList = {
   name: 'trips',
@@ -105,6 +116,7 @@ const general: JapanField[] = [
     name: 'statusStart',
     label: 'statusStart',
     type: 'status-date',
+    actualDate: true,
     required: true,
     hint: 'dateOrNone',
   },
@@ -112,10 +124,11 @@ const general: JapanField[] = [
     name: 'newStatusStart',
     label: 'newStatusStart',
     type: 'status-date',
+    actualDate: true,
     required: true,
     hint: 'newStatusHint',
   },
-  list('excluded', [date('from', true), date('to', true)]),
+  list('excluded', [actualDate('from', true), actualDate('to', true)]),
 ];
 const talentActivity = [
   date('on', true),
@@ -162,9 +175,9 @@ const hspSnapshot = [
   integer('personalInvestmentYen'),
 ];
 const hsp = [
-  date('statusStart', true, 'pointsFrom'),
+  actualDate('statusStart', true, 'pointsFrom'),
   choice('mode', ['recognised', 'retrospective']),
-  date('recognisedOn'),
+  actualDate('recognisedOn'),
   integer('recognisedPoints'),
   bool('maintained'),
   group('current', hspSnapshot),
@@ -174,21 +187,21 @@ const jSkipSnapshot = [...talentActivity, bool('confirmed')];
 
 export const prRouteFields = {
   general,
-  spouse: [date('marriedLifeFrom', true)],
+  spouse: [actualDate('marriedLifeFrom', true)],
   child: [bool('bornInJapan')],
   'child-birth': [
-    date('bornOn', true),
+    actualDate('bornOn', true),
     ...flags('bornInJapan', 'withoutLanding', 'acquisitionAccepted'),
-    date('birthRegisteredOn'),
+    actualDate('birthRegisteredOn'),
     ...flags('plansToStayPastPermitlessPeriod', 'heldAnotherStatus'),
   ],
-  teijusha: [date('statusStart', true, 'longTermFrom')],
-  refugee: [date('statusStart', true, 'protectionFrom')],
+  teijusha: [actualDate('statusStart', true, 'longTermFrom')],
+  refugee: [actualDate('statusStart', true, 'protectionFrom')],
   hsp70: hsp,
   hsp80: hsp,
   'j-skip': [
     choice('mode', ['recognised', 'retrospective']),
-    date('recognisedOn'),
+    actualDate('recognisedOn'),
     bool('remainedRecognised'),
     group('current', jSkipSnapshot),
     group('historical', jSkipSnapshot),
@@ -247,7 +260,7 @@ export const prRouteFields = {
 
 export const natRouteFields = {
   general: [{ ...integer('homeMajorityAge'), required: true }],
-  spouse: [date('marriedOn', true), bool('stillJapaneseSpouse')],
+  spouse: [actualDate('marriedOn', true), bool('stillJapaneseSpouse')],
   'article-6-former-national-child': [bool('biologicalChildOfFormerNational')],
   'article-6-japan-birth': flags(
     'bornInJapan',
@@ -276,7 +289,12 @@ const travelCommon = [
   date('returnOn'),
   date('stayExpiresOn'),
   ...flags('stayIndefinite', 'timelyRenewalPending'),
-  date('renewalDecisionOn', false, 'renewalDecisionOn', 'renewalDecisionHint'),
+  actualDate(
+    'renewalDecisionOn',
+    false,
+    'renewalDecisionOn',
+    'renewalDecisionHint',
+  ),
   ...flags(
     'specialPermanentResident',
     'lawfulStatus',
@@ -284,7 +302,7 @@ const travelCommon = [
     'travelDocumentLost',
     'expiryCertificateObtained',
   ),
-  date('newLandingOn'),
+  actualDate('newLandingOn'),
 ];
 const permitFields = [
   date('effectiveOn'),
@@ -318,7 +336,7 @@ export const travelRouteFields = {
     ...consular,
   ],
   deemed: [
-    date('departureOn'),
+    { ...date('departureOn'), actualDate: 'alreadyDeparted' },
     bool('alreadyDeparted'),
     ...travelCommon,
     bool('temporaryVisitor'),
@@ -356,11 +374,12 @@ const filer = choice('filer', [
   'other',
 ]);
 const notice: JapanField[] = [
-  date('eventOn', true),
+  actualDate('eventOn', true),
   {
     name: 'notifiedOn',
     label: 'notifiedOn',
     type: 'notice',
+    actualDate: true,
     hint: 'noticeHint',
   },
 ];
@@ -418,7 +437,7 @@ export const prStatusSections = {
       ...flags('timelyRenewalPending', 'heldThreeYearPeriodOnTransitionDay'),
       date('transitionPermitExpiresOn'),
       bool('firstApplicationAfterTransition'),
-      date('decisionOn'),
+      actualDate('decisionOn'),
       ...flags('authorityConfirmedLongest', 'fitsCurrentCriteria'),
       group('businessManager', [
         ...flags('subjectToRevisedCriteria', 'officeInJapan'),
@@ -524,7 +543,7 @@ export const prFilingSections = {
       'integrationKnowledgeConfirmed',
     ),
     list('schoolChildren', [
-      date('bornOn'),
+      actualDate('bornOn'),
       choice('attendance', [
         'primary-or-junior-high',
         'not-attending',
@@ -553,7 +572,7 @@ export const prFilingSections = {
         ),
         name: 'kind',
       },
-      date('grantedOn'),
+      actualDate('grantedOn'),
     ]),
     choice('feeReduction', [
       'approved',
@@ -576,8 +595,8 @@ const language = ['independent', 'needs-help', 'unable'] as const;
 export const natSections = {
   natDomicile: [
     ...flags('japaneseCitizen', 'inJapan', 'lawfulDomicile'),
-    date('domicileFrom', false, 'domicileFrom', 'domicileHint'),
-    date('residenceFrom', false, 'residenceFrom', 'domicileHint'),
+    actualDate('domicileFrom', false, 'domicileFrom', 'domicileHint'),
+    actualDate('residenceFrom', false, 'residenceFrom', 'domicileHint'),
     ...flags('capacityUnderHomeLaw', 'goodConductConfirmed'),
     choice('criminalOrTrafficHistory', [
       'none',
@@ -620,7 +639,7 @@ export const natSections = {
       'filedAtJurisdictionalBureau',
       'writtenDocumentsAndTranslationsReady',
     ),
-    date('officialGazetteOn'),
-    date('familyRegistrationOn'),
+    actualDate('officialGazetteOn'),
+    actualDate('familyRegistrationOn'),
   ],
 };

@@ -1,13 +1,21 @@
 import { japanFull2026_11 } from '@uk-immigration/policy-data';
-import { jpTripLapses, type JpTrip } from './japan';
+import type { JpTrip } from './japan';
 import { assessJapanNaturalisation } from './japan-full-naturalisation';
 import type { JpFullNaturalisationRequest } from './japan-full-naturalisation';
 import { assessJapanPr } from './japan-full-pr';
 import type { JpFullPrRequest } from './japan-full-pr';
-import { assessJapanReentry, deemedTripPermission } from './japan-full-reentry';
-import type { JpFullReentryRequest } from './japan-full-reentry';
+import { assessJapanReentry } from './japan-full-reentry';
+import type {
+  JpFullReentryRequest,
+  JpTripConflict,
+} from './japan-full-reentry';
 import { filingContext } from './japan-full-shared';
 import type { JpFullContext, JpFullResult } from './japan-full-shared';
+import {
+  japanTripAnswerFields,
+  sameJapanTrip,
+  shareJapanTripAnswers,
+} from './japan-trip-answers';
 
 export interface JpFullRequest extends JpFullContext {
   permanentResidence?: JpFullPrRequest;
@@ -15,144 +23,167 @@ export interface JpFullRequest extends JpFullContext {
   reentry?: JpFullReentryRequest[];
 }
 
-type DeemedRoute = Extract<JpFullReentryRequest, { route: 'deemed' }>;
-const sameTrip = (trip: JpTrip, route: JpFullReentryRequest) =>
-  !!trip.departed &&
-  !!trip.returned &&
-  trip.departed === route.departureOn &&
-  trip.returned === (route.returnOn ?? route.newLandingOn);
-const sameDeemedTrip = (
-  trip: JpTrip,
-  route: JpFullReentryRequest,
-): route is DeemedRoute => route.route === 'deemed' && sameTrip(trip, route);
+const labels = {
+  stayExpiry: ['在留届满日', 'expiry of stay'],
+  renewalPending: [
+    '出境时续期是否仍待决',
+    'whether renewal was pending at departure',
+  ],
+  renewalDecisionOn: ['续期处分日', 'renewal decision date'],
+  specialPermanentResident: [
+    '出境时的特別永住者身份',
+    'whether you were a special permanent resident at departure',
+  ],
+  newLandingOn: ['实际重新上陆日', 'actual new landing date'],
+  departure: [
+    '出境方式及みなし出境声明',
+    'departure method and deemed re-entry declaration',
+  ],
+  reentryPermit: [
+    '返日时普通许可的效力与证件记录',
+    'ordinary permit validity on return and the permit record',
+  ],
+} as const satisfies Record<JpTripConflict['field'], readonly [string, string]>;
 
-/** A renewal decision belongs to the trip. An edit can also clear the date. */
-export function shareJapanRenewalDecisions<T extends JpFullReentryRequest>(
-  trips: JpTrip[],
-  routes: T[],
-  edited?: JpTrip | T['route'],
-) {
-  const history = trips.map((trip) => {
-    if (trip === edited) return trip;
-    const matching = routes.filter((route) => sameTrip(trip, route));
-    const changed = matching.find((route) => route.route === edited);
-    const date = changed
-      ? changed.renewalDecisionOn
-      : (trip.renewalDecisionOn ??
-        matching.find((r) => r.renewalDecisionOn)?.renewalDecisionOn);
-    return date === trip.renewalDecisionOn
-      ? trip
-      : { ...trip, renewalDecisionOn: date };
-  });
-  const reentry = routes.map((route) => {
-    const trip = history.find((trip) => sameTrip(trip, route));
-    if (
-      !trip ||
-      route.renewalDecisionOn === (trip.renewalDecisionOn ?? undefined)
-    )
-      return route;
-    return { ...route, renewalDecisionOn: trip.renewalDecisionOn ?? undefined };
-  });
-  return { trips: history, reentry };
+function discrepancy(
+  field: JpTripConflict['field'],
+  values: (string | boolean)[] = [],
+): JpTripConflict {
+  const [zh, en] = labels[field];
+  const dates = values.filter((value) => typeof value === 'string').join(' / ');
+  return {
+    field,
+    notice: [
+      `同一趟行程的${zh}记录不一致${dates ? `（${dates}）` : ''}。请核对两处记录。`,
+      `The records for this trip disagree about ${en}${dates ? ` (${dates})` : ''}. Check both records.`,
+    ],
+  };
 }
 
-/** Reconcile departure status (SRC-442 art. 23(2)) and permit evidence for the same itinerary. */
-export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
-  trips: JpTrip[],
-  routes: T[],
-) {
-  const shared = shareJapanRenewalDecisions(trips, routes);
-  const matches = (
-    trip: JpTrip,
-    route: JpFullReentryRequest,
-  ): route is DeemedRoute =>
-    sameDeemedTrip(trip, route) &&
-    (trip.departure === 'deemed' || route.declaredIntentAtDeparture === true);
-  const history = shared.trips.map((trip) => {
-    // SRC-110 art. 20(6), SRC-116 Q61. A full assessment needs the
-    // actual decision when return falls within the possible special period.
-    if (trip.stayExpiry && trip.renewalPending && !trip.renewalDecisionOn)
-      trip = { ...trip, renewalDecisionOn: null };
-    const landings = routes.filter(
-      (route) => route.newLandingOn && sameTrip(trip, route),
+function tripConflicts(trip: JpTrip, routes: JpFullReentryRequest[]) {
+  const conflicts: JpTripConflict[] = [];
+  for (const [historyKey, routeKey] of japanTripAnswerFields) {
+    const answers = [
+      trip[historyKey],
+      ...routes.map((route) => route[routeKey]),
+    ];
+    // Comparisons saved before the original itinerary was retained have a second expiry.
+    if (historyKey === 'stayExpiry') {
+      answers.push(trip.reentryStayExpiry);
+      for (const route of routes)
+        if (route.route === 'deemed') answers.push(route.historyStayExpiry);
+    }
+    const known = [...new Set(answers.filter((answer) => answer != null))];
+    if (known.length > 1) conflicts.push(discrepancy(historyKey, known));
+    else if (
+      historyKey === 'stayExpiry' &&
+      known.length &&
+      routes.some(
+        (route) =>
+          route.stayIndefinite === true ||
+          route.specialPermanentResident === true,
+      )
+    )
+      conflicts.push(discrepancy(historyKey, known));
+  }
+  if (
+    routes.length &&
+    trip.newLandingOn &&
+    trip.newLandingOn !== trip.returned &&
+    !conflicts.some(({ field }) => field === 'newLandingOn')
+  )
+    conflicts.push(
+      discrepancy('newLandingOn', [trip.returned, trip.newLandingOn]),
     );
-    const landing =
-      landings.find((route) => route.newLandingOn !== trip.returned) ??
-      landings[0];
-    if (landing) trip = { ...trip, newLandingOn: landing.newLandingOn };
-    const matched = routes.filter((route) => matches(trip, route));
-    if (!matched.length) return trip;
-    const answers = new Set([
-      trip.specialPermanentResident,
-      ...matched.map((route) => route.specialPermanentResident),
-    ]);
-    answers.delete(undefined);
-    return {
-      ...trip,
-      specialPermanentResident:
-        answers.size === 1 ? [...answers][0] : undefined,
-    };
-  });
-  const reentry = shared.reentry.map((route) => {
-    const trip = history.find((trip) => sameTrip(trip, route));
-    if (!trip) return route;
-    if (trip.newLandingOn)
-      route = { ...route, newLandingOn: trip.newLandingOn };
-    if (!matches(trip, route)) return route;
-    return {
-      ...route,
-      specialPermanentResident: trip.specialPermanentResident,
-      stayExpiresOn: route.stayExpiresOn ?? trip.stayExpiry,
-      historyStayExpiry: trip.stayExpiry,
-      timelyRenewalPending: route.timelyRenewalPending ?? trip.renewalPending,
-    };
-  });
-  // Resolve the evidence while the original itinerary still matches. A comparison
-  // can subsequently change the return date for the re-entry route alone.
-  const resolvedTrips = history.map((trip) => {
-    const matched = reentry.filter((route) => sameDeemedTrip(trip, route));
-    if (
-      !matched.length ||
-      (trip.departure !== 'deemed' &&
-        !matched.some((route) => route.declaredIntentAtDeparture === true))
-    )
-      return trip;
-    const answers = new Set(matched.map(deemedTripPermission));
-    const eligible = answers.size === 1 ? [...answers][0] : undefined;
-    // A failed deemed departure does not invalidate an independently reported ordinary permit.
-    if (trip.departure === 'permit' && eligible !== true) return trip;
-    // SRC-110 art. 20(6), SRC-116 Q61. Both assessments use the same
-    // original stay and decision, including a decision date still unknown.
-    const stay =
-      matched.find(
-        (route) => trip.stayExpiry && route.stayExpiresOn !== trip.stayExpiry,
-      ) ?? matched[0];
-    if (stay.stayExpiresOn)
-      trip = {
-        ...trip,
-        stayExpiry: trip.stayExpiry ?? stay.stayExpiresOn,
-        reentryStayExpiry: stay.stayExpiresOn,
-        renewalPending: stay.timelyRenewalPending,
-        renewalDecisionOn: stay.renewalDecisionOn ?? null,
-      };
-    if (eligible === false) return { ...trip, departure: 'none' as const };
-    // Even with valid documents the history may already prove the return was late.
-    if (eligible === true || jpTripLapses(trip, 'deemed') === true)
-      return { ...trip, departure: 'deemed' as const };
-    return { ...trip, departure: undefined };
-  });
-  return { trips: resolvedTrips, reentry };
+  const deemed = routes.find((route) => route.route === 'deemed');
+  if (
+    trip.departure &&
+    deemed?.declaredIntentAtDeparture !== undefined &&
+    (trip.departure === 'deemed') !== deemed.declaredIntentAtDeparture
+  )
+    conflicts.push(discrepancy('departure'));
+  return conflicts;
 }
 
-/** Evaluates selected routes for one person at the requested filing date. */
+/** Match raw answers before applying a comparison's alternative return date. */
 export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
   const { L } = filingContext(req);
-  const pr = req.permanentResidence;
-  const naturalisation = req.naturalisation;
-  const { trips, reentry } = resolveJapanDeemedTripStatuses(
-    req.trips,
-    req.reentry ?? [],
-  );
+  const shared = shareJapanTripAnswers(req.trips, req.reentry ?? []);
+  const travel = new Map<
+    JpFullReentryRequest,
+    ReturnType<typeof assessJapanReentry>['pathway']
+  >();
+  const conflictNotices: string[] = [];
+  const trips = shared.trips.map((original) => {
+    const trip: JpTrip = { ...original, assessedReturn: undefined };
+    const matches = shared.reentry.filter((route) =>
+      sameJapanTrip(trip, route),
+    );
+    const conflicts = tripConflicts(trip, matches);
+    // SRC-110 art. 20(6), SRC-116 Q61: a pending decision date is unknown.
+    if (trip.stayExpiry && trip.renewalPending && !trip.renewalDecisionOn)
+      trip.renewalDecisionOn = null;
+    const deemed = matches.find((route) => route.route === 'deemed');
+    const method =
+      trip.departure ??
+      (deemed?.declaredIntentAtDeparture ? 'deemed' : undefined);
+    // Selecting a route for assessment alone does not establish how the traveller left.
+    const used =
+      method === 'permit'
+        ? matches.find((route) => route.route === 'ordinary')
+        : method === 'deemed'
+          ? deemed
+          : undefined;
+    trip.departure = method;
+    if (used) {
+      const evidence = assessJapanReentry(
+        req,
+        { ...used, returnOn: trip.returned },
+        { conflicts, departure: method, permitOnReturn: trip.reentryPermit },
+      );
+      if (
+        used.route === 'ordinary' &&
+        trip.reentryPermit !== undefined &&
+        evidence.permitValidOnReturn !== undefined &&
+        trip.reentryPermit !== evidence.permitValidOnReturn
+      )
+        conflicts.push(discrepancy('reentryPermit'));
+      trip.assessedReturn = {
+        continued: evidence.validity,
+        explanation: evidence.returnCheck.explanation,
+      };
+      if (
+        !conflicts.length &&
+        trip.returned === (used.returnOn ?? used.newLandingOn)
+      )
+        travel.set(used, evidence.pathway);
+    }
+    if (conflicts.length) {
+      const explanation = conflicts.map(({ notice }) => L(...notice)).join(' ');
+      conflictNotices.push(explanation);
+      trip.assessedReturn = { explanation };
+      if (conflicts.some(({ field }) => field === 'departure'))
+        trip.departure = undefined;
+    }
+    for (const route of matches) {
+      if (travel.has(route)) continue;
+      const sameReturn =
+        trip.returned === (route.returnOn ?? route.newLandingOn);
+      const permit =
+        original.departure === 'permit' && sameReturn
+          ? original.reentryPermit
+          : undefined;
+      travel.set(
+        route,
+        assessJapanReentry(req, route, {
+          conflicts,
+          permitOnReturn: permit,
+          departure: method,
+        }).pathway,
+      );
+    }
+    return trip;
+  });
   const history = { ...req, trips };
   return {
     policyAsOf: japanFull2026_11.asOf,
@@ -161,17 +192,30 @@ export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
         id: japanFull2026_11.ruleSetId,
         title: L('日本现行及已公布规则', 'Japan’s current and published rules'),
         pathways: [
-          ...(pr?.routes.map((route) =>
-            assessJapanPr(history, route, pr.evidence ?? {}),
-          ) ?? []),
-          ...(naturalisation?.routes.map((route) =>
-            assessJapanNaturalisation(
+          ...(req.permanentResidence?.routes.map((route) =>
+            assessJapanPr(
               history,
               route,
-              naturalisation.evidence ?? {},
+              req.permanentResidence?.evidence ?? {},
             ),
           ) ?? []),
-          ...reentry.map((route) => assessJapanReentry(req, route)),
+          ...(req.naturalisation?.routes.map((route) => {
+            const assessment = assessJapanNaturalisation(
+              history,
+              route,
+              req.naturalisation?.evidence ?? {},
+            );
+            for (const notice of conflictNotices)
+              if (!assessment.summary?.includes(notice))
+                assessment.summary = [assessment.summary, notice]
+                  .filter(Boolean)
+                  .join(' ');
+            return assessment;
+          }) ?? []),
+          ...shared.reentry.map(
+            (route) =>
+              travel.get(route) ?? assessJapanReentry(req, route).pathway,
+          ),
         ],
       },
     ],

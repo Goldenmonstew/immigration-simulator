@@ -183,11 +183,8 @@ export type {
   JpResult,
   JpTrip,
 } from './japan';
-export {
-  evaluateJapanFull,
-  resolveJapanDeemedTripStatuses,
-  shareJapanRenewalDecisions,
-} from './japan-full';
+export { evaluateJapanFull } from './japan-full';
+export { sameJapanTrip, shareJapanTripAnswers } from './japan-trip-answers';
 export type { JpFullRequest } from './japan-full';
 export type {
   JpFullCheck,

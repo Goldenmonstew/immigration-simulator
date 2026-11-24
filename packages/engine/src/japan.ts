@@ -55,7 +55,9 @@ export interface JpTrip {
    * end before the return (a permanent resident has none).
    */
   stayExpiry?: IsoDate;
-  /** Expiry recorded for the matching deemed re-entry, retained in comparisons. */
+  /** Return under the previous status, evaluated for this trip by the full questionnaire. */
+  assessedReturn?: { continued?: boolean; explanation: string };
+  /** Expiry retained by older saved comparisons. */
   reentryStayExpiry?: IsoDate;
   /**
    * A renewal or change of status was applied for before `stayExpiry` and
@@ -230,6 +232,8 @@ export function jpTripLapses(
   specialResident = t.specialPermanentResident,
 ): boolean | undefined {
   // SRC-116, 再入国許可 paras 2–4 and 永住者の在留資格について p5.
+  if (t.assessedReturn)
+    return t.assessedReturn.continued === undefined ? undefined : !t.assessedReturn.continued;
   const previousStatus = jpReturnOnPreviousStatus(t.returned, t.newLandingOn);
   if (previousStatus === false) return true;
   if (departure === 'none') return true;
@@ -420,6 +424,11 @@ export function evaluateJapanTimeline(
           ? 'MET'
           : 'FUTURE';
   const lapseNotes = lapsed.map((t) => {
+    if (t.assessedReturn)
+      return L(
+        `${t.assessedReturn.explanation} 连续在留从返日的 ${t.returned} 重新起算。`,
+        `${t.assessedReturn.explanation} The unbroken stay starts again on ${t.returned}.`,
+      );
     if (t.newLandingOn === t.returned)
       return L(
         `本次于 ${t.returned} 以新身份上陆，连续在留从该日重新起算。`,
@@ -475,7 +484,7 @@ export function evaluateJapanTimeline(
     continuitySources.push(specialDeemedSource);
   if (
     uncertainTrips.some((t) =>
-      missingPermission(t, departureOf(t)) ||
+      t.assessedReturn || missingPermission(t, departureOf(t)) ||
       jpStayExpiryConflict(t.stayExpiry, t.reentryStayExpiry),
     )
   )
@@ -492,6 +501,10 @@ export function evaluateJapanTimeline(
   if (uncertainTrips.some(needsRenewalEvidence))
     continuitySources.push(...v.renewalPendingMonths.sources);
   for (const t of uncertainTrips) {
+    if (t.assessedReturn) {
+      lapseNotes.push(L(t.assessedReturn.explanation, ` ${t.assessedReturn.explanation}`));
+      continue;
+    }
     const departure = departureOf(t);
     const expiryConflict = jpStayExpiryConflict(t.stayExpiry, t.reentryStayExpiry);
     if (expiryConflict) lapseNotes.push(L(...expiryConflict));

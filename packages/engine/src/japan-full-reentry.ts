@@ -4,6 +4,7 @@ import {
 } from '@uk-immigration/policy-data';
 import { addMonths, addYears } from './dates';
 import {
+  type JpTrip,
   jpOfficeClosed,
   jpReturnOnPreviousStatus,
   jpStayExpiryConflict,
@@ -26,10 +27,13 @@ import type {
   JpFullPathway,
 } from './japan-full-shared';
 import type { IsoDate } from './types';
+import type { japanTripAnswerFields } from './japan-trip-answers';
 
 interface JpTravelDates {
   departureOn?: IsoDate;
   returnOn?: IsoDate;
+  /** Original itinerary when a comparison changes only the route’s return. */
+  comparisonHistoryReturnOn?: IsoDate;
   stayExpiresOn?: IsoDate;
   /** The underlying status has no period of stay, as for permanent residents. */
   stayIndefinite?: boolean;
@@ -129,20 +133,21 @@ const lostDocumentEvidence = (route: JpTravelDates) =>
     ? undefined
     : true;
 
-export function deemedTripPermission(
-  route: Extract<JpFullReentryRequest, { route: 'deemed' }>,
-) {
-  return all(
-    deemedDepartureEligibility(route),
-    excluded(route.permitVoided),
-    lostDocumentEvidence(route),
-  );
+export interface JpTripConflict {
+  field:
+    (typeof japanTripAnswerFields)[number][0] | 'departure' | 'reentryPermit';
+  notice: readonly [string, string];
 }
 
 export function assessJapanReentry(
   req: JpFullContext,
   route: JpFullReentryRequest,
-): JpFullPathway {
+  history: {
+    conflicts?: JpTripConflict[];
+    permitOnReturn?: boolean;
+    departure?: JpTrip['departure'];
+  } = {},
+) {
   const { date: requestedDate, L } = filingContext(req);
   let date = requestedDate;
   const rr = full.reentry.value;
@@ -192,13 +197,27 @@ export function assessJapanReentry(
     pending: string[] = ['PD-379'],
     kind?: JpFullCheck['kind'],
   ) => {
+    const relevant = (history.conflicts ?? []).filter(({ field }) => {
+      if (key === 'return-continuity') return true;
+      if (key === 'deemed-eligibility')
+        return field === 'departure' || field === 'specialPermanentResident';
+      if (key === 'ordinary-validity' || key === 'deemed-validity')
+        return (
+          field !== 'departure' &&
+          field !== 'newLandingOn' &&
+          (field !== 'reentryPermit' || key === 'ordinary-validity')
+        );
+      return false;
+    });
     const item = check(
       `jp.reentry.${key}`,
       L(zh, en),
-      met,
+      relevant.length ? undefined : met,
       sources,
-      L(detailZh, detailEn),
-      pending,
+      relevant.length
+        ? relevant.map(({ notice }) => L(...notice)).join(' ')
+        : L(detailZh, detailEn),
+      relevant.length ? ['PD-136'] : pending,
       kind,
     );
     checks.push(item);
@@ -207,9 +226,10 @@ export function assessJapanReentry(
   const departure = route.departureOn;
   const returned = route.returnOn ?? route.newLandingOn;
   const stay = route.stayExpiresOn;
-  const expiryConflict = route.route === 'deemed'
-    ? jpStayExpiryConflict(route.historyStayExpiry, stay)
-    : undefined;
+  const expiryConflict =
+    route.route === 'deemed'
+      ? jpStayExpiryConflict(route.historyStayExpiry, stay)
+      : undefined;
   const renewedLimit = jpStayLimit(
     { stayExpiry: stay, renewalPending: true },
     route.renewalDecisionOn,
@@ -559,7 +579,7 @@ export function assessJapanReentry(
     if (route.specialPermanentResident === undefined && !verifiedLimit)
       documentNotice = L(
         `返日截止日待确认。${term}请核对出境时的身份及适用的在留期限。`,
-        `The return deadline is unconfirmed. ${term} Confirm your status at departure and any applicable expiry of stay.`,
+        `The return deadline is unconfirmed. ${term} Confirm whether you were a special permanent resident at departure and check any applicable expiry of stay.`,
       );
     documentNotice = [
       documentNotice,
@@ -693,15 +713,30 @@ export function assessJapanReentry(
     entryUnused,
   );
   const previousStatus = jpReturnOnPreviousStatus(returned, route.newLandingOn);
-  const validity = all(
-    previousStatus,
-    departurePermission,
+  const permitValidOnReturn = all(
+    validAtDeparture,
+    excluded(route.permitVoided),
+    entryUnused,
     returned && permit?.expiresOn && returned <= permit.expiresOn
       ? true
       : extensionValid,
     returnWithinPermit(),
-    lostDocumentEvidence(route),
     !missedExtensionLimit,
+  );
+  // The history can establish which permission was actually used. Merely
+  // holding a valid document cannot establish return under a different route.
+  const usedRoute =
+    history.departure === undefined ||
+    (route.route === 'ordinary'
+      ? history.departure === 'permit'
+      : route.route === 'deemed' && history.departure === 'deemed');
+  const validity = all(
+    usedRoute,
+    previousStatus,
+    eligibleAtDeparture,
+    permitValidOnReturn ??
+      (route.route === 'ordinary' ? history.permitOnReturn : undefined),
+    lostDocumentEvidence(route),
     withinEntryDeadline,
     usesStay ? withinStay(returned) : true,
   );
@@ -728,6 +763,11 @@ export function assessJapanReentry(
             '出境时所需的再入国条件仍待确认。',
             ' The required re-entry conditions at departure are unconfirmed.',
           );
+  if (!usedRoute)
+    documentNotice += L(
+      '共同出境记录显示本次未使用这条路径，不能凭这份证件确认本次接续在留。',
+      ' The trip history records that this route was not used at departure. Holding this document does not establish continuity under this route.',
+    );
   const landingNotice = !route.newLandingOn
     ? ''
     : previousStatus === false
@@ -739,7 +779,7 @@ export function assessJapanReentry(
           `请核对重新上陆日 ${route.newLandingOn} 与本次返日日期，确认返日所用身份。`,
           ` Check the new landing date ${route.newLandingOn} against this return date to confirm the status used.`,
         );
-  r(
+  const returnCheck = r(
     'return-continuity',
     '返日及在留连续性',
     'Return and continuity of status',
@@ -813,5 +853,5 @@ export function assessJapanReentry(
     L,
   );
   if (travelDate !== undefined) pathway.travelDate = travelDate;
-  return pathway;
+  return { pathway, permitValidOnReturn, validity, returnCheck };
 }

@@ -1,5 +1,6 @@
 import {
   jpStayLimit,
+  shareJapanTripAnswers,
   type JpFullRequest,
   type JpFullNaturalisationRoute,
   type JpFullPrRoute,
@@ -220,10 +221,12 @@ function checkFields(
   prefix: string,
   required: boolean,
   errors: Errors,
+  simulationDate?: string,
 ) {
+  const answers = record as Record<string, unknown>;
   for (const field of fields) {
     const id = `${prefix}-${field.name}`;
-    const value = (record as Record<string, unknown>)[field.name];
+    const value = answers[field.name];
     if (
       value === undefined ||
       (value === '' &&
@@ -241,13 +244,27 @@ function checkFields(
         }
         value.forEach((row, i) => {
           if (isRecord(row))
-            checkFields(field.fields, row, `${id}-${i}`, required, errors);
+            checkFields(
+              field.fields,
+              row,
+              `${id}-${i}`,
+              required,
+              errors,
+              simulationDate,
+            );
           else errors[id] = 'jp.form.required';
         });
         break;
       case 'group':
         if (isRecord(value))
-          checkFields(field.fields, value, id, required, errors);
+          checkFields(
+            field.fields,
+            value,
+            id,
+            required,
+            errors,
+            simulationDate,
+          );
         else errors[id] = 'jp.form.required';
         break;
       case 'choice':
@@ -271,6 +288,13 @@ function checkFields(
         if (field.type === 'status-date' && value === 'none') break;
         if (typeof value !== 'string' || !validDate(value))
           errors[id] = 'jp.error.date';
+        else if (
+          simulationDate &&
+          value > simulationDate &&
+          (field.actualDate === true ||
+            (field.actualDate && answers[field.actualDate] === true))
+        )
+          errors[id] = 'jp.error.futureFact';
         break;
       case 'period':
       case 'number':
@@ -293,14 +317,27 @@ function checkFields(
   }
 }
 
-function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
+function checkStep(
+  draft: JapanDraft,
+  step: number,
+  submitting: boolean,
+  checkActualDates = submitting,
+) {
   const errors: Errors = {};
-  const { permanentResidence: pr, naturalisation: nat, reentry } = draft;
+  const { permanentResidence: pr, naturalisation: nat } = draft;
+  const { trips, reentry } =
+    checkActualDates && (step === 1 || step === 6)
+      ? shareJapanTripAnswers(draft.trips, draft.reentry)
+      : draft;
+  const asOf =
+    checkActualDates && validDate(draft.simulationDate)
+      ? draft.simulationDate
+      : undefined;
   const fields = (definitions: JapanField[], values: object, prefix: string) =>
-    checkFields(definitions, values, prefix, submitting, errors);
+    checkFields(definitions, values, prefix, submitting, errors, asOf);
   const order = (id: string, start?: string, end?: string) => {
     if (start && end && validDate(start) && validDate(end) && end < start)
-      errors[id] = 'jp.error.order';
+      errors[id] ??= 'jp.error.order';
   };
   switch (step) {
     case 0:
@@ -314,11 +351,12 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
         errors['jp-routes'] = 'jp.form.routeError';
       break;
     case 1:
-      fields([tripList], draft, 'jp');
+      fields([tripList], { trips }, 'jp');
       if (!submitting) break;
-      draft.trips.forEach((trip, i) => {
+      trips.forEach((trip, i) => {
         const prefix = 'jp-trips-' + i + '-';
         order(prefix + 'returned', trip.departed, trip.returned);
+        order(prefix + 'newLandingOn', trip.departed, trip.newLandingOn);
         if (trip.renewalPending && !trip.stayExpiry)
           errors[prefix + 'stayExpiry'] = 'jp.error.date';
         const limit =
@@ -334,7 +372,7 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
               ? 'jp.error.specialPeriod'
               : 'jp.error.order';
         if (
-          draft.trips
+          trips
             .slice(0, i)
             .some(
               (previous) =>
@@ -359,14 +397,14 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
             route.newStatusStart &&
             route.newStatusStart !== 'none'
           )
-            errors[prefix + '-newStatusStart'] = 'jp.error.newWithoutOld';
+            errors[prefix + '-newStatusStart'] ??= 'jp.error.newWithoutOld';
           else if (
             route.newStatusStart &&
             validDate(route.statusStart) &&
             validDate(route.newStatusStart) &&
             route.newStatusStart < route.statusStart
           )
-            errors[prefix + '-newStatusStart'] = 'jp.error.newBeforeOld';
+            errors[prefix + '-newStatusStart'] ??= 'jp.error.newBeforeOld';
           route.excluded?.forEach((row, i) =>
             order(prefix + '-excluded-' + i + '-to', row.from, row.to),
           );
@@ -410,6 +448,12 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
         const prefix = 'jp-travel-' + route.route;
         fields(travelRouteFields[route.route], route, prefix);
         if (
+          route.comparisonHistoryReturnOn !== undefined &&
+          (typeof route.comparisonHistoryReturnOn !== 'string' ||
+            !validDate(route.comparisonHistoryReturnOn))
+        )
+          errors[prefix + '-returnOn'] = 'jp.error.date';
+        if (
           route.route === 'deemed' &&
           route.declaredIntentAtDeparture !== undefined &&
           !canConfirmJapanDeparture(draft, route)
@@ -439,6 +483,23 @@ function checkStep(draft: JapanDraft, step: number, submitting: boolean) {
 
 export function validateJapanStep(draft: JapanDraft) {
   return checkStep(draft, draft.step, true);
+}
+
+// Older local results and saved scenarios can be opened without questionnaire submission.
+export function futureJapanFactStep(draft: JapanDraft) {
+  return japanSteps(draft).find(({ step }) =>
+    Object.values(checkStep(draft, step, false, true)).includes(
+      'jp.error.futureFact',
+    ),
+  );
+}
+
+export function restoreStoredJapanDraft(draft: JapanDraft): JapanDraft {
+  const confirmed = clearUnconfirmedJapanDeclaration(draft);
+  const invalid = confirmed.completed && futureJapanFactStep(confirmed);
+  return invalid
+    ? { ...confirmed, completed: false, step: invalid.step }
+    : confirmed;
 }
 
 function validRoutes(value: unknown, definitions: object) {

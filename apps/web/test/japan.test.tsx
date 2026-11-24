@@ -905,35 +905,44 @@ test('language, household evidence and travel knobs update only the comparison',
   expect(draft).toEqual(original);
 });
 
+function generalPrTravelDraft(
+  history: Partial<JapanDraft['trips'][number]>,
+  route: JapanDraft['reentry'][number],
+): JapanDraft {
+  return {
+    ...travelDraft(),
+    dateOfBirth: '1990-05-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2014-04-01',
+          newStatusStart: '2014-04-01',
+        },
+      ],
+      evidence: prEvidence,
+    },
+    trips: [
+      {
+        departed: aprilTrip.departureOn,
+        returned: aprilTrip.returnOn,
+        departure: 'deemed',
+        ...history,
+      },
+    ],
+    reentry: [route],
+  };
+}
+
 test.each(['zh-CN', 'en'] as const)(
   'conflicting stay expiries remain unconfirmed in shared results and comparisons (%s)',
   (locale) => {
     const historyExpiry = '2024-04-03';
     const reentryExpiry = '2024-04-10';
-    const draft: JapanDraft = {
-      ...travelDraft(),
-      dateOfBirth: '1990-05-01',
-      permanentResidence: {
-        routes: [
-          {
-            route: 'general',
-            statusStart: '2014-04-01',
-            newStatusStart: '2014-04-01',
-          },
-        ],
-        evidence: prEvidence,
-      },
-      trips: [
-        {
-          departed: aprilTrip.departureOn,
-          returned: aprilTrip.returnOn,
-          departure: 'deemed',
-          stayExpiry: historyExpiry,
-          renewalPending: false,
-        },
-      ],
-      reentry: [{ ...deemedTrip, stayExpiresOn: reentryExpiry }],
-    };
+    const draft = generalPrTravelDraft(
+      { stayExpiry: historyExpiry, renewalPending: false },
+      { ...deemedTrip, stayExpiresOn: reentryExpiry },
+    );
     const compared = jp.whatif.apply(draft, {
       ...jp.whatif.initial(draft),
       returns: { deemed: '2024-04-08' },
@@ -963,10 +972,130 @@ test.each(['zh-CN', 'en'] as const)(
     const [pr, deemed] = jp.run(draft, locale).columns[0].pathways;
     expect(pr.earliestDate).toBe('2027-04-05');
     expect(
-      deemed.checks.find((c) => c.id === 'jp.reentry.return-continuity')?.status,
+      deemed.checks.find((c) => c.id === 'jp.reentry.return-continuity')
+        ?.status,
     ).toBe('MET');
   },
 );
+
+const specialPeriodTrip = {
+  ...deemedTrip,
+  stayExpiresOn: '2024-04-03',
+  renewalDecisionOn: '2024-04-08',
+};
+
+test.each([
+  [false, true, 'UNKNOWN', undefined, undefined],
+  [true, false, 'UNKNOWN', undefined, undefined],
+  [true, true, 'MET', '2027-04-03', '2027-04-05'],
+  [false, false, 'NOT_MET', '2034-04-07', undefined],
+  [true, undefined, 'MET', '2027-04-03', '2027-04-05'],
+  [undefined, false, 'NOT_MET', '2034-04-07', undefined],
+] as const)(
+  'shared renewal answers history=%s and re-entry=%s determine both continuity results',
+  (renewalPending, timelyRenewalPending, status, milestone, filing) => {
+    const draft = generalPrTravelDraft(
+      { stayExpiry: specialPeriodTrip.stayExpiresOn, renewalPending },
+      { ...specialPeriodTrip, timelyRenewalPending },
+    );
+    const compared = jp.whatif.apply(draft, {
+      ...jp.whatif.initial(draft),
+      returns: { deemed: '2024-04-08' },
+    });
+    for (const scenario of [draft, compared]) {
+      const shared = decodeDraft(jp, encodeDraft(jp, scenario))!;
+      const [pr, route] = jp.run(shared, 'en').columns[0].pathways;
+      const stay = pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')!;
+      const returned = route.checks.find(
+        (c) => c.id === 'jp.reentry.return-continuity',
+      )!;
+      expect(stay.status).toBe(status);
+      expect(returned.status).toBe(status);
+      expect(pr.timeEarliestDate).toBe(milestone);
+      expect(pr.earliestDate).toBe(filing);
+      if (status === 'UNKNOWN') {
+        expect(pr.summary).toContain('Check both records');
+        expect(returned.explanation).toContain('Check both records');
+      }
+    }
+  },
+);
+
+test.each([
+  [
+    'renewal decision',
+    {
+      stayExpiry: specialPeriodTrip.stayExpiresOn,
+      renewalPending: true,
+      renewalDecisionOn: '2024-04-05',
+    },
+    { ...specialPeriodTrip, timelyRenewalPending: true },
+  ],
+  [
+    'actual new landing date',
+    { newLandingOn: '2024-04-07' },
+    { ...deemedTrip, newLandingOn: '2024-04-06' },
+  ],
+  [
+    'no permit versus a confirmed deemed declaration',
+    { departure: 'none' },
+    deemedTrip,
+  ],
+  [
+    'valid ordinary permit versus voided permit',
+    { departure: 'permit', reentryPermit: true },
+    { ...ordinaryTrip, permitVoided: true },
+  ],
+  [
+    'valid ordinary permit versus expired document',
+    { departure: 'permit', reentryPermit: true },
+    { ...ordinaryTrip, permit: { ...aprilPermit, expiresOn: '2024-04-05' } },
+  ],
+  [
+    'invalid ordinary permit versus confirmed valid document',
+    { departure: 'permit', reentryPermit: false },
+    ordinaryTrip,
+  ],
+] as const)(
+  'inconsistent evidence of %s keeps the shared trip unconfirmed',
+  (_case, history, route) => {
+    const draft = generalPrTravelDraft(history, route);
+    const shared = decodeDraft(jp, encodeDraft(jp, draft))!;
+    const [pr, reentry] = jp.run(shared, 'zh-CN').columns[0].pathways;
+    const returned = reentry.checks.find(
+      (c) => c.id === 'jp.reentry.return-continuity',
+    )!;
+    expect(returned.status).toBe('UNKNOWN');
+    expect(returned.explanation).toContain('请核对两处记录');
+    expect(
+      pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')?.status,
+    ).toBe('UNKNOWN');
+    expect(pr.summary).toContain('请核对两处记录');
+    expect(pr.timeEarliestDate).toBeUndefined();
+    expect(pr.earliestDate).toBeUndefined();
+  },
+);
+
+test('an unmatched itinerary keeps its own answer about a pending renewal', () => {
+  const draft = generalPrTravelDraft(
+    {
+      returned: '2024-04-06',
+      stayExpiry: specialPeriodTrip.stayExpiresOn,
+      renewalPending: false,
+    },
+    { ...specialPeriodTrip, timelyRenewalPending: true },
+  );
+  const shared = decodeDraft(jp, encodeDraft(jp, draft))!;
+  const [pr, deemed] = jp.run(shared, 'en').columns[0].pathways;
+  expect(pr.checks.find((c) => c.id === 'jp.pr.continuous-stay')?.status).toBe(
+    'NOT_MET',
+  );
+  expect(pr.timeEarliestDate).toBe('2034-04-06');
+  expect(pr.earliestDate).toBeUndefined();
+  expect(
+    deemed.checks.find((c) => c.id === 'jp.reentry.return-continuity')?.status,
+  ).toBe('MET');
+});
 
 test.each([
   ['matching special status', '2025-10-01', true, undefined, 'MET'],
@@ -1053,9 +1182,9 @@ test.each([
     'UNKNOWN',
   ],
   [
-    'no declaration',
+    'reported deemed departure conflicts with a negative declaration',
     { ...deemedTrip, declaredIntentAtDeparture: false },
-    'NOT_MET',
+    'UNKNOWN',
   ],
 ] as const)(
   'shared PR and deemed results use the same trip evidence for %s',
@@ -1130,38 +1259,16 @@ test.each([
   'shared deemed return and general PR use decision %s and new landing %s',
   (renewalDecisionOn, newLandingOn, status, timeEarliestDate, earliestDate) => {
     const stayExpiry = '2024-04-03';
-    const scenario: JapanDraft = {
-      ...travelDraft(),
-      dateOfBirth: '1990-05-01',
-      permanentResidence: {
-        routes: [
-          {
-            route: 'general',
-            statusStart: '2014-04-01',
-            newStatusStart: '2014-04-01',
-          },
-        ],
-        evidence: prEvidence,
+    const scenario = generalPrTravelDraft(
+      { stayExpiry, renewalPending: true },
+      {
+        ...deemedTrip,
+        stayExpiresOn: stayExpiry,
+        timelyRenewalPending: true,
+        renewalDecisionOn,
+        newLandingOn,
       },
-      trips: [
-        {
-          departed: aprilTrip.departureOn,
-          returned: aprilTrip.returnOn,
-          departure: 'deemed',
-          stayExpiry,
-          renewalPending: true,
-        },
-      ],
-      reentry: [
-        {
-          ...deemedTrip,
-          stayExpiresOn: stayExpiry,
-          timelyRenewalPending: true,
-          renewalDecisionOn,
-          newLandingOn,
-        },
-      ],
-    };
+    );
     const shared = decodeDraft(jp, encodeDraft(jp, scenario))!;
     const [pr, deemed] = jp.run(shared, 'en').columns[0].pathways;
     expect(

@@ -254,8 +254,8 @@ describe('permanent residence', () => {
   );
 
   test.each([
-    ['deemed', false, '2024-04-07', 'NOT_MET', '2034-04-07'],
-    ['none', true, '2024-04-07', 'MET', '2027-04-01'],
+    ['deemed', false, '2024-04-07', 'UNKNOWN', undefined],
+    ['none', true, '2024-04-07', 'UNKNOWN', undefined],
     ['deemed', false, '2024-04-08', 'MET', '2027-04-01'],
     ['permit', false, '2024-04-07', 'MET', '2027-04-01'],
     ['none', undefined, '2024-04-07', 'NOT_MET', '2034-04-07'],
@@ -1733,6 +1733,19 @@ describe('re-entry and travel documents', () => {
     returnOn: '2027-10-02',
     stayExpiresOn: '2028-10-02',
   } as const;
+
+  test('holding an ordinary permit does not establish that it was used for a recorded departure without permission', () => {
+    const returned = '2026-10-07';
+    const [pr, travel] = evaluateJapanFull({
+      ...base,
+      trips: [{ departed: ordinary.departureOn, returned, departure: 'none' }],
+      permanentResidence: { routes: [general], evidence: prEvidence },
+      reentry: [{ ...ordinary, returnOn: returned }],
+    }).columns[0].pathways;
+    expect(status(pr, 'continuous-stay')).toBe('NOT_MET');
+    expect(status(travel, 'return-continuity')).toBe('NOT_MET');
+    expect(condition(travel, 'return-continuity').explanation).toContain('this route was not used');
+  });
 
   test('an ordinary permit cannot preserve the prior stay on a new landing', () => {
     const returned = '2026-10-07';

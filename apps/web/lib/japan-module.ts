@@ -1,4 +1,5 @@
 import { evaluateJapanFull, type Locale } from '@uk-immigration/engine';
+import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import { t } from '../i18n';
 import type { CountryModule } from './country-module';
 import {
@@ -6,6 +7,8 @@ import {
   clearUnconfirmedJapanDeclaration,
   createJapanDraft,
   decodeJapanDraft,
+  futureJapanFactStep,
+  restoreStoredJapanDraft,
   validateJapanStep,
   type JapanDraft,
 } from './japan-draft';
@@ -28,6 +31,19 @@ function formatCheckAmounts(
 
 function run(draft: JapanDraft, locale: Locale) {
   const confirmed = clearUnconfirmedJapanDeclaration(draft);
+  const invalid = futureJapanFactStep(confirmed);
+  if (invalid)
+    return {
+      policyAsOf: japanFull2026_11.asOf,
+      columns: [],
+      shortCircuit: {
+        reason: 'future-fact-date',
+        message: t('jp.result.correctFutureFact', locale).replace(
+          '{step}',
+          t(invalid.title, locale),
+        ),
+      },
+    };
   const result = evaluateJapanFull({ ...confirmed, locale });
   const formatter = new Intl.NumberFormat(locale);
   for (const pathway of result.columns[0].pathways)
@@ -58,7 +74,7 @@ export const japanModule: CountryModule<JapanDraft, JapanWhatIf> = {
   id: 'jp',
   version: 1,
   createDraft: createJapanDraft,
-  restoreStoredDraft: clearUnconfirmedJapanDeclaration,
+  restoreStoredDraft: restoreStoredJapanDraft,
   validateStep: validateJapanStep,
   decodeDraft: decodeJapanDraft,
   run,

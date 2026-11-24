@@ -23,7 +23,11 @@ interface FieldsProps {
   values: object;
   prefix: string;
   errors: Record<string, TranslationKey>;
-  change: (name: string, value: unknown) => void;
+  change: (
+    name: string,
+    value: unknown,
+    row?: { index: number; field: string },
+  ) => void;
 }
 
 export function EvidenceFields(props: FieldsProps) {
@@ -61,7 +65,7 @@ function Question({
     definitions: JapanField[],
     record: object,
     key: string,
-    replace: (next: object) => void,
+    replace: (next: object, name: string) => void,
   ) => (
     <EvidenceFields
       fields={definitions}
@@ -84,7 +88,7 @@ function Question({
           answer !== 'businessManager'
         )
           updated = updateAnswer(updated, 'businessManager', undefined);
-        replace(updated);
+        replace(updated, name);
       }}
     />
   );
@@ -117,8 +121,12 @@ function Question({
             <legend>
               {label} {i + 1}
             </legend>
-            {nested(field.fields, row, id + '-' + i, (next) =>
-              set(rows.map((old, index) => (index === i ? next : old))),
+            {nested(field.fields, row, id + '-' + i, (next, name) =>
+              change(
+                field.name,
+                rows.map((old, index) => (index === i ? next : old)),
+                { index: i, field: name },
+              ),
             )}
             <button
               type="button"

@@ -1,5 +1,6 @@
 import {
-  resolveJapanDeemedTripStatuses,
+  sameJapanTrip,
+  shareJapanTripAnswers,
   type JpFullReentryRequest,
 } from '@uk-immigration/engine';
 import { JapanWhatIfControls } from '../app/japan/whatif/controls';
@@ -98,14 +99,7 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
     );
     const pr = compared.permanentResidence;
     const nat = compared.naturalisation;
-    // Match the baseline itinerary before a control separates the two records.
-    const travel =
-      knobs.noTrips ||
-      compared.reentry.some(
-        (item) => knobs.returns[item.route] !== item.returnOn,
-      )
-        ? resolveJapanDeemedTripStatuses(compared.trips, compared.reentry)
-        : compared;
+    const travel = shareJapanTripAnswers(compared.trips, compared.reentry);
     return {
       ...compared,
       trips: knobs.noTrips ? [] : travel.trips,
@@ -134,10 +128,18 @@ export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
           requiredInterviewAndAssessmentComplete: knobs.interview,
         },
       },
-      reentry: travel.reentry.map((item) => ({
-        ...item,
-        returnOn: knobs.returns[item.route] || undefined,
-      })),
+      reentry: travel.reentry.map((item) => {
+        const returnOn = knobs.returns[item.route] || undefined;
+        if (item.returnOn === returnOn) return item;
+        const baseline = compared.trips.find((trip) =>
+          sameJapanTrip(trip, item),
+        );
+        return {
+          ...item,
+          returnOn,
+          comparisonHistoryReturnOn: baseline?.returned,
+        };
+      }),
     };
   },
   validate(draft, knobs) {

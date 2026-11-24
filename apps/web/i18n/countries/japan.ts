@@ -19,6 +19,9 @@ export const zhCN = {
   'jp.scope':
     '永住許可涵盖一般、家族、高度人材及特别路径。帰化涵盖一般条件和国籍法的特别条款。再入国包括普通许可、みなし再入国許可和难民旅行证件。评估使用与递交日相应的规则，分别显示时间条件和完整申请条件。',
   'jp.error.date': '请填写有效日期。',
+  'jp.error.futureFact': '已发生事项的日期不能晚于模拟日期。',
+  'jp.result.correctFutureFact':
+    '请在问卷的「{step}」中核对日期。有一项已发生事项晚于模拟日期。',
   'jp.error.order': '这个日期不能早于开始的日期。',
   'jp.error.specialPeriod':
     '更新申请中也只能在在留期限届满后 2 个月内离开日本，请核对日期。',
@@ -48,6 +51,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'jp.scope':
     'Permanent residence covers general, family, highly skilled and special routes. Naturalisation covers the ordinary requirements and special provisions of the Nationality Act. Travel options include ordinary and deemed re-entry and refugee travel documents. The assessment uses the rules for your filing date and shows both the timing and the full set of application checks.',
   'jp.error.date': 'Enter a valid date.',
+  'jp.error.futureFact':
+    'An event that has already occurred must be dated on or before the simulation date.',
+  'jp.result.correctFutureFact':
+    'Review the dates in “{step}”. A recorded event is dated after the simulation date.',
   'jp.error.order': 'This date cannot be before the start date.',
   'jp.error.specialPeriod':
     'Even with a renewal pending you can leave only within 2 months after your period of stay ended; check the dates.',
