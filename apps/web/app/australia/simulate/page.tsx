@@ -65,17 +65,19 @@ function AustraliaStep({ draft, errors, update }: StepProps) {
       <p className={form.hint}>{t('au.form.optional')}</p>
 
       {draft.step === 0 && (
-        <EvidenceFields
-          fields={step0Fields}
-          values={draft}
-          prefix="au"
-          errors={errors}
-          change={(key, value) =>
-            update({
-              [key]: value ?? (key === 'simulationDate' ? '' : undefined),
-            } as Partial<AustraliaDraft>)
-          }
-        />
+        <section className={styles.section}>
+          <EvidenceFields
+            fields={step0Fields}
+            values={draft}
+            prefix="au"
+            errors={errors}
+            change={(key, value) =>
+              update({
+                [key]: value ?? (key === 'simulationDate' ? '' : undefined),
+              } as Partial<AustraliaDraft>)
+            }
+          />
+        </section>
       )}
 
       {draft.step === 1 && (

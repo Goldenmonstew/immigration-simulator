@@ -86,6 +86,9 @@ function Question({
     return (
       <fieldset className={form.entry}>
         <legend>{label}</legend>
+        {field.fields.some((child) => child.required) && (
+          <p className={form.hint}>{t('au.form.optionalGroup')}</p>
+        )}
         <EvidenceFields
           fields={field.fields}
           values={record}
@@ -248,40 +251,48 @@ function Question({
   }
 
   if (field.type === 'year-list') {
-    const years = Array.isArray(value) ? (value as number[]) : [];
+    // A cleared row stays blank (null) until the user types a year or removes it.
+    const years = (Array.isArray(value) ? value : []) as (number | null)[];
     return (
       <fieldset className={form.fieldset}>
         <legend className={form.legend}>{label}</legend>
-        {years.map((year, i) => (
-          <div key={i} className={form.entry}>
-            <Field
-              id={i === 0 ? id : `${id}-${i}`}
-              label={`${label} ${i + 1}`}
-              error={i === 0 ? errors[id] : undefined}
-            >
-              <input
-                id={i === 0 ? id : `${id}-${i}`}
-                type="number"
-                min={1900}
-                max={2100}
-                step={1}
-                value={Number.isFinite(year) ? String(year) : ''}
-                onChange={(e) => {
-                  const num =
-                    e.target.value === '' ? 0 : Number(e.target.value);
-                  set(years.map((old, idx) => (idx === i ? num : old)));
-                }}
-              />
-            </Field>
-            <button
-              type="button"
-              className={form.remove}
-              onClick={() => set(years.filter((_, idx) => idx !== i))}
-            >
-              {t('au.form.remove')}
-            </button>
-          </div>
-        ))}
+        {years.map((year, i) => {
+          const rowId = `${id}-${i}`;
+          return (
+            <div key={i} className={form.entry}>
+              <Field
+                id={rowId}
+                label={`${label} ${i + 1}`}
+                error={errors[rowId]}
+              >
+                <input
+                  id={rowId}
+                  type="number"
+                  min={1900}
+                  max={2100}
+                  step={1}
+                  aria-invalid={errors[rowId] ? true : undefined}
+                  aria-describedby={
+                    errors[rowId] ? `${rowId}-error` : undefined
+                  }
+                  value={year === null ? '' : String(year)}
+                  onChange={(e) => {
+                    const entered =
+                      e.target.value === '' ? null : Number(e.target.value);
+                    set(years.map((old, idx) => (idx === i ? entered : old)));
+                  }}
+                />
+              </Field>
+              <button
+                type="button"
+                className={form.remove}
+                onClick={() => set(years.filter((_, idx) => idx !== i))}
+              >
+                {t('au.form.remove')}
+              </button>
+            </div>
+          );
+        })}
         {Array.isArray(value) && !years.length && (
           <p>{t('au.form.emptyConfirmed')}</p>
         )}
@@ -289,9 +300,7 @@ function Question({
           <button
             type="button"
             className={site.secondary}
-            onClick={() =>
-              set([...years, years.length ? (years.at(-1) ?? 2025) + 1 : 2024])
-            }
+            onClick={() => set([...years, null])}
           >
             {t('au.form.add')} · {label}
           </button>
@@ -351,8 +360,14 @@ function Question({
   if (field.type === 'null-date') {
     const isNull = value === null;
     return (
-      <>
-        <Field id={id} label={marked} hint={hint} error={errors[id]}>
+      <fieldset className={form.entry}>
+        <legend>{marked}</legend>
+        <Field
+          id={id}
+          label={t('au.form.dateInput')}
+          hint={hint}
+          error={errors[id]}
+        >
           <input
             {...props}
             type="date"
@@ -371,7 +386,7 @@ function Question({
             {t('au.form.nullDateConfirmed')}
           </label>
         </div>
-      </>
+      </fieldset>
     );
   }
 
@@ -384,8 +399,14 @@ function Question({
           ? 'au.form.ongoingOption'
           : 'au.form.noneOption';
     return (
-      <>
-        <Field id={id} label={marked} hint={hint} error={errors[id]}>
+      <fieldset className={form.entry}>
+        <legend>{marked}</legend>
+        <Field
+          id={id}
+          label={t('au.form.dateInput')}
+          hint={hint}
+          error={errors[id]}
+        >
           <input
             {...props}
             type="date"
@@ -406,7 +427,7 @@ function Question({
             </label>
           ))}
         </div>
-      </>
+      </fieldset>
     );
   }
 

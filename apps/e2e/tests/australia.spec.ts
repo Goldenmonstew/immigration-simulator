@@ -77,8 +77,11 @@ test('Australia questionnaire flows to results, saves and shares scenarios, and 
   await page.locator('#au-citizenship-permanentAtDecision').selectOption('yes');
   await page.locator('#au-citizenship-confinementEnded').fill('');
   await page
+    .getByRole('group', {
+      name: zhCN['au.field.confinementEnded'],
+      exact: true,
+    })
     .getByRole('checkbox', { name: zhCN['au.form.noneOption'] })
-    .first()
     .check();
   await page.locator('#au-citizenship-character').selectOption('confirmed');
   await page
@@ -89,6 +92,10 @@ test('Australia questionnaire flows to results, saves and shares scenarios, and 
   await page.locator('#au-citizenship-currentCriminalBar').selectOption('no');
   await page.locator('#au-citizenship-lastPrisonSentence').selectOption('none');
   await page
+    .getByRole('group', {
+      name: zhCN['au.field.mostRecentCessation'],
+      exact: true,
+    })
     .getByRole('checkbox', { name: zhCN['au.form.neverOption'] })
     .check();
   await page.locator('#au-citizenship-intention').selectOption('reside');

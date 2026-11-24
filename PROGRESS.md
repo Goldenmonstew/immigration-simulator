@@ -505,6 +505,7 @@
 | 512 | 任务 93：e2e 对比页预期改为引擎实际日期 2030-01-01（只录入 2026-01-01 起的 189，四年合法居留到 2030-01-01）。 | apps/e2e/tests/australia.spec.ts |
 | 513 | 任务 93：政策页标题与参数千分位改为按国家通用（非英国读 `<国家>.policy.pageTitle`），其余国家页面只需加文案键，不再逐国改组件。 | apps/web/components/policy-page.tsx |
 | 514 | 任务 93 审核修正（review93-1 问题 1–3、建议 1）：新草稿的出境记录默认未答；问卷直接读写引擎结构（189/190 邀请与职业匹配、已递交的配偶合并申请、四科分数），取消平铺临时键与渲染期改写；组内标星项必填代替归一化，不再吞掉已填失败或伪造“确认没有”；评估与分享只取可见步骤的答案。 | apps/web/{app/australia/simulate,lib/australia-{draft,fields}.ts,i18n/countries/australia-form.ts,test/australia-questionnaire.test.tsx}、apps/e2e/tests/australia.spec.ts |
+| 515 | 任务 93 审核修正（review93-1 风险 2–3、建议 2）：未完成草稿中的日期逆序、清空的签证类别和未输完的财年在刷新后保留，提交时再校验；191 财年逐行保存空值并各自报错；带确认复选框的日期与复选框放进同名分组；可留空的分组提示标星项；小学英语授课标签不再混写中学年数；单选 189 香港类别时不再显示偏远地区一步；第 1 步放入 section。 | apps/web/{app/australia/simulate,lib/australia-draft.ts,i18n/countries/australia-form.ts,test/australia{,-questionnaire}.test.tsx}、apps/e2e/tests/australia.spec.ts |
 | 530 | 任务 84：登记新西兰完整版适用的官方快照、SHA-256、网址与条文，记录档案中的未决政策和个案判断。 | policy-sources/*-nz-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 531 | 任务 84：登记 nz.current-law 参数集，分别保存居留、入籍、技术、家庭、投资和宗教路径的数字、日期、费率及来源。 | packages/policy-data/src/{index,types,parameters/index,parameters/new-zealand-2026-11}.ts |
 | 532 | 任务 84：新增十条新西兰路径的双语 CountryResult 入口、逐人材料核对和条件边界测试，保留旧时间引擎。 | packages/engine/src/{index,new-zealand-{checks,full,resident,skilled,family}}.ts、packages/engine/test/new-zealand-*.test.ts、docs/tasks/reports/84-nz-rules.md |

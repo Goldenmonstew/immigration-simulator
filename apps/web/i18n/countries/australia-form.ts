@@ -15,13 +15,16 @@ export const auFormZh = {
   'au.form.step1': '英语能力与申请费用',
   'au.form.step2': '雇主担保（186 TRT 与直接申请）',
   'au.form.step3': '技术打分（189 / 190）与国家创新（858）',
-  'au.form.step4': '偏远地区（191）与香港通道（189-HK / 191-HK）',
+  'au.form.step4': '偏远地区（191 与 191 香港类别）',
   'au.form.step5': '配偶移民（820→801 / 309→100）与居民返程签证（155 / 157）',
   'au.form.step6': '授予澳大利亚公民身份与公共利益条件（PIC）',
 
   'au.form.optional':
     '带 * 的项目为必填；其余项目留空或选“未填 / 不确定”时，对应条件在结果页显示为待确认。',
   'au.form.choose': '请选择',
+  'au.form.optionalGroup':
+    '本组可留空。如果填写了组内资料，请同时完成标星号的项目。',
+  'au.form.dateInput': '日期',
   'au.form.unknown': '未填 / 不确定',
   'au.form.yes': '是',
   'au.form.no': '否',
@@ -101,7 +104,8 @@ export const auFormZh = {
   'au.field.functionalApplicationDate':
     '用于核对 Functional English 成绩有效期的实际签证递交日（未递交可留空）',
   'au.field.education': '全英语授课学历经历（Functional English 依据）',
-  'au.field.allPrimaryInEnglish': '小学全部学业以及至少规定年限中学为英语授课',
+  'au.field.allPrimaryInEnglish':
+    '小学全部学业是否为英语授课（英语授课的中学年数请在下一项填写）',
   'au.field.secondaryYearsInEnglish': '英语授课的中学学习年数',
   'au.field.australianTertiaryYearsInEnglish':
     '在澳大利亚境内英语授课的高等教育学习年数（折算全日制）',
@@ -569,8 +573,7 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.form.step2': 'Employer Nomination Scheme (186 TRT and Direct Entry)',
   'au.form.step3':
     'Points-tested skilled (189 / 190) and National Innovation (858)',
-  'au.form.step4':
-    'Regional Provisional (191) and Hong Kong streams (189-HK / 191-HK)',
+  'au.form.step4': 'Regional streams (191 and 191 Hong Kong)',
   'au.form.step5':
     'Partner migration (820→801 / 309→100) and Resident Return (155 / 157)',
   'au.form.step6':
@@ -579,6 +582,9 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.form.optional':
     'Fields marked with * are required. Leave other fields blank or select “Not provided / unsure” to keep the corresponding check as pending confirmation.',
   'au.form.choose': 'Select an option',
+  'au.form.optionalGroup':
+    'You can leave this group blank. If you enter anything in it, also complete the items marked with an asterisk.',
+  'au.form.dateInput': 'Date',
   'au.form.unknown': 'Not provided / unsure',
   'au.form.yes': 'Yes',
   'au.form.no': 'No',
@@ -673,7 +679,7 @@ export const auFormEn: Record<keyof typeof auFormZh, string> = {
   'au.field.education':
     'English-taught education history (for Functional English)',
   'au.field.allPrimaryInEnglish':
-    'All primary schooling and at least the required years of secondary schooling in English',
+    'All primary schooling taught in English (enter English-taught secondary years in the next question)',
   'au.field.secondaryYearsInEnglish':
     'Years of secondary schooling taught in English',
   'au.field.australianTertiaryYearsInEnglish':

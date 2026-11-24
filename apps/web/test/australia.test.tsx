@@ -260,7 +260,7 @@ test('step validation checks required dates, ordering, arrival vs birth/trips an
       regional: { assessmentYears: [1800] },
     }),
   ).toEqual({
-    'au-regional-assessmentYears': 'au.form.yearError',
+    'au-regional-assessmentYears-0': 'au.form.yearError',
   });
 
   // Visible steps filter when a specific pathway is chosen.

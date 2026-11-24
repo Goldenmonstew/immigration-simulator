@@ -1,7 +1,5 @@
 import {
   AU_FULL_PATHWAYS,
-  AU_PERMANENT_SUBCLASSES,
-  AU_TEMPORARY_SUBCLASSES,
   type AuFullRequest,
   type AuSubclass,
 } from '@uk-immigration/engine';
@@ -59,8 +57,7 @@ export function australiaSteps(draft: AustraliaDraft) {
       !p ||
       (step === 2 && (p === 'AU-186-TRT' || p === 'AU-186-DE')) ||
       (step === 3 && (p === 'AU-189-PT' || p === 'AU-190' || p === 'AU-858')) ||
-      (step === 4 &&
-        (p === 'AU-191' || p === 'AU-189-HK' || p === 'AU-191-HK')) ||
+      (step === 4 && (p === 'AU-191' || p === 'AU-191-HK')) ||
       (step === 5 && (p === 'AU-PARTNER' || p === 'AU-RRV'));
     return enabled ? [{ step, title }] : [];
   });
@@ -89,10 +86,6 @@ export function activeAustraliaAnswers(draft: AustraliaDraft): AustraliaDraft {
 
 type Errors = Record<string, TranslationKey>;
 
-const allSubclasses = new Set<string>([
-  ...AU_TEMPORARY_SUBCLASSES,
-  ...AU_PERMANENT_SUBCLASSES,
-]);
 const allPathways = new Set<string>(AU_FULL_PATHWAYS);
 
 function checkFields(
@@ -168,17 +161,18 @@ function checkFields(
           errors[id] = 'au.form.scoresError';
         break;
       case 'year-list':
-        if (
-          !Array.isArray(value) ||
-          value.some(
-            (y) =>
+        // An unfinished row can be blank or partly typed.
+        if (!Array.isArray(value)) errors[id] = 'au.form.required';
+        else
+          value.forEach((y, i) => {
+            if (y === null && !required) return;
+            if (
               typeof y !== 'number' ||
               !Number.isSafeInteger(y) ||
-              y < 1900 ||
-              y > 2100,
-          )
-        )
-          errors[id] = 'au.form.yearError';
+              (required && (y < 1900 || y > 2100))
+            )
+              errors[`${id}-${i}`] = 'au.form.yearError';
+          });
         break;
       case 'group':
         if (isRecord(value))
@@ -206,36 +200,35 @@ function checkFields(
   }
 }
 
-function order(
-  errors: Errors,
-  id: string,
-  start?: unknown,
-  end?: unknown,
-  key: TranslationKey = 'au.error.order',
-) {
-  if (
-    typeof start === 'string' &&
-    typeof end === 'string' &&
-    validDate(start) &&
-    validDate(end) &&
-    end < start
-  ) {
-    errors[id] ??= key;
-  }
-}
-
 export function checkAustraliaStep(
   draft: AustraliaDraft,
   step: number,
   submitting: boolean,
 ): Errors {
   const errors: Errors = {};
+  // Date order is checked on submission; an unfinished draft can hold a
+  // temporary reversal and still be restored.
+  const order = (
+    id: string,
+    start?: unknown,
+    end?: unknown,
+    key: TranslationKey = 'au.error.order',
+  ) => {
+    if (
+      submitting &&
+      typeof start === 'string' &&
+      typeof end === 'string' &&
+      validDate(start) &&
+      validDate(end) &&
+      end < start
+    )
+      errors[id] ??= key;
+  };
   switch (step) {
     case 0:
       checkFields(step0Fields, draft, 'au', submitting, errors);
-      order(errors, 'au-dateOfBirth', draft.dateOfBirth, draft.simulationDate);
+      order('au-dateOfBirth', draft.dateOfBirth, draft.simulationDate);
       order(
-        errors,
         'au-firstArrival',
         draft.dateOfBirth,
         draft.firstArrival,
@@ -244,15 +237,13 @@ export function checkAustraliaStep(
       if (Array.isArray(draft.visas)) {
         draft.visas.forEach((visa, i) => {
           if (!isRecord(visa)) return;
-          if (!allSubclasses.has(visa.subclass))
-            errors[`au-visas-${i}-subclass`] = 'au.form.required';
-          order(errors, `au-visas-${i}-to`, visa.from, visa.to);
+          order(`au-visas-${i}-to`, visa.from, visa.to);
         });
       }
       if (Array.isArray(draft.trips)) {
         draft.trips.forEach((trip, i) => {
           if (!isRecord(trip)) return;
-          order(errors, `au-trips-${i}-returned`, trip.departed, trip.returned);
+          order(`au-trips-${i}-returned`, trip.departed, trip.returned);
           if (
             submitting &&
             validDate(trip.departed) &&
@@ -301,7 +292,6 @@ export function checkAustraliaStep(
             errors,
           );
           order(
-            errors,
             'au-employer-assessment-expires',
             draft.employer.assessment?.issued,
             draft.employer.assessment?.expires,
@@ -324,12 +314,7 @@ export function checkAustraliaStep(
                       submitting,
                       errors,
                     );
-                    order(
-                      errors,
-                      `${prefix}-approved`,
-                      nom.lodged,
-                      nom.approved,
-                    );
+                    order(`${prefix}-approved`, nom.lodged, nom.approved);
                   }
                 }
               }
@@ -350,7 +335,6 @@ export function checkAustraliaStep(
             errors,
           );
           order(
-            errors,
             'au-skills-assessment-expires',
             draft.skills.assessment?.issued,
             draft.skills.assessment?.expires,
@@ -359,7 +343,6 @@ export function checkAustraliaStep(
             const invitation = draft.skills.invitations?.[id];
             if (isRecord(invitation))
               order(
-                errors,
                 `au-skills-invitations-${id}-deadline`,
                 invitation.issued,
                 invitation.deadline,
@@ -380,7 +363,6 @@ export function checkAustraliaStep(
           );
           if (isRecord(draft.innovation.invitation)) {
             order(
-              errors,
               'au-innovation-invitation-deadline',
               draft.innovation.invitation.issued,
               draft.innovation.invitation.deadline,

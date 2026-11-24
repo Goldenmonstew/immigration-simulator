@@ -6,6 +6,7 @@ import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
 import {
   activeAustraliaAnswers,
+  australiaSteps,
   type AustraliaDraft,
 } from '../lib/australia-draft';
 import { australiaModule as au } from '../lib/australia-module';
@@ -236,4 +237,86 @@ test('answers on steps hidden by the selected pathway are neither assessed nor s
     ...draft,
     pathway: undefined,
   });
+});
+
+test('an unfinished draft with a temporary date reversal, cleared subclass or partial year is restored', () => {
+  const unfinished: AustraliaDraft = {
+    ...au.createDraft(),
+    dateOfBirth: '2030-01-01',
+    firstArrival: '2020-01-01',
+    visas: [{ from: '2025-01-01', to: '2024-01-01' } as never],
+    trips: [{ departed: '2025-03-01', returned: '2025-02-01' }],
+    regional: { assessmentYears: [2, null] as never },
+    employer: {
+      nominations: {
+        'AU-186-DE': { lodged: '2026-07-10', approved: '2026-07-01' },
+      },
+    },
+  };
+  expect(au.decodeDraft(unfinished)).toEqual(unfinished);
+  expect(Object.keys(au.validateStep(unfinished)).sort()).toEqual([
+    'au-dateOfBirth',
+    'au-firstArrival',
+    'au-trips-0-returned',
+    'au-visas-0-subclass',
+    'au-visas-0-to',
+  ]);
+  expect(au.validateStep({ ...unfinished, step: 4 })).toEqual({
+    'au-regional-assessmentYears-0': 'au.form.yearError',
+    'au-regional-assessmentYears-1': 'au.form.yearError',
+  });
+  // A completed result still has to pass every visible step.
+  expect(au.decodeDraft({ ...unfinished, completed: true })).toBeUndefined();
+});
+
+test('each income year row keeps a blank entry and announces its own error', () => {
+  let draft: AustraliaDraft = {
+    ...au.createDraft(),
+    step: 4,
+    regional: { assessmentYears: [2024, 2025] },
+  };
+  draft = editField(draft, 'au-regional-assessmentYears-1', '');
+  expect(draft.regional?.assessmentYears).toEqual([2024, null]);
+  const html = form(
+    { ...draft, regional: { assessmentYears: [2024, 1800] } },
+    () => {},
+    au.validateStep({ ...draft, regional: { assessmentYears: [2024, 1800] } }),
+  );
+  expect(html).toContain(
+    'id="au-regional-assessmentYears-1" type="number" min="1900" max="2100" step="1" aria-invalid="true" aria-describedby="au-regional-assessmentYears-1-error"',
+  );
+  expect(html).toContain(`<p id="au-regional-assessmentYears-1-error" class="`);
+  expect(html).not.toContain('au-regional-assessmentYears-0-error');
+});
+
+test('confirmation checkboxes sit with their date in a named group and optional groups explain the asterisks', () => {
+  const html = form({ ...au.createDraft(), step: 6 });
+  for (const name of [
+    'confinementEnded',
+    'mostRecentCessation',
+    'lastIdentityRefusal',
+    'lastDocumentRefusal',
+    'removedOn',
+  ] as const) {
+    const label = t(`au.field.${name}`);
+    const group = new RegExp(
+      `<fieldset[^>]*><legend>${label.replace(/[()（）]/g, '.')}( \\*)?</legend>(?:(?!</fieldset>).)*type="checkbox"`,
+    );
+    expect(html, name).toMatch(group);
+  }
+  expect(html).toContain(t('au.form.optionalGroup'));
+  expect(
+    form({ ...au.createDraft(), step: 1, english: { education: {} } }),
+  ).toContain(t('au.field.allPrimaryInEnglish'));
+});
+
+test('the 189 Hong Kong stream skips the regional step, and step 1 keeps its fields in a section', () => {
+  const fresh = au.createDraft();
+  expect(
+    australiaSteps({ ...fresh, pathway: 'AU-189-HK' }).map((s) => s.step),
+  ).toEqual([0, 1, 6]);
+  expect(
+    australiaSteps({ ...fresh, pathway: 'AU-191-HK' }).map((s) => s.step),
+  ).toEqual([0, 1, 4, 6]);
+  expect(form(fresh)).toMatch(/^<p[^>]*>[^<]*<\/p><section/);
 });
