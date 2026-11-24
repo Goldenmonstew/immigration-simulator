@@ -559,3 +559,25 @@ R26 以 AIP 首次申请收件日核对随附的现居国警证。符合签发�
 ### 4. 发现与建议
 
 审核风险第 2 项留待单独处理。FSW 申请人获邀后因生日失分时，R36 仍可能漏判可由官员审查的年龄豁免，详见本报告第九轮第 4 节。
+
+## 第十一轮审核修正（review85-11）
+
+### 1. 做了什么
+
+建议提交 `Fix: 按模拟日已确认的 PR 身份判断首次永居路径（review85-11）`。对应 PROGRESS 第 573 条。
+
+`evaluateCanadaFull` 收到 `residence.prStatus: 'valid'` 时，若取得日期留空、早于模拟日或为模拟日当天，七条首次永居路径均返回 `NOT_APPLICABLE`。若明确填入未来取得日期，仍按模拟日的各项申请条件评估。沿用本任务的路径约定及 SRC-261a，IRPA s.2(1) 对 permanent resident 和 foreign national 的定义、s.21(1) 的身份取得条款。
+
+### 2. 怎么验证的
+
+从公开入口新增 5 个回归用例。在基线 `5a6ecf0` 上有 2 个失败。确认持有 PR 但日期留空时，资料不全的 FSW 返回 `UNKNOWN`，其他条件齐备的 AIP 返回 `MET`。修正后 5 个用例均通过。测试逐条核对七条路径在取得日期留空、模拟日当天、模拟日次日三种情形下的结果。其他条件齐备的 AIP 在日期留空时返回 `NOT_APPLICABLE`，在次日取得时返回 `MET`。
+
+设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码为 0。全仓 5,483 项测试通过，1 项既有测试跳过。构建生成 27 个静态页面。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+按要求保留在工作区，未提交。与 `5a6ecf0` 比对，原时间入口 `evaluateCanada`、原时间测试和加拿大页面调用均无差异。
+
+### 4. 发现与建议
+
+FSW 获邀时恰好 67 分、递交前仅因生日降至 66 分的个案，R36 仍可能返回 `NOT_MET`。获授权的移民官可按公共政策审查符合条件的个案并给予年龄豁免。本轮仅记录此风险。选拔分依据 SRC-267a “Selection factors” 及 SRC-261b，IRPR ss.76(1)(a)(iv)、81。[IRCC 年龄豁免公共政策的适用条件](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html#conditions)

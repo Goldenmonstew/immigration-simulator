@@ -797,6 +797,32 @@ describe('full Canadian assessment contract', () => {
     ).toBe('NOT_APPLICABLE');
   });
 
+  test.each([
+    [undefined, 'NOT_APPLICABLE'],
+    [sim, 'NOT_APPLICABLE'],
+    ['2026-11-24', 'UNKNOWN'],
+  ] as const)(
+    'initial PR routes with confirmed status and PR date %s return %s',
+    (permanentResident, expected) => {
+      const { pathways } = evaluateCanadaFull({
+        simulationDate: sim,
+        residence: { prStatus: 'valid' },
+        permanentResident,
+      }).columns[0];
+      for (const id of [
+        'CA-EE-FSW',
+        'CA-EE-CEC',
+        'CA-EE-FST',
+        'CA-PNP',
+        'CA-QC-PSTQ',
+        'CA-AIP',
+        'CA-FAMILY',
+      ]) {
+        expect(pathways.find((p) => p.id === id)?.status, id).toBe(expected);
+      }
+    },
+  );
+
   test('base nomination can meet the federal route, an outstanding review defers it, and a definitive refusal takes precedence', () => {
     const answers: CaFullRequest['pnp'] = {
       stream: 'other',

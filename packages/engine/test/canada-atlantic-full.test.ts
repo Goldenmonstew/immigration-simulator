@@ -97,6 +97,27 @@ function filedAipWithCurrentCertificate(
 
 describe('Atlantic Immigration Program', () => {
   test.each([
+    [undefined, 'NOT_APPLICABLE'],
+    ['2026-11-24', 'MET'],
+  ] as const)(
+    'otherwise eligible AIP applicant with confirmed status and PR date %s returns %s',
+    (permanentResident, expected) => {
+      const { pathways } = evaluateCanadaFull({
+        simulationDate: when,
+        permanentResident,
+        residence: { prStatus: 'valid' },
+        atlantic: base,
+        federal: {
+          ...federal,
+          principal: { ...person, exam: { disposition: 'exempt' } },
+          applications: { 'CA-AIP': filed },
+        },
+      }).columns[0];
+      expect(pathways.find((p) => p.id === 'CA-AIP')?.status).toBe(expected);
+    },
+  );
+
+  test.each([
     ['2026-07-01', '2026-10-20', 'MET'],
     ['2026-04-20', undefined, 'MET'],
     ['2026-04-19', undefined, 'UNKNOWN'],

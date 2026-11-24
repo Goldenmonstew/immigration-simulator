@@ -159,8 +159,7 @@ export function evaluateCanadaFull(req: CaFullRequest): CaFullResult {
       if (
         initialPr &&
         req.residence?.prStatus === 'valid' &&
-        req.permanentResident &&
-        req.permanentResident <= req.simulationDate
+        (!req.permanentResident || req.permanentResident <= req.simulationDate)
       ) {
         status = 'NOT_APPLICABLE';
         summary = L(
