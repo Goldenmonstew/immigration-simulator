@@ -8,7 +8,9 @@
     "./core": "./src/core.ts",
     "./uk/presentation": "./src/packs/uk/presentation.ts",
     "./jp": "./src/packs/jp/index.ts",
-    "./jp/presentation": "./src/packs/jp/presentation.ts"
+    "./jp/presentation": "./src/packs/jp/presentation.ts",
+    "./nz": "./src/packs/nz/index.ts",
+    "./nz/presentation": "./src/packs/nz/presentation.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
