@@ -82,7 +82,7 @@ test('a return trip is assessed, saved, shared and compared with a later return 
   const travel = (id: string) => field(page, 'travel-' + id);
   await travel('registration').selectOption('registered');
   await travel('carryingEvidence').selectOption('yes');
-  await travel('movedOn-mode').selectOption('no-move');
+  await travel('movedOn').selectOption('no-move');
   await travel('cardExpiresOn').fill('2032-03-01');
   await travel('otherReplacementGround').selectOption('no');
   await travel('admissionTriggers').selectOption('none');

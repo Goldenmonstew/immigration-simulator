@@ -7,6 +7,7 @@ import sitemap from '../app/sitemap';
 import Home from '../app/page';
 import { ResultView } from '../components/result-view';
 import { UnitedStatesWhatIfControls } from '../app/united-states/whatif/controls';
+import { UsFields } from '../app/united-states/simulate/fields';
 import { t } from '../i18n';
 import { usFormEn, usFormZh } from '../i18n/countries/united-states-form';
 import { LocaleContext } from '../i18n/locale';
@@ -16,7 +17,12 @@ import {
   unitedStatesRequest,
   unitedStatesSteps,
 } from '../lib/united-states-draft';
-import { usStepDefinitions, type UsField } from '../lib/united-states-fields';
+import {
+  employmentFields,
+  familyFields,
+  usStepDefinitions,
+  type UsField,
+} from '../lib/united-states-fields';
 import { unitedStatesModule as us } from '../lib/united-states-module';
 import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
@@ -988,4 +994,50 @@ test('results show the approval stage and keep procedural notes out of the gaps 
   // Chinese sentences are joined without a space (suggestion 4).
   for (const draft of [travelDraft(), naturalizationDraft, failedEnglish])
     expect(pathwayOf(draft).summary).not.toMatch(/。 /);
+});
+
+test('labels, hints, errors and row buttons are tied to their controls (review96-1 suggestion 1)', () => {
+  const fields = (
+    list: UsField[],
+    values: Record<string, unknown>,
+    errors: Record<string, string> = {},
+  ) =>
+    render(
+      <UsFields
+        fields={list}
+        values={values}
+        prefix="us-x"
+        draft={{ pathway: 'US-FAMILY' }}
+        errors={errors as never}
+        change={() => {}}
+      />,
+    );
+  const cspa = familyFields.filter((field) => field.name === 'cspaAge');
+  // Before a number is entered, the label and the descriptions name the choice.
+  const choosing = fields(cspa, {}, { 'us-x-cspaAge': 'us.error.required' });
+  expect(choosing).toContain('for="us-x-cspaAge"');
+  expect(choosing).toMatch(
+    /<select id="us-x-cspaAge"[^>]*aria-describedby="us-x-cspaAge-hint us-x-cspaAge-error"/,
+  );
+  // Once entered, the label names the number and the choice keeps its own name.
+  const entered = fields(cspa, { cspaAge: 12 });
+  expect(entered).toMatch(/<select id="us-x-cspaAge-mode" aria-label="/);
+  expect(entered).toMatch(/<input id="us-x-cspaAge"/);
+  // Date rows announce their errors, and each remove button names its row.
+  const dates = (
+    employmentFields.find((field) => field.name === 'permRecruitment') as {
+      fields: UsField[];
+    }
+  ).fields.filter((field) => field.name === 'advertisementDates');
+  const rows = fields(
+    dates,
+    { advertisementDates: ['2026-01-05', ''] },
+    { 'us-x-advertisementDates-1': 'us.error.date' },
+  );
+  expect(rows).toMatch(
+    /id="us-x-advertisementDates-1"[^>]*aria-describedby="us-x-advertisementDates-1-error"/,
+  );
+  expect(rows).toContain(
+    `aria-label="${t('us.form.remove')} ${t('us.field.advertisementDates')} 2"`,
+  );
 });

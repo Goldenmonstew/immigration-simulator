@@ -240,12 +240,16 @@ function Question({
       </Field>
     );
   // A date or amount can be replaced by a stated alternative, such as none.
+  // The label names the entered value, or the choice until one is entered.
   const mode = value === undefined ? '' : (alternative ?? 'entered');
+  const entered = mode === 'entered';
   return (
     <Field id={id} label={label} hint={hint} error={errors[id]}>
       <select
-        id={id + '-mode'}
-        aria-label={label}
+        id={entered ? id + '-mode' : id}
+        aria-label={entered ? label : undefined}
+        aria-invalid={!entered && errors[id] ? true : undefined}
+        aria-describedby={describedBy}
         value={mode}
         onChange={(event) => {
           const answer = event.target.value;
@@ -262,7 +266,7 @@ function Question({
           </option>
         ))}
       </select>
-      {mode === 'entered' && input}
+      {entered && input}
     </Field>
   );
 }
@@ -350,6 +354,16 @@ function Rows({
   // Removing the last row returns to an unanswered list, not "none".
   const remove = (index: number) =>
     set(rows.length === 1 ? undefined : rows.filter((_, i) => i !== index));
+  const removeButton = (index: number) => (
+    <button
+      type="button"
+      className={form.remove}
+      aria-label={`${t('us.form.remove')} ${label} ${index + 1}`}
+      onClick={() => remove(index)}
+    >
+      {t('us.form.remove')}
+    </button>
+  );
   return (
     <>
       {rows.map((row, index) =>
@@ -371,13 +385,7 @@ function Rows({
                 )
               }
             />
-            <button
-              type="button"
-              className={form.remove}
-              onClick={() => remove(index)}
-            >
-              {t('us.form.remove')}
-            </button>
+            {removeButton(index)}
           </fieldset>
         ) : (
           <Field
@@ -390,16 +398,13 @@ function Rows({
               id={id + '-' + index}
               type="date"
               aria-invalid={errors[id + '-' + index] ? true : undefined}
+              aria-describedby={
+                errors[id + '-' + index] ? `${id}-${index}-error` : undefined
+              }
               value={String(row ?? '')}
               onChange={(event) => replace(index, event.target.value)}
             />
-            <button
-              type="button"
-              className={form.remove}
-              onClick={() => remove(index)}
-            >
-              {t('us.form.remove')}
-            </button>
+            {removeButton(index)}
           </Field>
         ),
       )}
