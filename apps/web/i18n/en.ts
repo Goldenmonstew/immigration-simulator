@@ -331,10 +331,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.au.paths': 'Permanent residence · RRV · Citizenship',
   'hub.au.desc':
     'Check visa or residence periods for subclass 191 and the Hong Kong streams (189/191), visa and full-time sponsored employment periods and age at application for 186 TRT, and the wait for the permanent partner visa (801/100). Check days in Australia for a Resident Return visa and residence periods for citizenship.',
-  'hub.nz.code': 'NZ',
-  'hub.nz.paths': 'Permanent Resident Visa · Travel conditions · Citizenship',
-  'hub.nz.desc':
-    'Find when resident visa travel conditions expire. Check how long you have held a resident visa and how many days you have spent in New Zealand for a Permanent Resident Visa (PRV), and count your days in New Zealand for citizenship.',
   'hub.ca.code': 'CA',
   'hub.ca.paths': 'PR residency obligation · Citizenship',
   'hub.ca.desc':

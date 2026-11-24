@@ -510,6 +510,10 @@
 | 537 | 任务 84 第五轮审核修正（review84-5）。居民类申请共用递交日所在地、签证及法定限制检查，保留各类别的工签与境内要求。出境日获签按实际居民首入日预测永居，同日先后不明时留空日期。 | packages/engine/src/new-zealand{,-checks,-family,-full,-resident,-skilled}.ts、packages/engine/test/new-zealand-{family,full,resident,skilled}.test.ts、docs/{SOURCES,pending-details,tasks/reports/84-nz-rules}.md |
 | 538 | 任务 84 第六轮审核修正（review84-6）。尚未返新的行程可能覆盖获签日时，首入资料不足返回 UNKNOWN，旅行路径不给日期。绿名单 Tier 2、护理及运输行业的境内申请只填“其他”签证或漏填时，共用与类别签证检查均为 UNKNOWN。 | packages/engine/{src/new-zealand-{resident,skilled}.ts,test/new-zealand-{resident,skilled}.test.ts}、docs/{pending-details,tasks/reports/84-nz-rules}.md |
 | 539 | 任务 84 第七轮审核修正（review84-7）。当前位置和获签地点未填且行程无法确定首入时返回 UNKNOWN。错过首入期限后，多次往返条件为 NOT_MET。补测同日返程顺序、首入期限和最早日期，并记录各输入组合。 | packages/engine/{src/new-zealand-resident.ts,test/new-zealand-resident.test.ts}、docs/{pending-details,tasks/reports/84-nz-rules}.md |
+| 540 | 任务 94：新西兰首页与分步问卷取代只算时间的旧单页，问卷覆盖完整版引擎的全部输入并按所选路径显示步骤。结果、对比、分享、方案与政策页使用新西兰模块，集合入口更新卡片，五页纳入离线和 sitemap 清单。 | apps/web/{app/new-zealand/,lib/new-zealand-{fields,draft,module,policy,whatif}.ts,i18n/countries/new-zealand{,-form}.ts,i18n/{zh-CN,en}.ts,lib/site-countries.ts,public/sw.js,test/{new-zealand,about-page}.test.tsx}，删除 apps/web/lib/new-zealand.ts |
+| 541 | 任务 94：新西兰 e2e 改为完整版流程：入口问卷、草稿恢复、结果条件、方案保存、分享还原、从条件跳到对比并改返回日，英文手机宽度与政策页来源。 | apps/e2e/tests/new-zealand.spec.ts |
+| 542 | 任务 94：报告列出问卷步骤与字段、字段覆盖核对、对比旋钮、旧链接处理、验证结果与发现。 | docs/tasks/reports/94-nz-pages.md |
+| 543 | 任务 94：政策页组件按国家读 `<国家>.policy.pageTitle`（与任务 93 相同改动），新西兰标题生效。 | apps/web/components/policy-page.tsx |
 | 560 | 任务 85：归档加拿大完整版的官方快照，登记 SRC-260–279、PD-240–259 及组内原文链接。 | policy-sources/*-ca-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 561 | 任务 85：在加拿大参数文件增加完整版门槛、费表、适用日期与逐项来源，登记 ca.current-law-2026-11；保留旧参数版本。 | packages/policy-data/src/{types,index,parameters/{canada-2026-11,index}}.ts |
 | 562 | 任务 85：新增加拿大十条路径、80 项条件、双语结果与边界及组合测试，记录各条件来源及页面问卷交接。 | packages/engine/src/{index.ts,canada-full/}、packages/engine/test/canada-*-full.test.ts、docs/tasks/reports/85-ca-rules.md |
