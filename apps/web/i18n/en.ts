@@ -344,9 +344,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.us.desc':
     'Check residence and physical presence for general naturalization and naturalization as the spouse of a U.S. citizen, filing windows for removing green card conditions (I-751/I-829), and how time abroad affects your ability to return on your green card.',
   'hub.es.code': 'ES',
-  'hub.es.paths': 'Long-term residence · Citizenship by residence',
+  'hub.es.paths':
+    'Citizenship · National and EU long-term residence · EU mobility and family · Recovery · Free movement',
   'hub.es.desc':
-    'Check residence periods for national long-term residence and citizenship by residence (10-, 5-, 2- and 1-year tracks) using your permits, stays for study and travel record.',
+    'Check residence periods, absence continuity, DELE and CCSE exams, IPREM household means, SMI salary, health cover, conduct and post-grant steps across eight pathways. Compare scenarios, share links and inspect official sources.',
   'hub.gr.code': 'GR',
   'hub.gr.paths': 'Long-term residence · Golden visa · Naturalisation',
   'hub.gr.desc':
