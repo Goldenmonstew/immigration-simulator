@@ -5,6 +5,7 @@ import {
   atLeast,
   atMost,
   checksFor,
+  checkStatus,
   not,
   reviewed,
   s,
@@ -211,6 +212,7 @@ export function admissionChecks(
                   'DHS 综合评估年龄、健康、家庭、财务和技能。生效日前的福利按旧口径核对。',
                   'DHS weighs age, health, family, finances and skills. Pre-effective-date benefits are assessed using the prior standards.',
                 ],
+      scope === 'return' ? undefined : 'NOT_APPLICABLE',
     ),
     check(
       'C38-CRIMINAL-INADMISSIBILITY',
@@ -257,23 +259,17 @@ function adjustmentBar(a?: UsAdmissionAnswers, immediate?: Answer): Answer {
         : a?.otherAdjustmentBar === 'vwp'
           ? immediate
           : undefined;
-  const exempt = immediate === true || basis === 'vawa';
+  const exempt = any(immediate, basis === 'vawa' || basis === 'sij');
   const violations = a?.qualifyingViolationsDays;
   const k = all(
     a?.lawfulAdmissionFor245k,
     atMost(violations, v.adjustment.value.kDays),
   );
-  const status = exempt
-    ? true
-    : violations === 0
-      ? true
-      : basis === 'employment'
-        ? k
-        : basis !== undefined &&
-            violations !== undefined &&
-            immediate !== undefined
-          ? false
-          : undefined;
+  const status = any(
+    exempt,
+    violations === undefined ? undefined : violations === 0,
+    basis === 'employment' ? k : basis === undefined ? undefined : false,
+  );
   return basis === '245i' ? reviewed(a?.entryException) : all(other, status);
 }
 
@@ -281,22 +277,22 @@ export function adjustmentChecks(request: UsFullRequest) {
   const check = checksFor(request);
   const a = request.admission;
   const basis = a?.adjustmentBasis;
-  const immediate: Answer =
-    request.pathway === 'US-FAMILY'
-      ? immediateRelative(request.family)
-      : basis
-        ? basis === 'immediate-relative'
-        : request.pathway === 'US-EMPLOYMENT'
-          ? false
-          : undefined;
+  const usesFamilyClassification =
+    request.pathway === 'US-FAMILY' ||
+    (basis === 'family-preference' && request.family !== undefined);
+  const immediate: Answer = usesFamilyClassification
+    ? immediateRelative(request.family)
+    : basis
+      ? basis === 'immediate-relative'
+      : request.pathway === 'US-EMPLOYMENT'
+        ? false
+        : undefined;
   const availability = (
     value?: 'available' | 'unavailable' | 'future-bulletin',
   ): Answer =>
     value === 'available' ? true : value === 'unavailable' ? false : undefined;
-  const visa =
-    immediate === true
-      ? true
-      : all(availability(a?.visaAtFiling), availability(a?.visaAtDecision));
+  const visaAtFiling = any(immediate, availability(a?.visaAtFiling));
+  const visaAtDecision = any(immediate, availability(a?.visaAtDecision));
   const entry =
     a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
       ? true
@@ -310,22 +306,26 @@ export function adjustmentChecks(request: UsFullRequest) {
               : false
         : undefined;
   const consular = a?.process === 'consular';
+  const filing = all(
+    reviewed(a?.qualifyingBasis),
+    visaAtFiling,
+    consular ? true : a?.process === 'adjustment' ? entry : undefined,
+  );
   return [
     check(
       'C33-VISA-AND-ENTRY',
       '移民类别、签证名额与入境查验',
       'Immigrant basis, visa availability and admission or parole',
-      all(
-        reviewed(a?.qualifyingBasis),
-        visa,
-        consular ? true : a?.process === 'adjustment' ? entry : undefined,
-      ),
-      s.adjustment,
+      all(filing, visaAtDecision),
+      usesFamilyClassification
+        ? [...s.adjustment, ...s.relationship]
+        : s.adjustment,
       'PD-272',
       [
-        '核对移民类别与排期。境内按当月 USCIS 指定表确认收件，核准须 Final Action Dates 可用。领馆走签证程序。',
-        'Confirm the immigrant basis and visa availability. USCIS selects the filing chart each month and approval requires a current Final Action Date. Consular cases use visa processing.',
+        '境内按 USCIS 当月指定表确认能否递交。领馆材料按 NVC 通知提交。受排期限制的案件须在裁决时有 Final Action Dates 名额。未满龄或 CSPA 锁龄的美国公民未婚子女可能属于即时亲属。',
+        'Use the USCIS chart designated for the filing month, or NVC authorization to submit consular documents. A numerically limited case needs a current Final Action Date at decision. An unmarried child of a U.S. citizen may qualify as an immediate relative based on age or CSPA protection.',
       ],
+      checkStatus(filing),
     ),
     ...(consular
       ? []
@@ -349,6 +349,8 @@ export function adjustmentChecks(request: UsFullRequest) {
             reviewed(a?.discretion),
             s.discretion,
             'PD-270',
+            undefined,
+            'NOT_APPLICABLE',
           ),
         ]),
     ...admissionChecks(request),
@@ -360,6 +362,15 @@ export function humanitarianChecks(request: UsFullRequest) {
   const a = request.humanitarian;
   const refugee = a?.status === 'refugee';
   const law = v.humanitarian.value;
+  const statusAtFiling = all(
+    a?.statusRetained,
+    not(a?.alreadyLpr),
+    refugee
+      ? true
+      : a?.status === 'asylee'
+        ? all(a.refugeeDefinitionOrDerivative, not(a.firmlyResettled))
+        : undefined,
+  );
   return [
     check(
       'C41-HUMANITARIAN-PRESENCE',
@@ -372,26 +383,17 @@ export function humanitarianChecks(request: UsFullRequest) {
         '在 I-485 裁决时须累积至少一年实际在美时间。难民自抵美日起算永居，庇护者自核准日前一年起算永居。',
         'Accumulate at least one year of U.S. physical presence by I-485 adjudication. Refugee residence dates back to arrival and asylee residence dates back one year from approval.',
       ],
+      'NOT_APPLICABLE',
     ),
     check(
       'C41-HUMANITARIAN-STATUS',
       '难民或庇护资格与裁量',
       'Refugee or asylum status and discretion',
-      all(
-        a?.statusRetained,
-        not(a?.alreadyLpr),
-        refugee
-          ? true
-          : a?.status === 'asylee'
-            ? all(
-                a.refugeeDefinitionOrDerivative,
-                not(a.firmlyResettled),
-                reviewed(a.discretion),
-              )
-            : undefined,
-      ),
+      all(statusAtFiling, refugee ? true : reviewed(a?.discretion)),
       s.humanitarian,
       'PD-274',
+      undefined,
+      checkStatus(statusAtFiling),
     ),
     check(
       'C42-HUMANITARIAN-WAIVER',
@@ -404,6 +406,7 @@ export function humanitarianChecks(request: UsFullRequest) {
         '免公共负担、劳工证及移民签证文件要求。其他事由须分别判断能否豁免，毒品贩运及指定安全事由不得豁免。',
         'Public charge, labor certification and immigrant document requirements are waived by statute. Other grounds are assessed separately. Drug trafficking and specified security grounds cannot be waived.',
       ],
+      'NOT_APPLICABLE',
     ),
     ...admissionChecks(request, request.admission, 'humanitarian'),
   ];

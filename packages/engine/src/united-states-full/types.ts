@@ -1,5 +1,12 @@
 import type { IsoDate } from '../types';
 import type { UsRequest } from '../united-states';
+import type {
+  CountryCheck,
+  CountryColumn,
+  CountryPathway,
+  CountryResult,
+} from '../country-result';
+import type { PilotStatus } from '../pilot';
 
 export type UsFullPathwayId =
   | 'US-NATURALIZATION'
@@ -11,6 +18,25 @@ export type UsFullPathwayId =
   | 'US-ADJUSTMENT'
   | 'US-HUMANITARIAN'
   | 'US-MILITARY';
+
+export interface UsFullCheck extends CountryCheck {
+  /** When omitted, use status for filing as well as approval. */
+  filingStatus?: CountryCheck['status'] | 'NOT_APPLICABLE';
+  informational?: true;
+}
+
+export interface UsFullPathway extends CountryPathway {
+  id: UsFullPathwayId;
+  /** Filing eligibility, or return eligibility for US-TRAVEL. */
+  status: PilotStatus;
+  /** Approval requirements based on the supplied facts. No adjudication date is inferred. */
+  approvalStatus?: PilotStatus;
+  checks: UsFullCheck[];
+}
+
+export interface UsFullResult extends CountryResult {
+  columns: (Omit<CountryColumn, 'pathways'> & { pathways: UsFullPathway[] })[];
+}
 
 export type UsRegion = 'contiguous' | 'alaska' | 'hawaii';
 /** A finding or legally qualified evidence. Use pending for facts still requiring substantiation. */
@@ -58,6 +84,7 @@ export interface UsNaturalizationAnswers {
   lawfulAdmission?: UsReview;
   removalProcess?: 'none' | 'pending' | 'final';
   residenceThroughOath?: boolean;
+  /** True when conditions were removed; false for a pending petition with status maintained. */
   conditionalStatusResolved?: boolean;
   /** Total time living in the U.S. while an LPR, measured at N-400 filing. */
   lprResidenceYears?: number;
@@ -244,6 +271,10 @@ export interface UsEmploymentAnswers {
   employmentOffer?: boolean;
   perm?: 'certified' | 'schedule-a' | 'pending' | 'none';
   permCertifiedOn?: IsoDate;
+  /** Actual receipt date of the I-140 using this PERM. */
+  i140FiledOn?: IsoDate;
+  /** Set for an existing petition, including when its exact receipt date is unavailable. */
+  i140Status?: 'pending' | 'approved';
   prevailingWageUsd?: number;
   profferedWageUsd?: number;
   recruitmentAndFeesCompliant?: boolean;
@@ -283,7 +314,18 @@ export interface UsEmploymentAnswers {
     waiverBeneficial?: boolean;
   };
   niwDetermination?: UsReview;
-  investment?: UsInvestmentAnswers;
+  investment?: UsInvestmentAnswers & {
+    /** Total expected time at risk, including the period already completed. */
+    expectedSustainmentYears?: number;
+    /** Initial I-526/I-526E evidence of projected qualifying employment. */
+    jobCreationPlan?:
+      | 'none'
+      | {
+          evidence?: UsReview;
+          qualifyingJobs?: number;
+          minimumWeeklyHours?: number;
+        };
+  };
   gold?: {
     registrationAccepted?: boolean;
     donor?: 'individual' | 'company';
@@ -300,7 +342,9 @@ export interface UsEmploymentAnswers {
 export interface UsAdmissionAnswers {
   /** Bare prospective applications have no favourable discretionary finding yet. */
   process?: 'adjustment' | 'consular';
+  /** Availability under the USCIS filing chart, or authorization to submit documents in consular processing. */
   visaAtFiling?: 'available' | 'unavailable' | 'future-bulletin';
+  /** Final Action Dates status at the anticipated or actual decision. */
   visaAtDecision?: 'available' | 'unavailable' | 'future-bulletin';
   qualifyingBasis?: UsReview;
   legalEntry?: 'admitted' | 'paroled' | 'without-inspection';
@@ -354,7 +398,7 @@ export interface UsAdmissionAnswers {
 
 export interface UsHumanitarianAnswers {
   status?: 'refugee' | 'asylee';
-  /** Qualifying days after refugee admission or asylum grant, at adjudication. */
+  /** Qualifying days after refugee admission or asylum grant, as of the adjudication being evaluated. */
   presenceDays?: number;
   statusRetained?: boolean;
   alreadyLpr?: boolean;
@@ -382,6 +426,7 @@ export interface UsMilitaryAnswers {
 
 export interface UsFeeAnswers {
   channel?: 'online' | 'paper';
+  /** Fee schedule date based on the form's filing or postmark rule. */
   filingOn?: IsoDate;
   relief?: 'none' | 'waiver' | 'reduced';
   household?: UsHousehold;

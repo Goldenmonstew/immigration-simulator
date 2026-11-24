@@ -643,7 +643,11 @@ const cases: CheckCase[] = [
       ...eb5,
       employment: {
         ...eb5.employment,
-        investment: { ...eb5.employment!.investment, minimumWeeklyHours: 34 },
+        investment: {
+          ...eb5.employment!.investment,
+          minimumWeeklyHours: 34,
+          jobCreationPlan: 'none',
+        },
       },
     },
     otherStatus: 'NOT_MET',
@@ -850,8 +854,12 @@ describe('naturalization boundaries and pilot reuse', () => {
     expect(missing.status).toBe('UNKNOWN');
     expect(missing.earliestDate).toBeUndefined();
     expect(
-      path({ ...req, naturalization: { ...natural, oath: 'refuses' } }).status,
-    ).toBe('NOT_MET');
+      path({ ...req, naturalization: { ...natural, oath: 'refuses' } }),
+    ).toMatchObject({
+      status: 'FUTURE',
+      approvalStatus: 'NOT_MET',
+      earliestDate: '2026-12-01',
+    });
   });
 
   test.each([
@@ -1252,26 +1260,14 @@ describe('residence documents and qualifying categories', () => {
     ).toBe('NOT_MET');
   });
 
-  test('Gold Card dependent uncertainty and petition date cutoffs', () => {
+  test('Gold Card allocation and petition date cutoffs', () => {
     expect(condition(gold, 'C32-GOLD-ALLOCATION').pendingDetails).toEqual([
       'PD-266',
     ]);
-    expect(path(gold).status).toBe('UNKNOWN');
-    const dependent = {
-      ...gold,
-      employment: {
-        ...gold.employment,
-        gold: {
-          ...gold.employment!.gold,
-          includedPeople: 2,
-          processingFundsUsd: 30000,
-        },
-      },
-    };
-    expect(condition(dependent, 'C32-GOLD-GIFT').status).toBe('UNKNOWN');
-    expect(condition(dependent, 'C44-I140G').explanation).toContain(
-      'USD 30000',
-    );
+    expect(path(gold)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'UNKNOWN',
+    });
     expect(
       condition(
         { ...eb5, simulationDate: '2026-12-31' },
@@ -1534,13 +1530,509 @@ describe('admission, fees and pathway results', () => {
   });
 });
 
+describe('review86-1 regressions', () => {
+  test('active-duty I-864 income depends on the sponsored relative', () => {
+    const lowIncome = {
+      ...support,
+      activeDuty: true,
+      household: { region: 'contiguous' as const, size: 2, incomeUsd: 23000 },
+    };
+    const adult: UsFullRequest = {
+      ...f,
+      family: {
+        ...family,
+        relationship: 'married-child',
+        beneficiaryAge: 25,
+        childRelationship: 'biological',
+      },
+      support: lowIncome,
+    };
+    const income = condition(adult, 'C25-SUPPORT-INCOME');
+    expect(income.status).toBe('NOT_MET');
+    expect(income.explanation).toContain('USD 27050');
+    expect(path(adult)).toMatchObject({
+      status: 'NOT_MET',
+      approvalStatus: 'NOT_MET',
+    });
+    expect(path(adult).earliestDate).toBeUndefined();
+
+    const minor: UsFullRequest = {
+      ...adult,
+      family: {
+        ...adult.family,
+        relationship: 'unmarried-child',
+        beneficiaryAge: 20,
+      },
+    };
+    expect(condition(minor, 'C25-SUPPORT-INCOME').status).toBe('MET');
+    expect(condition(minor, 'C25-SUPPORT-INCOME').explanation).toContain(
+      'USD 21640',
+    );
+    expect(path(minor)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      earliestDate: time.simulationDate,
+    });
+
+    const agedOut: UsFullRequest = {
+      ...minor,
+      family: { ...minor.family, beneficiaryAge: 21, cspaAge: 20 },
+    };
+    expect(condition(agedOut, 'C25-SUPPORT-INCOME').status).toBe('NOT_MET');
+    expect(condition(agedOut, 'C33-VISA-AND-ENTRY').status).toBe('MET');
+  });
+
+  test('paper I-751 gets Monday receipt inside the window while online can file Saturday', () => {
+    const saturday = { ...conditions, simulationDate: '2026-11-21' };
+    expect(condition(saturday, 'TIME-CONDITIONS-FILING').status).toBe(
+      'NOT_MET',
+    );
+    expect(condition(saturday, 'C16-I751-FILING').status).toBe('MET');
+    expect(path(saturday)).toMatchObject({
+      status: 'FUTURE',
+      approvalStatus: 'FUTURE',
+      earliestDate: '2026-11-23',
+    });
+    const online: UsFullRequest = { ...saturday, fees: { channel: 'online' } };
+    expect(condition(online, 'TIME-CONDITIONS-FILING').status).toBe('MET');
+    expect(path(online)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      earliestDate: '2026-11-21',
+    });
+  });
+
+  test('paper receipt applies to holiday filings across paths, including I-751 waivers and I-829', () => {
+    const waiver: UsFullRequest = {
+      ...conditions,
+      conditions: {
+        marriage: { ...marriage, filing: 'hardship', waiverBasis: 'cleared' },
+      },
+    };
+    const employed = withEmployment({
+      i140FiledOn: '2026-07-01',
+      i140Status: 'approved',
+    });
+    for (const request of [
+      n,
+      spouse,
+      conditions,
+      waiver,
+      i829,
+      f,
+      employed,
+      p7,
+      h,
+      m,
+    ]) {
+      const result = path({
+        ...request,
+        simulationDate: '2026-11-26',
+        fees: { channel: 'paper' },
+      });
+      expect(result, request.pathway).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: '2026-11-27',
+      });
+    }
+    const i829NoChannel = {
+      ...i829,
+      simulationDate: '2026-11-26',
+      fees: undefined,
+    };
+    expect(path(i829NoChannel)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-27',
+    });
+    const returning: UsFullRequest = {
+      ...t,
+      simulationDate: '2026-11-26',
+      fees: { channel: 'paper' },
+    };
+    expect(path(returning)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-26',
+    });
+    expect(path(returning).approvalStatus).toBeUndefined();
+  });
+
+  test('pending I-751 permits N-400 filing while approval awaits a decision', () => {
+    const pending: UsFullRequest = {
+      ...spouse,
+      permanentResident: '2023-11-23',
+      conditional: 'marriage',
+      naturalization: {
+        ...spouse.naturalization,
+        conditionalStatusResolved: false,
+      },
+    };
+    expect(condition(pending, 'C02-LAWFUL-LPR')).toMatchObject({
+      status: 'UNKNOWN',
+      filingStatus: 'MET',
+      pendingDetails: ['PD-274'],
+    });
+    expect(path(pending)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'UNKNOWN',
+      earliestDate: time.simulationDate,
+    });
+    expect(
+      path({
+        ...pending,
+        naturalization: {
+          ...pending.naturalization,
+          conditionalStatusResolved: true,
+        },
+      }).approvalStatus,
+    ).toBe('MET');
+  });
+
+  test('passing both exams is sufficient when a requested N-648 is denied', () => {
+    const denied = withNatural({
+      disability: {
+        requested: true,
+        months: 12,
+        illegalDrugCause: false,
+        clinicianCertified: true,
+        englishWaived: 'barred',
+        civicsWaived: 'barred',
+      },
+    });
+    expect(condition(denied, 'C05-N648')).toMatchObject({
+      status: 'NOT_MET',
+      informational: true,
+    });
+    expect(condition(denied, 'C03-ENGLISH').status).toBe('MET');
+    expect(condition(denied, 'C04-CIVICS').status).toBe('MET');
+    expect(path(denied)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      earliestDate: time.simulationDate,
+    });
+    const preparing: UsFullRequest = {
+      ...denied,
+      naturalization: {
+        ...denied.naturalization,
+        english: 'preparing',
+        civics: 'preparing',
+      },
+    };
+    expect(path(preparing)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'UNKNOWN',
+      earliestDate: time.simulationDate,
+    });
+  });
+
+  test('SIJ is exempt from the status interruption bar, with independent bars still checked', () => {
+    const sij = withAdmission({
+      adjustmentBasis: 'sij',
+      legalEntry: 'without-inspection',
+      entryException: 'cleared',
+      qualifyingViolationsDays: 365,
+      otherAdjustmentBar: 'none',
+    });
+    expect(condition(sij, 'C34-ADJUSTMENT-BARS').status).toBe('MET');
+    expect(path(sij)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      earliestDate: time.simulationDate,
+    });
+    const barred: UsFullRequest = {
+      ...sij,
+      admission: { ...sij.admission, otherAdjustmentBar: 'barred' },
+    };
+    expect(condition(barred, 'C34-ADJUSTMENT-BARS').status).toBe('NOT_MET');
+    expect(path(barred)).toMatchObject({
+      status: 'NOT_MET',
+      approvalStatus: 'NOT_MET',
+    });
+    expect(path(barred).earliestDate).toBeUndefined();
+  });
+
+  test('I-485 does not restart PERM validity after a timely I-140', () => {
+    const approved = withEmployment({
+      permCertifiedOn: '2025-06-01',
+      i140FiledOn: '2025-07-01',
+      i140Status: 'approved',
+    });
+    expect(condition(approved, 'C28-OFFER-PERM').status).toBe('MET');
+    expect(path(approved)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      earliestDate: time.simulationDate,
+    });
+    const missing = withEmployment({
+      permCertifiedOn: '2025-06-01',
+      i140Status: 'approved',
+    });
+    expect(condition(missing, 'C28-OFFER-PERM')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-277'],
+    });
+    expect(path(missing)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'UNKNOWN',
+      earliestDate: time.simulationDate,
+    });
+    const late = withEmployment({
+      permCertifiedOn: '2025-06-01',
+      i140FiledOn: '2025-11-29',
+      i140Status: 'pending',
+    });
+    expect(condition(late, 'C28-OFFER-PERM').status).toBe('NOT_MET');
+    expect(path(late).approvalStatus).toBe('NOT_MET');
+  });
+
+  test('missing CSPA age leaves immediate-relative eligibility open when both charts are closed', () => {
+    const child: UsFullRequest = {
+      ...f,
+      family: {
+        ...family,
+        relationship: 'unmarried-child',
+        beneficiaryAge: 21,
+        childRelationship: 'biological',
+      },
+      admission: {
+        ...admission,
+        adjustmentBasis: 'family-preference',
+        visaAtFiling: 'unavailable',
+        visaAtDecision: 'unavailable',
+      },
+    };
+    for (const pathway of ['US-FAMILY', 'US-ADJUSTMENT'] as const) {
+      const request = { ...child, pathway };
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        status: 'UNKNOWN',
+        filingStatus: 'UNKNOWN',
+        pendingDetails: ['PD-272'],
+      });
+      expect(path(request)).toMatchObject({
+        status: 'UNKNOWN',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(path(request).earliestDate).toBeUndefined();
+    }
+    const locked = { ...child, family: { ...child.family, cspaAge: 20 } };
+    expect(condition(locked, 'C33-VISA-AND-ENTRY').status).toBe('MET');
+    expect(path(locked)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      earliestDate: time.simulationDate,
+    });
+  });
+
+  test.each([
+    ['individual', 2000000],
+    ['company', 3000000],
+  ] as const)(
+    'Gold Card adds a fixed dependent gift for a %s donor',
+    (donor, threshold) => {
+      const dependent = {
+        ...gold,
+        employment: {
+          ...gold.employment,
+          gold: {
+            ...gold.employment!.gold,
+            donor,
+            includedPeople: 2,
+            processingFundsUsd: 30000,
+          },
+        },
+      };
+      const gift = condition(dependent, 'C32-GOLD-GIFT');
+      expect(gift.status).toBe('NOT_MET');
+      expect(gift.explanation).toContain(`USD ${threshold}`);
+      expect(gift.pendingDetails).toBeUndefined();
+      expect(condition(dependent, 'C44-I140G').explanation).toContain(
+        'USD 30000',
+      );
+      expect(path(dependent)).toMatchObject({
+        status: 'NOT_MET',
+        approvalStatus: 'NOT_MET',
+      });
+      expect(path(dependent).earliestDate).toBeUndefined();
+      const funded = {
+        ...dependent,
+        employment: {
+          ...dependent.employment,
+          gold: { ...dependent.employment.gold, giftUsd: threshold },
+        },
+      };
+      expect(condition(funded, 'C32-GOLD-GIFT').status).toBe('MET');
+      expect(path(funded)).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'UNKNOWN',
+        earliestDate: time.simulationDate,
+      });
+    },
+  );
+
+  test('retrogression and decision-time humanitarian presence do not move the filing date', () => {
+    const retrogressed: UsFullRequest = {
+      ...e,
+      admission: {
+        ...e.admission,
+        visaAtDecision: 'unavailable',
+        discretion: 'pending',
+      },
+    };
+    expect(condition(retrogressed, 'C33-VISA-AND-ENTRY')).toMatchObject({
+      status: 'NOT_MET',
+      filingStatus: 'MET',
+    });
+    expect(path(retrogressed)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'NOT_MET',
+      earliestDate: time.simulationDate,
+    });
+    const unpublished: UsFullRequest = {
+      ...retrogressed,
+      admission: { ...retrogressed.admission, visaAtFiling: 'future-bulletin' },
+    };
+    expect(condition(unpublished, 'C33-VISA-AND-ENTRY')).toMatchObject({
+      status: 'NOT_MET',
+      filingStatus: 'UNKNOWN',
+      pendingDetails: ['PD-272'],
+    });
+    expect(path(unpublished)).toMatchObject({
+      status: 'UNKNOWN',
+      approvalStatus: 'NOT_MET',
+    });
+    expect(path(unpublished).earliestDate).toBeUndefined();
+    for (const status of ['refugee', 'asylee'] as const) {
+      const short: UsFullRequest = {
+        ...h,
+        humanitarian: {
+          ...human,
+          status,
+          presenceDays: 364,
+          refugeeDefinitionOrDerivative: true,
+          firmlyResettled: false,
+          discretion: 'cleared',
+        },
+      };
+      expect(condition(short, 'C41-HUMANITARIAN-PRESENCE')).toMatchObject({
+        status: 'NOT_MET',
+        filingStatus: 'NOT_APPLICABLE',
+      });
+      expect(path(short)).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'NOT_MET',
+        earliestDate: time.simulationDate,
+      });
+    }
+  });
+
+  test('initial EB-5 uses expected investment and documented projected jobs, separately from I-829', () => {
+    const facts = {
+      ...eb5.employment!.investment,
+      sustainmentYears: 0.5,
+      qualifyingJobs: 0,
+    };
+    const unproven: UsFullRequest = {
+      ...eb5,
+      employment: { ...eb5.employment, investment: facts },
+    };
+    expect(condition(unproven, 'C31-INVESTMENT-PROJECT')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-278'],
+    });
+    expect(condition(unproven, 'C31-INVESTMENT-JOBS')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-278'],
+    });
+    expect(path(unproven).earliestDate).toBeUndefined();
+    const plan: UsFullRequest = {
+      ...unproven,
+      employment: {
+        ...unproven.employment,
+        investment: {
+          ...facts,
+          expectedSustainmentYears: 2,
+          jobCreationPlan: {
+            evidence: 'cleared',
+            qualifyingJobs: 10,
+            minimumWeeklyHours: 35,
+          },
+        },
+      },
+    };
+    expect(condition(plan, 'C31-INVESTMENT-PROJECT').status).toBe('MET');
+    expect(condition(plan, 'C31-INVESTMENT-JOBS').status).toBe('MET');
+    expect(path(plan)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      earliestDate: time.simulationDate,
+    });
+    const removal = {
+      ...i829,
+      conditions: { investor: { ...investor, ...plan.employment!.investment } },
+    };
+    expect(condition(removal, 'C17-CAPITAL').status).toBe('NOT_MET');
+    expect(condition(removal, 'C17-JOBS').status).toBe('UNKNOWN');
+    expect(path(removal).status).toBe('NOT_MET');
+    expect(path(removal).earliestDate).toBeUndefined();
+  });
+
+  test('applies a paper N-336 fee waiver and cites the separate DS-117 fee item', () => {
+    const waiver: UsFullRequest = {
+      ...n,
+      fees: {
+        channel: 'paper',
+        relief: 'waiver',
+        receivesMeansTestedBenefit: true,
+      },
+    };
+    expect(condition(waiver, 'C44-N336')).toMatchObject({
+      status: 'MET',
+      explanation: 'Scheduled form fee: USD 0.',
+    });
+    expect(path(waiver)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'MET',
+      earliestDate: time.simulationDate,
+    });
+    const ds117: UsFullRequest = {
+      ...t,
+      travel: { ...travel, feeForm: 'ds117' },
+    };
+    expect(condition(ds117, 'C44-DS117')).toMatchObject({
+      status: 'MET',
+      explanation: 'Scheduled form fee: USD 180.',
+      sources: [{ srcId: 'SRC-317', locator: '22 CFR 22.1, item 35(a)' }],
+    });
+  });
+});
+
 describe('filing and evidence exceptions', () => {
   test('I-751 on Monday after a Sunday filing cutoff depends on the channel', () => {
     const caseInput = { ...conditions, permanentResident: '2024-11-23' };
     expect(path(caseInput).status).toBe('MET');
-    expect(path({ ...caseInput, fees: { channel: 'online' } }).status).toBe(
-      'NOT_MET',
-    );
+    const online: UsFullRequest = { ...caseInput, fees: { channel: 'online' } };
+    expect(path(online)).toMatchObject({
+      status: 'UNKNOWN',
+      approvalStatus: 'UNKNOWN',
+    });
+    expect(path(online).earliestDate).toBeUndefined();
+    expect(condition(online, 'TIME-CONDITIONS-FILING')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-094', 'PD-274'],
+    });
+    for (const [lateFilingExcuse, status] of [
+      ['cleared', 'MET'],
+      ['barred', 'NOT_MET'],
+    ] as const) {
+      const request = {
+        ...online,
+        conditions: { marriage: { ...marriage, lateFilingExcuse } },
+      };
+      expect(condition(request, 'TIME-CONDITIONS-FILING').status).toBe(status);
+      expect(path(request)).toMatchObject({ status, approvalStatus: status });
+      expect(path(request).earliestDate).toBe(
+        status === 'MET' ? time.simulationDate : undefined,
+      );
+    }
     expect(path({ ...caseInput, fees: undefined }).status).toBe('UNKNOWN');
   });
 

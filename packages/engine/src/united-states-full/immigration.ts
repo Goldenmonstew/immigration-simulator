@@ -1,11 +1,13 @@
 import { addDays } from '../dates';
 import { afterYears } from '../pilot';
+import { nextUsBusinessDay } from '../united-states';
 import {
   all,
   any,
   atLeast,
   atMost,
   checksFor,
+  checkStatus,
   not,
   poverty,
   reviewed,
@@ -27,8 +29,11 @@ export function immediateRelative(family?: UsFamilyAnswers): Answer {
   if (family.relationship === 'parent')
     return atLeast(family.petitionerAge, v.familyAge.value.adultSponsor);
   if (family.relationship !== 'unmarried-child') return false;
-  const age = family.cspaAge ?? family.beneficiaryAge;
-  return age === undefined ? undefined : age < v.familyAge.value.child;
+  const limit = v.familyAge.value.child;
+  if (family.cspaAge !== undefined) return family.cspaAge < limit;
+  return family.beneficiaryAge !== undefined && family.beneficiaryAge < limit
+    ? true
+    : undefined;
 }
 
 export function familyChecks(request: UsFullRequest) {
@@ -168,11 +173,13 @@ export function supportChecks(request: UsFullRequest) {
   );
   const benefit = request.family?.relationship ?? a?.relationshipToBeneficiary;
   const beneficiaryAge = request.family?.beneficiaryAge ?? a?.beneficiaryAge;
-  const qualifyingFamily =
-    benefit === 'spouse' ||
-    benefit === 'unmarried-child' ||
-    benefit === 'married-child';
-  const active = qualifyingFamily ? a?.activeDuty : false;
+  const child =
+    benefit === 'unmarried-child'
+      ? not(atLeast(beneficiaryAge, v.familyAge.value.child))
+      : benefit === undefined
+        ? undefined
+        : false;
+  const active = all(a?.activeDuty, any(benefit === 'spouse', child));
   const household = a?.household;
   const date = request.fees?.filingOn ?? request.simulationDate;
   const povertyLaw = v.poverty.value;
@@ -198,11 +205,10 @@ export function supportChecks(request: UsFullRequest) {
   const citizenAssets =
     a?.sponsorStatus === 'citizen' &&
     (benefit === 'spouse' ||
-      (qualifyingFamily && atLeast(beneficiaryAge, law.age) === true));
+      (child === true && atLeast(beneficiaryAge, law.age) === true));
   const unresolvedChildAge =
     a?.sponsorStatus === 'citizen' &&
-    qualifyingFamily &&
-    benefit !== 'spouse' &&
+    benefit === 'unmarried-child' &&
     beneficiaryAge === undefined;
   const ratio = a?.orphanException
     ? law.orphanAssets
@@ -327,10 +333,17 @@ export function employmentChecks(request: UsFullRequest) {
     ),
   ];
   if (category === 'eb2-perm' || category === 'eb3') {
-    const valid = a.permCertifiedOn
-      ? a.permCertifiedOn <= date &&
-        date <= addDays(a.permCertifiedOn, v.perm.value.validDays)
-      : undefined;
+    const priorI140 = a.i140Status !== undefined || a.i140FiledOn !== undefined;
+    const i140Date = priorI140
+      ? a.i140FiledOn
+      : request.fees?.channel === 'paper'
+        ? nextUsBusinessDay(date)
+        : date;
+    const valid =
+      a.permCertifiedOn && i140Date
+        ? a.permCertifiedOn <= i140Date &&
+          i140Date <= addDays(a.permCertifiedOn, v.perm.value.validDays)
+        : undefined;
     const wages =
       a.prevailingWageUsd !== undefined
         ? atLeast(
@@ -346,21 +359,26 @@ export function employmentChecks(request: UsFullRequest) {
           : a.perm === 'none'
             ? false
             : undefined;
+    const offer = all(
+      a.employmentOffer,
+      reviewed(a.categoryQualifications),
+      wages,
+      permRecruitment(a),
+    );
     return [
       ...based,
       check(
         'C28-OFFER-PERM',
         '永久全职工作、职业资格及 PERM',
         'Permanent full-time offer, category qualifications and PERM',
-        all(
-          a.employmentOffer,
-          reviewed(a.categoryQualifications),
-          certification,
-          wages,
-          permRecruitment(a),
-        ),
+        all(offer, certification),
         s.perm,
         'PD-277',
+        [
+          'PERM 有效期按使用它的 I-140 收件日核对。拟递交 I-140 时使用预计收件日。',
+          'Check PERM validity on the date USCIS received the I-140 using it. For a prospective I-140, use the expected receipt date.',
+        ],
+        a.i140Status === 'approved' ? checkStatus(offer) : undefined,
       ),
       check(
         'C29-ABILITY-TO-PAY',
@@ -396,19 +414,20 @@ export function employmentChecks(request: UsFullRequest) {
       atLeast(a.exceptionalEvidenceCount, law.exceptionalEvidence),
     );
     const primary = category === 'eb1a' ? original : qualification;
-    const merits =
+    const factsAtFiling =
       category === 'eb1a'
-        ? all(
-            a.continuesWorkInField,
-            a.benefitsUnitedStates,
-            reviewed(a.extraordinaryFinalMerits),
-          )
+        ? all(a.continuesWorkInField, a.benefitsUnitedStates)
         : all(
             a.niwProngs?.nationalImportance,
             a.niwProngs?.wellPositioned,
             a.niwProngs?.waiverBeneficial,
-            reviewed(a.niwDetermination),
           );
+    const merits = all(
+      factsAtFiling,
+      reviewed(
+        category === 'eb1a' ? a.extraordinaryFinalMerits : a.niwDetermination,
+      ),
+    );
     return [
       ...based,
       check(
@@ -426,12 +445,34 @@ export function employmentChecks(request: UsFullRequest) {
         merits,
         s.selfPetition,
         'PD-277',
+        undefined,
+        checkStatus(factsAtFiling),
       ),
     ];
   }
   if (category === 'eb5') {
     const law = v.eb5.value;
     const input = a.investment;
+    const expectedYears = input?.expectedSustainmentYears;
+    const sustainment =
+      expectedYears === undefined
+        ? atLeast(input?.sustainmentYears, law.sustainmentYears) || undefined
+        : atLeast(expectedYears, law.sustainmentYears);
+    const plan = input?.jobCreationPlan;
+    const jobs = any(
+      jobsCheck(input),
+      plan === 'none'
+        ? false
+        : plan &&
+            all(
+              reviewed(plan.evidence),
+              jobsCheck({
+                ...input,
+                qualifyingJobs: plan.qualifyingJobs,
+                minimumWeeklyHours: plan.minimumWeeklyHours,
+              }),
+            ),
+    );
     const current = date >= law.rulesFrom && date < law.firstAdjustment;
     const minimum =
       input?.project === 'standard'
@@ -463,7 +504,7 @@ export function employmentChecks(request: UsFullRequest) {
           reviewed(input?.lawfullySourcedFunds),
           input?.atRisk,
           input?.qualifiesAsNewEnterprise,
-          atLeast(input?.sustainmentYears, law.sustainmentYears),
+          sustainment,
           input?.regionalCenter === false
             ? true
             : input?.regionalCenter
@@ -472,26 +513,38 @@ export function employmentChecks(request: UsFullRequest) {
         ),
         s.eb5,
         'PD-278',
+        [
+          `初次申请核对资金预计持续在险至少 ${law.sustainmentYears} 年。`,
+          `The initial petition evaluates whether the capital is expected to remain at risk for at least ${law.sustainmentYears} years.`,
+        ],
       ),
       check(
         'C31-INVESTMENT-JOBS',
         '合资格岗位与工时',
         'Qualifying job creation and hours',
-        jobsCheck(input),
-        s.eb5,
+        jobs,
+        [...s.eb5, ...s.eb5JobPlan],
         'PD-278',
+        [
+          '初次申请可用已创造的合资格岗位，或有证据支持的招聘计划。',
+          'The initial petition can use qualifying jobs already created or a documented job creation plan.',
+        ],
       ),
     ];
   }
   if (category === 'gold-card') {
     const gold = a.gold;
     const law = v.gold.value;
-    const gift =
+    const principalGift =
       gold?.donor === 'individual'
         ? law.personGiftUsd
         : gold?.donor === 'company'
           ? law.companyGiftUsd
           : undefined;
+    const gift =
+      principalGift !== undefined && gold?.includedPeople
+        ? principalGift + (gold.includedPeople - 1) * law.dependentGiftUsd
+        : undefined;
     const processingFunds = gold?.includedPeople
       ? atLeast(
           gold.processingFundsUsd,
@@ -513,7 +566,7 @@ export function employmentChecks(request: UsFullRequest) {
           reviewed(gold?.fundsAndWire),
         ),
         s.gold,
-        'PD-266',
+        'PD-276',
       ),
       check(
         'C32-GOLD-GIFT',
@@ -522,14 +575,18 @@ export function employmentChecks(request: UsFullRequest) {
         all(
           gift === undefined ? undefined : atLeast(gold?.giftUsd, gift),
           processingFunds,
-          gold?.includedPeople === 1 ? true : undefined,
         ),
         s.gold,
-        'PD-266',
-        [
-          `个人赠与 USD ${law.personGiftUsd} 或企业代捐 USD ${law.companyGiftUsd}，另付每人 USD ${law.feePerPersonUsd}。受养人额外赠与待确认。`,
-          `The individual gift is USD ${law.personGiftUsd} or the corporate gift is USD ${law.companyGiftUsd}, plus USD ${law.feePerPersonUsd} per person. Any additional dependent gift remains unresolved.`,
-        ],
+        'PD-276',
+        gift === undefined
+          ? [
+              `主申请人个人赠与 USD ${law.personGiftUsd} 或企业代捐 USD ${law.companyGiftUsd}，每位随行配偶或子女另加 USD ${law.dependentGiftUsd}，处理费为每人 USD ${law.feePerPersonUsd}。`,
+              `The principal's gift is USD ${law.personGiftUsd} for self-petitioners or USD ${law.companyGiftUsd} for corporate petitioners. Add USD ${law.dependentGiftUsd} per accompanying spouse or child and a processing fee of USD ${law.feePerPersonUsd} per person.`,
+            ]
+          : [
+              `按赠与方及人数，需赠与 USD ${gift}，另付每人 USD ${law.feePerPersonUsd} 处理费。`,
+              `The donor type and number of applicants require a gift of USD ${gift} and a processing fee of USD ${law.feePerPersonUsd} per person.`,
+            ],
       ),
       check(
         'C32-GOLD-ALLOCATION',
@@ -538,6 +595,8 @@ export function employmentChecks(request: UsFullRequest) {
         undefined,
         s.gold,
         'PD-266',
+        undefined,
+        'NOT_APPLICABLE',
       ),
     ];
   }

@@ -216,7 +216,16 @@ const pm = (
 /** Primary sources for the full assessment, including qualitative conditions. */
 export const unitedStatesFullSources = {
   age: [usc('SRC-290', '1445', '(b)')],
-  lpr: [usc('SRC-290', '1429'), pm('SRC-081', 12, 'D', 2)],
+  lpr: [
+    usc('SRC-290', '1429'),
+    pm('SRC-081', 12, 'D', 2),
+    source(
+      'SRC-082',
+      'N-400 Instructions p8, Conditional Permanent Residents',
+      'https://www.uscis.gov/sites/default/files/document/forms/n-400instr.pdf',
+    ),
+  ],
+  paperReceipt: [pm('SRC-081', 1, 'B', 6, '(E)')],
   english: [
     usc('SRC-291', '1423', '(a)–(b)'),
     pm('SRC-292', 12, 'E', 2, '(A)–(C)'),
@@ -231,7 +240,7 @@ export const unitedStatesFullSources = {
   ],
   disability: [
     usc('SRC-291', '1423', '(b)(1)'),
-    pm('SRC-292', 12, 'E', 3, '(B)–(E)'),
+    pm('SRC-292', 12, 'E', 3, '(B)–(E), (I)(1)'),
   ],
   gmc: [
     usc('SRC-079', '1427', '(a)(3), (e)'),
@@ -275,7 +284,7 @@ export const unitedStatesFullSources = {
   oath: [usc('SRC-296', '1448', '(a)–(b)'), pm('SRC-296', 12, 'J', 3)],
   spouse: [
     usc('SRC-079', '1430', '(a)'),
-    pm('SRC-081', 12, 'G', 2, '(A)–(C)'),
+    pm('SRC-290', 12, 'G', 2, '(A)–(C)'),
     pm('SRC-081', 12, 'G', 3, '(E)'),
   ],
   district: [
@@ -332,6 +341,11 @@ export const unitedStatesFullSources = {
   sponsor: [
     usc('SRC-303', '1183a', '(a), (f)'),
     source('SRC-303', '8 CFR 213a.1; 213a.2(c)(1), (c)(2)'),
+    source(
+      'SRC-303',
+      'I-864 Instructions pp8, 14, 16',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-864instr.pdf',
+    ),
   ],
   supportExemption: [
     source('SRC-303', '8 CFR 213a.2(a)(2)(i)–(ii)'),
@@ -342,6 +356,7 @@ export const unitedStatesFullSources = {
       'SRC-305',
       '20 CFR 656.10(d), 656.12(b), 656.17(e), 656.30(b), 656.40',
     ),
+    pm('SRC-305', 6, 'E', 6, '(B)(1)'),
     usc('SRC-302', '1153', '(b)(2)–(3)'),
   ],
   pay: [
@@ -354,11 +369,18 @@ export const unitedStatesFullSources = {
     pm('SRC-306', 6, 'F', 5, '(D)'),
   ],
   eb5: [usc('SRC-302', '1153', '(b)(5)(A)–(D), (F)'), pm('SRC-307', 6, 'G', 2)],
+  eb5JobPlan: [
+    source(
+      'SRC-307',
+      'I-526 Instructions p9, Item 5 (Job Creation)',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-526instr.pdf',
+    ),
+  ],
   gold: [
     source('SRC-308', 'EO 14351 §§ 2–3'),
     source(
       'SRC-308',
-      'I-140G Instructions pp1–2',
+      'I-140G Instructions pp1–2; p3, Items 1–3',
       'https://www.uscis.gov/sites/default/files/document/forms/i-140ginstr.pdf',
     ),
   ],
@@ -366,7 +388,10 @@ export const unitedStatesFullSources = {
     usc('SRC-309', '1255', '(a), (h), (i)'),
     pm('SRC-309', 7, 'A', 6),
   ],
-  adjustmentBars: [usc('SRC-309', '1255', '(c), (d), (k), (n)')],
+  adjustmentBars: [
+    usc('SRC-309', '1255', '(c), (d), (k), (n)'),
+    source('SRC-309', '8 CFR 245.1(b)(4)–(6), (10)'),
+  ],
   discretion: [
     source('SRC-310', 'PM-602-0199 pp2–5, fn24'),
     pm('SRC-310', 7, 'A', 10),
@@ -418,6 +443,8 @@ export const unitedStatesFullSources = {
     ),
   ],
   consularFee: [source('SRC-317', '22 CFR 22.1, items 32–34')],
+  ds117Fee: [source('SRC-317', '22 CFR 22.1, item 35(a)')],
+  n336Fee: [source('SRC-316', 'Form G-1055 edition 11/19/26, p30, N-336')],
   eb5Fee: [source('SRC-318', '91 FR 61940 (DATES), 61984–61985 (8 CFR 106.2)')],
   hr1Fee: [
     source('SRC-319', '91 FR 22952 and 91 FR 62541, DATES and fee tables'),
@@ -623,6 +650,7 @@ export const unitedStatesFull2026_11 = {
       {
         personGiftUsd: 1000000,
         companyGiftUsd: 2000000,
+        dependentGiftUsd: 1000000,
         feePerPersonUsd: 15000,
       },
       s.gold,
@@ -712,7 +740,7 @@ export const unitedStatesFull2026_11 = {
         i864: 120,
         ds117: 180,
       },
-      s.consularFee,
+      [...s.consularFee, ...s.ds117Fee],
     ),
     eb5Fees: parameter(
       {

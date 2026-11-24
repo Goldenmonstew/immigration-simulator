@@ -7,6 +7,7 @@ import {
   atLeast,
   atMost,
   checksFor,
+  checkStatus,
   not,
   reviewed,
   s,
@@ -94,6 +95,24 @@ export function conditionChecks(request: UsFullRequest) {
       ? married <= lpr &&
         lpr < afterYears(married, legacy.conditionalYears.value)
       : undefined;
+  const filing = all(
+    not(a?.finalRemovalOrder),
+    a?.filing === 'joint'
+      ? a.spouseJoins
+      : a?.filing === 'separate-child'
+        ? request.separatePetition === true ||
+          !!(
+            request.principalConditional &&
+            request.permanentResident &&
+            daysBetween(
+              request.principalConditional,
+              request.permanentResident,
+            ) > legacy.childConcurrentDays.value
+          )
+        : a?.filing
+          ? reviewed(a.waiverBasis)
+          : undefined,
+  );
   return [
     check(
       'C15-BONA-FIDE-MARRIAGE',
@@ -112,31 +131,14 @@ export function conditionChecks(request: UsFullRequest) {
       'C16-I751-FILING',
       'I-751 联名、单独递交或豁免',
       'I-751 joint filing, separate child petition or waiver',
-      all(
-        not(a?.finalRemovalOrder),
-        a?.filing === 'joint'
-          ? a.spouseJoins
-          : a?.filing === 'separate-child'
-            ? request.separatePetition === true ||
-              !!(
-                request.principalConditional &&
-                request.permanentResident &&
-                daysBetween(
-                  request.principalConditional,
-                  request.permanentResident,
-                ) > legacy.childConcurrentDays.value
-              )
-            : a?.filing
-              ? reviewed(a.waiverBasis)
-              : undefined,
-        reviewed(a?.interviewRequirement),
-      ),
+      all(filing, reviewed(a?.interviewRequirement)),
       s.marriageWaiver,
       'PD-274',
       [
         '死亡、最终离婚或撤销、家暴或极端残忍、以及条件居留期间出现的极端困难各有不同举证条件。',
         'Death, final divorce or annulment, battery or extreme cruelty, and extreme hardship arising during conditional residence have distinct evidence requirements.',
       ],
+      checkStatus(filing),
     ),
   ];
 }

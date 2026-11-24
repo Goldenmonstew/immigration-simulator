@@ -144,10 +144,10 @@
 | SRC-125 | GUIDANCE | 里斯本检察院（PGD Lisboa）编纂版（非官方公报文本，仅交叉核对）：Decreto Regulamentar 84/2007（列至 DR 1/2024）art. 63 续期；Código Civil art. 279、296 期间计算 | https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis ；https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=775&tabela=leis | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-pgdlisboa-dr-84-2007-consolidado.html`（sha256 `8c0509aba4b9cf5f98fcb0f0f39742d91917e6500626ddd2302cd4a5f6a1f49f`）；`policy-sources/2026-11-22-pt-pgdlisboa-codigo-civil.html`（sha256 `1134e2bc2feb5ca33aaafd4e7f6c34d55b847ec3f389d8ea9cc1c7613eeaf538`） | archived |
 | SRC-126 | GUIDANCE | AIMA（移民与庇护署）页面：投资居留许可 ARI（art. 90-A）、永久居留（art. 80）、欧盟长期居民 ERLD（art. 125）；《Esclarecimento: Direito de Residência》（2025-10-17） | https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a ；https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o ；https://aima.gov.pt/pt/viver/aquisicao-do-estatuto-de-residente-de-longa-duracao-erld-art-125-o ；https://aima.gov.pt/pt/noticias/direito-de-residencia | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-aima-ari-art-90-a.html`（sha256 `759f939a21c33b9a228b1f85146c37b65db06127d8f3c6378474fd9465197d37`）；`policy-sources/2026-11-22-pt-aima-ar-permanente-art-80.html`（sha256 `739864b9a7789f04abe2502b87d991cd6b89bee22b381518a73a0aa6a8ad04ef`）；`policy-sources/2026-11-22-pt-aima-erld-art-125.html`（sha256 `188f74257278bb429fe5977e8ee73c6fddeb3c7fc966f0ab1756ad553c4f9f5e`）；`policy-sources/2025-10-17-pt-aima-direito-de-residencia.html`（sha256 `93937c52620f1a21cf5acce152f5850131b5483b073ef67ed4d9dd07785cb036`） | archived |
 | SRC-127 | GUIDANCE | 葡萄牙政府关于新国籍法的说明：司法部新闻《Lei da Nacionalidade: novas regras entram em vigor a 19 de maio》（2026-05-19）；司法部入籍指南《Reside legalmente em Portugal há pelo menos 5 anos》（2026-11-22 抓取，仍按旧法写 5 年，已过时）；部长会议公报（2026-10-29，第 2 项通过国籍条例 Decreto-Lei） | https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio ；https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/Reside-legalmente-em-Portugal-ha-pelo-menos-5-anos ；https://www.portugal.gov.pt/pt/gc25/governo/comunicados-do-conselho-de-ministros/comunicado-do-conselho-de-ministros-de-29-de-outubro-de-2026 | 见标题 | 2026-11-22 | `policy-sources/2026-05-19-pt-justica-noticia-lei-nacionalidade.html`（sha256 `667814f2bcfdc424689f8bd24dcf4378abfdd7124d8f2402a30116a395183c4a`）；`policy-sources/2026-11-22-pt-justica-guia-reside-5-anos.html`（sha256 `1eb2c2027170a3a4f7d5f4458e08e7ac42096c08fb12b3220d3e4708cfc702d4`）；`policy-sources/2026-10-29-pt-gov-comunicado-cm.html`（sha256 `7e5d433eed2dba88a608d27a9712b2966e14637a3f0601e31e50ddd8fffd2f1e`） | archived |
-| SRC-290 | LAW | 入籍年龄、合法取得永居及归化撤销 | https://uscode.house.gov/us/usc/t8/s1445/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-10-us-usc-8usc1445.html`（sha256 `812bfb329c81b15dcfc5d90996be0e6f1b6226974dafeb9bd9de67e45498c3cf`）；`policy-sources/2026-11-10-us-usc-8usc1429.html`（sha256 `ed99af9c919475e4c7848626d02266b8745be436dd0d8dd54de95b738f52cd7e`）；`policy-sources/2026-11-10-us-usc-8usc1451.html`（sha256 `f68f393b8e7ce48fefcb205b09f21833c339db2417d92fc0101453adb3ad5196`） | archived |
+| SRC-290 | LAW | 入籍年龄、合法取得永居及归化撤销 | https://uscode.house.gov/us/usc/t8/s1445/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-10-us-usc-8usc1445.html`（sha256 `812bfb329c81b15dcfc5d90996be0e6f1b6226974dafeb9bd9de67e45498c3cf`）；`policy-sources/2026-11-10-us-usc-8usc1429.html`（sha256 `ed99af9c919475e4c7848626d02266b8745be436dd0d8dd54de95b738f52cd7e`）；`policy-sources/2026-11-10-us-usc-8usc1451.html`（sha256 `f68f393b8e7ce48fefcb205b09f21833c339db2417d92fc0101453adb3ad5196`）；`policy-sources/2026-11-21-us-pm-v12-g-ch2.html`（sha256 `2ca4af382f59969a32662291c54236eb7651523f8c45086247156888b671f577`） | archived |
 | SRC-291 | LAW | 英语、公民知识及医学例外 | https://uscode.house.gov/us/usc/t8/s1423/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1423.html`（sha256 `48f4fcb1ff4ac6807537b67410f7aa5973434419355b2c7cde915dcd5bc8bb47`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part312.xml`（sha256 `769a5406055d33e6645b82cc342587a57515abd961946db52af6805ea1f3ad65`） | archived |
 | SRC-292 | GUIDANCE | USCIS 入籍考试、N-648 与新题库 | https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-2 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-pm-v12-e-ch2.html`（sha256 `f2f36e7645ec37677311d781d9ae635f59b8318dd311d42d79599ea2fab501ca`）；`policy-sources/2026-11-23-us-pm-v12-e-ch3.html`（sha256 `3d9711d265eb01289bb5da7e5e7610bb082e9e93a1aa5eb37f327b08b1ee0429`）；`policy-sources/2025-10-20-us-pa-civics-test.pdf`（sha256 `f6637683b416c59230c926832bf1d4c7a82aff98dd01467c62ffb9ef0a1ecb65`） | archived |
-| SRC-293 | GUIDANCE | USCIS 良好品格、整体审查及公共福利备忘录 | https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-2 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-pm-v12-f-ch2.html`（sha256 `073798278a2c8a5b740cc7030731baf4ffe9e497cc2716087ed1e0dd3ab866d5`）；`policy-sources/2026-11-23-us-pm-v12-f-ch4.html`（sha256 `863a9ee9d707edfc2fc199ba10adeca2d1aeaabf76e77e989388b276e4a276b0`）；`policy-sources/2026-11-23-us-pm-v12-f-ch5.html`（sha256 `6a8a5171072dcaffb39d0dd1d6e49f7bc3ae97278261c0581665b940d6acc47c`）；`policy-sources/2025-08-15-us-pm-602-0188-gmc.pdf`（sha256 `ef541130d34b923dde90d365e9a14fed32672212d5dcbe1d0721ec10b62f0551`） | archived |
+| SRC-293 | GUIDANCE | USCIS 良好品格、整体审查及公共福利备忘录 | https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-2 | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-pm-v12-f-ch2.html`（sha256 `073798278a2c8a5b740cc7030731baf4ffe9e497cc2716087ed1e0dd3ab866d5`）；`policy-sources/2026-11-23-us-pm-v12-f-ch4.html`（sha256 `863a9ee9d707edfc2fc199ba10adeca2d1aeaabf76e77e989388b276e4a276b0`）；`policy-sources/2026-11-23-us-pm-v12-f-ch5.html`（sha256 `6a8a5171072dcaffb39d0dd1d6e49f7bc3ae97278261c0581665b940d6acc47c`）；`policy-sources/2025-08-15-us-pm-602-0188-gmc.pdf`（sha256 `ef541130d34b923dde90d365e9a14fed32672212d5dcbe1d0721ec10b62f0551`）；`policy-sources/2026-11-04-us-pm-602-0201-gmc-benefits.pdf`（sha256 `5f34559ce5cf120ba08b9811fbf08379438319d287857a16cc9bbe10d808ff9d`） | archived |
 | SRC-294 | LAW | 宪法依附、党籍与兵役豁免禁令 | https://uscode.house.gov/us/usc/t8/s1424/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1424.html`（sha256 `374a4c8dd7539fca68f9e6ef018d13a45a8928b65abbefbb4cafd3db36903f6f`）；`policy-sources/2026-11-23-us-usc-8usc1425.html`（sha256 `53d0c9146dc3a4bfa08a5435b17b788570a017c2bdde31d5de2c83a7f3277c6f`）；`policy-sources/2026-11-23-us-usc-8usc1426.html`（sha256 `ea2f44f507072c3d934ea78464d051066a6dd8a4372c1568b54c2a0b69c153e6`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part313.xml`（sha256 `98f920ebc91bf18fd8e81ee08e079cd14293377edf2df8b9fecead0a1666d4be`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part315.xml`（sha256 `5df6edbeb2efd7dd4b63d2f060b3996d0d2f3cf82857e1fbc08adf6e7d55e98e`） | archived |
 | SRC-295 | GUIDANCE | Selective Service 登记与入籍 | https://www.sss.gov/register/who-needs-to-register/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-sss-who-must-register.html`（sha256 `94f7f6d6318f9e1b956d6a899d83cce2f7d44bad4497ff4a39d6aa54748ccd7c`）；`policy-sources/2026-11-23-us-pm-v12-d-ch7.html`（sha256 `017ecdded969314bda67bd1cdbce9057ddca678ba49f7eb10b4dcfc6f5a8b5f1`）；`policy-sources/2026-11-23-us-usc-50usc3802.html`（sha256 `da35a0d174dc68d2ce22c99b0f4b87010c913c9dc317a31d47ded84ab5fc95f8`） | archived |
 | SRC-296 | LAW | 入籍宣誓及修正 | https://uscode.house.gov/us/usc/t8/s1448/ | 见各快照 | 2026-11-23 | `policy-sources/2026-11-23-us-usc-8usc1448.html`（sha256 `3e74e05a70f488c15f1e1586b30cdddd41ead21b4790210015c8be8a34d3f805`）；`policy-sources/2026-11-19-us-ecfr-8cfr-part337.xml`（sha256 `ce47cbc011966780b9a05f37817aaeba973641ea1faf375a0e493dc68d58f874`）；`policy-sources/2026-11-23-us-pm-v12-j-ch2.html`（sha256 `ab8cb74fb2559f09ba5df79eb2efbd8d54968545e4d07ce99b81e531ca57aee3`）；`policy-sources/2026-11-23-us-pm-v12-j-ch3.html`（sha256 `2279a1c224a364b6aafeeb71999b0ac84ebb487cd8c9cf0cad944def43fd11dd`） | archived |
@@ -1081,6 +1081,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-10-us-usc-8usc1445.html` → <https://uscode.house.gov/us/usc/t8/s1445/>
 - `policy-sources/2026-11-10-us-usc-8usc1429.html` → <https://uscode.house.gov/us/usc/t8/s1429/>
 - `policy-sources/2026-11-10-us-usc-8usc1451.html` → <https://uscode.house.gov/us/usc/t8/s1451/>
+- `policy-sources/2026-11-21-us-pm-v12-g-ch2.html` → <https://www.uscis.gov/policy-manual/volume-12-part-g-chapter-2>，(A)–(C) 区分配偶入籍的递交条件与持续至宣誓的条件。
 
 ## SRC-291 英语、公民知识及医学例外
 
@@ -1092,6 +1093,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-pm-v12-e-ch2.html` → <https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-2>
 - `policy-sources/2026-11-23-us-pm-v12-e-ch3.html` → <https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-3>
 - `policy-sources/2025-10-20-us-pa-civics-test.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20251020-CivicsTest.pdf>
+- 12 USCIS-PM E.3(I)(1) 的 *Passing the English and Civics Requirements* 说明 N-648 不充分后通过两项考试的处理。
 
 ## SRC-293 USCIS 良好品格、整体审查及公共福利备忘录
 
@@ -1099,6 +1101,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-pm-v12-f-ch4.html` → <https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-4>
 - `policy-sources/2026-11-23-us-pm-v12-f-ch5.html` → <https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-5>
 - `policy-sources/2025-08-15-us-pm-602-0188-gmc.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-alerts/08.15.2025-Restoring_a_Rigorous_Holistic_and_Comprehensive_Good_Moral_Character_Evaluation_Standard-PM-602-0188.pdf>
+- `policy-sources/2026-11-04-us-pm-602-0201-gmc-benefits.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-alerts/11.04.2026-GMC_PublicBenefits_PM-602-0201.pdf>，pp2–5。
 
 ## SRC-294 宪法依附、党籍与兵役豁免禁令
 
@@ -1165,6 +1168,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-usc-8usc1183a.html` → <https://uscode.house.gov/us/usc/t8/s1183a/>
 - `policy-sources/2026-11-19-us-ecfr-8cfr-part213a.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=213a>
 - `policy-sources/2026-11-23-us-i864instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-864instr.pdf>
+- I-864 Instructions pp8、14 的服役收入门槛只适用配偶或未婚未满 21 岁子女（INA §101(b)(1)）；p16 载资产补足倍数。
 
 ## SRC-304 HHS 贫困指引及 USCIS 地区表
 
@@ -1176,6 +1180,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-19-us-ecfr-20cfr-part656.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-20.xml?part=656>
 - `policy-sources/2026-11-23-us-pm-v6-e-ch4.html` → <https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4>
 - `policy-sources/2026-11-23-us-pm-v6-e-ch6.html` → <https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-6>
+- 20 CFR §656.30(b)(1) 和 6 USCIS-PM E.6(B)(1) 按用于 I-140 的收件日计算 PERM 有效期。
 
 ## SRC-306 职业分类与 EB-1A、EB-2 NIW 证据
 
@@ -1188,12 +1193,14 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-pm-v6-g-ch4.html` → <https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-4>
 - `policy-sources/2026-11-23-us-i526instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-526instr.pdf>
 - `policy-sources/2026-11-23-us-i526einstr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-526einstr.pdf>
+- I-526 Instructions p9 Item 5 允许以有依据的商业计划证明将创造合资格岗位。INA §203(b)(5)(A)(i) 规定预计持续投资期。
 
 ## SRC-308 Gold Card 行政令与 I-140G
 
 - `policy-sources/2025-09-24-us-fr-eo14351-gold-card.html` → <https://www.federalregister.gov/documents/full_text/html/2025/09/24/2025-18602.html>
 - `policy-sources/2026-11-23-us-i140g.html` → <https://www.uscis.gov/i-140g>
 - `policy-sources/2026-11-23-us-i140ginstr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-140ginstr.pdf>
+- I-140G Instructions p3 Items 1–3 规定个人或企业主申请的赠与额，以及每位随行配偶或子女各加 USD 1,000,000。
 
 ## SRC-309 境内调整身份、签证名额与例外
 
@@ -1202,6 +1209,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-pm-v7-a-ch6.html` → <https://www.uscis.gov/policy-manual/volume-7-part-a-chapter-6>
 - `policy-sources/2026-11-23-us-visa-availability.html` → <https://www.uscis.gov/green-card/green-card-processes-and-procedures/visa-availability-and-priority-dates>
 - `policy-sources/2026-11-23-us-i485instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf>
+- 8 CFR §245.1(b)(4)–(6)、(10) 中的 SIJ 例外适用于身份中断和相关就业违规，其他禁令仍须核对。
 
 ## SRC-310 境内调整身份的裁量
 
@@ -1252,10 +1260,12 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-g1055.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/g-1055.pdf>
 - `policy-sources/2026-11-23-us-i912instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-912instr.pdf>
 - `policy-sources/2026-11-19-us-ecfr-8cfr-part106.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=106>
+- G-1055 p30 的 N-336 行列明适格 I-912 豁免为 USD 0。
 
 ## SRC-317 领馆办理费用
 
 - `policy-sources/2026-11-19-us-ecfr-22cfr22.1.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-22.xml?section=22.1>
+- 22 CFR §22.1 第 35(a) 项 *Determining Returning Resident Status* 对应 DS-117，费用 USD 180。第 32–34 项对应其他移民签证服务。
 
 ## SRC-318 EB-5 费用生效调整
 
@@ -1268,7 +1278,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ### 任务 86 交叉核对
 
-- SRC-079 复用 INA 101(a)(13)(C)、101(f)、216、216A、316、319(a)。SRC-080 复用 8 CFR 211.1、211.3、216、316、319、334。SRC-081 卷 12 G.2(A)–(C) 区分递交日前同住及持续到宣誓的有效婚姻与配偶公民身份。SRC-082 复用原 N-400 与 I-751 时间来源。
+- SRC-079 复用 INA 101(a)(13)(C)、101(f)、216、216A、316、319(a)。SRC-080 复用 8 CFR 211.1、211.3、216、316、319、334。SRC-290 卷 12 G.2(A)–(C) 区分递交日前同住及持续到宣誓的有效婚姻与配偶公民身份。SRC-082 复用原 N-400 与 I-751 时间来源。
 - SRC-298 的取消条件手册为卷 6 G.7，G.5 是区域中心项目表。旧投资期规则与 RIA 后投资规则分别按原始移民申请递交日使用。
 - SRC-304 使用 HHS 地区指引与 USCIS 地区表。I-864P 同页首个未标地区表的旧值未采用。
 - SRC-312 使用 USCIS 与联邦法规快照确认体检和疫苗要求。CDC 技术指引的独立原始抓取受阻，个别年龄／剂量交医师核对。

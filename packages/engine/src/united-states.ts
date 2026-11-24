@@ -88,6 +88,13 @@ function federalHoliday(d: IsoDate): boolean {
   });
 }
 
+/** First day on or after the requested date on which USCIS receives paper filings. */
+export function nextUsBusinessDay(d: IsoDate): IsoDate {
+  while (weekday(d) === 0 || weekday(d) === 6 || federalHoliday(d))
+    d = addDays(d, 1);
+  return d;
+}
+
 export function evaluateUnitedStates(req: UsRequest): UsResult {
   const L = textFor(req);
   const sim = req.simulationDate;
@@ -539,17 +546,11 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       // USCIS takes paper filings only on business days; one due on a
       // Saturday, Sunday or federal holiday is on time the next business day
       // (PM 1 B.6(E); 5 U.S.C. 6103).
-      const businessDay = (d: IsoDate) =>
-        weekday(d) !== 0 && weekday(d) !== 6 && !federalHoliday(d);
-      const nextBusinessDay = (d: IsoDate) => {
-        while (!businessDay(d)) d = addDays(d, 1);
-        return d;
-      };
-      const paperUntil = nextBusinessDay(closes);
+      const paperUntil = nextUsBusinessDay(closes);
       // The I-751 can also be filed online, any day; the I-829 only on paper
       // (SRC-082).
       const paperOnly = form === 'I-829';
-      const first = paperOnly ? nextBusinessDay(opens) : opens;
+      const first = paperOnly ? nextUsBusinessDay(opens) : opens;
       const last = paperOnly ? paperUntil : closes;
       const earliest =
         sim > last
@@ -557,7 +558,7 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
           : sim <= first
             ? first
             : paperOnly
-              ? nextBusinessDay(sim)
+              ? nextUsBusinessDay(sim)
               : sim;
       const status: PilotStatus =
         earliest === sim

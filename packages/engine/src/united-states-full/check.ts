@@ -3,14 +3,20 @@ import {
   unitedStatesFullSources,
 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
-import type { CountryCheck } from '../country-result';
 import { textFor } from '../rule';
-import type { UsFullRequest, UsHousehold, UsReview } from './types';
+import type {
+  UsFullCheck,
+  UsFullRequest,
+  UsHousehold,
+  UsReview,
+} from './types';
 
 export const v = unitedStatesFull2026_11.values;
 export const s = unitedStatesFullSources;
 
 export type Answer = boolean | undefined;
+export const checkStatus = (answer: Answer): UsFullCheck['status'] =>
+  answer === undefined ? 'UNKNOWN' : answer ? 'MET' : 'NOT_MET';
 export const reviewed = (value?: UsReview): Answer =>
   value === 'cleared' ? true : value === 'barred' ? false : undefined;
 export const not = (value: Answer): Answer =>
@@ -44,10 +50,11 @@ export function checksFor(request: UsFullRequest) {
     sources: SourceRef[],
     pending?: string | string[],
     detail?: [zh: string, en: string],
-  ): CountryCheck => ({
+    filingStatus?: UsFullCheck['filingStatus'],
+  ): UsFullCheck => ({
     id: `US-${id}`,
     title: L(zh, en),
-    status: answer === undefined ? 'UNKNOWN' : answer ? 'MET' : 'NOT_MET',
+    status: checkStatus(answer),
     explanation: detail
       ? L(...detail)
       : answer === undefined
@@ -65,7 +72,8 @@ export function checksFor(request: UsFullRequest) {
               'The answers indicate this requirement is unmet.',
             ),
     sources,
-    ...(answer === undefined && pending
+    ...(filingStatus ? { filingStatus } : {}),
+    ...((answer === undefined || filingStatus === 'UNKNOWN') && pending
       ? { pendingDetails: typeof pending === 'string' ? [pending] : pending }
       : {}),
   });

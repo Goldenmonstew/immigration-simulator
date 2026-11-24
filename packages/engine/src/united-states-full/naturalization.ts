@@ -7,6 +7,7 @@ import {
   atLeast,
   atMost,
   checksFor,
+  checkStatus,
   not,
   reviewed,
   s,
@@ -248,6 +249,17 @@ export function naturalizationChecks(request: UsFullRequest) {
         : a?.oath
           ? reviewed(a.oathApproval)
           : undefined;
+  const conditionsExempt = request.conditional === 'none' || hostilities;
+  const filingLpr = all(
+    military && !hostilities ? true : lpr,
+    noFinalOrder,
+    conditionsExempt || a?.conditionalStatusResolved !== undefined || undefined,
+  );
+  const spouseAtFiling = all(
+    a?.spouse?.validMarriage,
+    reviewed(a?.spouse?.livedTogetherRequiredPeriod),
+    a?.spouse?.spouseCitizenRequiredPeriod,
+  );
   return [
     check(
       'C01-AGE',
@@ -273,16 +285,17 @@ export function naturalizationChecks(request: UsFullRequest) {
       all(
         lpr,
         noFinalOrder,
-        request.conditional === 'none' || hostilities
+        conditionsExempt || a?.conditionalStatusResolved === true
           ? true
-          : a?.conditionalStatusResolved,
+          : undefined,
       ),
       s.lpr,
       'PD-274',
       [
-        '核对原始绿卡取得是否合法、条件是否已移除，以及递解记录。军人例外按服役路径评估。',
-        'Check lawful original admission, removal of any conditions and removal proceedings. Military exceptions depend on the service basis.',
+        '核对合法取得永居及递解记录。条件身份仍有效且移除条件申请待决时，可以递交 N-400。除适用例外外，USCIS 须在核准 N-400 前处理移除条件。',
+        'Check lawful permanent residence and removal proceedings. A pending petition to remove conditions with status maintained permits N-400 filing. Unless an exception applies, USCIS must resolve the conditions before approving N-400.',
       ],
+      checkStatus(filingLpr),
     ),
     check(
       'C03-ENGLISH',
@@ -295,6 +308,7 @@ export function naturalizationChecks(request: UsFullRequest) {
         `需要通过现场评估，或符合年龄／居美年限或医学例外。读、写各最多 ${v.englishTest.value.sentences} 句，分别答对 ${v.englishTest.value.correct} 句。`,
         `Meet the interview standard or an age/residence or medical exception. Reading and writing each require ${v.englishTest.value.correct} correct sentence out of up to ${v.englishTest.value.sentences}.`,
       ],
+      'NOT_APPLICABLE',
     ),
     check(
       'C04-CIVICS',
@@ -312,19 +326,23 @@ export function naturalizationChecks(request: UsFullRequest) {
             `适用题库 ${test.bank} 题，最多问 ${test.asked} 题，答对 ${test.correct} 题。简版资格未确认时仍需核实年龄和在美永居年限。`,
             `The indicated bank has ${test.bank} questions, with up to ${test.asked} asked and ${test.correct} correct required. Confirm age and LPR residence for special consideration.`,
           ],
+      'NOT_APPLICABLE',
     ),
-    check(
-      'C05-N648',
-      '医学残障考试例外',
-      'Medical disability exception for testing',
-      disabilityClaim(request),
-      s.disability,
-      'PD-275',
-      [
-        `申请 N-648 须由合资格医师或临床心理学家证明障碍持续或预计持续至少 ${v.disabilityMonths.value} 个月，并由 USCIS 确定免试范围。`,
-        `For N-648, a qualified physician or clinical psychologist must certify a qualifying impairment lasting or expected to last at least ${v.disabilityMonths.value} months. USCIS decides which tests are excused.`,
-      ],
-    ),
+    {
+      ...check(
+        'C05-N648',
+        '医学残障考试例外',
+        'Medical disability exception for testing',
+        disabilityClaim(request),
+        s.disability,
+        'PD-275',
+        [
+          `申请 N-648 须由合资格医师或临床心理学家证明障碍持续或预计持续至少 ${v.disabilityMonths.value} 个月，并由 USCIS 确定免试范围。`,
+          `For N-648, a qualified physician or clinical psychologist must certify a qualifying impairment lasting or expected to last at least ${v.disabilityMonths.value} months. USCIS decides which tests are excused.`,
+        ],
+      ),
+      informational: true as const,
+    },
     check(
       'C06-GMC',
       '良好品格全貌审查',
@@ -400,6 +418,7 @@ export function naturalizationChecks(request: UsFullRequest) {
         '可用郑重声明。持械或非战斗军役誓词的修正、医学免誓须审定；文职国家工作誓词不可单独删去。',
         'An affirmation is allowed. Modifications for arms or noncombatant service and a disability waiver require approval. The civilian national service clause cannot be removed on its own.',
       ],
+      'NOT_APPLICABLE',
     ),
     ...(spouse
       ? [
@@ -407,18 +426,14 @@ export function naturalizationChecks(request: UsFullRequest) {
             'C13-MARITAL-UNION',
             '有效婚姻、配偶公民身份和共同生活',
             'Valid marriage, spouse’s citizenship and marital union',
-            all(
-              a?.spouse?.validMarriage,
-              reviewed(a?.spouse?.livedTogetherRequiredPeriod),
-              a?.spouse?.spouseCitizenRequiredPeriod,
-              a?.spouse?.marriageAndCitizenshipThroughOath,
-            ),
+            all(spouseAtFiling, a?.spouse?.marriageAndCitizenshipThroughOath),
             s.spouse,
             'PD-274',
             [
               '同住期算到递交日。婚姻和配偶公民身份须持续至宣誓。',
               'The marital-union period runs to filing. The marriage and the spouse’s U.S. citizenship must continue through the oath.',
             ],
+            checkStatus(spouseAtFiling),
           ),
         ]
       : []),
@@ -439,6 +454,8 @@ export function naturalizationChecks(request: UsFullRequest) {
             a?.residenceThroughOath,
             s.gmc,
             'PD-274',
+            undefined,
+            'NOT_APPLICABLE',
           ),
         ]
       : []),
@@ -486,6 +503,12 @@ export function militaryChecks(request: UsFullRequest) {
       : a?.basis === 'peacetime'
         ? a.lprAtInterview
         : undefined;
+  const certification =
+    a?.evidence && a.separatedOn
+      ? a.separatedOn === 'serving'
+        ? a.evidence === 'n426'
+        : a.evidence === 'dd214-or-ngb22'
+      : undefined;
   return [
     check(
       'C43-SERVICE',
@@ -502,21 +525,18 @@ export function militaryChecks(request: UsFullRequest) {
       location,
       s.military,
       'PD-279',
+      undefined,
+      a?.basis === 'peacetime' ? 'NOT_APPLICABLE' : undefined,
     ),
     check(
       'C43-CERTIFICATION',
       '军方服役认证与背景核查',
       'Military certification and background checks',
-      all(
-        a?.evidence && a.separatedOn
-          ? a.separatedOn === 'serving'
-            ? a.evidence === 'n426'
-            : a.evidence === 'dd214-or-ngb22'
-          : undefined,
-        reviewed(a?.backgroundCheck),
-      ),
+      all(certification, reviewed(a?.backgroundCheck)),
       s.military,
       'PD-279',
+      undefined,
+      checkStatus(certification),
     ),
     check(
       'C43-FILING-BASIS',

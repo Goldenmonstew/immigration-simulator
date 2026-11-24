@@ -2,10 +2,11 @@ import {
   unitedStates2026_11,
   unitedStatesFull2026_11,
 } from '@uk-immigration/policy-data';
-import type { CountryCheck, CountryResult } from '../country-result';
+import { addDays } from '../dates';
+import { afterYears } from '../pilot';
 import type { PilotStatus } from '../pilot';
 import { textFor } from '../rule';
-import { evaluateUnitedStates } from '../united-states';
+import { evaluateUnitedStates, nextUsBusinessDay } from '../united-states';
 import type { UsPathway } from '../united-states';
 import {
   admissionChecks,
@@ -17,7 +18,13 @@ import { feeChecks } from './fees';
 import { familyChecks, employmentChecks, supportChecks } from './immigration';
 import { conditionChecks, travelChecks } from './maintenance';
 import { militaryChecks, naturalizationChecks } from './naturalization';
-import type { UsFullPathwayId, UsFullRequest } from './types';
+import type {
+  UsFullCheck,
+  UsFullPathway,
+  UsFullPathwayId,
+  UsFullRequest,
+  UsFullResult,
+} from './types';
 
 export type * from './types';
 
@@ -132,23 +139,8 @@ function legacyPathway(req: UsFullRequest) {
 function timeChecks(
   req: UsFullRequest,
   legacy: UsPathway | undefined,
-): CountryCheck[] {
+): UsFullCheck[] {
   const check = checksFor(req);
-  if (req.pathway === 'US-CONDITIONS') {
-    if (req.conditional === 'none') return [];
-    const filing = legacy?.checks[0];
-    return [
-      check(
-        'TIME-CONDITIONS-FILING',
-        '取消条件递交时间',
-        'Removal of conditions filing period',
-        filing?.met,
-        filing?.sources ?? time.conditionsWindowDays.sources,
-        'PD-094',
-        filing ? [filing.text, filing.text] : undefined,
-      ),
-    ];
-  }
   if (req.pathway === 'US-TRAVEL') {
     const trip = legacy?.checks[0];
     return [
@@ -193,68 +185,117 @@ function timeChecks(
   });
 }
 
+type FilingTiming = Pick<UsFullPathway, 'status' | 'earliestDate'>;
+type ConditionsTiming = FilingTiming & { special?: boolean };
+
 function conditionsTiming(
   req: UsFullRequest,
   legacy: UsPathway | undefined,
-): PilotStatus {
+): ConditionsTiming {
   const marriage = req.conditions?.marriage;
   const lpr = req.permanentResident;
-  if (req.conditional === 'none') return 'NOT_APPLICABLE';
-  if (
-    req.conditional === 'marriage' &&
-    marriage?.filing &&
-    marriage.filing !== 'joint' &&
-    lpr
-  ) {
-    return req.simulationDate >= lpr ? 'MET' : 'FUTURE';
-  }
-  if (
-    req.conditional === 'marriage' &&
-    legacy?.status === 'UNKNOWN' &&
-    legacy.checks.length &&
-    req.fees?.channel
-  ) {
-    if (req.fees.channel === 'paper') return 'MET';
-    return marriage?.lateFilingExcuse === 'cleared'
-      ? 'MET'
-      : marriage?.lateFilingExcuse === 'pending'
-        ? 'UNKNOWN'
-        : 'NOT_MET';
-  }
-  if (legacy?.status === 'NOT_MET') {
-    const excuse =
-      req.conditional === 'investor'
-        ? req.conditions?.investor?.lateFilingExcuse
-        : marriage?.lateFilingExcuse;
-    const determination = reviewed(excuse);
-    if (determination === true) return 'MET';
-    if (excuse === 'pending' || excuse === undefined) return 'UNKNOWN';
-  }
-  return legacy?.status ?? 'UNKNOWN';
+  if (req.conditional === 'none') return { status: 'NOT_APPLICABLE' };
+  if (!lpr || !req.conditional || !legacy?.checks.length)
+    return { status: 'UNKNOWN' };
+
+  const investor = req.conditional === 'investor';
+  const single =
+    !investor &&
+    ((marriage?.filing && marriage.filing !== 'joint') ||
+      req.separatePetition ||
+      (req.principalConditional &&
+        lpr >
+          addDays(req.principalConditional, time.childConcurrentDays.value)));
+  const anniversary = afterYears(
+    req.principalConditional ?? lpr,
+    time.conditionalYears.value,
+  );
+  const opens = single
+    ? lpr
+    : addDays(anniversary, -time.conditionsWindowDays.value);
+  const closes = addDays(anniversary, -1);
+  const excuse = reviewed(
+    investor
+      ? req.conditions?.investor?.lateFilingExcuse
+      : marriage?.lateFilingExcuse,
+  );
+  const candidate = req.simulationDate < opens ? opens : req.simulationDate;
+  const onChannel = (paper: boolean): ConditionsTiming => {
+    const receipt = paper ? nextUsBusinessDay(candidate) : candidate;
+    const deadline = paper ? nextUsBusinessDay(closes) : closes;
+    const late = !single && receipt > deadline;
+    if (late && excuse !== true)
+      return {
+        status: excuse === false ? 'NOT_MET' : 'UNKNOWN',
+        special: true,
+      };
+    return {
+      status: receipt === req.simulationDate ? 'MET' : 'FUTURE',
+      earliestDate: receipt,
+      special: !!single || late,
+    };
+  };
+  if (investor || req.fees?.channel === 'paper') return onChannel(true);
+  const online = onChannel(false);
+  if (req.fees?.channel === 'online') return online;
+  const paper = onChannel(true);
+  return paper.status === online.status &&
+    paper.earliestDate === online.earliestDate
+    ? online
+    : { status: 'UNKNOWN', special: online.special || paper.special };
 }
 
-export function evaluateUnitedStatesFull(
-  request: UsFullRequest,
-): CountryResult {
+export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const L = textFor(request);
   const check = checksFor(request);
   const legacy = legacyPathway(request);
   const timingChecks = timeChecks(request, legacy);
-  let timing: PilotStatus = 'MET';
-  let requirements: CountryCheck[];
+  let eligibility: FilingTiming = { status: 'MET' };
+  let requirements: UsFullCheck[];
   switch (request.pathway) {
     case 'US-NATURALIZATION':
     case 'US-SPOUSE':
-      timing =
-        legacy?.status === 'NOT_APPLICABLE'
-          ? 'UNKNOWN'
-          : (legacy?.status ?? 'UNKNOWN');
+      eligibility = {
+        status:
+          legacy?.status === 'NOT_APPLICABLE'
+            ? 'UNKNOWN'
+            : (legacy?.status ?? 'UNKNOWN'),
+        earliestDate: legacy?.earliestDate,
+      };
       requirements = naturalizationChecks(request);
       break;
-    case 'US-CONDITIONS':
-      timing = conditionsTiming(request, legacy);
+    case 'US-CONDITIONS': {
+      const conditionFiling = conditionsTiming(request, legacy);
+      eligibility = conditionFiling;
       requirements =
-        timing === 'NOT_APPLICABLE' ? [] : conditionChecks(request);
+        eligibility.status === 'NOT_APPLICABLE' ? [] : conditionChecks(request);
+      const filingAnswer =
+        eligibility.status === 'UNKNOWN'
+          ? undefined
+          : eligibility.status === 'MET';
+      const filingDetail: [string, string] | undefined =
+        eligibility.earliestDate
+          ? [
+              `按所选渠道，最早收件日为 ${eligibility.earliestDate}。`,
+              `Earliest receipt through the selected channel: ${eligibility.earliestDate}.`,
+            ]
+          : undefined;
+      if (eligibility.status !== 'NOT_APPLICABLE') {
+        timingChecks.push(
+          check(
+            'TIME-CONDITIONS-FILING',
+            '取消条件递交时间',
+            'Removal of conditions filing period',
+            filingAnswer,
+            legacy?.checks[0]?.sources ?? [
+              ...time.conditionsWindowDays.sources,
+              ...s.paperReceipt,
+            ],
+            ['PD-094', 'PD-274'],
+            filingDetail,
+          ),
+        );
+      }
       if (request.conditional === undefined) {
         requirements = [
           check(
@@ -267,28 +308,21 @@ export function evaluateUnitedStatesFull(
           ),
         ];
       }
-      if (
-        request.conditional &&
-        timing !== 'NOT_APPLICABLE' &&
-        (timing !== legacy?.status ||
-          request.conditions?.marriage?.filing !== 'joint')
-      ) {
-        requirements.push(
+      if (conditionFiling.special) {
+        timingChecks.push(
           check(
             'CONDITIONS-SPECIAL-TIMING',
             '单独、豁免或获准逾期递交',
             'Separate, waiver or excused late filing',
-            timing === 'MET'
-              ? true
-              : timing === 'NOT_MET' || timing === 'FUTURE'
-                ? false
-                : undefined,
+            filingAnswer,
             request.conditional === 'investor' ? s.i829 : s.marriageWaiver,
-            'PD-094',
+            ['PD-094', 'PD-274'],
+            filingDetail,
           ),
         );
       }
       break;
+    }
     case 'US-TRAVEL': {
       const travel = travelChecks(request);
       requirements = [
@@ -333,26 +367,50 @@ export function evaluateUnitedStatesFull(
       ];
       break;
   }
-  // Timing alternatives (e.g. an I-751 waiver or a reentry permit) can bypass
-  // a failed pilot check. Information-only fees do not gate eligibility.
-  const status: PilotStatus =
-    timing === 'NOT_APPLICABLE'
-      ? timing
-      : timing === 'NOT_MET' ||
-          requirements.some(
-            (c) =>
-              c.status === 'NOT_MET' &&
-              !(
-                timing === 'FUTURE' &&
-                ((c.id === 'US-C01-AGE' && legacy) ||
-                  c.id === 'US-CONDITIONS-SPECIAL-TIMING')
-              ),
-          )
-        ? 'NOT_MET'
-        : timing === 'UNKNOWN' ||
-            requirements.some((c) => c.status === 'UNKNOWN')
-          ? 'UNKNOWN'
-          : timing;
+  const { status: timing } = eligibility;
+  const candidate = eligibility.earliestDate ?? request.simulationDate;
+  const paper =
+    request.fees?.channel === 'paper' &&
+    request.pathway !== 'US-TRAVEL' &&
+    request.pathway !== 'US-CONDITIONS' &&
+    !(
+      request.pathway === 'US-ADJUSTMENT' &&
+      request.admission?.process === 'consular'
+    );
+  const receipt = paper ? nextUsBusinessDay(candidate) : candidate;
+  if (paper && receipt !== candidate) {
+    timingChecks.push(
+      check(
+        'TIME-PAPER-RECEIPT',
+        'USCIS 纸质收件日',
+        'USCIS paper receipt date',
+        false,
+        s.paperReceipt,
+        undefined,
+        [
+          `纸质件最早可在 ${receipt} 收件。`,
+          `The earliest paper receipt date is ${receipt}.`,
+        ],
+      ),
+    );
+  }
+  const combine = (filing: boolean): PilotStatus => {
+    if (timing === 'NOT_APPLICABLE') return timing;
+    const statuses = requirements.flatMap((item) =>
+      item.informational ||
+      (timing === 'FUTURE' && legacy && item.id === 'US-C01-AGE')
+        ? []
+        : [filing ? (item.filingStatus ?? item.status) : item.status],
+    );
+    if (timing === 'NOT_MET' || statuses.includes('NOT_MET')) return 'NOT_MET';
+    if (timing === 'UNKNOWN' || statuses.includes('UNKNOWN')) return 'UNKNOWN';
+    return timing === 'FUTURE' || receipt > request.simulationDate
+      ? 'FUTURE'
+      : 'MET';
+  };
+  const status = combine(true);
+  const approvalStatus =
+    request.pathway === 'US-TRAVEL' ? undefined : combine(false);
   const notes = status === 'NOT_APPLICABLE' ? [] : feeChecks(request);
   const checks = [...timingChecks, ...requirements, ...notes];
   const pendingDetails = [
@@ -362,15 +420,15 @@ export function evaluateUnitedStatesFull(
     ]),
   ];
   const earliestDate =
-    status === 'MET'
-      ? request.simulationDate
-      : status === 'FUTURE'
-        ? (legacy?.earliestDate ?? request.permanentResident)
-        : undefined;
+    status === 'MET' || status === 'FUTURE' ? receipt : undefined;
   const summary = {
     MET: L(
-      '所填资料满足本路径已评估条件。',
-      'The information entered meets the assessed requirements for this pathway.',
+      request.pathway === 'US-TRAVEL'
+        ? '所填资料满足已评估的返美条件。'
+        : '所填资料满足已评估的递交条件。',
+      request.pathway === 'US-TRAVEL'
+        ? 'The information entered meets the assessed requirements for return.'
+        : 'The information entered meets the assessed filing requirements.',
     ),
     NOT_MET: L(
       '至少一项适用条件未满足。',
@@ -381,8 +439,8 @@ export function evaluateUnitedStatesFull(
       'Complete the missing information or obtain the individual findings before confirming this pathway.',
     ),
     FUTURE: L(
-      '按已确认的非时间条件，本路径仍需等待满期。',
-      'With the confirmed non-timing requirements, this pathway still has a waiting period.',
+      '已评估的递交条件须等到最早递交日。',
+      'The assessed filing requirements can be met on the earliest filing date shown.',
     ),
     NOT_APPLICABLE: L(
       '该类绿卡无需取消条件。',
@@ -390,7 +448,9 @@ export function evaluateUnitedStatesFull(
     ),
   };
   const timingNotes =
-    legacy?.status !== 'NOT_APPLICABLE' && legacy?.summary
+    request.pathway !== 'US-CONDITIONS' &&
+    legacy?.status !== 'NOT_APPLICABLE' &&
+    legacy?.summary
       ? [
           L(
             `仅时间评估：${legacy.summary}`,
@@ -409,6 +469,7 @@ export function evaluateUnitedStatesFull(
             id: request.pathway,
             title: L(...titles[request.pathway]),
             status,
+            ...(approvalStatus ? { approvalStatus } : {}),
             ...(earliestDate ? { earliestDate } : {}),
             summary: summary[status],
             checks,

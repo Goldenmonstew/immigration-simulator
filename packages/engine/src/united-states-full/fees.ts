@@ -106,7 +106,14 @@ export function feeChecks(request: UsFullRequest) {
             : relievedFee(lookup(law.n400), reliefStatus, law.n400Reduced),
         ),
       );
-      checks.push(fee('N336', 'N-336', military ? law.none : lookup(law.n336)));
+      checks.push(
+        fee(
+          'N336',
+          'N-336',
+          military ? law.none : relievedFee(lookup(law.n336), relief(true)),
+          s.n336Fee,
+        ),
+      );
       break;
     case 'US-CONDITIONS':
       if (request.conditional === 'investor') {
@@ -172,7 +179,7 @@ export function feeChecks(request: UsFullRequest) {
           checks.push(fee('I131', 'I-131', paperOnly(law.reentryPermit)));
           break;
         case 'ds117':
-          checks.push(fee('DS117', 'DS-117', consular.ds117, s.consularFee));
+          checks.push(fee('DS117', 'DS-117', consular.ds117, s.ds117Fee));
           checks.push(fee('SB1-IV', 'SB-1', consular.other, s.consularFee));
           break;
         case 'i131a':
@@ -260,7 +267,7 @@ export function feeChecks(request: UsFullRequest) {
               ? people * v.gold.value.feePerPersonUsd
               : undefined,
             s.gold,
-            'PD-266',
+            'PD-276',
           ),
         );
       } else {
