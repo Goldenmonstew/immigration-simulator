@@ -39,71 +39,105 @@ function familyEligibility({ req }: PtFullContext, join = true): Verdict {
   );
 }
 
-function freeMovementContinuity({ req }: PtFullContext, at: IsoDate) {
-  const e = req.freeMovement;
-  const from = e?.continuousResidenceFrom;
-  const limits = p.freeMovementAbsence.value;
-  if (e?.expulsionExecuted === true) return false;
-  if (!from) return undefined;
+type FreeMovementAbsence = NonNullable<
+  PtFreeMovementEvidence['absences']
+>[number];
 
-  const trips = (
-    e?.absences ??
-    req.trips.map((t) => ({ ...t, reason: undefined, accepted: undefined }))
-  ).filter((trip) => trip.departed < at && trip.returned > from);
-  let justified = 0;
-  const ordinary: { from: IsoDate; to: IsoDate; exemptionRuledOut: boolean }[] =
-    [];
-  for (const trip of trips) {
-    const start = trip.departed < from ? from : trip.departed;
-    const end = trip.returned > at ? at : trip.returned;
-    if (trip.reason === 'military' && trip.accepted === true) continue;
-    if (trip.reason === 'justified' && trip.accepted === true) {
-      if (end > addMonths(start, limits.justifiedMonths)) return false;
-      justified += 1;
-      continue;
-    }
-    ordinary.push({
-      from: start,
-      to: end,
-      exemptionRuledOut:
-        trip.reason === 'ordinary' ||
-        trip.accepted === false ||
-        (trip.reason === 'justified' &&
-          end > addMonths(start, limits.justifiedMonths)),
-    });
-  }
-  if (justified > limits.maxJustifiedAbsences) return false;
+function ordinaryAbsencesFit(
+  trips: FreeMovementAbsence[],
+  from: IsoDate,
+  at: IsoDate,
+): Verdict {
+  const { ordinaryMonths, ordinaryWindowYears } = p.freeMovementAbsence.value;
   let uncertain = false;
   // Section 9.2 of the Commission guidance counts absences by residence anniversary.
-  const [minimumDays, maximumDays] = monthSpan(limits.ordinaryMonths);
+  const [minimumDays, maximumDays] = monthSpan(ordinaryMonths);
   for (
     let offset = 0, start = from;
     start < at;
     start = addYears(from, offset)
   ) {
-    offset += limits.ordinaryWindowYears;
+    offset += ordinaryWindowYears;
     const end = addYears(from, offset);
-    const segments = ordinary.filter(
-      (trip) => trip.from < end && trip.to > start,
+    const segments = trips.filter(
+      (trip) => trip.departed < end && trip.returned > start,
     );
     let total = 0;
-    let confirmedOrdinaryDays = 0;
     for (const trip of segments) {
-      const a = trip.from < start ? start : trip.from;
-      const b = trip.to > end ? end : trip.to;
-      if (b > addMonths(a, limits.ordinaryMonths)) {
-        if (trip.exemptionRuledOut) return false;
-        uncertain = true;
-      }
-      const days = daysBetween(a, b);
-      total += days;
-      if (trip.exemptionRuledOut) confirmedOrdinaryDays += days;
+      const a = trip.departed < start ? start : trip.departed;
+      const b = trip.returned > end ? end : trip.returned;
+      if (b > addMonths(a, ordinaryMonths)) return false;
+      total += daysBetween(a, b);
     }
     if (segments.length > 1) {
-      if (confirmedOrdinaryDays > maximumDays) return false;
+      if (total > maximumDays) return false;
       if (total > minimumDays) uncertain = true;
     }
   }
+  return uncertain ? undefined : true;
+}
+
+function freeMovementAbsencesFit(
+  trips: FreeMovementAbsence[],
+  from: IsoDate,
+  at: IsoDate,
+  allowUnconfirmed: boolean,
+): Verdict {
+  const limits = p.freeMovementAbsence.value;
+  const canExcuse = (trip: FreeMovementAbsence) =>
+    trip.accepted === true || (allowUnconfirmed && trip.accepted !== false);
+  // An unclassified trip could be compulsory military service pending evidence.
+  const ordinary = trips.filter(
+    (trip) =>
+      !(
+        (trip.reason === 'military' ||
+          (allowUnconfirmed && trip.reason === undefined)) &&
+        canExcuse(trip)
+      ),
+  );
+  let fit = ordinaryAbsencesFit(ordinary, from, at);
+  if (fit === true || limits.maxJustifiedAbsences === 0) return fit;
+
+  // Test each candidate as the sole justified exception across all residence years.
+  for (const trip of ordinary) {
+    if (
+      trip.reason !== 'justified' ||
+      !canExcuse(trip) ||
+      trip.returned > addMonths(trip.departed, limits.justifiedMonths)
+    )
+      continue;
+    fit = any(
+      fit,
+      ordinaryAbsencesFit(ordinary.filter((other) => other !== trip), from, at),
+    );
+    if (fit === true) return true;
+  }
+  return fit;
+}
+
+function freeMovementContinuity(
+  { req }: PtFullContext,
+  from: IsoDate | undefined,
+  at: IsoDate,
+): Verdict {
+  const e = req.freeMovement;
+  if (e?.expulsionExecuted === true) return false;
+  if (!e || !from) return undefined;
+
+  const trips: FreeMovementAbsence[] = (e.absences ?? req.trips)
+    .filter((trip) => trip.departed < at && trip.returned > from)
+    .map((trip) => ({
+      ...trip,
+      departed: trip.departed < from ? from : trip.departed,
+      returned: trip.returned > at ? at : trip.returned,
+    }));
+  let absencesFit = freeMovementAbsencesFit(trips, from, at, false);
+  if (
+    absencesFit === false &&
+    freeMovementAbsencesFit(trips, from, at, true) !== false
+  )
+    absencesFit = undefined;
+
   const needsSponsor =
     e.applicant === 'third-country-family' && e.basis !== 'retained-family';
   const sharedPeriod =
@@ -113,7 +147,7 @@ function freeMovementContinuity({ req }: PtFullContext, at: IsoDate) {
       ? true
       : undefined);
   return all(
-    uncertain ? undefined : true,
+    absencesFit,
     needsSponsor ? sharedPeriod : true,
     compare(e.expulsionExecuted, (value) => !value),
   );
@@ -407,19 +441,24 @@ export function freeMovementResidence(ctx: PtFullContext) {
     );
   }
   const early = basis === 'early-worker' || basis === 'early-family';
+  const retirement =
+    basis === 'early-worker' && e?.earlyWorker?.reason === 'retirement'
+      ? e.earlyWorker
+      : undefined;
+  const from = e?.continuousResidenceFrom;
   const eligibleOn =
-    !early && e?.continuousResidenceFrom
-      ? addYears(e.continuousResidenceFrom, p.freeMovementYears.value)
+    !early && from
+      ? addYears(from, p.freeMovementYears.value)
       : undefined;
   const qualifyingAt = eligibleOn ?? at;
   const continuity = early
     ? undefined
-    : freeMovementContinuity(ctx, qualifyingAt > at ? at : qualifyingAt);
+    : freeMovementContinuity(ctx, from, qualifyingAt > at ? at : qualifyingAt);
   const waiting =
     eligibleOn &&
     eligibleOn > at &&
     continuity === true &&
-    freeMovementContinuity(ctx, eligibleOn) === true;
+    freeMovementContinuity(ctx, from, eligibleOn) === true;
   const familyBasis =
     applicant === 'third-country-family' ||
     basis === 'early-family' ||
@@ -442,6 +481,13 @@ export function freeMovementResidence(ctx: PtFullContext) {
     otherFamilyInScope ? reviewed(e.otherFamilyPermission) : true,
   );
   const hasContinuity = compare(e?.expulsionExecuted, (value) => !value);
+  const retirementContinuity = retirement?.retiredOn
+    ? freeMovementContinuity(
+        ctx,
+        retirement.continuousResidenceFrom,
+        retirement.retiredOn > at ? at : retirement.retiredOn,
+      )
+    : undefined;
   const ordinaryTime = check(
     'F02',
     all(
@@ -459,8 +505,8 @@ export function freeMovementResidence(ctx: PtFullContext) {
     ],
     ['PD-396'],
     L(
-      `通常须连续 ${p.freeMovementYears.value} 年。普通离境按合法居留起始日的周年分年度累计，每年最多 ${p.freeMovementAbsence.value.ordinaryMonths} 个月。必要兵役或一次不超过 ${p.freeMovementAbsence.value.justifiedMonths} 个连续月的正当离境可保留连续性。普通家属路径需核对双方在葡萄牙的合资格居留期是否重叠，配偶可分址居住。`,
-      `The ordinary period is ${p.freeMovementYears.value} continuous years. Ordinary absences total up to ${p.freeMovementAbsence.value.ordinaryMonths} months in each year measured from the anniversary of lawful residence. Compulsory military service or one justified absence up to ${p.freeMovementAbsence.value.justifiedMonths} consecutive months can preserve continuity. For the ordinary family route, verify the overlapping qualifying residence in Portugal. Spouses may live at different addresses.`,
+      `通常须连续 ${p.freeMovementYears.value} 年。除获认可的必要兵役外，先按合法居留起始日的周年累计离境，每年度最多 ${p.freeMovementAbsence.value.ordinaryMonths} 个月。需要例外时，可豁免一次不超过 ${p.freeMovementAbsence.value.justifiedMonths} 个连续月的获认可正当离境。普通家属路径需核对双方在葡萄牙的合资格居留期是否重叠，配偶可分址居住。`,
+      `The ordinary period is ${p.freeMovementYears.value} continuous years. Exclude accepted compulsory military service, then count absences toward the ${p.freeMovementAbsence.value.ordinaryMonths}-month allowance for each year measured from the anniversary of lawful residence. If an exception is needed, one accepted justified absence of up to ${p.freeMovementAbsence.value.justifiedMonths} consecutive months can be excluded. For the ordinary family route, verify overlapping qualifying residence in Portugal. Spouses may live at different addresses.`,
     ),
   );
   const checks = [
@@ -490,10 +536,22 @@ export function freeMovementResidence(ctx: PtFullContext) {
       ? [
           check(
             'F02-EARLY-CONTINUITY',
-            hasContinuity,
-            '连续居留无已执行驱逐',
-            'Continuity without executed expulsion',
-            [law('art. 10(7), p5719')],
+            retirement
+              ? all(
+                  hasContinuity,
+                  any(retirement.portuguesePartnerException, retirementContinuity),
+                )
+              : hasContinuity,
+            retirement ? '退休前的连续居留与出境' : '连续居留无已执行驱逐',
+            retirement
+              ? 'Continuous residence and absences before retirement'
+              : 'Continuity without executed expulsion',
+            retirement
+              ? [
+                  law('arts. 10(4), (7), 11(1)(a), (4), pp5719–5720'),
+                  src('SRC-494', 's. 9.2 and n. 236, pp45–46'),
+                ]
+              : [law('art. 10(7), p5719')],
             ['PD-396'],
           ),
         ]
@@ -535,14 +593,14 @@ export function freeMovementResidence(ctx: PtFullContext) {
             earlyWorker(ctx),
             '工作者提前取得永久权',
             'Early permanent residence for workers',
-            e?.earlyWorker?.reason === 'retirement'
+            retirement
               ? [
                   ...p.workerEarlyResidence.sources,
                   src('SRC-495', 'C-32/19, paras. 38–39, 44'),
                 ]
               : p.workerEarlyResidence.sources,
             ['PD-396', 'PD-397'],
-            e?.earlyWorker?.reason === 'retirement'
+            retirement
               ? L(
                   '按停止工作的退休日核对当时的退休资格、合资格工作及连续居留。请提供退休日及相关证据。',
                   'Verify retirement eligibility, qualifying work and continuous residence at the date work ceased. Provide the retirement date and supporting evidence.',
@@ -564,11 +622,7 @@ export function freeMovementResidence(ctx: PtFullContext) {
         ]
       : []),
   ];
-  const acquisitionDate =
-    eligibleOn ??
-    (basis === 'early-worker' && e?.earlyWorker?.reason === 'retirement'
-      ? e.earlyWorker.retiredOn
-      : undefined);
+  const acquisitionDate = eligibleOn ?? retirement?.retiredOn;
   const acquired =
     acquisitionDate &&
     acquisitionDate <= at &&

@@ -497,7 +497,7 @@ describe('review92-1', () => {
 describe('review92-2', () => {
   test.each([
     ['pending', false, 'UNKNOWN', undefined],
-    ['approved', undefined, 'MET', '2026-11-23'],
+    ['approved', true, 'MET', '2026-11-23'],
     ['refused', false, 'NOT_MET', undefined],
   ] as const)(
     'ARI family filed simultaneously with a %s sponsor case',
@@ -751,6 +751,128 @@ describe('review92-3', () => {
       status: 'MET',
       earliestDate: '2028-01-01',
     });
+  });
+});
+
+describe('review92-4', () => {
+  test('two short training trips fit within the ordinary annual allowance', () => {
+    const request: Partial<PtFullRequest> = {
+      freeMovement: {
+        ...freeMovement,
+        absences: [
+          {
+            departed: '2022-02-01',
+            returned: '2022-03-01',
+            reason: 'justified',
+            accepted: true,
+          },
+          {
+            departed: '2022-08-01',
+            returned: '2022-09-01',
+            reason: 'justified',
+            accepted: true,
+          },
+        ],
+      },
+    };
+    statuses(F, request, { F02: 'MET' });
+    expect(pathway(F, request)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-23',
+    });
+  });
+
+  test.each([
+    ['2023-03-01', 'MET', '2026-11-23'],
+    ['2023-10-01', 'NOT_MET', undefined],
+  ] as const)(
+    'uses the single justified exception only where needed with a candidate trip ending %s',
+    (returned, status, earliestDate) => {
+      const request: Partial<PtFullRequest> = {
+        freeMovement: {
+          ...freeMovement,
+          absences: [
+            {
+              departed: '2023-01-01',
+              returned,
+              reason: 'justified',
+              accepted: true,
+            },
+            {
+              departed: '2022-01-01',
+              returned: '2022-10-01',
+              reason: 'justified',
+              accepted: true,
+            },
+          ],
+        },
+      };
+      statuses(F, request, { F02: status });
+      expect(pathway(F, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test.each([
+    ['2022-02-01', '2022-10-01', 'ordinary', false, 'NOT_MET', undefined],
+    ['2022-02-01', '2022-10-01', undefined, false, 'UNKNOWN', undefined],
+    ['2024-03-01', '2024-11-01', 'ordinary', false, 'MET', '2024-07-01'],
+    ['2022-02-01', '2022-10-01', 'ordinary', true, 'MET', '2024-07-01'],
+  ] as const)(
+    'checks retirement continuity for a trip from %s to %s (%s, partner waiver %s)',
+    (
+      departed,
+      returned,
+      reason,
+      portuguesePartnerException,
+      status,
+      earliestDate,
+    ) => {
+      const request: Partial<PtFullRequest> = {
+        freeMovement: {
+          ...freeMovement,
+          continuousResidenceFrom: undefined,
+          basis: 'early-worker',
+          absences: [{ departed, returned, reason }],
+          earlyWorker: {
+            reason: 'retirement',
+            retiredOn: '2024-07-01',
+            retirementQualifies: true,
+            continuousResidenceFrom: '2021-01-01',
+            creditedWorkFrom: '2021-01-01',
+            portuguesePartnerException,
+          },
+        },
+      };
+      statuses(F, request, { F05: 'MET', 'F02-EARLY-CONTINUITY': status });
+      expect(pathway(F, request)).toMatchObject({ status, earliestDate });
+    },
+  );
+
+  test('historical sponsor ARI approval leaves current validity unknown', () => {
+    const request: Partial<PtFullRequest> = {
+      residence: {
+        ...residence,
+        means: { officialAssessment: 'clear' },
+      },
+      investment: {
+        ...investment,
+        holder: 'family',
+        sponsorAriStatus: 'approved',
+        familyEvidenceAccepted: true,
+        familyApplicationChannel: 'abroad',
+        lawfullyInPortugal: false,
+        entry: undefined,
+        firstEntry: undefined,
+        regularizedOn: undefined,
+        investment: undefined,
+      },
+    };
+    statuses(D, request, { D01: 'UNKNOWN' });
+    expect(pathway(D, request)).toMatchObject({
+      status: 'UNKNOWN',
+      earliestDate: undefined,
+    });
+    expect(condition(D, 'D01', request).pendingDetails).toContain('PD-392');
   });
 });
 

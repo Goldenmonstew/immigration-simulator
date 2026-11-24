@@ -174,3 +174,28 @@ Fable 已将第二轮修正提交到 `fable/92-pt-rules`，提交为 `56c753d`�
 ### 4. 发现与建议
 
 页面接线时记录首次取得派生居留权的日期、首次团聚时的受扶养事实、停止工作的退休日，以及家属递交渠道与主案当前许可。渠道及资格证据不足时沿用 PD-392、396、397。
+
+## 第四轮审核修正（review92-4）
+
+### 1. 做了什么
+
+建议提交信息为 `Fix: 修正葡萄牙自由流动离境与 ARI 主案有效性（review92-4）`，对应 PROGRESS 第 776 项。提交附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+- `F02` 先按居留周年核对普通离境额度。超过普通额度时，检查一次获认可的正当离境能否保留连续性。两次短期培训均计入普通额度，`F02` 和路径均为 `MET`，取得日为 `2026-11-23`。保留五个月学习离境加两个月普通离境的回归，分别核对例外获认可、被拒和未确认时的条件状态、路径状态及日期。依据 SRC-478 art. 10(4)（p5719）及 SRC-494 §9.2、注 236（pp45–46）。月数换算或例外证据不足时按 PD-396 处理。
+- `F02-EARLY-CONTINUITY` 复用 `F02` 的离境计算，按提前退休分支填报的连续居留起点计至退休日。审核例中，退休前明确超出普通离境额度，路径为 `NOT_MET`，无取得日期。例外证据待确认时为 `UNKNOWN`。跨退休日的离境只计退休前部分，继续适用法定伴侣豁免。依据 SRC-478 arts. 10(4)、(7)、11(1)(a)、(4)（pp5719–5720），SRC-494 §9.2（pp45–46）及 SRC-495 §§38–39、44（PD-396、397）。
+- `D01` 把 ARI 历史审批与当前许可有效性分别核对。主案历史获批且当前有效性未填时，`D01` 和路径均为 `UNKNOWN`，无可递交日期。依据 SRC-123 Lei 61/2025 art. 2 修订的 art. 98(1)、(3)(c)（p4），证据要求见 PD-392。
+
+### 2. 怎么验证的
+
+- 设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0。全仓 5,357 项测试通过、1 项既有测试跳过。构建导出 27 个静态页面，包含葡萄牙页面。
+- 在 `25d045a` 基线上运行 `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine test test/portugal-full.test.ts -t review92-4`，新增 8 项中有 5 项复现判定错误。
+- 修正后运行 `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine test test/portugal.test.ts test/portugal-full.test.ts`，172 项通过。
+- 用 `git diff --exit-code 25d045a -- packages/engine/src/portugal.ts packages/engine/test/portugal.test.ts apps/web/app/portugal apps/web/lib/portugal.ts` 核对现有时间引擎、测试和葡萄牙页面调用，差异为空。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+改动留在 `fable/92-pt-rules` 的工作树，供 Fable 提交。本轮验收范围为 lint、类型检查、自动化测试和构建。
+
+### 4. 发现与建议
+
+页面接线时分别记录 ARI 历史审批、当前许可有效性，以及退休前离境的日期、原因和例外是否获认可。

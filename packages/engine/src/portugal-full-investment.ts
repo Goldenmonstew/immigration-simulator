@@ -460,7 +460,7 @@ export function investmentResidence(
       : e?.sponsorAriStatus === 'pending'
         ? undefined
         : (e?.sponsorAriValid ??
-          compare(e?.sponsorAriStatus, (status) => status === 'approved'));
+          (e?.sponsorAriStatus === 'refused' ? false : undefined));
   return pathway(
     id,
     title,
@@ -507,7 +507,12 @@ export function investmentResidence(
             ) +
               (e.sponsorAriStatus === 'pending' && sponsorGrant === undefined
                 ? L(' 主案待批。', ' The principal application is pending.')
-                : '')
+                : e.sponsorAriStatus === 'approved' && sponsorGrant === undefined
+                  ? L(
+                      ' 请核实主案当前许可是否有效。',
+                      ' Verify whether the sponsor’s current permit is valid.',
+                    )
+                  : '')
           : L(
               `条文列有效申根签证及自首次入境起 ${entryLimit} 天办理；免签和首入境起点须向 AIMA 确认。`,
               `The law lists a valid Schengen visa and regularisation within ${entryLimit} days of first entry. Confirm visa-free cases and the starting event with AIMA.`,
