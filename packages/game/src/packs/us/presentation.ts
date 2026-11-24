@@ -1,0 +1,35 @@
+// Keep the asset manifest separate from the engine and stories for the initial HTML.
+// The United States reuses the shared CC0 art; its cast borrows existing residents.
+export const usGameArt = {
+  root: '/game',
+  town: '/assets/meadow-town',
+  banner: '/united-states/town-banner.png',
+  townMap: '/united-states/town.json',
+  homeMap: '/home.json',
+  defaultResident: 'skilled-worker',
+  residents: [] as string[],
+  cast: {
+    engineer: 'skilled-worker',
+    spouse: 'yao-flatmate',
+    dolores: 'margaret',
+    frank: 'gareth',
+    angela: 'family-partner',
+    minh: 'hong-kong-bno',
+    danny: 'jamie',
+    fatima: 'priya',
+    jayden: 'ka-ning-child',
+    marcus: 'ade',
+  } as Record<string, string>,
+  shopSigns: [
+    'cafe',
+    'shop',
+    'pub',
+    'gp',
+    'library',
+    'college',
+    'council',
+    'visa',
+    'station',
+  ],
+  crops: ['turnip', 'potato', 'strawberry', 'tomato', 'cucumber', 'corn'],
+};

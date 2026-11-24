@@ -667,3 +667,4 @@
 | 619.1 | 任务 96：美国 e2e 改为完整版流程：中文返美路径填完问卷、保存方案、分享链接在新上下文还原同一结果、对比页改返美日后日期变化；英文手机宽度走一般入籍，从缺口跳到英语考试旋钮，政策页核对标题、来源与条件。 | apps/e2e/tests/united-states.spec.ts |
 | 619.2 | 任务 96：报告列出问卷步骤与字段、对比旋钮、旧页面处理、验证结果与范围外建议。 | docs/tasks/reports/96-us-pages.md |
 | 619.3 | 任务 96：政策页组件按国家读 `<国家>.policy.pageTitle`（与任务 93 相同改动），美国标题生效。 | apps/web/components/policy-page.tsx |
+| 630 | 任务 106：新增美国人生模拟内容包。芝加哥湖边虚构街区湖湾的 16 个地点、7 位镇民与 1 位家人（排班、对话、礼物）、2 位原创角色（职业移民绿卡的工程师走一般入籍，条件绿卡的公民配偶走取消条件与配偶入籍）、日常与系统事件、新年跳湖/五月五日/独立日/万圣节、道具与菜谱。评估交给美国完整版引擎（每季按首个 USCIS 工作日评估，一份时间线两条路径），I-751、I-90、N-400 费用取 policy-data，面谈英语与公民考试、补考与拒绝、宣誓结局、AR-11 地址申报、条件绿卡到期由适配器处理；引擎入口导出 `nextUsBusinessDay`；补内容包单测。 | packages/game/package.json、packages/game/src/packs/us/、packages/game/test/us-pack.test.ts、packages/engine/src/index.ts |
