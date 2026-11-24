@@ -178,6 +178,8 @@ interface GreekFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
 
 interface EuFamilyAnswers extends Omit<FamilyResidence, 'stage'> {
   stage?: 'permanent' | 'retained' | 'maintain';
+  /** False if no residence card was ever issued; a missing expiry alone leaves the deadline unknown. */
+  priorCardIssued?: boolean;
   /** Legacy attestation for requests without separate sponsor and relationship answers. */
   qualifyingNonGreekEuSponsorAndRelationship?: boolean;
   qualifyingNonGreekEuSponsor?: boolean;
@@ -1297,9 +1299,10 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   }
   if (a.stage !== 'retained') {
     const timely =
-      a.priorCardExpiry === undefined
+      a.priorCardIssued === false ||
+      (a.priorCardExpiry === undefined
         ? undefined
-        : sim <= addYears(a.priorCardExpiry, eu.lateYears);
+        : sim <= addYears(a.priorCardExpiry, eu.lateYears));
     const absences = all(
       maximum(a.maxOrdinaryAnnualAbsenceMonths, eu.ordinaryAbsenceMonths),
       maximum(a.seriousAbsenceCount, eu.seriousAbsences),
@@ -1315,9 +1318,12 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         a.stage === 'maintain'
           ? maximum(a.longestAbsenceAfterPrYears, eu.lossYears)
           : all(absences, timely === false ? undefined : timely),
-        [grSource('F02', 'arts. 13(2)–(3),17(2),(4)')],
-        `取得前每年普通离境最多 ${eu.ordinaryAbsenceMonths} 个月，强制兵役除外；一次重大理由最多 ${eu.seriousAbsenceMonths} 个月。取得后连续离境超过 ${eu.lossYears} 年丧失权利。旧卡逾期超过 ${eu.lateYears} 年须核实发卡。`,
-        `Before acquisition, ordinary absences total at most ${eu.ordinaryAbsenceMonths} months annually, apart from compulsory service and one serious absence up to ${eu.seriousAbsenceMonths} months. After acquisition, absence over ${eu.lossYears} consecutive years ends the right. Filing more than ${eu.lateYears} year late needs review.`,
+        [
+          grSource('F02', 'arts. 13(2)–(3),17(2),(4),18'),
+          grSource('F61', '§§9, 12.3'),
+        ],
+        `取得前每年普通离境最多 ${eu.ordinaryAbsenceMonths} 个月，强制兵役除外；一次重大理由最多 ${eu.seriousAbsenceMonths} 个月。取得后连续离境超过 ${eu.lossYears} 年丧失权利。曾获旧卡且逾期超过 ${eu.lateYears} 年须核实发卡。从未领卡者可用其他材料证明合格居留。`,
+        `Before acquisition, ordinary absences total at most ${eu.ordinaryAbsenceMonths} months annually, apart from compulsory service and one serious absence up to ${eu.seriousAbsenceMonths} months. After acquisition, absence over ${eu.lossYears} consecutive years ends the right. Filing more than ${eu.lateYears} year after a prior card expired needs review. Applicants never issued a card can document qualifying residence by other means.`,
         a.stage === 'permanent' && timely === false ? ['PD-315'] : undefined,
       ),
     );
@@ -1387,18 +1393,19 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       : a.stage === 'retained'
         ? '提供关系终止及保留权凭证。'
         : primaryCarer
-          ? '核对原卡、实际照护关系和适用期间的条约居留证明。'
-          : '普通永久卡核原卡和有效医保；提前取得时另核担保人登记、亲属关系及适用的死亡证明。';
+          ? '提供实际照护关系和适用期间的条约居留证明。可用原卡或其他证明材料。'
+          : '普通永久卡核有效医保及原卡或其他合格居留证明。提前取得时另核担保人登记、亲属关系及适用的死亡证明。';
   const documentsEn =
     a.stage === 'maintain'
       ? 'Present the old permanent card at renewal.'
       : a.stage === 'retained'
         ? 'Document the family event and the retained right.'
         : primaryCarer
-          ? 'Verify the prior card, the primary care relationship and evidence of qualifying residence for the relevant period.'
-          : 'For ordinary acquisition, confirm the prior card and current insurance. For early acquisition also verify sponsor registration, kinship and any required death evidence.';
+          ? 'Document the primary care relationship and qualifying residence for the relevant period using a prior card or other evidence.'
+          : 'For ordinary acquisition, show current insurance and the prior card or other evidence of qualifying residence. For early acquisition also verify sponsor registration, kinship and any required death evidence.';
   const late =
     a.stage === 'permanent' &&
+    a.priorCardIssued !== false &&
     a.priorCardExpiry !== undefined &&
     sim >= a.priorCardExpiry;
   checks.push(
@@ -1410,6 +1417,7 @@ function euChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       [
         grSource('F02', 'art. 17(2)–(5)'),
         grSource('F21', 'arts. 2(γ),59'),
+        ...(a.stage === 'permanent' ? [grSource('F61', '§§9, 12.3')] : []),
         ...(primaryCarer ? [grSource('F61', '§§2.2.2.5, 5.2.4, 9.1')] : []),
       ],
       `${documentsZh}申请费 €${family.applicationFee}，制卡 €${p.gvFees.value.card}。${late ? `本次逾期罚款最高 €${eu.maxFine}。` : ''}永久卡每 ${eu.cardYears} 年更新，核发最长 ${eu.decisionMonths} 个月。`,

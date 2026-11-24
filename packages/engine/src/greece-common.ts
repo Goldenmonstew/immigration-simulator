@@ -46,14 +46,13 @@ export interface GrCommonAnswers {
 }
 
 function passportCheck(
-  id: GrFullPathwayId,
+  document: 'travel' | 'identity' | 'nationality',
   req: GrFullRequest,
   c: GrContext,
   filingDate: IsoDate,
 ) {
-  const nationality = id === 'GR-NATIONALITY';
-  const identityOnly =
-    nationality || id === 'GR-EU-FAMILY-PR' || id === 'GR-GREEK-FAMILY-PR';
+  const nationality = document === 'nationality';
+  const identityOnly = document !== 'travel';
   const doc = req.passport;
   const rules = p.passport.value;
   let met: boolean | undefined;
@@ -264,50 +263,176 @@ function renewalCheck(id: GrFullPathwayId, req: GrFullRequest, c: GrContext) {
   );
 }
 
+function autonomousInsuranceCheck(req: GrFullRequest, c: GrContext) {
+  const family = req.familyTcn;
+  const application =
+    family?.appliedForFullPublicCover ??
+    req.deferredInitialEvidence?.includes('public-insurance-application') ??
+    false;
+  // A gap records past coverage, not current insurance at the initial grant.
+  const cover =
+    req.insurance?.kind === 'gap'
+      ? undefined
+      : insuranceMet(req.insurance, 'either');
+  const personalCover =
+    req.insurance?.kind === 'private'
+      ? all(cover, family?.privateCoverPermitted)
+      : cover;
+  return c.check(
+    'C-05',
+    '自主居留申请人本人的完整医保',
+    'Comprehensive cover for the autonomous permit applicant',
+    application || personalCover,
+    [
+      grSource('F16', 'arts. 8(ε), 10(9), 90(6)–(7), pp. 15, 18, 61'),
+      grSource('F21', 'arts. 2(δ), 24(1.1)–(1.3), pp. 2, 17'),
+      ...p.privateInsurance.sources,
+    ],
+    `核对本人有效公保或全额参保申请。申请凭证可在递件后 ${p.initialEvidenceMonths.value} 个月内补交。使用私保须确认本次手续允许，并达到完整保障标准。`,
+    `Verify the applicant's active public cover or application for full insurance. The registration certificate may follow within ${p.initialEvidenceMonths.value} months of filing. A private policy must be permitted for this applicant and meet the full coverage requirements.`,
+  );
+}
+
+interface CommonProcedure {
+  passport: 'travel' | 'identity' | 'nationality';
+  entry?: true;
+  publicOrder?: true;
+  publicHealth?: true;
+  insurance?: 'either' | 'private' | 'initial-personal';
+  changes?: true;
+  card?: true;
+  renewalWindow?: true;
+}
+
+// Only common checks are listed here. Each route also assesses its specific
+// grounds, e.g. family-wide cover, employment registration or a retained right.
+const permit = {
+  passport: 'travel',
+  publicOrder: true,
+  changes: true,
+  card: true,
+} as const;
+const longTermCard = { passport: 'travel', changes: true, card: true } as const;
+const euCard = { passport: 'identity', card: true } as const;
+const greekCard = { ...euCard, changes: true } as const;
+const initialPermit = { ...permit, entry: true, publicHealth: true } as const;
+const renewalPermit = { ...permit, renewalWindow: true } as const;
+
+const procedures = {
+  'GR-LONG-TERM': {
+    initial: { ...longTermCard, insurance: 'either' },
+    renewal: { ...longTermCard, renewalWindow: true },
+  },
+  'GR-GOLDEN-VISA': {
+    initial: { ...initialPermit, insurance: 'private' },
+    renewal: { ...permit, insurance: 'private' },
+  },
+  'GR-NATIONALITY': {
+    application: { passport: 'nationality' },
+    oath: undefined,
+  },
+  'GR-TEN-YEAR': {
+    initial: { ...permit, insurance: 'either' },
+    renewal: renewalPermit,
+  },
+  'GR-GREEK-FAMILY-PR': {
+    initial: { ...greekCard, entry: true },
+    renewal: { ...greekCard, renewalWindow: true },
+    retained: greekCard,
+    permanent: greekCard,
+    maintain: undefined,
+    unspecified: greekCard,
+  },
+  'GR-EU-FAMILY-PR': {
+    retained: euCard,
+    permanent: euCard,
+    maintain: undefined,
+    unspecified: euCard,
+  },
+  'GR-WORK': {
+    initial: initialPermit,
+    renewal: renewalPermit,
+    unspecified: { ...permit, entry: true },
+  },
+  'GR-FAMILY-TCN': {
+    initial: initialPermit,
+    renewal: renewalPermit,
+    unspecified: permit,
+    autonomous: { ...permit, insurance: 'initial-personal' },
+    childCardOnly: permit,
+  },
+} as const satisfies Record<
+  GrFullPathwayId,
+  Record<string, CommonProcedure | undefined>
+>;
+
+function familyProcedure(req: GrFullRequest) {
+  const family = req.familyTcn;
+  if (family?.stage !== 'autonomous') return family?.stage ?? 'unspecified';
+  if (!family.autonomousBasis) return 'unspecified';
+  if (family.autonomousBasis !== 'child') return 'autonomous';
+  // Arts. 95(2) and 90(5): the investor child's grant and the ordinary
+  // child's later extension each require the previous card as specific evidence.
+  const firstCard = underAgeOn(
+    req.birthDate,
+    req.simulationDate,
+    p.familyAutonomy.value.childRenewalAge,
+  );
+  if (family.sponsor === 'investor' || firstCard === false)
+    return 'childCardOnly';
+  return firstCard && family.sponsor ? 'autonomous' : 'unspecified';
+}
+
+function procedureFor(
+  id: GrFullPathwayId,
+  req: GrFullRequest,
+): CommonProcedure | undefined {
+  switch (id) {
+    case 'GR-LONG-TERM':
+      return procedures[id][req.longTerm?.stage ?? 'initial'];
+    case 'GR-GOLDEN-VISA':
+      return procedures[id][initialInvestor(req) ? 'initial' : 'renewal'];
+    case 'GR-NATIONALITY':
+      return procedures[id][req.nationality?.stage ?? 'application'];
+    case 'GR-TEN-YEAR':
+      return procedures[id][req.tenYear?.stage ?? 'initial'];
+    case 'GR-GREEK-FAMILY-PR':
+      return procedures[id][req.greekFamily?.stage ?? 'unspecified'];
+    case 'GR-EU-FAMILY-PR':
+      return procedures[id][req.euFamily?.stage ?? 'unspecified'];
+    case 'GR-WORK':
+      return procedures[id][req.work?.stage ?? 'unspecified'];
+    case 'GR-FAMILY-TCN':
+      return procedures[id][familyProcedure(req)];
+  }
+}
+
 export function commonChecks(
   id: GrFullPathwayId,
   req: GrFullRequest,
   c: GrContext,
 ): CountryCheck[] {
-  const nat = id === 'GR-NATIONALITY';
-  if (nat && req.nationality?.stage === 'oath') return [];
-  const greekFamily = id === 'GR-GREEK-FAMILY-PR';
-  const euFamily = id === 'GR-EU-FAMILY-PR';
-  if (
-    (greekFamily && req.greekFamily?.stage === 'maintain') ||
-    (euFamily && req.euFamily?.stage === 'maintain')
-  )
-    return [];
-  const filedOn = nat && req.nationality?.pendingApplicationFiledOn;
+  const procedure = procedureFor(id, req);
+  if (!procedure) return [];
+  const filedOn =
+    procedure.passport === 'nationality' &&
+    req.nationality?.pendingApplicationFiledOn;
   const checks = [
     passportCheck(
-      id,
+      procedure.passport,
       req,
       c,
       filedOn && filedOn <= req.simulationDate ? filedOn : req.simulationDate,
     ),
   ];
-  if (nat) return checks;
   const work = id === 'GR-WORK';
   const reunion = id === 'GR-FAMILY-TCN';
-  const gold = id === 'GR-GOLDEN-VISA';
   const entry = req.entry;
   const kind = work ? req.work?.permit : undefined;
-  const renewal =
-    (work && req.work?.stage === 'renewal') ||
-    (reunion && req.familyTcn?.stage === 'renewal') ||
-    (greekFamily && req.greekFamily?.stage === 'renewal') ||
-    (id === 'GR-LONG-TERM' && req.longTerm?.stage === 'renewal') ||
-    (id === 'GR-TEN-YEAR' && req.tenYear?.stage === 'renewal');
-  const initialGold = gold && initialInvestor(req);
-  const initialReunion = reunion && req.familyTcn?.stage === 'initial';
+  const initialGold = id === 'GR-GOLDEN-VISA' && procedure.entry;
   const overseas = initialGold && overseasInvestorFiling(req);
-  const initialEntry =
-    initialGold ||
-    (greekFamily && req.greekFamily?.stage === 'initial') ||
-    (work && !renewal) ||
-    initialReunion;
-  if (initialEntry) {
+  if (procedure.entry) {
+    const greekFamily = id === 'GR-GREEK-FAMILY-PR';
     const family = req.familyTcn;
     const blueCardFamily = reunion && family?.sponsor === 'blue-card';
     const unconfirmedShortStay =
@@ -382,14 +507,8 @@ export function commonChecks(
       ),
     );
   }
-  if (!greekFamily && !euFamily && id !== 'GR-LONG-TERM')
-    checks.push(characterCheck(req, c));
-  // These initial permit procedures list a public-health condition for all entry routes.
-  if (
-    initialGold ||
-    (work && req.work?.stage === 'initial') ||
-    initialReunion
-  ) {
+  if (procedure.publicOrder) checks.push(characterCheck(req, c));
+  if (procedure.publicHealth) {
     const deferred =
       req.deferredInitialEvidence?.includes('public-hospital-certificate') &&
       req.publicHealth === undefined;
@@ -414,8 +533,8 @@ export function commonChecks(
           ...(initialGold && req.goldenVisa?.kind === 'conversion'
             ? [grSource('F40', 'initial grant, conditions 2, 11')]
             : []),
-          ...(initialReunion ? [grSource('F16', 'art. 88(1)(β)')] : []),
-          ...(initialReunion && req.familyTcn?.sponsor === 'blue-card'
+          ...(reunion ? [grSource('F16', 'art. 88(1)(β)')] : []),
+          ...(reunion && req.familyTcn?.sponsor === 'blue-card'
             ? [grSource('F60', 'procedure 517141, condition 5')]
             : []),
         ],
@@ -429,19 +548,15 @@ export function commonChecks(
       ),
     );
   }
-  // Specialised checks add dependent coverage, registration for work, or the rules for retained rights.
-  if (
-    gold ||
-    (id === 'GR-TEN-YEAR' && !renewal) ||
-    (id === 'GR-LONG-TERM' && !renewal)
-  ) {
-    const mode = gold ? 'private' : 'either';
+  if (procedure.insurance === 'initial-personal') {
+    checks.push(autonomousInsuranceCheck(req, c));
+  } else if (procedure.insurance) {
     checks.push(
       c.check(
         'C-05',
         '医疗保险凭证',
         'Health insurance evidence',
-        overseas || insuranceMet(req.insurance, mode),
+        overseas || insuranceMet(req.insurance, procedure.insurance),
         overseas
           ? [...p.privateInsurance.sources, ...p.investorEntryMonths.sources]
           : p.privateInsurance.sources,
@@ -455,7 +570,7 @@ export function commonChecks(
       ),
     );
   }
-  if (!euFamily) checks.push(changeCheck(req, c));
+  if (procedure.changes) checks.push(changeCheck(req, c));
   if (overseas || (initialGold && req.goldenVisa?.overseasFilingDate)) {
     const filed = req.goldenVisa?.overseasFilingDate;
     const completed = req.goldenVisa?.overseasEvidenceCompletedOn;
@@ -478,7 +593,7 @@ export function commonChecks(
         `Biometrics may follow the initial overseas filing. Complete entry, insurance and biometrics within ${p.investorEntryMonths.value} months of filing.`,
       ),
     );
-  } else checks.push(cardCheck(req, c));
-  if (renewal) checks.push(renewalCheck(id, req, c));
+  } else if (procedure.card) checks.push(cardCheck(req, c));
+  if (procedure.renewalWindow) checks.push(renewalCheck(id, req, c));
   return checks;
 }

@@ -989,6 +989,40 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     verify(assess('2022-11-23'), 'EF-01', 'NOT_MET');
   });
 
+  test('Ν applies the prior-card deadline only if a residence card was issued', () => {
+    const assess = (patch: Partial<EU>) =>
+      full('GR-EU-FAMILY-PR', {
+        euFamily: {
+          ...european,
+          relationship: 'primary-carer-of-mobile-eu-minor',
+          primaryCare: {
+            childBirthDate: '2014-05-01',
+            residenceBasis: 'self-sufficient',
+            sufficientResourcesForBoth: true,
+            comprehensiveCoverForBoth: true,
+          },
+          priorCardExpiry: undefined,
+          priorCardIssued: false,
+          ...patch,
+        },
+      });
+    const neverIssued = assess({});
+    verify(neverIssued, 'EF-01', 'MET');
+    verify(neverIssued, 'EF-03', 'MET');
+    expect(
+      neverIssued.checks.find((check) => check.id === 'EF-06')?.explanation,
+    ).not.toContain('Late fine');
+    verify(assess({ priorCardIssued: true }), 'EF-03', 'UNKNOWN');
+    verify(assess({ priorCardIssued: undefined }), 'EF-03', 'UNKNOWN');
+    verify(assess({ maxOrdinaryAnnualAbsenceMonths: 7 }), 'EF-03', 'NOT_MET');
+    verify(
+      assess({ qualifyingResidenceDocumented: false }),
+      'EF-01',
+      'NOT_MET',
+    );
+    verify(assess({ rightsDocumentsReady: undefined }), 'EF-06', 'UNKNOWN');
+  });
+
   test('Ο.3 first grant and ordinary renewal accept the same registered partner and apply their own evidence lists', () => {
     const partner = {
       relationship: 'registered-partner',

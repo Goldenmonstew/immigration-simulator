@@ -98,6 +98,12 @@ interface FamilyAnswers {
     'residence' | 'bereavement' | 'divorce' | 'hardship' | 'child';
   previousFamilyCard?: boolean;
   previousAutonomousChildCard?: boolean;
+  /** Whether the applicant has ever been granted Greek residence for a purpose other than family reunification. */
+  otherResidencePermitGranted?: boolean;
+  /** Evidence of applying to the public insurer for comprehensive personal cover at initial Ο.2 grant. */
+  appliedForFullPublicCover?: boolean;
+  /** Whether private insurance is permitted for this applicant under Migration Code article 8(e). */
+  privateCoverPermitted?: boolean;
   familyResidenceYears?: number;
   /** Uninterrupted family residence in Greece, including the current period. */
   familyResidenceFrom?: IsoDate;
@@ -746,6 +752,35 @@ function autonomousResidenceDue(f: FamilyAnswers, today: IsoDate): Filing {
   return mobility === true || mobility === undefined ? undefined : false;
 }
 
+function familyPermitsOnly(f: FamilyAnswers, req: GrFullRequest): Answer {
+  if (
+    f.otherResidencePermitGranted ||
+    f.previousAutonomousChildCard ||
+    req.backlogRenewals?.some(
+      (renewal) =>
+        renewal.permitEffectiveOn <= req.simulationDate &&
+        renewal.category !== 'family',
+    )
+  )
+    return false;
+  const issued = req.permits?.filter(
+    (permit) => permit.from <= req.simulationDate,
+  );
+  if (
+    issued?.some(
+      (permit) => permit.kind === 'investor' || permit.kind === 'study',
+    )
+  )
+    return false;
+  // The time-only history groups family and employment cards under "regular"; Ζ is a visa.
+  if (
+    f.otherResidencePermitGranted === undefined &&
+    issued?.some((permit) => permit.kind === 'regular')
+  )
+    return undefined;
+  return true;
+}
+
 function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
   const a = p.familyAutonomy.value;
   const age = ageOn(req.birthDate, req.simulationDate);
@@ -780,6 +815,7 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
           (f.member === 'child' && birthday(a.adultAge)));
       return allDue(
         f.previousFamilyCard,
+        familyPermitsOnly(f, req),
         autonomousResidenceDue(f, req.simulationDate),
         member,
       );
@@ -1041,8 +1077,8 @@ function familyChecks(
           grSource('F21', 'art. 24(1.1)–(1.2)'),
           grSource('F36', 'art. 29 (art. 95(2))'),
         ],
-        `持家属卡满 ${a.residenceYears} 年的配偶、登记伴侣或成年子女可申请。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。普通 Ο.1 子女从 ${a.adultAge} 岁起可凭家属卡转自主卡，满 ${a.childRenewalAge} 岁续卡须出示原自主卡。投资者子女从 ${p.familyMembers.value.investorChildLimit} 岁起可凭原家属卡转 ${p.gvFamily.value.independentYears} 年独立卡。特殊困难须提供证明。Ο.2 最长 ${a.cardYears} 年。`,
-        `Spouses, registered partners and adult children with ${a.residenceYears} years on family permits can apply. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, or documented exceptional hardship. Ordinary Ο.1 children can convert their family card at ${a.adultAge} and renew at ${a.childRenewalAge} with the previous autonomous card. Investors’ children can convert their family card at ${p.familyMembers.value.investorChildLimit} for ${p.gvFamily.value.independentYears} years. Autonomous residence runs for up to ${a.cardYears} years.`,
+        `配偶、登记伴侣或成年子女凭家属居留满 ${a.residenceYears} 年转换时，须从未因家庭团聚以外的事由获发居留许可。记录仅注明“普通许可”时，请核实签发事由。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。普通 Ο.1 子女从 ${a.adultAge} 岁起可凭家属卡转自主卡，满 ${a.childRenewalAge} 岁续卡须出示原自主卡。投资者子女从 ${p.familyMembers.value.investorChildLimit} 岁起可凭原家属卡转 ${p.gvFamily.value.independentYears} 年独立卡。特殊困难须提供证明。Ο.2 最长 ${a.cardYears} 年。`,
+        `Spouses, registered partners and adult children applying after ${a.residenceYears} years on family permits must never have been granted a residence permit for another purpose. Confirm the purpose of any permit recorded only as regular. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, or documented exceptional hardship. Ordinary Ο.1 children can convert their family card at ${a.adultAge} and renew at ${a.childRenewalAge} with the previous autonomous card. Investors’ children can convert their family card at ${p.familyMembers.value.investorChildLimit} for ${p.gvFamily.value.independentYears} years. Autonomous residence runs for up to ${a.cardYears} years.`,
       ),
     );
   } else {

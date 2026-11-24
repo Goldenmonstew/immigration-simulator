@@ -429,6 +429,54 @@ describe('common permit rules', () => {
       ]);
     },
   );
+  test('renewal, permanent residence and oath use their own common checklists', () => {
+    const result = evaluateGreeceFull({
+      ...base,
+      longTerm: { stage: 'renewal' },
+      goldenVisa: { stage: 'renewal' },
+      nationality: { stage: 'oath' },
+      tenYear: { stage: 'renewal', basis: 'residence' },
+      greekFamily: { stage: 'permanent' },
+      euFamily: { stage: 'maintain' },
+      work: { stage: 'renewal', permit: 'E4' },
+      familyTcn: { stage: 'renewal' },
+    });
+    const ordinaryRenewal = ['C-01', 'C-03', 'C-06', 'C-07', 'C-07-window'];
+    const byPath = Object.fromEntries(
+      result.columns[0].pathways.map((pathway) => [
+        pathway.id,
+        pathway.checks
+          .map((item) => item.id)
+          .filter((key) => key.startsWith('C-')),
+      ]),
+    );
+    expect(byPath).toEqual({
+      'GR-LONG-TERM': ['C-01', 'C-06', 'C-07', 'C-07-window'],
+      'GR-GOLDEN-VISA': ['C-01', 'C-03', 'C-05', 'C-06', 'C-07'],
+      'GR-NATIONALITY': [],
+      'GR-TEN-YEAR': ordinaryRenewal,
+      'GR-GREEK-FAMILY-PR': ['C-01', 'C-06', 'C-07'],
+      'GR-EU-FAMILY-PR': [],
+      'GR-WORK': ordinaryRenewal,
+      'GR-FAMILY-TCN': ordinaryRenewal,
+    });
+  });
+
+  test.each(['bereavement', 'divorce', 'hardship'] as const)(
+    'Ο.2 initial grant after %s requires the applicant’s own cover',
+    (autonomousBasis) => {
+      const result = path('GR-FAMILY-TCN', {
+        familyTcn: { stage: 'autonomous', autonomousBasis },
+        insurance: { kind: 'uninsured' },
+      });
+      expect(result.checks.find((item) => item.id === 'C-05')?.status).toBe(
+        'NOT_MET',
+      );
+      expect(result.checks.some((item) => item.id === 'FT-04')).toBe(false);
+      expect(result.status).toBe('NOT_MET');
+    },
+  );
+
   test('initial employment checks lawful entry and public health separately', () => {
     expect(check('C-02', { entry: 'short-stay' }).status).toBe('NOT_MET');
     expect(

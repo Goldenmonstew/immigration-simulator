@@ -287,6 +287,213 @@ test('Ο.2 distinguishes the investor child permit from the five-year residence 
   ).toBe('MET');
 });
 
+const fiveYearConversion: Family = {
+  stage: 'autonomous',
+  autonomousBasis: 'residence',
+  sponsor: 'ordinary',
+  member: 'spouse',
+  previousFamilyCard: true,
+  familyResidenceYears: 5,
+};
+
+test.each([
+  [{ kind: 'public', coversFamily: false }, undefined, [], 'MET'],
+  [{ kind: 'uninsured' }, undefined, [], 'NOT_MET'],
+  [undefined, undefined, [], 'UNKNOWN'],
+  [
+    { kind: 'gap', gapEvidence: 'unemployment-benefit' },
+    undefined,
+    [],
+    'UNKNOWN',
+  ],
+  [{ kind: 'uninsured' }, true, [], 'MET'],
+  [undefined, undefined, ['public-insurance-application'], 'MET'],
+] as const)(
+  'Ο.2 five-year conversion checks personal cover (%j), public application (%s) and deferred evidence (%j)',
+  (insurance, appliedForFullPublicCover, deferred, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      simulationDate: '2026-11-24',
+      familyTcn: { ...fiveYearConversion, appliedForFullPublicCover },
+      deferredInitialEvidence: [...deferred],
+      insurance,
+    });
+    expect(result.checks.find((item) => item.id === 'C-05')?.status).toBe(
+      status,
+    );
+    expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      'MET',
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [true, 'MET'],
+  [false, 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'Ο.2 five-year conversion checks whether private coverage is permitted (%s)',
+  (privateCoverPermitted, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      simulationDate: '2026-11-24',
+      familyTcn: { ...fiveYearConversion, privateCoverPermitted },
+      insurance: {
+        kind: 'private',
+        disabilityEur: 20000,
+        medicalEur: 2000,
+        hospitalEur: 20000,
+        maxCopayPercent: 0,
+        hasDeductibleOrExclusions: false,
+        policyMonths: 18,
+      },
+      deferredInitialEvidence: [],
+    });
+    expect(result.checks.find((item) => item.id === 'C-05')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+  },
+);
+
+test('Ο.2 investor child special card uses its own evidence', () => {
+  const result = route('GR-FAMILY-TCN', {
+    simulationDate: '2026-11-24',
+    birthDate: '2005-11-24',
+    insurance: { kind: 'uninsured' },
+    deferredInitialEvidence: [],
+    familyTcn: {
+      stage: 'autonomous',
+      autonomousBasis: 'child',
+      sponsor: 'investor',
+      member: 'child',
+      previousFamilyCard: true,
+    },
+  });
+  expect(result.checks.some((item) => item.id === 'C-05')).toBe(false);
+  expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe('MET');
+  expect(result.status).toBe('MET');
+});
+
+test.each([
+  ['2008-11-24', false, 'NOT_MET'],
+  ['2005-11-24', true, 'MET'],
+] as const)(
+  'Ο.2 ordinary child born %s applies with an explicit insurance shortfall',
+  (birthDate, previousAutonomousChildCard, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      simulationDate: '2026-11-24',
+      birthDate,
+      insurance: { kind: 'uninsured' },
+      deferredInitialEvidence: [],
+      familyTcn: {
+        stage: 'autonomous',
+        autonomousBasis: 'child',
+        sponsor: 'ordinary',
+        member: 'child',
+        previousFamilyCard: true,
+        previousAutonomousChildCard,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'C-05')?.status).toBe(
+      previousAutonomousChildCard ? undefined : 'NOT_MET',
+    );
+    expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      'MET',
+    );
+    expect(result.status).toBe(status);
+  },
+);
+
+test.each([
+  ['investor', '2024-01-02', undefined, undefined, 'NOT_MET'],
+  ['study', '2024-01-02', '2025-01-01', false, 'NOT_MET'],
+  ['investor', '2026-11-24', undefined, false, 'NOT_MET'],
+  ['investor', '2026-11-25', undefined, false, 'MET'],
+  ['temporary', '2024-01-02', undefined, false, 'MET'],
+] as const)(
+  'Ο.2 five-year conversion with a %s record from %s to %s',
+  (kind, from, to, otherResidencePermitGranted, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      simulationDate: '2026-11-24',
+      familyTcn: { ...fiveYearConversion, otherResidencePermitGranted },
+      permits: [
+        { kind: 'regular', from: '2019-01-01', to: '2024-01-01' },
+        { kind, from, to },
+      ],
+    });
+    expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [true, 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+  [false, 'MET'],
+] as const)(
+  'Ο.2 five-year conversion distinguishes other permits within regular history (%s)',
+  (otherResidencePermitGranted, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      simulationDate: '2026-11-24',
+      familyTcn: { ...fiveYearConversion, otherResidencePermitGranted },
+      permits: [{ kind: 'regular', from: '2019-01-01' }],
+    });
+    expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+  },
+);
+
+test.each([
+  ['employment', '2026-11-23', 'NOT_MET'],
+  ['services-or-project', '2026-11-23', 'NOT_MET'],
+  ['autonomous-family', '2026-11-24', 'NOT_MET'],
+  ['other', '2026-11-24', 'NOT_MET'],
+  ['family', '2026-11-24', 'MET'],
+  ['employment', '2026-11-25', 'MET'],
+] as const)(
+  'Ο.2 five-year conversion checks a recorded %s renewal effective %s',
+  (category, permitEffectiveOn, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      simulationDate: '2026-11-24',
+      familyTcn: fiveYearConversion,
+      backlogRenewals: [
+        {
+          category,
+          filedOn: '2025-01-01',
+          permitEffectiveOn,
+          typeAReceipt: true,
+          pendingAtCommencement: true,
+        },
+      ],
+    });
+    expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+  },
+);
+
+test('Ο.2 five-year conversion checks a previously granted autonomous child card', () => {
+  const result = route('GR-FAMILY-TCN', {
+    simulationDate: '2026-11-24',
+    familyTcn: {
+      ...fiveYearConversion,
+      member: 'child',
+      previousAutonomousChildCard: true,
+    },
+  });
+  expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+    'NOT_MET',
+  );
+  expect(result.status).toBe('NOT_MET');
+});
+
 test('Ο.2 uses combined Blue Card family residence and the final years in Greece', () => {
   const familyTcn: Family = {
     stage: 'autonomous',
