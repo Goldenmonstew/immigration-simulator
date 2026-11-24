@@ -8167,3 +8167,269 @@ describe('review86-23 regressions', () => {
     },
   );
 });
+
+describe('review86-24 regressions', () => {
+  const filed = {
+    ...e,
+    employment: {
+      ...e.employment,
+      permCertifiedOn: '2025-04-01',
+      i140FiledOn: '2025-05-15',
+      wagePeriodThrough: '2026-11-23',
+    },
+    admission: {
+      ...e.admission,
+      i485FiledOn: '2025-08-04',
+      decisionOn: '2026-11-23',
+      lawfulNonimmigrantStatusAtFiling: true,
+      visaAtFilingByMonth: { '2025-08': 'available' },
+    },
+  } satisfies UsFullRequest;
+
+  const shortfall = { paidUsd: 45000, netIncomeUsd: 0, netCurrentAssetsUsd: 0 };
+
+  test.each([
+    ['2025-08-04', 'MET'],
+    ['2025-08-05', 'UNKNOWN'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'scopes a later annual wage shortfall to approval (2025 evidence through %s)',
+    (through, status) => {
+      const request: UsFullRequest = {
+        ...filed,
+        employment: {
+          ...filed.employment,
+          wageYears: [
+            { year: 2025, through, paidUsd: 60000 },
+            { year: 2026, ...shortfall },
+          ],
+        },
+      };
+      expect(condition(request, 'C29-ABILITY-TO-PAY')).toMatchObject({
+        filingStatus: status,
+        status: 'NOT_MET',
+      });
+      expect(path(request)).toMatchObject({
+        status,
+        approvalStatus: 'NOT_MET',
+      });
+      expect(path(request).approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test('does not use a later annual wage payment to prove earlier ability to pay', () => {
+    const request: UsFullRequest = {
+      ...filed,
+      employment: {
+        ...filed.employment,
+        wageYears: [{ year: 2026, paidUsd: 60000 }],
+      },
+    };
+    expect(path(request)).toMatchObject({
+      status: 'UNKNOWN',
+      approvalStatus: 'MET',
+    });
+  });
+
+  test('keeps undated multi-year evidence unknown at an earlier stage', () => {
+    const request: UsFullRequest = {
+      ...filed,
+      employment: {
+        ...filed.employment,
+        wageYears: [{ paidUsd: 60000 }, shortfall],
+      },
+    };
+    expect(path(request)).toMatchObject({
+      status: 'UNKNOWN',
+      approvalStatus: 'NOT_MET',
+    });
+  });
+
+  test.each([
+    ['2026-10-30', 30, 'MET'],
+    ['2026-11-23', 30, 'MET'],
+    ['2026-11-23', 180, 'MET'],
+    ['2026-11-23', 181, 'UNKNOWN'],
+    ['2026-11-23', 237, 'UNKNOWN'],
+  ] as const)(
+    'uses the cumulative count only to establish an earlier cap (%s, %s)',
+    (through, total, approvalStatus) => {
+      const decisionOn = '2026-10-30';
+      const request: UsFullRequest = {
+        ...filed,
+        employment: {
+          ...filed.employment,
+          permCertifiedOn: '2025-10-01',
+          i140FiledOn: '2026-02-09',
+        },
+        admission: {
+          ...filed.admission,
+          i485FiledOn: '2026-03-02',
+          decisionOn,
+          visaAtFilingByMonth: { '2026-03': 'available' },
+          visaAtDecisionByMonth: { '2026-10': 'available' },
+          i485PendingEvents: [
+            {
+              on: '2026-04-01',
+              kind: 'unauthorized-employment',
+              qualifyingViolationsDays: total,
+              qualifyingViolationsThrough: through,
+            },
+          ],
+        },
+      };
+      const result = path(request);
+      expect(result).toMatchObject({ status: 'MET', approvalStatus });
+      expect(result.approvalEarliestDate).toBe(
+        approvalStatus === 'MET' ? decisionOn : undefined,
+      );
+    },
+  );
+
+  test.each([
+    ['2026-10-30', 'NOT_MET'],
+    ['2026-10-31', 'MET'],
+  ] as const)(
+    'uses a signed supplemental I-693 only from its signature date (%s)',
+    (i693SignedOn, status) => {
+      const request: UsFullRequest = {
+        ...h,
+        admission: {
+          ...h.admission,
+          i485FiledOn: '2026-08-03',
+          decisionOn: '2026-10-30',
+          i693AtFiling: {
+            medicalEvidence: 'cleared',
+            i693SignedOn: '2026-07-31',
+            i693LinkedToAnotherClosedCase: false,
+          },
+          i693AtDecision: {
+            medicalEvidence: 'cleared',
+            i693SignedOn,
+            i693LinkedToAnotherClosedCase: true,
+          },
+        },
+      };
+      expect(condition(request, 'C36-HEALTH')).toMatchObject({
+        filingStatus: 'MET',
+        status,
+      });
+    },
+  );
+
+  test('does not use a later I-131 receipt to validate a permit for an earlier return', () => {
+    const request: UsFullRequest = {
+      ...t,
+      travel: {
+        ...travel,
+        returnDocument: 'reentry-permit',
+        permitAppliedInUs: true,
+        permitBiometricsInUs: true,
+        permitFiledOn: '2026-07-02',
+      },
+    };
+    expect(condition(request, 'C22-RETURN-DOCUMENT').status).toBe('UNKNOWN');
+  });
+
+  test('checks address reporting as of the simulation date', () => {
+    const request: UsFullRequest = {
+      ...t,
+      travel: {
+        ...travel,
+        movedOn: '2026-11-20',
+        addressReportedOn: '2026-11-24',
+      },
+    };
+    expect(condition(request, 'C19-ADDRESS').status).toBe('MET');
+    expect(
+      condition(
+        {
+          ...request,
+          travel: { ...request.travel, movedOn: '2026-11-01' },
+        },
+        'C19-ADDRESS',
+      ).status,
+    ).toBe('NOT_MET');
+  });
+
+  test('excludes a later offense from the domestic deportability assessment', () => {
+    const request: UsFullRequest = {
+      ...t,
+      travel: {
+        ...travel,
+        deportabilityFacts: {
+          unclassified: false,
+          independentCimtCount: 1,
+          aggravatedFelony: false,
+          controlledSubstance: 'none',
+          earlyMarriageTermination: 'cleared',
+          otherGround: 'cleared',
+          singleCimt: {
+            admittedOn: '2025-01-01',
+            committedOn: '2026-11-24',
+            possibleSentenceMonths: 12,
+            sWitness: false,
+          },
+        },
+      },
+    };
+    expect(condition(request, 'C21-DEPORTABILITY').status).toBe('MET');
+    expect(
+      condition(
+        { ...request, simulationDate: '2026-11-24' },
+        'C21-DEPORTABILITY',
+      ).status,
+    ).toBe('NOT_MET');
+  });
+
+  test('uses in-service certification before a later separation', () => {
+    const request: UsFullRequest = {
+      ...m,
+      military: { ...military, separatedOn: '2026-11-24', evidence: 'n426' },
+    };
+    expect(condition(request, 'C43-CERTIFICATION')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'MET',
+    });
+  });
+
+  test('keeps a later felony conviction out of the N-400 filing check', () => {
+    const request = withNatural({ aggravatedFelonyConvictedOn: '2026-11-24' });
+    expect(condition(request, 'C07-PERMANENT-GMC-BARS')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'UNKNOWN',
+    });
+    expect(
+      condition(
+        { ...request, simulationDate: '2026-11-24' },
+        'C07-PERMANENT-GMC-BARS',
+      ).status,
+    ).toBe('NOT_MET');
+  });
+
+  test('requires the original I-526 receipt to precede conditional residence', () => {
+    const request: UsFullRequest = {
+      ...i829,
+      conditions: {
+        investor: { ...investor, originalPetitionFiledOn: '2026-12-02' },
+      },
+    };
+    expect(condition(request, 'C17-CAPITAL')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-278'],
+    });
+  });
+
+  test('keeps the age-based I-90 filing window open before a later receipt', () => {
+    const request: UsFullRequest = {
+      ...t,
+      dateOfBirth: '2012-11-18',
+      travel: {
+        ...travel,
+        cardExpiresOn: '2030-11-18',
+        replacementFiledOn: '2026-11-24',
+      },
+    };
+    expect(condition(request, 'C19-REPLACEMENT').status).toBe('MET');
+  });
+});

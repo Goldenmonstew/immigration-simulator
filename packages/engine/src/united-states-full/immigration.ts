@@ -445,24 +445,53 @@ function abilityToPay(request: UsFullRequest, through: IsoDate): Answer {
     atLeast(a?.employerEmployees, v.pay.value.financialOfficerMinEmployees),
     reviewed(a?.officerStatementAccepted),
   );
-  const annual = a?.wageYears?.map(
-    ({ paidUsd, netIncomeUsd, netCurrentAssetsUsd }) => {
-      if (proffered === undefined) return undefined;
+  const coverage = a?.wagePeriodThrough ?? request.simulationDate;
+  const stageYear = through.slice(0, 4);
+  const coverageYear = coverage.slice(0, 4);
+  const years = a?.wageYears;
+  const annual = years?.flatMap(
+    ({
+      year,
+      through: recordedThrough,
+      paidUsd,
+      netIncomeUsd,
+      netCurrentAssetsUsd,
+    }) => {
+      const calendarYear = year === undefined ? undefined : String(year);
+      if (calendarYear && calendarYear > stageYear) return [];
+      const cutoff =
+        recordedThrough ??
+        (calendarYear === undefined
+          ? undefined
+          : calendarYear === coverageYear
+            ? coverage
+            : `${calendarYear}-12-31`);
+      // Keep the legacy single-row summary. Multiple undated rows cannot be
+      // assigned to a historical stage by list order.
+      const undatedAtStage =
+        !cutoff && through < coverage && years.length !== 1;
+      if (
+        undatedAtStage ||
+        (cutoff && cutoff > through) ||
+        proffered === undefined
+      )
+        return [undefined];
       const coversShortfall = (amount: number | undefined): Answer =>
         paidUsd === undefined
           ? atLeast(amount, proffered) === true || undefined
           : atLeast(amount, proffered - paidUsd);
-      return any(
-        atLeast(paidUsd, proffered),
-        coversShortfall(netIncomeUsd),
-        coversShortfall(netCurrentAssetsUsd),
-      );
+      return [
+        any(
+          atLeast(paidUsd, proffered),
+          coversShortfall(netIncomeUsd),
+          coversShortfall(netCurrentAssetsUsd),
+        ),
+      ];
     },
   );
   const records = annual?.length
     ? all(
-        a?.wagePeriodComplete === true &&
-          through <= (a.wagePeriodThrough ?? request.simulationDate)
+        a?.wagePeriodComplete === true && through <= coverage
           ? true
           : undefined,
         ...annual,

@@ -1147,6 +1147,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-19-us-ecfr-8cfr-part264.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=264>
 - `policy-sources/2026-11-19-us-ecfr-8cfr-part265.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=265>
 - `policy-sources/2026-11-23-us-alienregistration.html` → <https://www.uscis.gov/alienregistration>
+- 地址申报期限从搬家日起算。达到规定年龄后的重新登记及换卡分别按生日和现有卡的到期日核对。见 [8 U.S.C. §1305(a)](https://uscode.house.gov/us/usc/t8/s1305/)、[8 U.S.C. §1302(b)](https://uscode.house.gov/us/usc/t8/s1302/) 和 [8 CFR §264.5(b)(8)](https://www.ecfr.gov/current/title-8/section-264.5#p-264.5(b)(8))。
 
 ## SRC-300 返美、回美证及 SB-1
 
@@ -1155,6 +1156,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-21-us-9fam502.7.html` → <https://fam.state.gov/FAM/09FAM/09FAM050207.html>
 - `policy-sources/2026-11-23-us-i131instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-131instr.pdf>
 - 8 CFR §223.2(b)(1) 和 I-131 Instructions p4「Reentry Permit」要求在美国递交回美证申请。§223.2(b)(2)(i)–(ii) 另列难民旅行证通常在美国递交及可裁量接受的境外递交情形。见 [8 CFR §223.2](https://www.ecfr.gov/current/title-8/section-223.2#p-223.2(b))。
+- 8 CFR §§223.1(a)、223.3(a)(1) 以返美时的回美证有效期为准。核对同一回美证的 I-131 收件、签发和返美日期。收件日与签发或返美日期冲突时，须核对个案证件与收据。见 [8 CFR §223.3(a)](https://www.ecfr.gov/current/title-8/section-223.3#p-223.3(a))。
 - I-131A 在 USCIS 网上付费，表格须在使领馆当面递交。DS-117 向办理该案的使领馆提交，SB-1 的后续 DS-260 按使领馆通知办理。见 [I-131A Payment，Before You Start The Payment Process](https://my.uscis.gov/accounts/travel-document/start/overview)、[Returning Resident Visas，Required Documentation 与 Step 2](https://travel.state.gov/content/travel/en/us-visas/immigrate/returning-resident.html)。
 
 ## SRC-301 境内递解事由
@@ -1195,6 +1197,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 普通 PERM 的招聘及通知窗口按 DOL 的 ETA-9089 递交日核对。州就业订单的 30 天刊登期及强制广告见 20 CFR §656.17(e)(1)(i)(A)–(B)、(e)(2)(i)–(ii)，等待期用订单结束日计算。DOL 认证涵盖招聘及其结果，见 §§656.17(g)、656.24(b)–(d)。[DOL BALCA PERM Digest，Recruitment，Timing of Recruitment](https://www.dol.gov/agencies/oalj/PUBLIC/INA/REFERENCES/REFERENCE_WORKS/BALCA_PERM_DIGEST)
 - 20 CFR §656.12(b) 禁止雇主向员工索取或收取取得 PERM 的雇主应付费用。(c) 规定相关证据可触发调查，并可能导致驳回、撤销或禁止申办。认证最终效力须按个案决定确认。[20 CFR §656.12(b)–(c)](https://www.ecfr.gov/current/title-20/section-656.12#p-656.12(b))
 - 普通 PERM 认证也核对认证职位的工资与劳动条件，见 20 CFR §§656.10(c)(1)、656.24(b)(3)。雇员职业分类与雇主实际支付能力由 USCIS 在 I-140 审查，见 SRC-302，8 CFR §204.5(g)(2)、(k)、(l)。I-140 待决时符合职业转换的支付能力证明期间从优先日到 I-140 递交日，见存档的 6 USCIS-PM E.4(D)(5)。[USCIS PA-2024-01，pp1–2](https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20240105-AbilityToPay.pdf)
+- 8 CFR §204.5(g)(2) 和 6 USCIS-PM E.4(A)–(B) 按适用期间核对工资支付、年度报告、联邦纳税申报及审计财务报表。历史阶段使用对应年度及截至该阶段的金额。后出具的文件可证明已发生的历史事实，所载较晚期间的付款或短缺归入相应阶段。见 [8 CFR §204.5(g)(2)](https://www.ecfr.gov/current/title-8/section-204.5#p-204.5(g)(2))、[6 USCIS-PM E.4](https://www.uscis.gov/policy-manual/volume-6-part-e-chapter-4)。
 - 20 CFR §656.17(a)、(c) 的 ETA-9089 允许电子或邮寄。电子递交使用 [DOL FLAG，PERM Filing Process](https://flag.dol.gov/programs/PERM)。
 
 ## SRC-306 职业分类与 EB-1A、EB-2 NIW 证据
@@ -1245,6 +1248,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 8 U.S.C. §1255(a)(2) 要求境内调整申请人具备准入资格。一般规则要求在 I-485 递交时符合资格并持续至裁决。I-485 Instructions pp11–12 Item 10 列明需随件提交的适用法院及警方文件。见 [8 CFR §103.2(b)(1)，Demonstrating eligibility](https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)(1))、[I-485 Instructions](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=11)。
 - 8 CFR §245.2(a)(4)(ii)(A)–(D) 与 I-485 Instructions p14「If You Leave the United States While Your Application Is Pending」规定待决期间的离境后果。无适用例外时，INA §245 申请视为放弃。例外包括事先获批的 Advance Parole 和符合规定的查验返美、维持适用 H/L/K/V 非移民身份并满足返美条件，以及按 INA §244(f)(3) 获准旅行并以 TPS 查验入境。递解程序中离境须按 §245.2(a)(4)(ii)(A) 核对。INA §209 适用难民旅行证件，Registry 适用不同的待决旅行规则，均见 p14。参见 SRC-300，8 CFR §§223.1(b)、223.2(b)(2)。[8 CFR §245.2(a)(4)(ii)](https://www.ecfr.gov/current/title-8/section-245.2#p-245.2(a)(4)(ii)) · [I-485 Instructions p14](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=14)
 - 7 USCIS-PM B.4(B)、B.6(B)–(C)、B.8(E) 分别说明合法身份维持的截止点、待决期间未经授权就业与 §245(k) 的核对口径。普通非移民身份在正确递交后到期本身不构成调整禁令。适用 §245(c)(8) 的待决申请人仍须确认就业授权。职业例外核对 §245(k) 的累计期间。法条对照 8 U.S.C. §1255(c)(2)、(7)–(8)、(k)，8 CFR §§245.1(b)(10)、274a.12(c)(9)。[7 USCIS-PM B.4](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-4) · [7 USCIS-PM B.6](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-6) · [7 USCIS-PM B.8](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-8)
+- §1255(k)(1)–(2) 的适用期间从同一次相关合法入境起算。较晚截止日的合资格累计可作较早裁决日的上界。若较晚总数超过法定上限，而案卷无法确认何时越线，应核对裁决日的实际累计。见 [8 U.S.C. §1255(k)](https://uscode.house.gov/us/usc/t8/s1255/)、[7 USCIS-PM B.8(E)](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-8)。
 - 8 CFR §103.2(b)(1) 分别要求递交时和裁决时满足相应条件。§245.2(a)(4)(ii)(A)–(D) 限于待决期间的离境。引擎只有日期时，按已确定的时间顺序判定。同日记录的先后若会改变结论，待核案卷。7 USCIS-PM B.8(E) 按适用合法入境后的违规日合计，递交后符合条件的未经授权就业仍计入。历史累计只能建立已覆盖期间的事实，核准所需的额外期间依记录确认。见 [8 CFR §103.2(b)(1)](https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)(1))、[§245.2(a)(4)(ii)](https://www.ecfr.gov/current/title-8/section-245.2#p-245.2(a)(4)(ii)) 与 [7 USCIS-PM B.8(E)](https://www.uscis.gov/policy-manual/volume-7-part-b-chapter-8)。
 - 8 CFR §103.2(b)(6)、(13) 涉及撤回申请、逾期不答复及缺席通知所致的程序后果。7 USCIS-PM A.6(B) 检查主申请人与衍生申请人的持续资格。亲属分类变化及合法例外见 SRC-302，8 U.S.C. §§1151(b)、(f)、1153(d)、(h)、1154(a)、(l)，及 8 CFR §205.1(a)(3)。K-1 申请的原婚姻已结束时，依 INA §245(d) 及 *Matter of Sesay*, 25 I&N Dec. 431, 439–40，核对是否已和原请愿人及时缔结善意婚姻。[8 CFR §103.2(b)](https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)) · [8 CFR §205.1](https://www.ecfr.gov/current/title-8/section-205.1) · [EOIR，Matter of Sesay](https://www.justice.gov/sites/default/files/eoir/legacy/2014/07/25/3707.pdf)
 - 其他 I-485 类别的持续条件按专门依据认定。T、U 类见 8 U.S.C. §1255(l)–(m)，8 CFR §§245.23、245.24。Diversity Visa 的签发与调整截止见 SRC-302，8 U.S.C. §1154(a)(1)(I)(ii)(II) 及 I-485 Instructions「Diversity Visa Program」。其他特别法与衍生资格参见 I-485 Instructions「Additional Instructions」。[8 CFR §245.23](https://www.ecfr.gov/current/title-8/section-245.23) · [8 CFR §245.24](https://www.ecfr.gov/current/title-8/section-245.24)

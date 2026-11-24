@@ -48,12 +48,18 @@ export function conditionChecks(request: UsFullRequest, decision: IsoDate) {
   if (request.conditional === 'investor') {
     const a = request.conditions?.investor;
     const law = v.eb5.value;
-    const preRia =
-      a?.originalPetitionFiledOn && a.originalPetitionFiledOn < law.rulesFrom;
-    const sustained = a?.originalPetitionFiledOn
+    const residentSince =
+      request.principalConditional ?? request.permanentResident;
+    const originalReceipt = a?.originalPetitionFiledOn;
+    const documentedPetition =
+      originalReceipt &&
+      originalReceipt <= decision &&
+      (!residentSince || originalReceipt <= residentSince);
+    const preRia = documentedPetition && originalReceipt < law.rulesFrom;
+    const sustained = documentedPetition
       ? preRia
-        ? reviewed(a.continuousInvestmentDuringConditionalResidence)
-        : atLeast(a.sustainmentYears, law.sustainmentYears)
+        ? reviewed(a?.continuousInvestmentDuringConditionalResidence)
+        : atLeast(a?.sustainmentYears, law.sustainmentYears)
       : undefined;
     const capitalEvidence = all(
       sustained,
@@ -61,8 +67,6 @@ export function conditionChecks(request: UsFullRequest, decision: IsoDate) {
       reviewed(a?.requiredCapitalFullyInvested),
       reviewed(a?.lawfullySourcedFunds),
     );
-    const residentSince =
-      request.principalConditional ?? request.permanentResident;
     const anniversary =
       preRia && residentSince
         ? afterYears(residentSince, legacy.conditionalYears.value)
@@ -169,13 +173,14 @@ export function conditionChecks(request: UsFullRequest, decision: IsoDate) {
   ];
 }
 
-function deportabilityCheck(a?: UsTravelAnswers) {
+function deportabilityCheck(date: IsoDate, a?: UsTravelAnswers) {
   const facts = a?.deportabilityFacts;
   if (!facts) return reviewed(a?.deportability);
   const law = v.deportability.value;
   const cimt = facts.singleCimt;
   const first = cimt
     ? all(
+        cimt.committedOn <= date,
         cimt.possibleSentenceMonths >= law.cimtSentenceMonths,
         cimt.committedOn >= cimt.admittedOn,
         any(
@@ -228,13 +233,11 @@ export function travelChecks(request: UsFullRequest) {
   const moved = a?.movedOn;
   const reported = a?.addressReportedOn;
   const addressMet =
-    moved === 'no-move'
+    moved === 'no-move' || (moved !== undefined && moved > date)
       ? true
-      : moved && reported && reported !== 'not-reported'
-        ? reported >= moved &&
-          reported <= addDays(moved, address.days) &&
-          reported <= date
-        : moved && reported === 'not-reported'
+      : moved && reported && reported !== 'not-reported' && reported <= date
+        ? reported >= moved && reported <= addDays(moved, address.days)
+        : moved && reported
           ? date <= addDays(moved, address.days)
           : undefined;
   const birthday = birth ? afterYears(birth, reg.renewAge) : undefined;
@@ -251,12 +254,10 @@ export function travelChecks(request: UsFullRequest) {
   );
   const ageReplacement =
     needsAgeReplacement && birthday
-      ? filed === 'not-filed'
+      ? filed === 'not-filed' || (filed && filed > date)
         ? date <= addDays(birthday, reg.reRegisterDays)
         : filed
-          ? filed >= birthday &&
-            filed <= addDays(birthday, reg.reRegisterDays) &&
-            filed <= date
+          ? filed >= birthday && filed <= addDays(birthday, reg.reRegisterDays)
           : undefined
       : not(needsAgeReplacement);
   const expiryReplacement =
@@ -309,14 +310,18 @@ export function travelChecks(request: UsFullRequest) {
     document = true;
   } else if (a?.returnDocument === 'reentry-permit') {
     const issuance = a.permitIssuedOn;
+    const filedOn = a.permitFiledOn;
     const permitFiledInUs =
-      a.permitFiledOn && request.trips
-        ? all(
-            physicalPresenceAtReceipt(request.trips, a.permitFiledOn) ??
-              a.permitAppliedInUs,
-            a.permitAppliedInUs !== false,
-          )
-        : a.permitAppliedInUs;
+      filedOn &&
+      ((issuance && filedOn > issuance) || (trip && filedOn > trip.returned))
+        ? undefined
+        : filedOn && request.trips
+          ? all(
+              physicalPresenceAtReceipt(request.trips, filedOn) ??
+                a.permitAppliedInUs,
+              a.permitAppliedInUs !== false,
+            )
+          : a.permitAppliedInUs;
     const permitLaw = v.reentryPermit.value;
     const permitTerm =
       a.permitRestrictedToOneYear === undefined
@@ -427,7 +432,7 @@ export function travelChecks(request: UsFullRequest) {
         'C21-DEPORTABILITY',
         '境内递解事由',
         'Grounds of deportability',
-        deportabilityCheck(a),
+        deportabilityCheck(date, a),
         s.removal,
         'PD-269',
       ),

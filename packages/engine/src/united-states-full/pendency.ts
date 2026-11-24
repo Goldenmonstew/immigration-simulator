@@ -45,8 +45,13 @@ function within245k(events: EmploymentEvent[], decision: IsoDate): Answer {
   for (const event of events) {
     const total = event.qualifyingViolationsDays;
     const through = event.qualifyingViolationsThrough ?? event.on;
-    if (total === undefined || through < event.on || through > decision)
+    if (total === undefined || through < event.on) continue;
+    if (through > decision) {
+      // A later total can clear the cap for the earlier decision. A later
+      // excess does not establish when the cap was crossed.
+      if (total <= limit) maximum = Math.min(maximum, total);
       continue;
+    }
     // A same-day event without explicit coverage may include the decision day's violation.
     const firstPossibleDecision =
       through === decision && !event.qualifyingViolationsThrough

@@ -85,7 +85,7 @@ export type UsI485PendingEvent =
       kind: 'unauthorized-employment';
       /** Non-overlapping total since the relevant lawful admission, through this event unless a later coverage date is given. */
       qualifyingViolationsDays?: number;
-      /** Confirmed coverage of the cumulative record. Use the decision date only if the record covers adjudication. */
+      /** Coverage of the cumulative record, from the same relevant lawful admission. */
       qualifyingViolationsThrough?: IsoDate;
       /** Case-specific exception when the modeled statutory exemptions do not resolve eligibility. */
       exception?: UsReview;
@@ -315,6 +315,7 @@ export interface UsSupportAnswers {
   beneficiaryAge?: number;
   domiciledInUs?: UsReview;
   affidavitSubmitted?: boolean;
+  /** Household and income evidence for the applicable I-864 assessment date. */
   household?: UsHousehold;
   activeDuty?: boolean;
   /** Net qualifying assets, convertible to cash without undue harm within the permitted period. */
@@ -382,6 +383,10 @@ export interface UsEmploymentAnswers {
   officerStatementAccepted?: UsReview;
   /** One entry for each legally required year from the priority date. */
   wageYears?: {
+    /** Calendar year of these amounts. Financial periods with other dates can use through. */
+    year?: number;
+    /** Last date represented by all amounts in this entry, inclusive. */
+    through?: IsoDate;
     paidUsd?: number;
     netIncomeUsd?: number;
     netCurrentAssetsUsd?: number;
@@ -590,7 +595,7 @@ export interface UsHumanitarianAnswers {
 export interface UsMilitaryAnswers {
   basis?: 'peacetime' | 'hostilities';
   service?: { from: IsoDate; to?: IsoDate }[];
-  /** Certified qualifying service, excluding any breaks in service. */
+  /** Certified qualifying service at filing, excluding any breaks in service. */
   honorableServiceYears?: number;
   eligibleServiceComponent?: boolean;
   honorableService?: boolean;

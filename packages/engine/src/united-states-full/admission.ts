@@ -78,9 +78,16 @@ function i693Checks(
     ? medicalEvidenceCheck(original ?? (lateSignature ? undefined : a), receipt)
     : true;
   const legacyAtDecision =
-    lateSignature && decision && signedOn > decision ? undefined : a;
+    signedOn && decision && signedOn > decision ? undefined : a;
+  const supplemental = a?.i693AtDecision;
+  const supplementalAtDecision =
+    supplemental?.i693SignedOn &&
+    decision &&
+    supplemental.i693SignedOn > decision
+      ? undefined
+      : supplemental;
   const atDecision =
-    a?.i693AtDecision ??
+    supplementalAtDecision ??
     (legacyAtDecision?.medicalEvidence !== undefined ||
     legacyAtDecision?.i693SignedOn
       ? legacyAtDecision

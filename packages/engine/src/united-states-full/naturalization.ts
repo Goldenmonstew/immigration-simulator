@@ -260,8 +260,13 @@ export function naturalizationChecks(
           : scored,
   );
   const felony = a?.aggravatedFelonyConvictedOn;
+  const laterFelony =
+    felony &&
+    felony !== 'none' &&
+    felony !== 'unclassified' &&
+    felony > receipt;
   const noFelony =
-    !felony || felony === 'unclassified'
+    !felony || felony === 'unclassified' || laterFelony
       ? undefined
       : felony === 'none' || felony < v.aggravatedFelony.value.from;
   const lpr =
@@ -424,6 +429,9 @@ export function naturalizationChecks(
         '核对谋杀、法定日期起定罪的加重重罪、迫害及其他永久禁令。罪名未经移民法律分类时待复核。',
         'Check murder, aggravated felony convictions from the statutory date and persecution-related permanent bars. Unclassified offenses require review.',
       ],
+      laterFelony
+        ? checkStatus(all(not(a?.murderConviction), not(a?.persecutionBar)))
+        : undefined,
     ),
     check(
       'C08-STATUTORY-GMC-BARS',
@@ -567,7 +575,7 @@ export function militaryChecks(request: UsFullRequest, date: IsoDate) {
     a?.evidence === 'none'
       ? false
       : a?.evidence && a.separatedOn
-        ? a.separatedOn === 'serving'
+        ? a.separatedOn === 'serving' || a.separatedOn > date
           ? a.evidence === 'n426'
           : a.evidence === 'dd214-or-ngb22'
         : undefined;
