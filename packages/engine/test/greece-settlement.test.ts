@@ -608,10 +608,12 @@ describe('ΚΕΙ naturalisation', () => {
       status: 'NOT_MET',
       explanation: expect.stringContaining('2038-11-23'),
     });
-    expect(path).toMatchObject({
-      status: 'FUTURE',
-      earliestDate: '2038-11-23',
+    expect(path.checks.find((c) => c.id === 'NAT-07')).toMatchObject({
+      status: 'UNKNOWN',
+      explanation: expect.stringContaining('2038-11-23'),
     });
+    expect(path.status).toBe('UNKNOWN');
+    expect(path.earliestDate).toBeUndefined();
   });
 
   test('rejection on 15 August 2026 sets the first refiling date one year later', () => {

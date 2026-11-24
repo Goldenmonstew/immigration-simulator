@@ -67,7 +67,7 @@ interface FamilyAnswers {
   /** Original permit term. A zero term denotes that the sponsor has no permit. */
   sponsorPermitDurationYears?: number;
   sponsorPermitLeadsToPermanentResidence?: boolean;
-  /** Whether the sponsor still holds qualifying residence at Ο.1 renewal. */
+  /** Whether the sponsor currently holds qualifying residence for Ο.1. */
   sponsorPermitValid?: boolean;
   /** Personal net income excludes social assistance and other household members' income. */
   sponsorPersonalNetEur?: number;
@@ -526,15 +526,15 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
 function familySponsor(f: FamilyAnswers, today: IsoDate): Filing {
   if (f.sponsor === 'refugee') return undefined;
   if (f.sponsor === 'excluded') return false;
-  if (f.stage === 'renewal')
-    return all(
-      f.sponsor && true,
-      f.sponsorPermitValid ??
-        (f.sponsorPermitDurationYears === 0 ? false : undefined),
-    );
+  const validPermit =
+    f.sponsorPermitValid ??
+    (f.sponsorPermitDurationYears === 0 ? false : undefined);
+  if (f.stage === 'renewal') return all(f.sponsor && true, validPermit);
   if (!f.sponsor) return undefined;
-  if (f.formedLegallyInGreece || f.sponsor !== 'ordinary') return true;
+  if (f.sponsor !== 'ordinary') return true;
+  if (f.formedLegallyInGreece) return validPermit;
   return allDue(
+    validPermit,
     residenceDue(
       f.sponsorLawfulFrom,
       f.sponsorLawfulYears,
@@ -758,10 +758,10 @@ function familyChecks(
         familySponsor(f, req.simulationDate),
         sponsorRefs,
         initial
-          ? `普通担保人合法居住满 ${p.familySponsor.value.years} 年，持有效期至少 ${p.familySponsor.value.permitYears} 年且允许取得永久居留的卡。未满年限时填写连续居住起始日，以计算可递件日期。确认随行类别或在希合法组建家庭的专门程序。`
+          ? `普通担保人须合法居住满 ${p.familySponsor.value.years} 年，现持许可仍有效，且签发期限至少 ${p.familySponsor.value.permitYears} 年、可通往永久居留。未满年限时填写连续居住起始日，以计算可递件日期。确认随行类别或在希合法组建家庭的专门程序。`
           : '请确认担保人现仍持有合资格的居留身份。担保人居留已终止时，家属可另按 Ο.2 的条件核对自主居留权。',
         initial
-          ? `An ordinary sponsor needs ${p.familySponsor.value.years} years of lawful residence and a permit issued for at least ${p.familySponsor.value.permitYears} years with a prospect of permanent residence. Supply the residence start date to calculate a future filing date. Identify any simultaneous-family or domestic family-formation procedure.`
+          ? `An ordinary sponsor needs ${p.familySponsor.value.years} years of lawful residence and a currently valid permit issued for at least ${p.familySponsor.value.permitYears} years with a prospect of permanent residence. Supply the residence start date to calculate a future filing date. Identify any simultaneous-family or domestic family-formation procedure.`
           : 'Confirm that the sponsor still holds qualifying residence. If that residence has ended, assess any independent right under Ο.2 separately.',
       ),
     );

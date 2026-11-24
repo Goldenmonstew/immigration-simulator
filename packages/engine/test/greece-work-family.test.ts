@@ -49,6 +49,7 @@ const reunion: Family = {
   sponsorLawfulYears: 2,
   sponsorPermitDurationYears: 2,
   sponsorPermitLeadsToPermanentResidence: true,
+  sponsorPermitValid: true,
   sponsorPersonalNetEur: 19320,
   priorYearTaxAndInsuranceEvidence: true,
   stableIncome: true,
@@ -517,6 +518,24 @@ test.each([
         sponsorLawfulYears: 0,
         familyLifeContinues: true,
       },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+    expect(result.earliestDate).toBeUndefined();
+  },
+);
+
+test.each([
+  [true, 'MET'],
+  [false, 'NOT_MET'],
+  [undefined, 'UNKNOWN'],
+] as const)(
+  'Ο.1 ordinary initial sponsor with four lawful years and current permit %s',
+  (sponsorPermitValid, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: { ...reunion, sponsorLawfulYears: 4, sponsorPermitValid },
     });
     expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
       status,

@@ -568,14 +568,10 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
     }
     // Address changes carry their own fine. The old time assessment already combines alternative
     // renewal windows and distinguishes a future date from an unresolved interpretation.
-    const refiling =
-      nationality &&
-      req.nationality?.lastRejection &&
-      req.nationality.lastRejection !== 'none' &&
-      !req.nationality.pendingApplicationFiledOn;
-    const incomeIndex = refiling
-      ? rules.findIndex((check) => check.id === 'NAT-07')
-      : -1;
+    const incomeIndex =
+      nationality && !req.nationality?.pendingApplicationFiledOn
+        ? rules.findIndex((check) => check.id === 'NAT-07')
+        : -1;
     const fixedGates = rules.filter(
       (check, index) => check.id !== 'C-06' && index !== incomeIndex,
     );
@@ -625,8 +621,8 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
           c,
         );
         const filing = c.L(
-          `按预计重申日 ${earliestDate} 核对税年材料。`,
-          `Tax years are assessed as of the projected refiling date, ${earliestDate}. `,
+          `按预计递件日 ${earliestDate} 核对税年材料。`,
+          `Tax years are assessed as of the projected filing date, ${earliestDate}. `,
         );
         rules[incomeIndex] = {
           ...income,

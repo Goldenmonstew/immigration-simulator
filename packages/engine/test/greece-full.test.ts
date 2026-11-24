@@ -582,43 +582,67 @@ test('naturalisation oath is assessed independently of application conditions an
   expect(path('GR-NATIONALITY', { nationality: oath }).status).toBe('UNKNOWN');
 });
 
-test.each([
-  [[2019, 2020, 2021, 2022, 2023], 'UNKNOWN', undefined],
-  [[2019, 2020, 2021, 2022, 2023, 2024], 'FUTURE', '2027-08-15'],
-  [[2020, 2021, 2022, 2023, 2026], 'FUTURE', '2027-08-15'],
-] as const)(
-  'refiling in a later tax year with tax records for %j',
-  (years, projectedStatus, earliestDate) => {
-    const nationality = {
-      permit: 'listed',
-      convictions: [],
-      removalOrStatusProceedings: false,
-      exam: 'certificate',
-      economicActivity: 'stable-declared-work',
-      livingResources: 'substantiated',
-      incomeByTaxYear: Object.fromEntries(
-        years.map((year) => [year, { taxableEur: 8000, dependants: 0 }]),
-      ),
-      taxAndSocialInsuranceCurrent: true,
-      integrationAssessment: 'accepted',
-      civilStatusProof: 'legalised-translation',
-      hasAmka: true,
-      hasTaxAssessments: true,
-      lastRejection: '2026-08-15',
-    } satisfies GrFullRequest['nationality'];
-    const checkOn = (simulationDate: string) =>
-      path('GR-NATIONALITY', { simulationDate, nationality });
-    const projection = checkOn(day);
-    const onOpening = checkOn('2027-08-15');
-    const incomeStatus = earliestDate ? 'MET' : 'UNKNOWN';
-    for (const result of [projection, onOpening])
-      expect(result.checks.find((check) => check.id === 'NAT-07')?.status).toBe(
-        incomeStatus,
-      );
-    expect(projection.status).toBe(projectedStatus);
-    expect(projection.earliestDate).toBe(earliestDate);
-    expect(onOpening.status).toBe(earliestDate ? 'MET' : 'UNKNOWN');
-    expect(onOpening.earliestDate).toBe(earliestDate);
+describe.each([
+  {
+    lastRejection: '2026-08-15',
+    opening: '2027-08-15',
+    permits: base.permits,
+  },
+  {
+    lastRejection: 'none',
+    opening: '2027-01-01',
+    permits: [
+      { kind: 'regular', from: '2019-01-01', to: '2019-06-30' },
+      { kind: 'regular', from: '2020-01-01' },
+    ],
+  },
+] satisfies {
+  lastRejection: string;
+  opening: string;
+  permits: GrFullRequest['permits'];
+}[])(
+  'naturalisation filing in a later tax year (last rejection: $lastRejection)',
+  ({ lastRejection, opening, permits }) => {
+    test.each([
+      [[2019, 2020, 2021, 2022, 2023], 'UNKNOWN'],
+      [[2019, 2020, 2021, 2022, 2023, 2024], 'FUTURE'],
+      [[2020, 2021, 2022, 2023, 2026], 'FUTURE'],
+    ] as const)(
+      'checks the projected tax window with records for %j',
+      (years, projectedStatus) => {
+        const nationality = {
+          permit: 'listed',
+          convictions: [],
+          removalOrStatusProceedings: false,
+          exam: 'certificate',
+          economicActivity: 'stable-declared-work',
+          livingResources: 'substantiated',
+          incomeByTaxYear: Object.fromEntries(
+            years.map((year) => [year, { taxableEur: 8000, dependants: 0 }]),
+          ),
+          taxAndSocialInsuranceCurrent: true,
+          integrationAssessment: 'accepted',
+          civilStatusProof: 'legalised-translation',
+          hasAmka: true,
+          hasTaxAssessments: true,
+          lastRejection,
+        } satisfies GrFullRequest['nationality'];
+        const checkOn = (simulationDate: string) =>
+          path('GR-NATIONALITY', { simulationDate, permits, nationality });
+        const projection = checkOn(day);
+        const onOpening = checkOn(opening);
+        const earliestDate = projectedStatus === 'FUTURE' ? opening : undefined;
+        const incomeStatus = earliestDate ? 'MET' : 'UNKNOWN';
+        for (const result of [projection, onOpening])
+          expect(
+            result.checks.find((check) => check.id === 'NAT-07')?.status,
+          ).toBe(incomeStatus);
+        expect(projection.status).toBe(projectedStatus);
+        expect(projection.earliestDate).toBe(earliestDate);
+        expect(onOpening.status).toBe(earliestDate ? 'MET' : 'UNKNOWN');
+        expect(onOpening.earliestDate).toBe(earliestDate);
+      },
+    );
   },
 );
 

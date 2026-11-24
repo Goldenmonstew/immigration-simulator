@@ -35,6 +35,7 @@ const investor: Investor = {
   payment: 'bank-transfer',
   payer: 'applicant',
   notarialEvidence: true,
+  registeredTransferEvidence: true,
   use: 'residential-or-long-let',
   worksInGreeceUnderThisPermit: false,
   family: [],
@@ -610,6 +611,56 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     expect(path.earliestDate).toBe(earliestDate);
   }
 
+  test.each([
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+    [true, 'MET'],
+    ['application-receipt', 'MET'],
+    ['lawyer-application-certificate', 'MET'],
+  ] as const)(
+    'Β.5 initial purchase registration evidence %s',
+    (registeredTransferEvidence, status) => {
+      for (const kind of ['standard', 'conversion'] as const) {
+        const result = full('GR-GOLDEN-VISA', {
+          goldenVisa: {
+            ...investor,
+            kind,
+            qualifyingValueEur: kind === 'conversion' ? 250000 : 800000,
+            conversionComplete: true,
+            conversionActDate: '2024-04-05',
+            registeredTransferEvidence,
+          },
+        });
+        verify(result, 'GV-03', status);
+      }
+    },
+  );
+
+  test('Β.5 accepts a registration application receipt on the decision effective date, including pending filings', () => {
+    const goldenVisa = {
+      ...investor,
+      registeredTransferEvidence: 'application-receipt',
+    } as const;
+    verify(
+      full('GR-GOLDEN-VISA', { simulationDate: '2025-11-10', goldenVisa }),
+      'GV-03',
+      'NOT_MET',
+    );
+    verify(
+      full('GR-GOLDEN-VISA', {
+        simulationDate: '2025-11-11',
+        entry: 'receipt',
+        goldenVisa: {
+          ...goldenVisa,
+          overseasFilingDate: '2025-11-10',
+          overseasEvidenceCompletedOn: '2025-11-11',
+        },
+      }),
+      'GV-03',
+      'MET',
+    );
+  });
+
   test('Β.5 conversion uses the certified permit, file update or revision date and the filing date', () => {
     const converted: Investor = {
       ...investor,
@@ -938,6 +989,40 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       'MET',
     );
   });
+  test.each([
+    ['standard', 'MET'],
+    ['conversion', 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'Β.5 office use at renewal follows the original %s tier for a converted property',
+    (originalGrantTier, status) => {
+      for (const use of [
+        'business-office',
+        'long-tourist-sublet-with-services',
+      ] as const) {
+        const result = full('GR-GOLDEN-VISA', {
+          permits: [{ kind: 'investor', from: '2024-09-01', to: '2026-12-01' }],
+          currentCardExpiresOn: '2026-12-01',
+          goldenVisa: {
+            ...investor,
+            kind: 'conversion',
+            stage: 'renewal',
+            originalGrantTier,
+            retainsInvestment: true,
+            use,
+          },
+        });
+        expect(result.checks.find((x) => x.id === 'GV-04')?.status).toBe(
+          status,
+        );
+        expect(result.status).toBe(status);
+        expect(result.earliestDate).toBe(
+          status === 'MET' ? simulationDate : undefined,
+        );
+      }
+    },
+  );
+
   test('current investment renewal verifies continued title without the original acquisition dossier', () => {
     const renew = (patch: Partial<Investor> = {}) =>
       full('GR-GOLDEN-VISA', {

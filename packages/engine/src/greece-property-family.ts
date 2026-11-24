@@ -26,6 +26,8 @@ interface GoldenVisaAnswers {
   /** Entry and completion of the outstanding insurance and biometric evidence. */
   overseasEvidenceCompletedOn?: IsoDate;
   regime?: 'current' | 'legacy-card' | 'transition';
+  /** Legal basis recorded in the original grant, for use restrictions at renewal. */
+  originalGrantTier?: 'standard' | 'conversion' | 'listed';
   originalConditionsStillMet?: boolean;
   // Original statutory zone for a transitional investment (older issued cards retain their grant conditions).
   legacyZone?: 'legacy-high' | 'legacy-other';
@@ -50,7 +52,9 @@ interface GoldenVisaAnswers {
     | 'ineligible';
   /** Objective value recorded for an inheritance or parental gift. */
   assessedValueEur?: number;
-  registeredTransferEvidence?: boolean;
+  /** True includes a lawyer's proof of completed registration. False means no registration evidence. */
+  registeredTransferEvidence?:
+    boolean | 'application-receipt' | 'lawyer-application-certificate';
   builtOrBuildingPermit?: boolean;
   mainAreaSqm?: number;
   /** Whether the main spaces had been converted to housing by filing. */
@@ -376,13 +380,14 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
     else if (
       a.use === 'business-office' ||
       a.use === 'long-tourist-sublet-with-services'
-    )
-      use =
-        a.kind === undefined
-          ? undefined
-          : !['conversion', 'factory-conversion'].includes(a.kind) ||
-            (!renewal && current && all(standardPrice, standardArea));
-    else use = true;
+    ) {
+      if (legacy) use = oldTerms;
+      else if (renewal && a.originalGrantTier)
+        use = a.originalGrantTier !== 'conversion';
+      else if (a.kind === 'standard' || a.kind === 'listed') use = true;
+      else if (!renewal && a.kind !== undefined)
+        use = current && all(standardPrice, standardArea);
+    } else use = true;
   }
   const fee = p.gvFees.value;
   const total = investorFees(a);
@@ -436,10 +441,19 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
     );
   }
   if (!renewal) {
-    const transferEvidence = all(
-      a.notarialEvidence,
-      a.registeredTransferEvidence,
-    );
+    // Article 3 of KYA 214926/2025 also admits application receipts for earlier pending filings.
+    const acceptsReceipt = sim >= p.gvConversionDecisionEffective.value;
+    const registration =
+      typeof a.registeredTransferEvidence === 'string'
+        ? acceptsReceipt
+        : a.registeredTransferEvidence;
+    const transferEvidence = all(a.notarialEvidence, registration);
+    const registrationZh = acceptsReceipt
+      ? '须提供登记凭证、登记申请回执或律师对登记或登记申请的证明。'
+      : '须提供已完成登记的凭证或律师对该登记的证明。';
+    const registrationEn = acceptsReceipt
+      ? ' Provide proof of registration, the registration application receipt, or a lawyer’s certificate confirming either.'
+      : ' Provide proof of completed registration or a lawyer’s certificate confirming registration.';
     const adultOn =
       req.birthDate && addYears(req.birthDate, p.gvFees.value.minorAge);
     const transferMet =
@@ -460,20 +474,27 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
                 a.payment === undefined ? undefined : a.payment !== 'other',
                 a.payer === undefined ? undefined : a.payer !== 'other',
                 a.notarialEvidence,
+                lease || registration,
               ),
         [
           grSource(
             'F23',
             'art. 64, art. 100(1)(ε),(3),(5),(6),(11), pp. 1198–1200',
           ),
-          grSource('F21', 'art. 31(2.1)(β), (2.3)(β)–(γ)'),
+          grSource('F21', 'art. 31(2.1)(β)–(γ), (2.3)(β)–(γ)'),
+          grSource(
+            'F59',
+            'art. 2, §§2.1(γ), 2.3(γ), 2.6(γ), 2.7(γ); arts. 3–4',
+          ),
         ],
-        transfer
-          ? '成年继承人或受父母赠与人应提供公证估值和转让登记证明，公证材料须列明房产此前的用卡记录。'
-          : '确认价款付清、解除条件已撤销、付款渠道和汇款人合规，且已核对原业主用卡记录。',
-        transfer
-          ? 'An adult heir or recipient of a parental gift must document the assessed value, registration of the transfer and prior investor-card use in the notarial record.'
-          : 'Confirm full payment, released conditions, a qualifying bank channel and payer, and the seller’s investor-card record.',
+        (transfer
+          ? '成年继承人或受父母赠与人应提供公证估值，公证材料须列明房产此前的用卡记录。'
+          : '确认价款付清、解除条件已撤销、付款渠道和汇款人合规，且已核对原业主用卡记录。') +
+          (lease ? '' : registrationZh),
+        (transfer
+          ? 'An adult heir or recipient of a parental gift must document the assessed value and prior investor-card use in the notarial record.'
+          : 'Confirm full payment, released conditions, a qualifying bank channel and payer, and the seller’s investor-card record.') +
+          (lease ? '' : registrationEn),
         !transfer && a.payer === undefined ? ['PD-307'] : undefined,
       ),
     );
@@ -487,9 +508,10 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
       [
         grSource('F23', 'art. 64(1),(3), art. 100(7),(7Α)'),
         grSource('F53', 'Circular 9/2024, I(Δ)(α)–(β), p4'),
+        grSource('F59', 'art. 2, §3(ζ), renewal of permits granted under §2.6'),
       ],
-      `新制禁止共享经济短租及短期转租，也限制改住宅用作营业注册地，罚款 €${p.gvFines.value.prohibitedUse}。核对转租期限及服务内容；按旧制或合格过渡规定取得的房产豁免短租限制。`,
-      `Under current terms sharing-economy short lets, short sublets or business offices in converted homes risk revocation and €${p.gvFines.value.prohibitedUse}. Check sublease terms and services. Properties acquired under older rules or a valid transition are exempt from the short-let restriction.`,
+      `新制禁止共享经济短租及短期转租。按用途变更档取得许可的房产还禁止用作营业注册地或分支机构，续期须核对原批准档位。违规可撤销许可并罚款 €${p.gvFines.value.prohibitedUse}。核对转租期限及服务内容，按旧制或合格过渡规定取得的房产豁免短租限制。`,
+      `Current rules prohibit sharing-economy short lets and short sublets. Property approved under the conversion tier may not serve as a business headquarters or branch. Check the original grant tier at renewal. Breaches risk revocation and a €${p.gvFines.value.prohibitedUse} fine. Check sublease terms and services. Properties acquired under older rules or a valid transition are exempt from the short-let restriction.`,
       (shortLet && !current) || a.use === 'sublet-terms-unknown'
         ? ['PD-308']
         : undefined,
