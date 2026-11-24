@@ -48,7 +48,6 @@
 | SRC-029 | LAW | Immigration Rules Part 8: family members（版本 2026-08-03，HC 259；child settlement 见 para 298–298A） | https://www.gov.uk/guidance/immigration-rules/immigration-rules-part-8-family-members | 2026-08-03 | 2026-11-05 | `policy-sources/2026-08-03-immigration-rules-part-8-family-members.html`（sha256 `66c523cc6f5d9c6370277ab972b9ab07c247090476b5e5c8009d78a88feb8d9f`） | archived |
 | SRC-030 | GUIDANCE | Skilled Worker visa: How much it costs（境内标准申请 ≤3 年 £943、IHS 通常每年 £1,035；动态 guide 子页） | https://www.gov.uk/skilled-worker-visa/how-much-it-costs | —（guide 元数据 public_updated_at 为 2024-10-31，非费用生效日） | 2026-11-05 | `policy-sources/2026-11-05-skilled-worker-visa-how-much-it-costs.html`（sha256 `55313dadb207b2caae7c5f77a5487791e61b4faf748b09b740b08b11511594ca`） | archived |
 | SRC-031 | GUIDANCE | Home Office immigration and nationality fees, 8 October 2026（ILR 申请费 £3,226） | https://www.gov.uk/government/publications/visa-regulations-revised-table/home-office-immigration-and-nationality-fees-8-october-2026 | 2026-09-10（表内费率自 2026-10-08） | 2026-11-05 | `policy-sources/2026-10-08-home-office-immigration-and-nationality-fees.html`（sha256 `3b4fbb59134f418352ed61e6744bdccbfd341c7467f3e5e0c327b22ab25d2d33`） | archived |
-
 | SRC-032 | POLICY | Budget 2026 (HTML)，HC 726；方向、实施窗口与税务措施见登记备注 | https://www.gov.uk/government/publications/budget-2026-document/budget-2026-html | 2026-10-28 | 2026-11-15 | `policy-sources/2026-10-28-budget-2026.html`（sha256 `200771cdef71c7922e842b94cfbd9ba108778dd2e1965631ed527a920fc0193e`） | archived |
 | SRC-033 | PARLIAMENT | Written question 40064：工作签证薪资与 curtailment | https://questions-statements.parliament.uk/written-questions/detail/2026-11-02/40064 | 提问 2026-11-02；回答 2026-11-04 | 2026-11-15 | `policy-sources/2026-11-04-written-question-40064.json`（sha256 `a858b23f4568d18803b17de1ab68c6d5739941b898c9ffb20778eae15d432313`） | archived |
 | SRC-034 | LAW | Immigration Rules Appendix Graduate（Appendix 版本 2026-08-03，HC 259；GR 8.1） | https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-graduate | 2026-08-03（页头手册 Updated 2026-10-29） | 2026-11-15 | `policy-sources/2026-08-03-immigration-rules-appendix-graduate.html`（sha256 `d98b79a8f5c36f6828e3a20864067da645cf594508222624f9019e33d2752984`）；`policy-sources/2026-08-03-immigration-rules-appendix-graduate-content-api.json`（sha256 `1278b1bec4b9343da47340a5eb6131eefe91b52df4fe7a47c64b6624d0097972`） | archived |
@@ -88,9 +87,9 @@
 | SRC-068 | GUIDANCE | Department of Home Affairs Standard Operating Procedure：General residence requirement and permanent resident status（依 FOI 申请 FA 25/08/01434 公开，部分删节，23 页） | https://www.homeaffairs.gov.au/foi/files/2025/fa-250801434-document-released.PDF | PDF 2025-09-15 | 2026-11-21 | `policy-sources/2025-09-15-au-sop-general-residence-requirement-foi.pdf`（sha256 `4fce927e1b93f2b296f899ffd096b9ec44659b083906d60112f67ad6d22be8b0`） | archived |
 | SRC-069 | LAW | Migration Act 1958（Compilation No. 172，2026-10-08）Volume 1：境内递交限制与豁免（ss 41、46、48）、签证终止（s 82） | https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text/original/epub/OEBPS/document_1/document_1.html （登记版本：https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text ；现行版入口：https://www.legislation.gov.au/C1958A00062/latest/text ） | 2026-10-08 | 2026-11-21 | `policy-sources/2026-10-08-au-migration-act-1958-compilation-172-vol1.html`（sha256 `52a074ece7fdf107db0802e2079a71870d33f75aeabb91b2ecb842537330d29b`） | archived |
 | SRC-070 | LAW | Citizenship Act 1977（新西兰，Version as at 2026-06-06；s8 citizenship by grant） | https://www.legislation.govt.nz/act/public/1977/61/en/latest/ （登记版本 PDF：https://www.legislation.govt.nz/act/public/1977/61/en/2026-06-06.pdf ） | 2026-06-06 | 2026-11-21 | `policy-sources/2026-06-06-nz-citizenship-act-1977-s8.html`（sha256 `f9a43233fabbbbedf29b4b9e56d2c49d2d66f99fd1ae12a865e954132db3be2c`） | archived |
-| SRC-071 | LAW | Immigration Act 2009（新西兰，Version as at 2026-07-10；s73 永久居民签证、s74 居民签证与旅行条件） | https://www.legislation.govt.nz/act/public/2009/51/en/latest/ | 2026-07-10 | 2026-11-21 | `policy-sources/2026-07-10-nz-immigration-act-2009-ss73-74.html`（sha256 `850fa60bc0927ba64dcdf43f7cf9541a193b5760e7bc9f9eba2ba6fbffaec649`） | archived |
-| SRC-072 | LAW | Immigration New Zealand Operational Manual（Immigration Instructions）：RV2.5 永久居民签证（2024-06-23 生效）、RV2.10 有投资条件的居民签证转永居（2022-09-19）、RV1.15 证据（2012-11-26）、R5.66 居民签证的旅行条件（2026-08-12）、RV1.5 居民签证何时失效（2011-11-07）、RV1.20 随同申请人（2026-08-12） | https://www.immigration.govt.nz/opsmanual/30505.htm ；https://www.immigration.govt.nz/opsmanual/46181.htm ；https://www.immigration.govt.nz/opsmanual/45649.htm ；https://www.immigration.govt.nz/opsmanual/44894.htm ；https://www.immigration.govt.nz/opsmanual/42631.htm ；https://www.immigration.govt.nz/opsmanual/45650.htm | 见标题 | 2026-11-21 | `policy-sources/2024-06-23-nz-immigration-instructions-rv2-5.html`（sha256 `ae9c55ff6541067f080a52716d7dad82d4658d8b450f510ca04d9e523dc15bed`）；`policy-sources/2022-09-19-nz-immigration-instructions-rv2-10.html`（sha256 `72afede60ccfa7ec2fd75848103442ec444f955878cebf6c3d0487427b483afb`）；`policy-sources/2012-11-26-nz-immigration-instructions-rv1-15.html`（sha256 `c622973856d8b9998ed1b98df1c66a5d8e7c781ec5061292607580f7ea67faa5`）；`policy-sources/2026-08-12-nz-immigration-instructions-r5-66.html`（sha256 `654a93b52da6eba0121832b884735104c17b889b75cb2fd3636d5cffcb096d1d`）；`policy-sources/2011-11-07-nz-immigration-instructions-rv1-5.html`（sha256 `4666d0fbedbf0c4661fc2b0a71e25d3fa8deedec53b9f1e3326d296ea022d3f4`）；`policy-sources/2026-08-12-nz-immigration-instructions-rv1-20.html`（sha256 `4a93ba2c2a08e3f38073616f7ad42060eebb76d26efeecc98f58bb2e4ccb3505`） | archived |
-| SRC-073 | GUIDANCE | 新西兰官方说明：govt.nz（Department of Internal Affairs）Presence in NZ requirements；Immigration New Zealand Visa Pak 588（2024-07-18，永久居民签证的 12、24 个月按天计）；Religious Worker Resident Visa 页面（节选）；Department of Internal Affairs 依 OIA 21/22-0423 公开的在境计算器规格（2021-12-15） | https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/presence-requirements/ ；https://www.immigration.govt.nz/assets/inz/documents/visa-paks/visa-pak-588.pdf ；https://www.immigration.govt.nz/visas/religious-worker-resident-visa/ ；https://www.dia.govt.nz/diawebsite.nsf/Files/OIA-releases/$file/OIA-2122-0423.pdf | 见标题（网页为动态页面） | 2026-11-21 | `policy-sources/2026-11-21-nz-citizenship-presence-requirements.html`（sha256 `92d4b3ef1b812709db0fff649e84d9d236d316757a080b37c6eb74afc475947c`）；`policy-sources/2024-07-18-nz-visa-pak-588-prv-periods.pdf`（sha256 `38319ee3e7429c5240024effc666c1b76d4f4be0ed8dea91cf45415590704f3d`）；`policy-sources/2026-11-21-nz-religious-worker-resident-visa.html`（sha256 `234df2062b623f618797781f4e65153ce45658cc45a24773acd4575ba4ad15aa`）；`policy-sources/2021-12-15-nz-dia-oia-2122-0423-presence-calculator.pdf`（sha256 `8ec44efdae4ab842f4267b7cf8891df4018390ab650a4e6c2464b7ae7797a2c6`） | archived |
+| SRC-071 | LAW | Immigration Act 2009（新西兰，Version as at 2026-07-10；s71 居民类签证申请资格、s73 永久居民签证、s74 居民签证与旅行条件） | https://www.legislation.govt.nz/act/public/2009/51/en/latest/ | 2026-07-10 | 2026-11-21；2026-11-24 补核 s71 | `policy-sources/2026-07-10-nz-immigration-act-2009-ss73-74.html`（sha256 `850fa60bc0927ba64dcdf43f7cf9541a193b5760e7bc9f9eba2ba6fbffaec649`） | archived |
+| SRC-072 | LAW | Immigration New Zealand Operational Manual（Immigration Instructions）：RV2.5 永久居民签证（2024-06-23 生效）、RV2.10 有投资条件的居民签证转永居（2022-09-19）、RV1.15 证据（2012-11-26）、R5.66 居民签证的旅行条件（2026-08-12）、RV1.5 居民签证何时失效（2011-11-07）、RV1.20 随同申请人（2026-08-12） | https://www.immigration.govt.nz/opsmanual/30505.htm ；https://www.immigration.govt.nz/opsmanual/46181.htm ；https://www.immigration.govt.nz/opsmanual/45649.htm ；https://www.immigration.govt.nz/opsmanual/44894.htm ；https://www.immigration.govt.nz/opsmanual/42631.htm ；https://www.immigration.govt.nz/opsmanual/45650.htm | 见标题 | 2026-11-21；2026-11-23 补档 | `policy-sources/2024-06-23-nz-immigration-instructions-rv2-5.html`（sha256 `ae9c55ff6541067f080a52716d7dad82d4658d8b450f510ca04d9e523dc15bed`）；`policy-sources/2022-09-19-nz-immigration-instructions-rv2-10.html`（sha256 `72afede60ccfa7ec2fd75848103442ec444f955878cebf6c3d0487427b483afb`）；`policy-sources/2012-11-26-nz-immigration-instructions-rv1-15.html`（sha256 `c622973856d8b9998ed1b98df1c66a5d8e7c781ec5061292607580f7ea67faa5`）；`policy-sources/2026-08-12-nz-immigration-instructions-r5-66.html`（sha256 `654a93b52da6eba0121832b884735104c17b889b75cb2fd3636d5cffcb096d1d`）；`policy-sources/2011-11-07-nz-immigration-instructions-rv1-5.html`（sha256 `4666d0fbedbf0c4661fc2b0a71e25d3fa8deedec53b9f1e3326d296ea022d3f4`）；`policy-sources/2026-08-12-nz-immigration-instructions-rv1-20.html`（sha256 `4a93ba2c2a08e3f38073616f7ad42060eebb76d26efeecc98f58bb2e4ccb3505`）；`policy-sources/2026-08-12-nz-ops-r5-66.html`（sha256 `a091c1cc85ac2b4b6a3b0b094c56c93be686d4df04134826338c41c09d8002ec`） | archived |
+| SRC-073 | GUIDANCE | 新西兰官方说明：govt.nz（Department of Internal Affairs）Presence in NZ requirements；Immigration New Zealand Visa Pak 588（2024-07-18，永久居民签证的 12、24 个月按天计）；Religious Worker Resident Visa 页面（节选）；Department of Internal Affairs 依 OIA 21/22-0423 公开的在境计算器规格（2021-12-15） | https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/presence-requirements/ ；https://www.immigration.govt.nz/assets/inz/documents/visa-paks/visa-pak-588.pdf ；https://www.immigration.govt.nz/visas/religious-worker-resident-visa/ ；https://www.dia.govt.nz/diawebsite.nsf/Files/OIA-releases/$file/OIA-2122-0423.pdf | 见标题（网页为动态页面） | 2026-11-21；2026-11-23 补档 | `policy-sources/2026-11-21-nz-citizenship-presence-requirements.html`（sha256 `92d4b3ef1b812709db0fff649e84d9d236d316757a080b37c6eb74afc475947c`）；`policy-sources/2024-07-18-nz-visa-pak-588-prv-periods.pdf`（sha256 `38319ee3e7429c5240024effc666c1b76d4f4be0ed8dea91cf45415590704f3d`）；`policy-sources/2026-11-21-nz-religious-worker-resident-visa.html`（sha256 `234df2062b623f618797781f4e65153ce45658cc45a24773acd4575ba4ad15aa`）；`policy-sources/2021-12-15-nz-dia-oia-2122-0423-presence-calculator.pdf`（sha256 `8ec44efdae4ab842f4267b7cf8891df4018390ab650a4e6c2464b7ae7797a2c6`）；`policy-sources/2026-11-23-nz-govt-citizenship-presence.html`（sha256 `0d1e99c54d2d4cabff880a2448f492eb9fd0884030684a7813ef7d26207f1f3b`） | archived |
 | SRC-074 | LAW | Citizenship Act（加拿大，R.S.C. 1985, c. C-29；current to 2026-10-29，last amended 2025-12-15）：s5 入籍条件与实际居住计算、s21 不计入的期间 | https://laws-lois.justice.gc.ca/eng/acts/c-29/section-5.html ；https://laws-lois.justice.gc.ca/eng/acts/c-29/section-21.html | 2026-10-29 | 2026-11-21 | `policy-sources/2026-10-29-ca-citizenship-act-s5.html`（sha256 `d9ea9293336985dcbd87c593d2c6d51e755410fde96dd2e0e76eb694319b5414`）；`policy-sources/2026-10-29-ca-citizenship-act-s21.html`（sha256 `bb415894daae5d87e593d1216105607395966265b6cacda799eac7c14e09c7d0`） | archived |
 | SRC-075 | LAW | Immigration and Refugee Protection Act（加拿大，S.C. 2001, c. 27；current to 2026-10-29，last amended 2026-03-26）：s28 永久居民的居住义务 | https://laws-lois.justice.gc.ca/eng/acts/i-2.5/section-28.html | 2026-10-29 | 2026-11-21 | `policy-sources/2026-10-29-ca-irpa-s28.html`（sha256 `f54ac86d952f67f55b8f5e2bb42c44def60c7c61aef663304704c0b34a798072`） | archived |
 | SRC-076 | GUIDANCE | IRCC：Apply for Canadian citizenship: adults and minor children — eligibility（Date modified 2026-04-21） | https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/become-canadian-citizen/eligibility.html | 2026-04-21 | 2026-11-21 | `policy-sources/2026-11-21-ca-ircc-citizenship-eligibility.html`（sha256 `531efa815cc1e6934f9c974bac024687f995009803fbc7776b2a7b54f1103dd6`） | archived |
@@ -223,6 +222,29 @@
 | SRC-225 | GUIDANCE | 内政部技术移民职业评估 | https://immi.homeaffairs.gov.au/visas/working-in-australia/skills-assessment | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-skills-assessment.html`（sha256 `42c9875accba8edc3898927f8aed6cd5b4fcf20d5bbcfb93ea470aa876b3cb5c`） | archived |
 | SRC-226 | GUIDANCE | 内政部 Competent English 考试和成绩 | https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/english-language/competent-english | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-immi-english-competent.html`（sha256 `89b69eaa9ef88fdc05222fcbe936179595350d833076d856578e479e5a077cb5`） | archived |
 | SRC-229 | GUIDANCE | IELTS 官方成绩说明（Overall band score） | https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail | —（动态页面） | 2026-11-23 | `policy-sources/2026-11-23-au-ielts-scoring-in-detail.html`（sha256 `0b611e3fd51650e8e3e675075bf2e5deebc815c55ff961001c385568763554e4`） | archived |
+| SRC-230 | LAW | 新西兰：居民身份、旅行、变更、再发与通用递交条件 | https://www.immigration.govt.nz/opsmanual/43640.htm ；https://www.immigration.govt.nz/opsmanual/46504.htm ；https://www.immigration.govt.nz/opsmanual/44893.htm ；https://www.immigration.govt.nz/opsmanual/30976.htm ；https://www.immigration.govt.nz/opsmanual/30990.htm ；https://www.immigration.govt.nz/opsmanual/31004.htm ；https://www.immigration.govt.nz/opsmanual/30942.htm ；https://www.immigration.govt.nz/opsmanual/30943.htm ；https://www.immigration.govt.nz/opsmanual/31105.htm ；https://www.immigration.govt.nz/opsmanual/48291.htm ；https://www.immigration.govt.nz/opsmanual/44897.htm ；https://www.immigration.govt.nz/opsmanual/30496.htm ；https://www.immigration.govt.nz/opsmanual/30497.htm ；https://www.immigration.govt.nz/opsmanual/30498.htm ；https://www.immigration.govt.nz/opsmanual/30495.htm ；https://www.immigration.govt.nz/opsmanual/30500.htm ；https://www.immigration.govt.nz/opsmanual/42632.htm ；https://www.immigration.govt.nz/opsmanual/42633.htm ；https://www.immigration.govt.nz/opsmanual/33732.htm ；https://www.immigration.govt.nz/opsmanual/30501.htm ；https://www.immigration.govt.nz/opsmanual/30489.htm ；https://www.immigration.govt.nz/opsmanual/46518.htm | 见各快照版本日 | 2026-11-23；2026-11-24 补档 | `policy-sources/2016-08-22-nz-ops-rv3-1.html`（sha256 `fdd5cf4bf373d9a0985d9cfda5435d518ba0335e50af1bf076ac29fca82fd41c`）；`policy-sources/2026-09-25-nz-ops-r2-1.html`（sha256 `8752fffc21c418fdf8783df3e2e1e691137df2ff8406905cc21c296d1fe34166`）；`policy-sources/2022-04-12-nz-ops-r2-40.html`（sha256 `40f7d70da3708c8882512bf99218f7a2c7182782d05432e264682f54350ac286`）；`policy-sources/2010-11-29-nz-ops-r2-65.html`（sha256 `0d2a3b37be823a971a160d83ae8686af806b30c23c79dbf9ef92625ffa08f032`）；`policy-sources/2010-11-29-nz-ops-r5-6.html`（sha256 `447c26a740117467c4c594ff2c1c60e2461b44adf11f4ac427341452d4f84165`）；`policy-sources/2010-11-29-nz-ops-r5-75.html`（sha256 `0105326d76df259ce1d9e5a02c34189e59d5641bf3c77bec55cae46086914021`）；`policy-sources/2010-11-29-nz-ops-ra1-1.html`（sha256 `d19ca175da317d331eea8b3c24e0065019e13877c61929611c5fd1b37c5a6b37`）；`policy-sources/2010-11-29-nz-ops-ra1-5.html`（sha256 `b6d21ff6d5e6caa5193db042a007cdb0bbb392ba870155cfd030a912d8111866`）；`policy-sources/2017-08-28-nz-ops-ra5-1.html`（sha256 `bd5ed5c711a1b7811183d16a37f9977ab7790e691b8b9f73a2c7e162f632f76f`）；`policy-sources/2020-09-07-nz-ops-rv1-25.html`（sha256 `f889532634de6bcaaf3040224d9a7ab3957a256d8b12f2256822e203d3ee211d`）；`policy-sources/2020-09-07-nz-ops-rv2-1.html`（sha256 `afb664b77dc473b39df32ebfc528c37bb867638adfafddf1c687354e70ef3e9c`）；`policy-sources/2015-03-30-nz-ops-rv3-10.html`（sha256 `878430ab0a3436629d2c230037c5ca66b3a42b32cd4d04622e947ecd1efd43dd`）；`policy-sources/2010-11-29-nz-ops-rv3-15.html`（sha256 `a4157fe658f1b09529225a233c78f5a415845dba3d7a7db88066485c58f7b5d1`）；`policy-sources/2016-08-22-nz-ops-rv3-20.html`（sha256 `86dd9c44dc30aae6cb732c6a95d2e88d149194c9c9410e8838097469ca4307d2`）；`policy-sources/2010-11-29-nz-ops-rv3-5.html`（sha256 `12b56a6bc0ae14be678c18b24266de65a1a35103b543d71f52c5a11eec1de40f`）；`policy-sources/2016-04-11-nz-ops-rv4-1.html`（sha256 `ef64654c1ca73863ae261199011450d5f39def444ed4b52a0a194e76464eb311`）；`policy-sources/2016-04-11-nz-ops-rv4-10.html`（sha256 `6407ad57984c1be8f02fbad276a95102edc85964bf27bd6e88beab928aa13455`）；`policy-sources/2016-04-11-nz-ops-rv4-15.html`（sha256 `72fd08050e94613d4cc87bbb7335dc8d8467af11d621b8b52455bc72778d5c27`）；`policy-sources/2019-05-13-nz-ops-rv4-20.html`（sha256 `e66a5777eff46f5a46daea39309288f69c71d1025021f03b2281c7bb25261d4e`）；`policy-sources/2010-11-29-nz-ops-rv4-5.html`（sha256 `cc3d38d32ea3995d7c897215a634fa7900a2fec280cab26d85cc38cad3febfee`）；`policy-sources/2024-01-29-nz-ops-rv1-10.html`（sha256 `66618235a27eb38aec08084abfe052ddb291c057446df95ed090b505dd571e2a`）；`policy-sources/2023-08-27-nz-ops-ra5.html`（sha256 `d1ba794caec9a9fc21d13f25bd981ea9ec25cec83fac24e648c0676e99f66343`） | archived |
+| SRC-231 | GUIDANCE | 新西兰：DIA Citizenship Guidance Document（2026 年 10 月） | https://www.dia.govt.nz/diawebsite.nsf/Files/Citizenship-2026/$file/Citizenship-Guidance-Document-October-2026.pdf ；https://www.dia.govt.nz/diawebsite.nsf/wpg_URL/Services-Citizenship-Citizenship-policy?OpenDocument | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-10-14-nz-dia-citizenship-guidance.pdf`（sha256 `d9f651659de06f7eed805a8fd18959e34cd71225a539e5c862c74fc4110e223b`）；`policy-sources/2026-11-23-nz-dia-citizenship-policy.html`（sha256 `79858fa4cd956ecbbda5a71294684c014b25547b3fe4552dbd36504300181196`） | archived |
+| SRC-232 | GUIDANCE | 新西兰：govt.nz 入籍资格、申请、儿童、宣誓与拟实施考试 | https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/ ；https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/how-to-apply-for-nz-citizenship/citizenship-ceremonies/ ；https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/character-requirements/ ；https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/requirements-if-youre-a-child/ ；https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/how-to-apply-for-nz-citizenship/ ；https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/language-requirements/ ；https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/privileges-and-responsibilities-of-a-citizen/ ；https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/if-you-dont-meet-a-requirement-but-feel-your-situation-is-special/ ；https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/citizenship-test/ | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-11-23-nz-govt-citizenship-requirements.html`（sha256 `77b95c2d6076d4e90a06224e9d28be649f4dd0c2a783d1c01718d9ad069746ed`）；`policy-sources/2026-11-23-nz-govt-citizenship-ceremonies.html`（sha256 `f3e3d4be7fff6cacc3b64ae8c9afe896f50185d90fb6fe62102cf7eb4a175121`）；`policy-sources/2026-11-23-nz-govt-citizenship-character.html`（sha256 `a6a5910776c9c4622076b7b8392f70f4c4a92927b92459753b4428149c7223a8`）；`policy-sources/2026-11-23-nz-govt-citizenship-child.html`（sha256 `18cd8c255965284bac8d51ff7dcb4d40e246c90b7a4e57b304b7f50bae116e00`）；`policy-sources/2026-11-23-nz-govt-citizenship-how-to-apply.html`（sha256 `0c36c25792c72ed4106e68e124b8c0194dfbe9f2fb0b06832f87639d17e46826`）；`policy-sources/2026-11-23-nz-govt-citizenship-language.html`（sha256 `1d34907d6eaee2b519394e2da7a2af6d449724b095aeb38608afc59ddda7004d`）；`policy-sources/2026-11-23-nz-govt-citizenship-privileges.html`（sha256 `5b1c24853094797008b0c4d76f7b5558aad80e9bc35759e2e4ad3e8e651d0c61`）；`policy-sources/2026-11-23-nz-govt-citizenship-special.html`（sha256 `abd08a377caba1b6d0c717114c305fc65f9780cdb154878aafd8aac1b6e31a8d`）；`policy-sources/2026-11-23-nz-govt-citizenship-test.html`（sha256 `080626c18e412c88491f0e453f8e675f71ecd7a2dd52ab5a50f2b95a37146d6e`） | archived |
+| SRC-233 | POLICY | 新西兰：MBIE 移民费用和征费检讨，历史费率提案及 A6 地区和豁免口径 | https://www.regulation.govt.nz/assets/RIS-Documents/cris2-mbie-ifalr-jun24-v2.pdf ；https://www.immigration.govt.nz/opsmanual/41440.htm ；https://www.immigration.govt.nz/opsmanual/59391.htm ；https://www.regulation.govt.nz/publications-and-resources/regulatory-analysis-summaries/stage-2-cost-recovery-impact-statement-immigration-fee-and-levy-review/ | 见各快照版本日 | 2026-11-23 | `policy-sources/2024-06-01-nz-mbie-cris-immigration-fees.pdf`（sha256 `8117c07e5d0bc2ae79684935309f6bd4371401fd6d5524191b03912f12a6730a`）；`policy-sources/2017-08-28-nz-ops-a6-10.html`（sha256 `649bdde29b6e5b9048a961c2d04582684174ea237f7cfd7d9294d1f62a256336`）；`policy-sources/2023-02-28-nz-ops-a6-11.html`（sha256 `b1f7683d4fcc781e6f1dee20ecd726089f067a17b7d287dd8953cc213fcc7fdd`）；`policy-sources/2024-09-19-nz-mfr-cris-immigration-fees.html`（sha256 `101190fb02669924a33a31a37616c5a52ff7fbb68b09b16096c68dbcccb36086`） | archived |
+| SRC-234 | GUIDANCE | 新西兰：DIA 入籍收费与调整公告 | https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/citizenship-fees/ ；https://www.dia.govt.nz/press.nsf/d77da9b523f12931cc256ac5000d19b6/3af634c887fcd7dfcc258e600013912c!OpenDocument ；https://www.regulation.govt.nz/assets/RIS-Documents/Cost-Recovery-Impact-Statement-Citizenship-Fees-Amendment-Regulations-2026.pdf ；https://www.regulation.govt.nz/publications-and-resources/regulatory-analysis-summaries/cost-recovery-impact-statement-citizenship-fees-amendment-regulations-2026/ | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-11-23-nz-govt-citizenship-fees.html`（sha256 `b43e2b195e2fc7eca398d62263c6e7cd796246235b801aef8ee86a7a4c577336`）；`policy-sources/2026-08-28-nz-dia-citizenship-fees-release.html`（sha256 `942a7d94bb318d792b22437448bd7918813e1073ddb9da91c015aa9ea4e0d863`）；`policy-sources/2026-06-17-nz-dia-cris-citizenship-fees-2026.pdf`（sha256 `fc26cc2f0e239772a7f57937f23e870849cc50e7b174d7bfc78c76a0aabddfa5`）；`policy-sources/2026-06-17-nz-mfr-cris-citizenship-fees-2026.html`（sha256 `f97b3bdc426a33abe8c19443c9698d8e111f3953a6ab3430dcb34681e2a40bfe`） | archived |
+| SRC-235 | LAW | 新西兰：Skilled Residence 就业、雇主与工资核算 | https://www.immigration.govt.nz/opsmanual/77806.htm ；https://www.immigration.govt.nz/opsmanual/64549.htm ；https://www.immigration.govt.nz/opsmanual/77803.htm ；https://www.immigration.govt.nz/opsmanual/91283.htm ；https://www.immigration.govt.nz/opsmanual/77807.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-08-24-nz-ops-sr2-1.html`（sha256 `483b53969ec1a20d4f2175d41ce4197f783a836c8daf4391d0ecf27fd67bf33f`）；`policy-sources/2024-04-11-nz-ops-r5-110.html`（sha256 `a9d16ef8d5528b2cca88f704d463d7a60b54ae6d819ab676a7a16a71b9db271b`）；`policy-sources/2023-10-09-nz-ops-sr1-1.html`（sha256 `9d65213acfa050d26b2e093165fa859429f3286e5131b1be2ec23ae7ee224413`）；`policy-sources/2026-10-20-nz-ops-sr2-15.html`（sha256 `a1c04962b1512792377b67936471bb2f7133446b849806b88b306e7d1eb3c4ef`）；`policy-sources/2023-10-09-nz-ops-sr2-5.html`（sha256 `454f7f3b2ee37905060b976b83d8688f440da0a0204b218417dd424ab7a29822`） | archived |
+| SRC-236 | LAW | 新西兰：Skilled Migrant Category 与附录 21–23 | https://www.immigration.govt.nz/opsmanual/77811.htm ；https://www.immigration.govt.nz/opsmanual/90266.htm ；https://www.immigration.govt.nz/opsmanual/90267.htm ；https://www.immigration.govt.nz/opsmanual/90268.htm ；https://www.immigration.govt.nz/opsmanual/77812.htm ；https://www.immigration.govt.nz/opsmanual/79840.htm ；https://www.immigration.govt.nz/opsmanual/80476.htm ；https://www.immigration.govt.nz/opsmanual/80474.htm ；https://www.immigration.govt.nz/opsmanual/80475.htm ；https://www.immigration.govt.nz/opsmanual/90257.htm ；https://www.immigration.govt.nz/opsmanual/90261.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-08-24-nz-ops-sr3-5.html`（sha256 `d64352bd3cbf3d141cffd036cb5d4c835aba5728513fb10fa2868f9b647446d8`）；`policy-sources/2026-08-24-nz-ops-app21-amber.html`（sha256 `5a3e46493e6d218d30c796ba889b4240fd6cdd8fd3f777f70a72aab4f0564bcf`）；`policy-sources/2026-08-24-nz-ops-app22-red.html`（sha256 `368a0c4aa94b2a9447c8cd0adb70db5794a5b77b253df483170f0660ebc2d3b9`）；`policy-sources/2026-08-24-nz-ops-app23-trades.html`（sha256 `21c0997f865aacc94b2a7b0485bbc44b9ddec639cb30cb79b8fa7fca831c1543`）；`policy-sources/2026-08-24-nz-ops-sr3-10.html`（sha256 `92a269ed0c55015ead5d31187dfb96c27980da8c78aff97fa9455b69e6056086`）；`policy-sources/2026-08-24-nz-ops-sr3-15.html`（sha256 `83c958031376c05999a478e6393a3f540da45740892f5fe98381bb315812e2bd`）；`policy-sources/2026-08-24-nz-ops-sr3-20.html`（sha256 `8c6988115fb3ef49be38968947d84b48f8e9914fdc978fb50503f5a6c3f84bfe`）；`policy-sources/2026-08-24-nz-ops-sr3-25.html`（sha256 `29bcab0c1e365a341867267558df3ec12f49844a582cb0e856d1d3c7d87c034a`）；`policy-sources/2026-08-24-nz-ops-sr3-30.html`（sha256 `576d973938349074e584af8ea49cbefa3faa40dd653de56d90f736a664d87264`）；`policy-sources/2026-08-24-nz-ops-sr3-35.html`（sha256 `598bf60473cf1df59ba807c827fd2d2d1bf2fd4d90242cdfadd4a484e1ff6d45`）；`policy-sources/2026-08-24-nz-ops-sr3-40.html`（sha256 `562ef246e06055fce44961068dba50a403f0a2be5586713fe17fa59eedd89628`） | archived |
+| SRC-237 | LAW | 新西兰：Green List Tier 1、Tier 2 与附录 13 | https://www.immigration.govt.nz/opsmanual/77204.htm ；https://www.immigration.govt.nz/opsmanual/77817.htm ；https://www.immigration.govt.nz/opsmanual/77816.htm ；https://www.immigration.govt.nz/opsmanual/77822.htm ；https://www.immigration.govt.nz/opsmanual/77823.htm ；https://www.immigration.govt.nz/opsmanual/80485.htm ；https://www.immigration.govt.nz/opsmanual/77820.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-11-23-nz-ops-app13-greenlist.html`（sha256 `9bd6425a598876b52a86cd498a6f1048163d49b0edb73e12b9ed4bdcf2ceeb03`）；`policy-sources/2026-03-09-nz-ops-sr4-10.html`（sha256 `e8e9d2988d72e3043033fcdbeefc20d848773e07141fd5fa2fa9c78a6e6e97e6`）；`policy-sources/2024-02-28-nz-ops-sr4-5.html`（sha256 `63b3ae3a930e5191d78fc22b7aa81e8f7079f435999a2c65629db5a3facfc5cb`）；`policy-sources/2026-08-24-nz-ops-sr5-10.html`（sha256 `601878192fb40c2d1f8917d329f5d0815d8b63aa489245d7cf23b7111e1ff289`）；`policy-sources/2026-10-05-nz-ops-sr5-15.html`（sha256 `ad82e9954a74df0305cb279b62116e275ba1d981b4239b1c043640f1edf762db`）；`policy-sources/2026-08-24-nz-ops-sr5-20.html`（sha256 `94fa6b39994f622646bdbde09347809d67e19c88f1e483a5093acf161359380e`）；`policy-sources/2026-10-05-nz-ops-sr5-5.html`（sha256 `f73591af77fe36088fad897e03d9311af8adea42d8a6a99c048e1055a59a5733`） | archived |
+| SRC-238 | LAW | 新西兰：Care Workforce、Transport Sector 与附录 14 | https://www.immigration.govt.nz/opsmanual/78790.htm ；https://www.immigration.govt.nz/opsmanual/77205.htm ；https://www.immigration.govt.nz/opsmanual/78791.htm ；https://www.immigration.govt.nz/opsmanual/78792.htm ；https://www.immigration.govt.nz/opsmanual/87143.htm ；https://www.immigration.govt.nz/opsmanual/79670.htm ；https://www.immigration.govt.nz/opsmanual/79666.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-08-24-nz-ops-sr6-5.html`（sha256 `098ebdfd72f02d24ed883ef265c7e9d6a2c1256788891c0aadf8f78bdbb919df`）；`policy-sources/2025-03-10-nz-ops-app14-care.html`（sha256 `296d5a0b8e6a1726bf265ab16b927813f076a842ef9fc0175becdab9b5173829`）；`policy-sources/2026-08-24-nz-ops-sr6-10.html`（sha256 `d853c4efb936cdbc40941fbf087f2fdc058a86aa3afc3756fbc197d8f7f96bbe`）；`policy-sources/2026-08-24-nz-ops-sr6-15.html`（sha256 `c2529f2f9e48bf3f226d4a01ed3c3f766beb29df957bead713a7e2c9b2a7732b`）；`policy-sources/2026-08-24-nz-ops-sr7-10.html`（sha256 `215bf0f5bedc57dc333f6a69babdf11237e8a2124cf049f523154c6be6f402df`）；`policy-sources/2026-08-24-nz-ops-sr7-15.html`（sha256 `fd2319d8e45a9d229bfc1e0ac1e0b17291cd781e916cf5794c5e13214f096349`）；`policy-sources/2026-08-24-nz-ops-sr7-5.html`（sha256 `cd723a37fbb44068e1077d9425c4dd6ddcacbfb003463e69666cff7760d7f120`） | archived |
+| SRC-239 | LAW | 新西兰：A4 居民健康标准、医疗证明与豁免，含公共医疗资格说明 | https://www.immigration.govt.nz/opsmanual/46506.htm ；https://www.immigration.govt.nz/opsmanual/46161.htm ；https://www.immigration.govt.nz/opsmanual/46507.htm ；https://www.immigration.govt.nz/opsmanual/44860.htm ；https://www.immigration.govt.nz/opsmanual/45636.htm ；https://www.immigration.govt.nz/opsmanual/44864.htm ；https://www.govt.nz/browse/health/public-health-services/getting-publicly-funded-health-services/ | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-08-03-nz-ops-a4-10.html`（sha256 `b2b3fa908c9a1486eb6dd1e3fb835a5441e567169f5b309d9bc3fbf1eb55904a`）；`policy-sources/2026-11-16-nz-ops-a4-20.html`（sha256 `f6ae4e5b9b0d5f46bcb0319dc893f846e0fcf90d44cd239de9484e79dd175291`）；`policy-sources/2026-11-16-nz-ops-a4-25.html`（sha256 `09f21fb0591865ce6ac68e7d45521ce1739685abd1bd20dddcb4858710949ff4`）；`policy-sources/2026-11-16-nz-ops-a4-5.html`（sha256 `85f93200c9469e7f69669093898df6d7609d9a28dbbf24140d546aba74bfe23a`）；`policy-sources/2026-11-16-nz-ops-a4-60.html`（sha256 `07d8597a3ff0eb49c142772507f32452ce800a337af89f3e385418f0e304de95`）；`policy-sources/2026-11-16-nz-ops-a4-70.html`（sha256 `45d0f489ccfc3aa70f2ad617960450f43411619719c6d8e8c780fc61339eef10`）；`policy-sources/2026-11-23-nz-govt-health-eligibility.html`（sha256 `23cf5b730aef7fbd86cef686335433a59f66bc7f7dd2cb3c5d481430ed283e93`） | archived |
+| SRC-240 | LAW | 新西兰：A5 品格、无犯罪证明、延期与 R5.100 制裁 | https://www.immigration.govt.nz/opsmanual/35057.htm ；https://www.immigration.govt.nz/opsmanual/35053.htm ；https://www.immigration.govt.nz/opsmanual/41439.htm ；https://www.immigration.govt.nz/opsmanual/35058.htm ；https://www.immigration.govt.nz/opsmanual/35059.htm ；https://www.immigration.govt.nz/opsmanual/35060.htm ；https://www.immigration.govt.nz/opsmanual/45181.htm ；https://www.immigration.govt.nz/opsmanual/44449.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2023-09-25-nz-ops-a5-20.html`（sha256 `01a67262399adc7f38d047c7ece1f89f5c60a24c505b12489e12de645c47e618`）；`policy-sources/2023-09-25-nz-ops-a5-1.html`（sha256 `d31cfbce10448c9e6a71d134fd0d1080b606009b8f516982cac6e2b21430c359`）；`policy-sources/2015-07-06-nz-ops-a5-10.html`（sha256 `e0b678db17d9082f547bf6990b13ce6d504c1d361aa193803a264c7ba92a4877`）；`policy-sources/2023-09-25-nz-ops-a5-25.html`（sha256 `27bbbb1eba73fa2e9f3e505e3cbfc5a1109372f689a750dc812a812d6ae87afd`）；`policy-sources/2021-07-02-nz-ops-a5-30.html`（sha256 `2f1686c1098cf68e91c53f95f167bd108747b5a3e2bb75f4b01b9eadc5bdc90e`）；`policy-sources/2026-11-16-nz-ops-a5-35.html`（sha256 `659594af77e98d92bc18053cc460f917ee3d28a45c85c9c71c63afaae0b715b3`）；`policy-sources/2025-12-08-nz-ops-a5-5.html`（sha256 `7441921a5d15d847d3616acf29a5801e05cfd7f6313915713620b136f019dfaf`）；`policy-sources/2026-03-16-nz-ops-r5-100.html`（sha256 `a6b479838cc0cca89344cb952c3fd1082739fa01a55f3b4101feb3e83a3330b3`） | archived |
+| SRC-241 | LAW | 新西兰：SR2.10、BF 英语证明及 ESOL；R5.65 预付条件 | https://www.immigration.govt.nz/opsmanual/77808.htm ；https://www.immigration.govt.nz/opsmanual/30752.htm ；https://www.immigration.govt.nz/opsmanual/30753.htm ；https://www.immigration.govt.nz/opsmanual/30754.htm ；https://www.immigration.govt.nz/opsmanual/30755.htm ；https://www.immigration.govt.nz/opsmanual/64036.htm ；https://www.immigration.govt.nz/opsmanual/30759.htm ；https://www.immigration.govt.nz/opsmanual/45637.htm ；https://www.immigration.govt.nz/opsmanual/31002.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-08-24-nz-ops-sr2-10.html`（sha256 `f5490f120d82c8c2bc4797128547aee71ed4f9735c2f7ac496123c9b13047ef0`）；`policy-sources/2025-08-17-nz-ops-bf1.html`（sha256 `f401c5b34422b54841bf98133076d88bbfd2ef6accee753a90cdfa761706065a`）；`policy-sources/2023-08-27-nz-ops-bf1-1.html`（sha256 `cad66f06fea30834ea97d678dc503b26adaaad00ecf16c59e900feb411e731dc`）；`policy-sources/2024-06-26-nz-ops-bf2.html`（sha256 `2f0c0783a51c33519384f54772dbe991c1af599e3107867a145ad732c257516b`）；`policy-sources/2015-07-06-nz-ops-bf2-1.html`（sha256 `339e1aa302b77cac2f36e6860c705c0ff7f0c2df55b2c70a8eb85a9dca881ce5`）；`policy-sources/2018-05-21-nz-ops-bf2-20.html`（sha256 `463369257bc3fa8339b95543a659eaa12f70cc40139dcac3dea1a230bf21f479`）；`policy-sources/2010-11-29-nz-ops-bf3.html`（sha256 `3ae4870e0903b9f9ab03a133aba4e656230412b8b54fb6ae66ed73219ef8a008`）；`policy-sources/2018-05-21-nz-ops-bf3-15.html`（sha256 `f60a851c8d7ff4e100a1c84f2c52dfe897047accc1b908404c7014bfc252f4e0`）；`policy-sources/2025-12-14-nz-ops-r5-65.html`（sha256 `e8399c2701b9d8a94e3dc8c3b39e8c63e5e116fc44a36f94a18012aa709eef7b`） | archived |
+| SRC-242 | LAW | 新西兰：F2 伴侣类、担保与既往未纳入申请的家属 | https://www.immigration.govt.nz/opsmanual/46503.htm ；https://www.immigration.govt.nz/opsmanual/46176.htm ；https://www.immigration.govt.nz/opsmanual/46502.htm ；https://www.immigration.govt.nz/opsmanual/30880.htm ；https://www.immigration.govt.nz/opsmanual/30882.htm ；https://www.immigration.govt.nz/opsmanual/46515.htm ；https://www.immigration.govt.nz/opsmanual/66589.htm ；https://www.immigration.govt.nz/opsmanual/44896.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-11-16-nz-ops-f2-5.html`（sha256 `96dda2ad3a9ca4ade08ef4067a74260f93c268abe3d12040f59446f4c23ee703`）；`policy-sources/2019-12-23-nz-ops-f2-10.html`（sha256 `4c3a7769c5a235b3b610211e8f4d747210764a4d6fd6326dd15de9f3c6ce5c84`）；`policy-sources/2026-09-25-nz-ops-f2-15.html`（sha256 `715ad058b8dcaa6627a71cd7576fcd126366355dc72290c08e0cfd7aca30cb52`）；`policy-sources/2018-05-07-nz-ops-f2-20.html`（sha256 `5ef8c10933000abd01291c10695d435c74c59039dd32aac02385e0a8345f4384`）；`policy-sources/2010-11-29-nz-ops-f2-30.html`（sha256 `042b9e8c4f324d220cf37e15dc07a7bf8e89d7b5aa6a06d2f3b228d378f734ff`）；`policy-sources/2026-11-16-nz-ops-f2-40.html`（sha256 `529b38eaab6e21aa2a25864e00f4c5da8719a1cae7bfb8b5cf8c755b9c6c301d`）；`policy-sources/2026-11-16-nz-ops-r5-95.html`（sha256 `c114c23d77f569edd6b1f9a74aa405c71bdcac033bbc28a16122264f65492822`）；`policy-sources/2026-11-16-nz-ops-r5-96.html`（sha256 `515208b3ecfab0bec325892774dadcdf01a9f6eacccdb53f680fc606cb72d8e2`） | archived |
+| SRC-243 | LAW | 新西兰：F4 父母类、R4 担保条件与收入表 | https://www.immigration.govt.nz/opsmanual/73244.htm ；https://www.immigration.govt.nz/opsmanual/44878.htm ；https://www.immigration.govt.nz/opsmanual/73238.htm ；https://www.immigration.govt.nz/opsmanual/73239.htm ；https://www.immigration.govt.nz/opsmanual/73241.htm ；https://www.immigration.govt.nz/opsmanual/73242.htm ；https://www.immigration.govt.nz/opsmanual/73243.htm ；https://www.immigration.govt.nz/opsmanual/73246.htm ；https://www.immigration.govt.nz/opsmanual/73236.htm ；https://www.immigration.govt.nz/opsmanual/30983.htm ；https://www.immigration.govt.nz/opsmanual/30985.htm ；https://www.immigration.govt.nz/opsmanual/46713.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-04-30-nz-ops-f4-35.html`（sha256 `4cbbeec08f996ed793bb323d1a44b8bb321ded51242bb6a1e62ae5f066ad9254`）；`policy-sources/2026-10-05-nz-ops-f4-1.html`（sha256 `a9e33d9b9b1675f1eda0755dc73fe0564ef9c679a68b840e5d53240766c4598a`）；`policy-sources/2022-10-12-nz-ops-f4-10.html`（sha256 `53de999a0d8e50431e8a4ec3e77b8c75577c93a3f9f30aaf96a059d8460f9c81`）；`policy-sources/2025-09-29-nz-ops-f4-15.html`（sha256 `ab98c0eea5ffd0ebe9390c505d02638272f3f96286689935aaf752d3c6998e80`）；`policy-sources/2025-09-29-nz-ops-f4-20.html`（sha256 `9687d41c35382e26aa9c1c50d44a695a69e60113cb5d3632d1b8622ef87cb530`）；`policy-sources/2024-06-26-nz-ops-f4-25.html`（sha256 `f8bc6eb1850ce505e3960f15a02e6cf8bee06ac297da33bf006394b326a5e9a0`）；`policy-sources/2022-10-12-nz-ops-f4-30.html`（sha256 `ef199b699d618d011f556a0049f3b47c824edb61f52201ffe56f3bd51ba894cc`）；`policy-sources/2022-10-12-nz-ops-f4-45.html`（sha256 `5f5a7c4ea7121b668ce8c9ee828ad5408756217d5554c6bfaf2d5ced3b6d8924`）；`policy-sources/2026-10-27-nz-ops-f4-5.html`（sha256 `fe9141de64b8943313e824b74437af7eac30e74352360995bb887b02e1d985f9`）；`policy-sources/2010-11-29-nz-ops-r4-10.html`（sha256 `e47585e951e9125cc457aeebb8eaf35a470997bbc57bc5a30aa70239f2e2cf61`）；`policy-sources/2022-07-01-nz-ops-r4-20.html`（sha256 `1448e0813035be685ffd47a44046abbac053e00f9a873dedfe41b28915d9b5ec`）；`policy-sources/2017-05-29-nz-ops-r4-5.html`（sha256 `1ca46aef7268de1747a75bd343d70679075064ce5bc509cfda3e6e0e84974207`） | archived |
+| SRC-244 | LAW | 新西兰：BN 积极投资者及 BM 商业品格 | https://www.immigration.govt.nz/opsmanual/78330.htm ；https://www.immigration.govt.nz/opsmanual/63834.htm ；https://www.immigration.govt.nz/opsmanual/63832.htm ；https://www.immigration.govt.nz/opsmanual/78360.htm ；https://www.immigration.govt.nz/opsmanual/78361.htm ；https://www.immigration.govt.nz/opsmanual/78329.htm ；https://www.immigration.govt.nz/opsmanual/78331.htm ；https://www.immigration.govt.nz/opsmanual/78333.htm ；https://www.immigration.govt.nz/opsmanual/90550.htm ；https://www.immigration.govt.nz/opsmanual/78345.htm ；https://www.immigration.govt.nz/opsmanual/90551.htm ；https://www.immigration.govt.nz/opsmanual/78351.htm ；https://www.immigration.govt.nz/opsmanual/78353.htm ；https://www.immigration.govt.nz/opsmanual/78349.htm ；https://www.immigration.govt.nz/opsmanual/78356.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2025-04-01-nz-ops-bn3.html`（sha256 `3f236de7514c65a51d041406f0b7eea5f9ccf20a7d790f5bf7cb5e0e1aacdf77`）；`policy-sources/2025-11-24-nz-ops-bm1.html`（sha256 `05c1f60a6c38f6f8d73da24796363278ad8731d436a8c4ca8fe1f54a1e95b72e`）；`policy-sources/2017-05-08-nz-ops-bm2.html`（sha256 `d23ce01f5c78567ff47f1646948b6c1dc8fe7dd36df6392d9ab3dcdf6b4aded0`）；`policy-sources/2025-04-01-nz-ops-bn10-10.html`（sha256 `6abf3204b89e0f51952434165cc717c217748ccf03766aec435322196690693b`）；`policy-sources/2025-08-17-nz-ops-bn10-15.html`（sha256 `dfee39f7290f4eec507d200e42f7b7a747ff38544243049f0ca9c71eed88fb98`）；`policy-sources/2022-09-19-nz-ops-bn2.html`（sha256 `900c4b1f66b61b096f0096785e7e07395a272530f153b51d190c977accbf4eae`）；`policy-sources/2022-09-19-nz-ops-bn4.html`（sha256 `9dcfdd5f42fb2892775178bc9250edf5dc3c28fae7b64374029823442cd3e53e`）；`policy-sources/2025-04-01-nz-ops-bn6.html`（sha256 `40c3180299058b993f3dee9e6ce3e4177c28ef0af0fbc4271800cdfcf64c1dfd`）；`policy-sources/2026-08-12-nz-ops-bn6-5.html`（sha256 `b4a9d1b4b011740e6ca26b45c849dc8b8c9c19f0c64db7bf8b61725623ee9c73`）；`policy-sources/2026-06-01-nz-ops-bn7-1.html`（sha256 `a55a8210b933187fa763303425ac8bbaa0d5d94def4c0297d7c6cf4cd4f40dfa`）；`policy-sources/2026-08-12-nz-ops-bn7-10.html`（sha256 `f6cb62e6ef967776f9606e35b023becc004240304cfbe38988cd40bdba769d39`）；`policy-sources/2025-04-01-nz-ops-bn8-15.html`（sha256 `a9f8785185509c5124cb934ed7d7b19cd82e946c1413faff6a1f69a9c24f1251`）；`policy-sources/2025-04-01-nz-ops-bn8-25.html`（sha256 `cad1f3aa55f5bf7e2ee1b27f52d9be6420180a8dde498b225bf50761996990c5`）；`policy-sources/2026-06-01-nz-ops-bn8-5.html`（sha256 `3abff637334c71a9d7a93a8ddaaddb58f5f2906105fbd29104607d7d84f03d11`）；`policy-sources/2025-04-01-nz-ops-bn9-1.html`（sha256 `a8b74b77421d42f290cd7a58417fff7bc784b3b06c14373228f8f7047030721e`） | archived |
+| SRC-245 | LAW | 新西兰：BD2 商业投资者工签及 BI 居民签证 | https://www.immigration.govt.nz/opsmanual/88421.htm ；https://www.immigration.govt.nz/opsmanual/88541.htm ；https://www.immigration.govt.nz/opsmanual/88545.htm ；https://www.immigration.govt.nz/opsmanual/88546.htm ；https://www.immigration.govt.nz/opsmanual/88547.htm ；https://www.immigration.govt.nz/opsmanual/88423.htm ；https://www.immigration.govt.nz/opsmanual/88422.htm ；https://www.immigration.govt.nz/opsmanual/88429.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2025-11-24-nz-ops-bi2-1.html`（sha256 `50fd6b3445656a415fe771045250a19833b1bc84c61c0688bb18338989b4dda5`）；`policy-sources/2025-11-24-nz-ops-bd2-1.html`（sha256 `989f72919701e9a06b22336e96e970e9ad5375e21a3dd4843f7df63b70d281e3`）；`policy-sources/2025-11-24-nz-ops-bd2-20.html`（sha256 `b97df1ccbd97151a2fa7b3362c57f97f1845da1b65bd30cc5fc1cd1d5db2c61d`）；`policy-sources/2025-11-24-nz-ops-bd2-25.html`（sha256 `546297a7f4158f4589386028c762bf0f712c779b7f924ba3ea5bfbb66f96e868`）；`policy-sources/2025-11-24-nz-ops-bd2-30.html`（sha256 `5dd84b5c96baf3782138e494144788dfbb47bb78a614c6b8acfbe24fe4117234`）；`policy-sources/2025-11-24-nz-ops-bi2-10.html`（sha256 `1ce7060e3e21cf4f93a528763a6bbc187a357efea4872bcf236af3a18eec8df6`）；`policy-sources/2025-11-24-nz-ops-bi2-5.html`（sha256 `1d576434395aae100b24ffefbfbb3323024911d8c13447aa18e701af8d299a58`）；`policy-sources/2025-11-24-nz-ops-bi4-1.html`（sha256 `1c2f69ef06d1d9d742671cb931b33bc943b7d37e0bf86ac959de72a7483f9a14`） | archived |
+| SRC-246 | LAW | 新西兰：RW5 英语及 RW7 宗教工作者居留 | https://www.immigration.govt.nz/opsmanual/42677.htm ；https://www.immigration.govt.nz/opsmanual/42669.htm ；https://www.immigration.govt.nz/opsmanual/45652.htm ；https://www.immigration.govt.nz/opsmanual/42672.htm ；https://www.immigration.govt.nz/opsmanual/42676.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2015-07-06-nz-ops-rw7-5.html`（sha256 `40711660ea25439d4d6642842b0085c88db2c2ccc6fac78c42b7c76f51ff162d`）；`policy-sources/2024-06-26-nz-ops-rw5-1.html`（sha256 `38cb1c7241e6f2d84270ead57dfe064d6c3a403af067d4a7ef13f28f57b8e060`）；`policy-sources/2018-05-21-nz-ops-rw5-40.html`（sha256 `13e03688193365070dd414f5e0bd46e11ff6275101412f319427d15da4c756c2`）；`policy-sources/2024-04-11-nz-ops-rw7-10.html`（sha256 `4e1d15af21d7f5b1a5642246501555c958cef9bcaa572401610f4d71e643d42f`）；`policy-sources/2011-11-07-nz-ops-rw7-20.html`（sha256 `0e6e0e8de7c53d661f00ad4a49e52d2297d289d445f57925211999bd72aafdf8`） | archived |
+| SRC-247 | GUIDANCE | 新西兰：IRD 个人税务居民身份 | https://www.ird.govt.nz/international-tax/individuals/tax-residency-status-for-individuals | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-11-23-nz-ird-tax-residency.html`（sha256 `cea73394601eac5317370415b7c03dfda735c620a9b79d9bc6be6ffb84e3daa5`） | archived |
+| SRC-248 | POLICY | 新西兰：财政部投资移民购房政策分析，非签证资格门槛 | https://www.regulation.govt.nz/assets/RIS-Documents/Supplementary-Analysis-Report-Enabling-investor-visa-holders-to-purchase-or-build-a-home-in-New-Zealand.pdf | 见各快照版本日 | 2026-11-23 | `policy-sources/2025-11-06-nz-treasury-sar-investor-home.pdf`（sha256 `756d6f20ca4f6bfeb2db3ee131562a9ef32bf8b407fafc4fce36a1143aca4060`） | archived |
+| SRC-249 | GUIDANCE | 新西兰 INZ 1028《Fees Guide》，申请费、费区和征费 | https://www.immigration.govt.nz/assets/inz/documents/forms-and-guides/Fees-Guide-INZ-1028.pdf | 2026-05 | 2026-11-23 | 已在线核对 PDF 原文，待归档原件 | todo |
+| SRC-250 | GUIDANCE | 新西兰 LINZ 投资者签证持有人购房指引与修法沿革 | https://www.linz.govt.nz/sites/default/files/doc/guidance-investor-visa-holders-long-form-march2026-v3.pdf ；https://www.linz.govt.nz/our-work/overseas-investment-regulation/history-overseas-investment-regime | 2026-03-26；沿革页为动态页面 | 2026-11-23 | `policy-sources/2026-03-26-nz-linz-investor-housing.pdf`（sha256 `94111f35ca02668986e3555e221efabab06ed1b77454cd5c4ccce51e7200a047`）；`policy-sources/2026-11-23-nz-linz-investment-history.html`（sha256 `262a67bf6dc4ef6f3978eaf160eb1866b5a74c975fabe672481e79272f866a33`） | archived |
+| SRC-251 | LAW | 新西兰 Business Investor 工签家属、临时签证纳入与递交条件 | https://www.immigration.govt.nz/opsmanual/88409.htm ；https://www.immigration.govt.nz/opsmanual/46501.htm ；https://www.immigration.govt.nz/opsmanual/45639.htm | 见各快照版本日 | 2026-11-23 | `policy-sources/2026-04-20-nz-ops-bd3-1.html`（sha256 `afb18eff525cdaeee5b93947dc2e14e026aa015914c2cb9fca93829088b13725`）；`policy-sources/2024-10-01-nz-ops-e4-1.html`（sha256 `a1a54f362ef3d2179f77fd00a14cd094a49c00ac0ade336557c4dd1afb0e2614`）；`policy-sources/2025-04-04-nz-ops-e4-50.html`（sha256 `b11323d05c55c2460e0a5f38b98bc45bf87ca348d47f1bcb6a896ec73bf04f5b`） | archived |
+| SRC-252 | LAW | 新西兰居民签证申请人有在新西兰非法居留的受抚养子女 | https://www.immigration.govt.nz/opsmanual/91747.htm ；https://www.immigration.govt.nz/opsmanual/30996.htm | R5.125：2026-11-12；R5.30：2025-12-14 | 2026-11-23；2026-11-24 补档 | `policy-sources/2026-11-12-nz-ops-r5-125.html`（sha256 `e7699e1567ae21752e9e724c54a425cc79287477277296232db69d2ccd81e56b`）；`policy-sources/2025-12-14-nz-ops-r5-30.html`（sha256 `80d56de73119847abf8195df7bbe0c2e970dabff42fe25dcaaf18b595d043a4f`） | archived |
 | SRC-260 | LAW | Citizenship Act 与两部 Citizenship Regulations | https://laws-lois.justice.gc.ca/eng/XML/C-29.xml ；https://laws-lois.justice.gc.ca/eng/XML/SOR-93-246.xml ；https://laws-lois.justice.gc.ca/eng/XML/SOR-2015-124.xml | 见登记备注 | 2026-11-23 | `policy-sources/2026-11-23-ca-citizenship-act.xml`（sha256 `306f0834876ab02efb3fa2ab5be29a891a2ae7d2efd7d1c6c313ece0f16d28bb`）；`policy-sources/2026-11-23-ca-citizenship-regulations.xml`（sha256 `c6762435bd6b77fa22a4420b797f448ed007dcc67c0c538fb53eaf031ae19211`）；`policy-sources/2026-11-23-ca-citizenship-regulations-no2.xml`（sha256 `cda6dd032ed150905bced2968bba6f736f19b2a50dd2c0b20148da67f2fca8b7`） | archived |
 | SRC-261 | LAW | Immigration and Refugee Protection Act 与 Regulations | https://laws-lois.justice.gc.ca/eng/XML/I-2.5.xml ；https://laws-lois.justice.gc.ca/eng/XML/SOR-2002-227.xml | 见登记备注 | 2026-11-23 | `policy-sources/2026-11-23-ca-irpa.xml`（sha256 `4594fdd6ae51858bc5f37334acef0296e0b3bcf0fdd966c2bcc8e4769b385cbc`）；`policy-sources/2026-11-23-ca-irpr.xml`（sha256 `5d4b6f6189e93b669fcf9e8fdc5f78dd57c5a34fdecb5bf80500cf33b29afde1`） | archived |
 | SRC-262 | GUIDANCE | IRCC 成人及未成年人入籍指南、CRA 税务指引 | https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/adult-minor/who.html ；https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/cit0002.html ；https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/cit0403.html ；https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/adult-minor/who/minor-types.html ；https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/become-canadian-citizen/eligibility/situtations-prevent-citizenship.html ；https://www.canada.ca/en/revenue-agency/services/tax/international-non-residents/individuals-leaving-entering-canada-non-residents/newcomers-canada-immigrants.html ；https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/cit0003.html | 见登记备注 | 2026-11-23 | `policy-sources/2026-11-23-ca-citizenship-eligibility.html`（sha256 `2c33aa3ab351dc3da721e6f2b64d09549487a1057c9a9e448501d611bbb69a04`）；`policy-sources/2026-11-23-ca-citizenship-adult-guide.html`（sha256 `58dfa55f211a1f61550bbbfe8cb97a7013291db49ddb26d26c5e2cd192098171`）；`policy-sources/2026-11-23-ca-citizenship-minor-51-guide.html`（sha256 `d2fd27f67161de90acf468a70af59571eb79bd254ceeedc805707fb491007414`）；`policy-sources/2026-11-23-ca-citizenship-minor-52-details.html`（sha256 `6c78d552992a27c5ec959f421ba1863263ef058f2ae87a8c0aa3aa5fa4711a28`）；`policy-sources/2026-11-23-ca-citizenship-prohibitions.html`（sha256 `6b46892272cf0878ec0341fe8da672dcbb6beff147ddf26b280985fcf29186c6`）；`policy-sources/2026-11-23-ca-cra-newcomers.html`（sha256 `3046628369b3975bb6409a9efe59cb548dfdfe7a92c8e8b183c10a472921d5be`）；`policy-sources/2026-11-23-ca-citizenship-minor-52-form.html`（sha256 `e146f590c905fecbe04d82ef6d8a58e67ab7cf0fccd6e0c92ac70ca96b71b995`） | archived |
@@ -273,6 +295,60 @@
 | SRC-347 | LAW | BOE · Ley 9/2011，领事收费 | https://www.boe.es/buscar/act.php?id=BOE-A-2011-8222 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-visa-tasas-consulares.html`（sha256 `d7fccaf0dabceb9814b1b79ce642a40f1b5e7f09914502c4339826ea0d9f4833`） | archived |
 | SRC-348 | GUIDANCE | TJUE · C-432/20 判决官方公报摘要 | https://curia.europa.eu/jcms/upload/docs/application/pdf/2022-01/cp220010es.pdf | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-tjue-ltr-ausencias.pdf`（sha256 `ed464a5c124d4efd127aad177e2345a9f7ff2045f4da2c9dafa61520c0a4865e`） | archived |
 | SRC-349 | LAW | BOE · RDL 3/2004，IPREM 制定机制 | https://www.boe.es/buscar/act.php?id=BOE-A-2004-12010 | 各文书版本见原件 | 2026-11-23 | `policy-sources/2026-11-23-es-iprem-ley-base.html`（sha256 `81b9fa9060ee47b2b08dd0f1a6303cb9cd97ef8ad6f749b977234ddafdbe641e`） | archived |
+| SRC-380 | LAW | S.I. 569/2011 与 S.I. 498/2023：入籍申请表及费用 | https://www.irishstatutebook.ie/eli/isbc/si2011_551-600.html ；https://www.irishstatutebook.ie/eli/2011/si/569/made/en/print ；https://www.irishstatutebook.ie/eli/2023/si/498/made/en/print | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-nat-fees-index.html`（sha256 `adb363cb99a867a06fcbc19695d2cec857e75f7fa8d3ecde0d4a99329626acd6`）；`policy-sources/2026-11-23-ie-nat-fees.html`（sha256 `64648be4f43007fd31a68136b6d2643b1a7c9f5e2e08d0f39e0ad129f32806df`）；`policy-sources/2026-11-23-ie-nat-forms-2023.html`（sha256 `0b0677929726b254f32cd5ba0f680ffb79e824754b7e81d20ecbf9125a3a91e9`） | archived |
+| SRC-381 | GUIDANCE | ISD：入籍身份证明、居住证明与保护身份政策 | https://www.irishimmigration.ie/changes-to-citizenship-for-people-granted-international-protection/ ；https://www.irishimmigration.ie/wp-content/uploads/citizenship/residency-affidavit-proof-form-citizenship-0092026.pdf ；https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by%20-naturalisation/ ；https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by-naturalisation/proofs-of-identity-and-residence/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-22-ie-isd-ip-citizenship-5-years.html`（sha256 `c51b7e529b04961c3b4c923c362ff07e5e7a0444cbedc5928b8ef9678a4b427a`）；`policy-sources/2026-11-23-ie-citizen-affidavit.pdf`（sha256 `2d249b01fc6aa2e07cc61997e6d5767becb5167f20f9e1a074fdb915696a21a0`）；`policy-sources/2026-11-23-ie-citizen-legacy.html`（sha256 `ba3c2bb429b564fb79a7ea3741fb7b0c2b621d9651282b2e60f3977f77baacf0`）；`policy-sources/2026-11-23-ie-citizen-proofs.html`（sha256 `f623712d60fa365c039a4994dcac6b6f4ba8aec6f8770542c4dfb0ffd8a262fa`） | archived |
+| SRC-382 | GUIDANCE | ISD：入籍申请人的 Garda e-vetting 指南 | https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by-naturalisation/citizenship-applicants-guide-to-an-garda-siochana-national-vetting-bureau-e-vetting/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-vetting.html`（sha256 `6216a9f503e164d7a76ae22d66674d074695c0daf00bf391fa35aa37fe37541d`） | archived |
+| SRC-383 | LAW | Immigration Act 2004 编纂版及 S.I. 421/2025 登记收费 | https://revisedacts.lawreform.ie/eli/2004/act/1/revised/en/html ；https://www.irishstatutebook.ie/eli/2025/si/421/made/en/print | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-immigration-act.html`（sha256 `3c38d1a662265cbd8f19826e8cba77917569994817feb65944a4aeaf4797a212`）；`policy-sources/2026-11-23-ie-registration-fees.html`（sha256 `e822c34fcfc176407721a62b38f3af297867e9814f46d0deadff63f0d8bf8986`） | archived |
+| SRC-384 | GUIDANCE | ISD：首次登记、续期与登记常见问题 | https://www.irishimmigration.ie/registering-your-immigration-permission/frequently-asked-questions-for-registration/ ；https://www.irishimmigration.ie/registering-your-immigration-permission/how-to-register-your-immigration-permission-for-the-first-time/required-documents/ ；https://www.irishimmigration.ie/registering-your-immigration-permission/how-to-renew-your-current-permission/renewing-your-registration-permission-if-you-live-in-the-republic-of-ireland/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-registration-faq.html`（sha256 `98c21aa574c8cc38fd05221b13711f3902af42ee8508a987a2fcd413c8533ac4`）；`policy-sources/2026-11-23-ie-registration-first.html`（sha256 `f24b2711c264a39d254bdc271f5b7d7cdda763fd89833ef66ec4f4795e1a58f1`）；`policy-sources/2026-11-23-ie-registration-renew.html`（sha256 `8f3552c96d025358fc78ed2c5ded771787523f4c7d43f8c3670a8377183b48fa`） | archived |
+| SRC-385 | GUIDANCE | ISD：非 EEA 家庭团聚政策修订说明与版本档案 | https://www.irishimmigration.ie/amendments-to-policy-on-non-eea-family-reunification/ ；https://www.irishimmigration.ie/coming-to-join-family-in-ireland/policy-document-archive/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-family-amendments.html`（sha256 `f1b587c1d93aa9b2ffbe422b138f167fbe5106dff63230cf2e86534c462a321f`）；`policy-sources/2026-11-23-ie-family-archive.html`（sha256 `9a486555b7502233a0ffb19f0d89ca26a4b2befcbddf0538e4070477ad84186f`） | archived |
+| SRC-386 | GUIDANCE | ISD：家庭团聚收入门槛 | https://www.irishimmigration.ie/coming-to-join-family-in-ireland/financial-thresholds/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-family-income.html`（sha256 `a38ceb2fe1cec26fa6c107861ed438d9ed3146ec0992c2e33589e35c31673eda`） | archived |
+| SRC-387 | POLICY | 非 EEA 家庭团聚政策 2016、2025 年 11 月、2026 年 6 月版 | https://www.irishimmigration.ie/wp-content/uploads/2021/04/Policy-document-on-Non-EEA-family-reunification.pdf ；https://www.irishimmigration.ie/wp-content/uploads/2026/11/FINAL-PDF-Revised-Family-Reunification-Policy.pdf ；https://www.irishimmigration.ie/wp-content/uploads/2026/06/Family-Reunification-Policy-12-June-2026.pdf | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-family-2016.pdf`（sha256 `e0294f68dbc8f865e5f9ecb202ca7edf811eadd5c9f4b8111330c91d92fa4562`）；`policy-sources/2026-11-23-ie-family-2025.pdf`（sha256 `9a9e80c0b346eb9a476b2dcfa43a5e7403ff83ce6cad11c2db4669a340d9dcb9`）；`policy-sources/2026-11-23-ie-family-2026.pdf`（sha256 `c1a98231465522d7f0bd3c8ad51301f7fb95234a870b83dfe2f2134b6e3be8f8`） | archived |
+| SRC-388 | GUIDANCE | ISD：爱尔兰公民配偶及 de facto 伴侣的境内外入口 | https://www.irishimmigration.ie/coming-to-join-family-in-ireland/joining-an-irish-national/de-facto-partner-of-an-irish-national/ ；https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/de-facto-partner-of-an-irish-or-non-eea-national/ ；https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/spouse-civil-partner-of-irish-national-scheme/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-family-de-facto-entry.html`（sha256 `8cf6ded7c0686523dd01731361c5ede0820fb2de5007d9a452b4b9c508d4ec6d`）；`policy-sources/2026-11-23-ie-family-de-facto.html`（sha256 `dc85b5878120391d1874b9f28abe234f0914f2454142e32e37c5c145d8167967`）；`policy-sources/2026-11-23-ie-family-irish-spouse.html`（sha256 `127592c685320e8ec310094c5be19e13103521b850d4ebe151c9256ac42566d0`） | archived |
+| SRC-389 | GUIDANCE | ISD：EU Treaty Rights 原则与永久居留证明 | https://www.irishimmigration.ie/coming-to-join-family-in-ireland/joining-an-eea-or-swiss-national/eu-treaty-rights/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-eu-rights.html`（sha256 `3b69e107bc9247345296c722f0aa0811a745c99b97d8f5392c86c84dcbebc79c`） | archived |
+| SRC-390 | LAW | S.I. 548/2015：European Communities (Free Movement of Persons) Regulations 2015 | https://www.irishstatutebook.ie/eli/isbc/si2015_501-550.html ；https://www.irishstatutebook.ie/eli/2015/si/548/made/en/print | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-eu-548-index.html`（sha256 `a533d2cd4e6d9c17afbcd16f2a72792dcf937a8e0e8dc4b873b82a928776033a`）；`policy-sources/2026-11-23-ie-eu-548.html`（sha256 `e0e93bc022695bb82f88965ca4d6ab797361709e8d650694da2c8da7b3519f7d`） | archived |
+| SRC-391 | GUIDANCE | ISD：EUTR2、EUTR3、EUTR5 表格与说明 | https://www.irishimmigration.ie/wp-content/uploads/2026/05/Explanatory-leaflet-for-Form-EUTR2.pdf ；https://www.irishimmigration.ie/wp-content/uploads/2026/05/Form-EUTR2.pdf ；https://www.irishimmigration.ie/wp-content/uploads/2026/09/Explanatory-leaflet-for-Form-EUTR3-updated-August-2026.pdf ；https://www.irishimmigration.ie/wp-content/uploads/2026/05/Explanatory-leaflet-for-Form-EUTR5.pdf | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-eu-eutr2-leaflet.pdf`（sha256 `f14a227584e268a52cd31b0cac50f51d9dcd32ed2ee381b0c9a58c2a6902a46f`）；`policy-sources/2026-11-23-ie-eu-eutr2.pdf`（sha256 `27c3569b021cd79fbbe816e2573d2e2ad29d5c0b696e26f0c44d082acfa6f2f4`）；`policy-sources/2026-11-23-ie-eu-eutr3-2026.pdf`（sha256 `ce0ce03d72664d22aaef5a808af5536dd5c9bb81ba47549921ce8fa7a81dc28d`）；`policy-sources/2026-11-23-ie-eu-eutr5-leaflet.pdf`（sha256 `0046f1751b7027beef0fe4d64d1cd4703446935168243f5344652b79968a52ed`） | archived |
+| SRC-392 | LAW | S.I. 728/2020、Withdrawal Agreement 与 ISD Brexit FAQ | https://www.irishstatutebook.ie/eli/2020/si/728/made/en/print ；https://assets.publishing.service.gov.uk/media/5daaab7fed915d42a05eea12/Agreement_on_the_withdrawal_of_the_United_Kingdom_of_Great_Britain_and_Northern_Ireland_from_the_European_Union_and_the_European_Atomic_Energy_Community.pdf ；https://www.irishimmigration.ie/wp-content/uploads/2022/03/Impact-of-Brexit-on-UK-Nationals-in-Ireland-and-their-non-EEA-national-family-members-March-2022.pdf | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-wa-728.html`（sha256 `67d57d373a2dba00a56a7c684a0232d8b6aef976a69a3ab079bf6c847f43ed1a`）；`policy-sources/2026-11-23-ie-wa-agreement.pdf`（sha256 `dc369c02edf9ce570562b69e7b5b2808477e508289e8490b8aefe6a898eee617`）；`policy-sources/2026-11-23-ie-wa-brexit-faq.pdf`（sha256 `887f6fa3964a0fd94d8121b430412db32a5304f3df37da64dce89a66d770b507`） | archived |
+| SRC-393 | LAW | Employment Permits Act 2024、S.I. 444/2024、S.I. 643/2025 | https://www.irishstatutebook.ie/eli/2024/act/17/enacted/en/print ；https://www.irishstatutebook.ie/eli/2025/si/643/made/en/pdf ；https://www.irishstatutebook.ie/eli/2024/si/444/made/en/print | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-permit-act.html`（sha256 `9540e0c315289bf21f168ee9db0ec625995d02aebf4263bc4d74220c7921e5f3`）；`policy-sources/2026-11-23-ie-permit-mar-regs.pdf`（sha256 `8544f65f66f0bb066b15380a2447265f977921058f8cf3000d383e03ceb6b6a4`）；`policy-sources/2026-11-23-ie-permit-regs.html`（sha256 `b536344ea3213d34a968eba9e6eddc364089963ed534f705a0c0a0174b13d889`） | archived |
+| SRC-394 | GUIDANCE | DETE：CSEP、GEP、ICT 及最低报酬 | https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/permit-types/critical-skills-employment-permit/ ；https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/permit-types/general-employment-permit/ ；https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/permit-types/intra-company-transfer-employment-permit/ ；https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/economic-migration-policy/minimum-annual-remuneration/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-permit-csep.html`（sha256 `0e3a14f1a17637aade6a5ad8a8f4a8c9593a8ca48b93fe973216993a82ecd40e`）；`policy-sources/2026-11-23-ie-permit-gep.html`（sha256 `461db66bc33092a0015af6b54c4217c359dbf59d9b003a77e0472f2f325da006`）；`policy-sources/2026-11-23-ie-permit-ict.html`（sha256 `85c8e7b23829b076f22e14ecb89e8ad87a5ae1913dd2e67d8a36ff2739f59279`）；`policy-sources/2026-11-23-ie-permit-mar.html`（sha256 `04234a9ffab9f237d9c7ae7987880cc06266c7f153f10e8379abfccf54875d72`） | archived |
+| SRC-395 | GUIDANCE | 欧盟长期居民政策与 EMN 爱尔兰联络点答复 | https://ec.europa.eu/commission/presscorner/api/files/attachment/872342/COM_2022_650_1_EN_ACT_part1_v5.pdf ；https://home-affairs.ec.europa.eu/system/files/2022-06/20221_directive_2003109ec_duration_of_absence_and_loss_of_the_long-term_resident_status%20%281%29.pdf | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-eu-commission-ltr.pdf`（sha256 `906fc8b2e52a852019dc19aea3abb5025f91373b25981f9fc933141c13aac34b`）；`policy-sources/2026-11-23-ie-eu-emn-query-ltr.pdf`（sha256 `54b409829bad44d8af812c899b6e8d2bbd2b3f625094e4bea3bf057e88c04a8c`） | archived |
+| SRC-397 | GUIDANCE | DETE：就业许可最新公告 | https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/latest-updates/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-permit-latest.html`（sha256 `b7f8e6c8a02a437ae7641d4015630da6ebd40afd6c327443ea009567701b4646`） | archived |
+| SRC-398 | GUIDANCE | ISD：Long Term Residency、申请表与非 EEA 医师说明 | https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/long-term-residency/ ；https://www.irishimmigration.ie/wp-content/uploads/2021/05/SHOs-and-registrars-with-5-years-work.pdf ；https://www.irishimmigration.ie/wp-content/uploads/2023/07/Long-Term-Residency-Application-Form.pdf | 见原文 | 2026-11-23 | `policy-sources/2026-11-22-ie-isd-long-term-residency.html`（sha256 `883f996747fe15f42b3f448a3795c7d376d57cc48fed21e7562b65c690b819e5`）；`policy-sources/2026-11-23-ie-ltr-doctors.pdf`（sha256 `e7082294607a2c85a67fbd4a31a0010fc729a10f806f5b5e14382ffe312c843e`）；`policy-sources/2026-11-23-ie-ltr-form.pdf`（sha256 `ce7e176856b6c99534dbacd3c1624c7606a81424ecaa2b9c908c8c857ba16ea2`） | archived |
+| SRC-399 | GUIDANCE | ISD：家暴受害者独立居留指引 | https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/immigration-guidelines-for-victims-of-domestic-abuse/ ；https://www.irishimmigration.ie/wp-content/uploads/2024/01/Victims-of-Domestic-Abuse-Immigration-Guidelines-Dec-2023.pdf | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-domestic-abuse-canonical.html`（sha256 `3611433ff6ed6e597ad7304747b4fb36469b0f59588e25424fba9fa2dc91c02a`）；`policy-sources/2026-11-23-ie-domestic-abuse.pdf`（sha256 `7f6fd9cd49f27fef5b17f72aa357f321028d0622297d275b9109803c26830f4a`） | archived |
+| SRC-400 | GUIDANCE | ISD：Irish Descent / Irish Associations 办理页与评审指引 | https://www.irishimmigration.ie/wp-content/uploads/2025/12/IA-Guidance-footnote-updated-03-12-2025.pdf ；https://www.irishimmigration.ie/how-to-become-a-citizen/applications-based-on-irish-descent-or-irish-associations/ ；https://www.irishimmigration.ie/apply-for-irish-citizenship-by-irish-descent-or-irish-associations/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-irish-assoc-dec-2025.pdf`（sha256 `b84bc516ed3370431b5fac2bb0e6190b84604e4d91484ea67e84d1a568524347`）；`policy-sources/2026-11-23-ie-irish-assoc-legacy.html`（sha256 `9da66ba31d0e69ef73e6a03e2426f2c43d927854c1d9c6c1188d32cb4f1a63ce`）；`policy-sources/2026-11-23-ie-irish-associations.html`（sha256 `9cde265c7a5766b312526f485f6abf36089876738ba659abfaa683cdab6b34fb`） | archived |
+| SRC-401 | LAW | Age of Majority Act 1985 | https://www.irishstatutebook.ie/eli/1985/act/2/enacted/en/print | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-age-majority.html`（sha256 `6025cb540b66919eb88d345c195cf364dbb2a7ab6a174ed9f6ba76c67bb7b9ce`） | archived |
+| SRC-402 | LAW | Housing Act 1966 编纂版与原始条文 | https://revisedacts.lawreform.ie/eli/1966/act/21/revised/en/html ；https://www.irishstatutebook.ie/eli/1966/act/21/section/63/enacted/en/html | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-housing-revised.html`（sha256 `1b9884c8441c38fe73e0ba5370009d0114ed77dbd45bb6d8a79c29dc60fdf092`）；`policy-sources/2026-11-23-ie-housing-s63.html`（sha256 `d5eabb001d7d1661ff74620d92b91499c813e60cf0e56498137cc040dc8ce4de`） | archived |
+| SRC-404 | POLICY | DETE：Employment Permits Minimum Annual Remuneration Roadmap | https://enterprise.gov.ie/en/publications/publication-files/employment-permits-minimum-annual-remuneration-outcome-of-the-roadmap-review-2025.pdf | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-permit-roadmap.pdf`（sha256 `573817d6079e60fee2824072406db4e94d0cbe07442fd49dfbc30e92e4c3ff5e`） | archived |
+| SRC-405 | GUIDANCE | ISD：未成年人登记 | https://www.irishimmigration.ie/registering-your-immigration-permission/how-to-register-your-immigration-permission-for-the-first-time/registration-requirements-for-minors/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-minor-registration.html`（sha256 `87aac14beccd3302edcc856d8b1b87a95e7bc1ac81fb805f276e7658e9e38cf0`） | archived |
+| SRC-406 | GUIDANCE | ISD：Preclearance and Entry Visa Fees | https://www.irishimmigration.ie/preclearance-and-entry-visas-fees/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-entry-fees.html`（sha256 `db2e1d9195cf34500fd6254caf78f67bc5b525b51936da39fd795e53cfaccc79`） | archived |
+| SRC-407 | LAW | eISB 就业许可法与条例索引 | https://www.irishstatutebook.ie/eli/isbc/2024_17.html ；https://www.irishstatutebook.ie/eli/isbc/si2024_401-450.html | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-permit-act-index.html`（sha256 `bb2d0d0c379f7724e621c48b3494db89c846839f6c7def145721771fdd928c76`）；`policy-sources/2026-11-23-ie-permit-regs-index.html`（sha256 `79991bc3e8b63040abeda6e08d9b7103f773114a915032a6e1c8afbe4f6d5045`） | archived |
+| SRC-408 | LAW | International Protection Act 2026 | https://www.irishstatutebook.ie/eli/2026/act/9/enacted/en/print.html | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-ip-act-2026.html`（sha256 `82a1d50c8daf56e20a6a5baeaadf917468a6caa702eb0c1bbb02ee0950734e97`） | archived |
+| SRC-409 | GUIDANCE | ISD：Family Dependents 与 Join non-EEA Family Member | https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/family-dependents/ ；https://www.irishimmigration.ie/coming-to-join-family-in-ireland/joining-a-non-eea-non-swiss-national/join-non-eea-family-member/ | 见原文 | 2026-11-23 | `policy-sources/2026-11-23-ie-family-dependants.html`（sha256 `0475e24f8fd9522b43cc3179f4118a38a16a616cf0a63a6cd6359ac373fc81bc`）；`policy-sources/2026-11-23-ie-family-non-eea-entry.html`（sha256 `612f3514ccecca582be08970de264da7f2e2d121d5b40a9d4109abf91bf7b6a6`） | archived |
+| SRC-470 | LAW | 葡萄牙 · Regulamento da Nacionalidade Portuguesa（DL 26/2022 重刊） | https://files.diariodarepublica.pt/1s/2022/03/05500/0000200059.pdf | 2022-03-18 | 2026-11-23 | `policy-sources/2022-03-18-pt-dl-26-2022.pdf`（sha256 `8dd5480d6cc38cf67d2f2058b921de0c0482f5b2cef0ec5451a45af53d7f8115`） | archived |
+| SRC-471 | LAW | 葡萄牙 · DR 1/2024，外国人法实施条例修订 | https://files.diariodarepublica.pt/1s/2024/01/01200/0000600050.pdf | 2024-01-17 | 2026-11-23 | `policy-sources/2024-01-17-pt-dr-1-2024.pdf`（sha256 `b94db50993f10b2d2d6fdbe67e3e9ae9812c58be2e4c215dbe028627439ca846`） | archived |
+| SRC-472 | LAW | 葡萄牙 · DR 4/2022 与 DR 9/2018，外国人法实施条例 | https://files.diariodarepublica.pt/1s/2022/09/19000/0002800097.pdf ；https://files.diariodarepublica.pt/1s/2018/09/17500/0471804757.pdf | 2022-09-30；2018-09-11 | 2026-11-23 | `policy-sources/2022-09-30-pt-dr-4-2022.pdf`（sha256 `82bc888263b162fbc4c96549a5725eaba5a84bbaaf6398918708ae9123777118`）；`policy-sources/2018-09-11-pt-dr-9-2018.pdf`（sha256 `87218db7207ff00347c22b4db3fca0a8ef03b0531df00fcbf54e2fd0f622dbb2`） | archived |
+| SRC-473 | LAW | 葡萄牙 · Portaria 1563/2007，居留生计标准 | https://files.diariodarepublica.pt/gratuitos/1s/2007/12/23800.pdf | 2007-12-11 | 2026-11-23 | `policy-sources/2007-12-11-pt-portaria-1563-2007.pdf`（sha256 `551884e7cce2b2b75ea5192eb46e6e715286fbcb7b913e76a10b8e4d4559f17b`） | archived |
+| SRC-474 | LAW | 葡萄牙 · 本土与自治区最低工资参考及普通雇员社保份额 | https://files.diariodarepublica.pt/1s/2025/12/24900/0001400016.pdf ；https://files.diariodarepublica.pt/1s/2026/02/02300/0001400015.pdf ；https://files.diariodarepublica.pt/gratuitos/1s/2026/07/14600.pdf ；https://files.diariodarepublica.pt/gratuitos/1s/2009/09/18000.pdf | 2025-12-29；2026-02-03；2026-07-30；2009-09-16 | 2026-11-23 | `policy-sources/2025-12-29-pt-dl-139-2025.pdf`（sha256 `e9e6da9ad45ffb70cb0a19a755fd31e4da9934174a3885edaacf7523c842c64f`）；`policy-sources/2026-02-03-pt-dlr-madeira-1-2026.pdf`（sha256 `0ddf54d909d290b94defc993f5d0f2d74701d10d39488065ad22ff2bed9fe805`）；`policy-sources/2026-07-30-pt-resolucao-madeira-26-2026.pdf`（sha256 `d4d259cc976d570d14f7ce93db69046cca8c295023de2741ff32d8e7695052cb`）；`policy-sources/2009-09-16-pt-lei-110-2009.pdf`（sha256 `3af99421b96092a6803922106324d4cbabb3762c510b5ff4293196984493d991`） | archived |
+| SRC-475 | GUIDANCE | 葡萄牙 · AIMA 生计资源与证据说明 | https://aima.gov.pt/pt/temas-transversais/meios-de-subsistencia | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-aima-meios.html`（sha256 `ebf83ea468a2761988b3071b55a2bdf4e6953315ad7d4d376bc5be9ad6609deb`） | archived |
+| SRC-476 | GUIDANCE | 葡萄牙 · AIMA 2026 年收费表与生效公告 | https://aima.gov.pt/media/pages/documents/dc677d0005-1772305205/tabela-de-taxas-e-demais-encargos-a-cobrar-pelos-procedimentos-administrativos.pdf ；https://aima.gov.pt/pt/noticias/atualizacao-da-tabela-de-taxas | 2026-03-01；网页见抓取日 | 2026-11-23 | `policy-sources/2026-03-01-pt-aima-tabela-taxas.pdf`（sha256 `ed59e0ad90923f0a6a1cf68e5352b0195047b17fcf441dfb7834dbf150362fb3`）；`policy-sources/2026-02-28-pt-aima-atualizacao-taxas.html`（sha256 `922fe5e18d5926313cd262c788529011a9b8f75c45b7adc955cfabb13a162fe6`） | archived |
+| SRC-477 | LAW | 葡萄牙 · Portaria 307/2023，AIMA 收费及年度调整 | https://aima.gov.pt/media/pages/documents/fa233e86c7-1750429842/portaria-307.pdf | 2023-10-13 | 2026-11-23 | `policy-sources/2023-10-13-pt-portaria-307-2023.pdf`（sha256 `c2b0dcb6ca35655aae1a4a79ae60ea584cc8e8c494c23f6886691eae0b0753c0`） | archived |
+| SRC-478 | LAW | 葡萄牙 · Lei 37/2006，自由流动居留权 | https://files.diariodarepublica.pt/1s/2006/08/15300/57175724.pdf | 2006-08-09 | 2026-11-23 | `policy-sources/2006-08-09-pt-lei-37-2006.pdf`（sha256 `e327ca4c5974dbb5151a4af4b51ac760fa2bc948be65f03eed6f5c845b79884d`） | archived |
+| SRC-479 | LAW | 葡萄牙 · Portaria 13/2024、勘误、原费表及前次修订，自由流动收费 | https://files.diariodarepublica.pt/1s/2024/01/01500/0001300017.pdf ；https://files.diariodarepublica.pt/1s/2024/01/02200/0001000010.pdf ；https://files.diariodarepublica.pt/gratuitos/1s/2017/05/09600.pdf ；https://files.diariodarepublica.pt/gratuitos/1s/2010/12/25302.pdf | 2024-01-22；2024-01-31；2017-05-18；2010-12-31 | 2026-11-23 | `policy-sources/2024-01-22-pt-portaria-13-2024.pdf`（sha256 `1210fb420d1af28d150ad272543f613d3b7d11dcf4f5fa732fc5bdda4ba1078a`）；`policy-sources/2024-01-31-pt-portaria-32-2024.pdf`（sha256 `1c84a24a32036bd38d8bb67029c9cc364acf557bdf198eb3ffcd6d7e1ff2340a`）；`policy-sources/2017-05-18-pt-portaria-164-2017.pdf`（sha256 `ab6e4dd4e6a00b090bad41f029c23c03616ddb0814b435ffecb57e47dcc19700`）；`policy-sources/2010-12-31-pt-portaria-1334-d-2010.pdf`（sha256 `2a6dcfca2d39eac571edd223c56e31d40140f786e8077ebe9a03625b66e6728d`） | archived |
+| SRC-480 | LAW | 葡萄牙 · PLA 与旧制语言证明法规 | https://files.diariodarepublica.pt/gratuitos/1s/2020/08/15100.pdf ；https://files.diariodarepublica.pt/1s/2022/07/14000/0000200004.pdf ；https://files.diariodarepublica.pt/1s/2014/09/17500/0488804889.pdf | 2020-08-05；2022-07-21；2014-09-11 | 2026-11-23 | `policy-sources/2020-08-05-pt-portaria-183-2020.pdf`（sha256 `383c32370d3c573ae06c0cf958aa0bdf5802212c66d27b1b50f0252bc04b3b4d`）；`policy-sources/2022-07-21-pt-portaria-184-2022.pdf`（sha256 `7568e9696daeb9c9b322d6b2b0f27898f3c2275122a1f0133da60484c8425142`）；`policy-sources/2014-09-11-pt-portaria-176-2014.pdf`（sha256 `3adf947175d09e306dbdd1fb3913a008ebc338920dde685403cfa473a6ee91e7`） | archived |
+| SRC-481 | GUIDANCE | 葡萄牙 · AIMA ARI 常见问题 | https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-aima-ari-faq.html`（sha256 `24f4be9067da60c223999fc1e25d2ea41195dc690fb148be43da9a50dcc4abbd`） | archived |
+| SRC-482 | GUIDANCE | 葡萄牙 · 里斯本大学 CAPLE · CIPLE | https://caple.letras.ulisboa.pt/exame/2/ciple | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-caple-ciple.html`（sha256 `d3355211533d7b80813f18db313edd5ccdfaa69ef246630fc830d804023acb4f`） | archived |
+| SRC-483 | GUIDANCE | 葡萄牙 · 司法部 · 婚姻与事实伴侣声明取得国籍旧指南 | https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/E-casado-ou-vive-em-uniao-de-facto-com-um-portugues-ha-mais-de-3-anos | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-justica-casamento.html`（sha256 `34bbec87ad30780e05e610a5894a1d7d6db21f9619428dad282e098363e4617c`） | archived |
+| SRC-484 | GUIDANCE | 葡萄牙 · AIMA 自由流动永久证书、家属卡与线上入口 | https://aima.gov.pt/pt/nacionais-ue-e-familiares/nacionais-ue/certificado-de-residencia-permanente-para-nacionais-ue ；https://aima.gov.pt/pt/nacionais-ue-e-familiares/familiares-de-nacionais-ue/cartao-de-residencia-permanente-para-familiares-de-nacionais-da-ue ；https://aima.gov.pt/pt/noticias/portal-de-renovacoes-atualizado-para-nacionais-da-uniao-europeia-ue-e-familiares | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-aima-ue-certificado.html`（sha256 `c8c81a409b859c565d828049cc70456ea5eeeeb71999536be7987393eaef0928`）；`policy-sources/2026-11-23-pt-aima-ue-cartao.html`（sha256 `0832ab12e60559bd2e7c5febfb4fdc393eaa1347ef506372553c4402db459d28`）；`policy-sources/2026-11-23-pt-aima-ue-portal.html`（sha256 `31aae90a55c114d19fe15eff2595de226bba08cdac78f49308151bc28554c9fb`） | archived |
+| SRC-485 | LAW | 葡萄牙 · DL 41/2023，AIMA 职权移转 | https://files.diariodarepublica.pt/gratuitos/1s/2023/06/10700.pdf | 2023-06-02 | 2026-11-23 | `policy-sources/2023-06-02-pt-dl-41-2023.pdf`（sha256 `0ab6a0be57b5aba56c9af835e9c96bbb2da481524abacef2dfcd414492001c34`） | archived |
+| SRC-486 | LAW | 葡萄牙 · DL 37-A/2024，废止部分无居留签证手续 | https://files.diariodarepublica.pt/1s/2024/06/10601/0000200003.pdf | 2024-06-03 | 2026-11-23 | `policy-sources/2024-06-03-pt-dl-37-a-2024.pdf`（sha256 `334a3bb9095248170af42a89e24b7cfa96ac0aed054d866edeb411e5c7fd80cb`） | archived |
+| SRC-487 | LAW | 葡萄牙 · Lei 39/2025 与 DL 496/1977，婚龄改革及民法成年 | https://files.diariodarepublica.pt/1s/2025/04/06400/0000300012.pdf ；https://files.diariodarepublica.pt/1s/1977/11/27301/00010050.pdf | 2025-04-01；1977-11-25 | 2026-11-23 | `policy-sources/2025-04-01-pt-lei-39-2025.pdf`（sha256 `1fa52a537f7a9546b37a1d25d668a77b05811fd86967e9176d997bafa2dba429`）；`policy-sources/1977-11-25-pt-dl-496-1977.pdf`（sha256 `1beec94d6c2893387a2b4fc6214aeff6f3d408e802e8946b364792f58b758441`） | archived |
+| SRC-488 | LAW | 葡萄牙 · DL 209/2012，国籍程序费用 | https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/legislacao/diplomas_legislativos/Documents/Decreto_Lei_209_2012.pdf | 2012-09-19 | 2026-11-23 | `policy-sources/2012-09-19-pt-dl-209-2012.pdf`（sha256 `5ad83eddc1434ee2daa1b41514e02ae590463c46140c667809e18fc5cb892fe7`） | archived |
+| SRC-489 | LAW | 葡萄牙 · Despacho 12941/2014，旧 PaN 测试费 | https://files.diariodarepublica.pt/2s/2014/10/205000000/2681226813.pdf | 2014-10-23 | 2026-11-23 | `policy-sources/2014-10-23-pt-despacho-12941-2014.pdf`（sha256 `81f88a0eba86d95466f8458f5c3c70caf6d9af5cc4d603598e24164eed854f63`） | archived |
+| SRC-490 | LAW | 葡萄牙 · Portaria 208/2017，投资低密度地区 | https://files.diariodarepublica.pt/1s/2017/07/13400/0373103734.pdf | 2017-07-13 | 2026-11-23 | `policy-sources/2017-07-13-pt-portaria-208-2017.pdf`（sha256 `198e8b1b26f3d543baca4379d8d9e0503ea8cea23ca0c2fa7c0e75890be867ce`） | archived |
+| SRC-491 | LAW | 葡萄牙 · Lei 53/2023，通用拒绝与 EU Blue Card | https://files.diariodarepublica.pt/1s/2023/08/16900/0000700024.pdf | 2023-08-31 | 2026-11-23 | `policy-sources/2023-08-31-pt-lei-53-2023.pdf`（sha256 `ccecec4830450cfa9ce34909aa4a5836df78cffd2368162f18d1b47a99bc318b`） | archived |
+| SRC-492 | LAW | 葡萄牙 · Lei 69/2026，总体规划 | https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf | 2026-11-18 | 2026-11-23 | `policy-sources/2026-11-18-pt-lei-69-2026.pdf`（sha256 `50c387cb53ba61c4d263bafc9a9c6c0b45d79f23eb97a4c630953d42984801f9`） | archived |
+| SRC-493 | LAW | 欧盟法院 · Ogieriakhi，C-244/13，第三国配偶的永久居留权 | https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244 | 2014-07-10 | 2026-11-24 | `policy-sources/2014-07-10-pt-cjeu-c-244-13.pdf`（sha256 `5d818b90c74050a290d259aca87b753900b8b66a7719aacc9be8ad28adae14cd`） | archived |
+| SRC-494 | GUIDANCE | 欧委会 · C/2023/1392，欧盟公民及其家属自由流动指引 | https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng | 2023-12-22 | 2026-11-24 | `policy-sources/2023-12-22-pt-eu-free-movement-guidance.pdf`（sha256 `fc3c76bbfc117d29c6f8f6061d3c51a181b759b2ce7eeb366ff55cce37390430`） | archived |
+| SRC-495 | LAW | 欧盟法院 · AT v Pensionsversicherungsanstalt，C-32/19，退休工作者提前取得永久权 | https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62019CJ0032 | 2020-01-22 | 2026-11-24 | `policy-sources/2020-01-22-pt-cjeu-c-32-19.pdf`（sha256 `7522f78f46fb90b96b478e62c06984a75e48a9b2df7115dece6c49a62d5525ba`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -824,28 +900,37 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-070 Citizenship Act 1977（新西兰）
 
+- 任务 84 的普通、特殊在境判断引用本快照 s8；s9、s9A 及宣誓程序另见 SRC-231 的 DIA 指引与 SRC-232 的申请说明。
 - `policy-sources/2026-06-06-nz-citizenship-act-1977-s8.html` → <https://www.legislation.govt.nz/act/public/1977/61/en/latest/>
 - legislation.govt.nz 对脚本请求返回 AWS WAF 质询（HTTP 202、空正文），快照是在浏览器中打开现行版（Version as at 6 June 2026）后只保存的 s8 节选（元素 `DLM443855`）。每周核对对这条会报 changed 或 fetch failed，需在浏览器里人工核对版本日。
 - `s8(1)(a)`：年满 16 岁。`s8(2)(a)`：申请时依 Immigration Act 2009 可无限期留在新西兰。`s8(2)(b)`：申请日前 5 年内在新西兰合计不少于 1,350 天（i），且其中每一年不少于 240 天（ii），只算可无限期留在新西兰的日子。`s8(3)`：居留附加条件未满足或未取消的，不算可无限期留下。`s8(5)`、`s8(7)`：Crown service 视同在境、特殊情况下 20 个月内 450 天，试点不建模。法条没有规定出入境当天怎么算，见 PD-086。
 
 ## SRC-071 Immigration Act 2009（新西兰）
 
+- s71(1)(a) 允许在境外且拟赴新西兰定居的人申请。s71(1)(b) 允许在境内持 temporary visa 或 resident visa 且不受 s150 约束的人申请。s71(1)(c) 对在管制区等指定地点申请的人规定了适用免签和法定类别要求。s71(2)–(3) 要求邀请制类别按期凭邀请递交。s71(3A) 禁止曾按 s75A 被取消居民签证的人申请。s71(4) 禁止 Interim Visa、limited visa、transit visa 持有人及依法可被遣返者申请居民类签证。s71(5) 保留部长对 s71(4) 所列人士的酌情授签权。第 71 条已核对现行法条，本站另存的 INZ RA5(a)–(b) 明载同一禁令及酌情权限（SRC-230）。[Immigration Act 2009 s71](https://www.legislation.govt.nz/act/public/2009/51/en/latest/sections/DLM1440686/)
+- 任务 84 衔接居民签与永久居民签的身份和旅行权利；签发及失效后的具体路径由 SRC-072、230 的 INZ 条文规定。
 - `policy-sources/2026-07-10-nz-immigration-act-2009-ss73-74.html` → <https://www.legislation.govt.nz/act/public/2009/51/en/latest/>
 - 同 SRC-070，快照是浏览器中现行版（Version as at 10 July 2026）的 s73–s74 节选（元素 `DLM1440688`、`DLM1440689`），每周核对需人工处理。
 - `s73`：永久居民签证持有人可随时前往新西兰、获准入境并无限期居留。`s74(1)`：居民签证持有人可前往新西兰并申请入境许可，获准入境后可按签证条件无限期居留；`s74(2)`：前往新西兰须符合签证的旅行条件。法条没有写旅行条件到期时人在境外，居民签证是否随之失效，见 PD-088。
 
 ## SRC-072 Immigration Instructions（新西兰移民局操作手册）
 
+- 任务 84 复用本编号的 RV 条文与 R5.66，并登记本次 R5.66 快照。两个 R5.66 版本的条文相同，手册导航有更新。RV3、RV4 与 RV1.25 的补充原文见 SRC-230。
+- `policy-sources/2026-08-12-nz-ops-r5-66.html` → <https://www.immigration.govt.nz/opsmanual/44894.htm>
 - 新西兰的 Immigration Instructions 相当于英国的 Immigration Rules，按段落号定位，如 `RV2.5.1`。各页底部的 `Effective` 日期即快照文件名中的日期。
 - `RV2.5`：(a) 申请时持居民签证且已连续持有满 24 个月（或申请前 90 天内曾持有、到期前已连续持有满 24 个月）；(b) 首次以居民身份在新西兰之日（R5.66.1）在申请前至少 24 个月；(c) 以 RV2.5.1–RV2.5.20 任一方式表明对新西兰的承诺；(d) 满足 s49(1)、s50 条件；(e) 品格。`RV2.5.1`：申请前 24 个月的两个 12 个月里，各以居民身份在新西兰合计不少于 184 天。`RV2.5.5`：两个 12 个月里各不少于 41 天，且申请前 24 个月具有税务居民身份（RV1.15.10）。`RV2.5.10`–`RV2.5.20`（投资、经营、在新西兰安家）试点不建模。
+- R5.66.5(b)(i)–(ii) 以获签时所在地确定首个居民日。境内获签取获签日，境外获签取首次凭该居民签获准入境之日。RV2.5(b) 从该日计算永居首入条件。[INZ R5.66](https://www.immigration.govt.nz/opsmanual/44894.htm)
 - `RV2.10`：Migrant Investment、Parent Retirement、Active Investor Plus 类别的居民签证转永居，看是否已满足投资条件，不看在境天数。
 - `RV1.15.5` 注：以居民身份在新西兰的期间，入境日与出境日都计入。
 - `RV1.5`：居民签证持有人离开新西兰时签证已没有有效的旅行条件，或旅行条件在其身处境外时到期，居民签证即失效（法条依据为 Immigration Act s63(2)，试点未存档该条）。失效后可在 90 天内以前持有人身份申请永久居民签证（RV2.5(a)(ii)），或按 RV4 另行申请居民签证。`RV3.1` 另规定只有签证仍有效时才能变更旅行条件（试点未存档该页）。
 - `RV1.20`：随同居民签证获批的伴侣、子女（non-principal applicants），主申请人持永久居民签证是唯一条件，例外是 RV2.1 排除、须单独评估（RV1.20.1–RV1.20.20）、从未以居民身份到过新西兰（RV1.5(d)）或不符合品格要求。
+- RV1.20(a)–(b)、RV1.20.5 区分原主申与原随同者。其 Andrea 示例另按 R2.1 判断子女能否同表。后来独立获居民签的家属按本人记录评估。RV1.20(a)(ii) 将特定投资类原主申获签后出生、其后获 Dependent Child Resident Visa 的子女列为随同者，须已持该签入境。[INZ 永居说明，Including family in your application](https://www.immigration.govt.nz/visas/permanent-resident-visa/)
 - `R5.66.1`：境外获批的，首次入境须在获批后 1 年内（萨摩亚配额、太平洋准入类别为 3 个月，试点不建模）。`R5.66.5`：多次入境的旅行条件自首次以居民身份在新西兰之日起 2 年；父母类 10 年、宗教工作者 5 年、Active Investor Plus 的 Growth 类 4 年、Balanced 类 6 年。首次以居民身份在新西兰之日，是在新西兰境内获批的获批日，或境外获批后首次凭该签证获准入境之日。超出旅行条件再前往新西兰、又不符合永久居民签证的，可申请变更旅行条件（RV3）。旅行条件的最后一天按哪天算，见 PD-087。
 
 ## SRC-073 新西兰官方说明
 
+- 任务 84 复用 Visa Pak 588 与 DIA 的逐日在境规格，并补存档本次 govt.nz 在境与附加条件说明。
+- `policy-sources/2026-11-23-nz-govt-citizenship-presence.html` → <https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/presence-requirements/>
 - `policy-sources/2026-11-21-nz-religious-worker-resident-visa.html` → <https://www.immigration.govt.nz/visas/religious-worker-resident-visa/>
 - `policy-sources/2024-07-18-nz-visa-pak-588-prv-periods.pdf` → <https://www.immigration.govt.nz/assets/inz/documents/visa-paks/visa-pak-588.pdf>
 - `policy-sources/2021-12-15-nz-dia-oia-2122-0423-presence-calculator.pdf` → <https://www.dia.govt.nz/diawebsite.nsf/Files/OIA-releases/$file/OIA-2122-0423.pdf>
@@ -1164,6 +1249,8 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 
 ## SRC-120 Lei Orgânica n.º 1/2026（现行国籍法）
 
+- 任务 92：附件 art. 3（p9）为婚姻及事实伴侣声明路径；art. 6（pp9–11／修改条文 pp2–4）列入籍实体条件、无国籍免程序费、犯罪证明及可反驳推定；art. 9–10（p12）为实际联系、公职与军役、异议例外及期限。第 11 款证明主体按同日勘误（p1）。
+
 - `policy-sources/2026-05-18-pt-lo-1-2026-dr95.pdf` → <https://files.diariodarepublica.pt/1s/2026/05/09500/0000200020.pdf>
 - `policy-sources/2026-05-18-pt-dr-retificacao-17-2026.pdf` → <https://files.diariodarepublica.pt/1s/2026/05/09500/0002100021.pdf>
 - 官方公报 PDF（DRE 详情页由前端渲染，curl 只得空壳，地址取自详情页的"Descarregar PDF"）。`p<N>` 指 PDF 物理页序，与页脚"N/19"一致；附件为 Lei 37/81 的全文重新公布。
@@ -1173,6 +1260,8 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 
 ## SRC-121 Lei Orgânica n.º 1/2024（旧国籍法文本）
 
+- 任务 92：附件 arts. 3、6、9、10、13（pp7–10）为旧制关系、成年或 emancipação、葡语、刑事、安全、异议及程序中止条件。
+
 - `policy-sources/2024-03-05-pt-lo-1-2024-dr46.pdf` → <https://files.diariodarepublica.pt/1s/2024/03/04600/0000200019.pdf>
 - 第 9 条（p5）：公布次月首日施行，即 2024-04-01。附件重新公布的 `art. 6 n.º 1 b)`（p8）：居住满 5 年；`art. 15 n.º 1`（p12）：合法居留指持外国人法规定的证件、签证或许可在葡萄牙的人；`art. 15 n.º 3`（p13）：15 年区间；`n.º 4`（p13）：自申请临时居留许可之日起算，以获批为前提。第 6 条（p4–p5）只涉及塞法迪后裔的在审申请；2024-04-01 前递交的普通入籍申请适用更早的文本，试点没有建模（PD-143）。
 
@@ -1181,6 +1270,9 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 - 判决 `III - Decisão` d 项宣告草案第 7 条第 3、4 款（按递交日旧法审查并定为解释性规定）违宪，最终法律删去了这两款。理由 `D.5`（第五个问题）认定废止旧 art. 15 n.º 4 合宪："com a obtenção do título de residência, inicia-se a contagem do prazo"；同节记述 2024 年前自批准临时居留许可之日起算。判决理由不是法条，起算锚点见 PD-140。
 
 ## SRC-123 Lei n.º 23/2007（外国人法）
+
+- ARI 境外家属由担保人提出入境及居留申请，见 Lei 18/2022 附件 art. 103(1)、(3)（p81）。境内申请适用 Lei 61/2025 art. 2 修订的 art. 103(2)（p5），担保人的许可有效性及 ARI 等待期豁免见同法修订的 art. 98(1)、(3)(c)（p4）。
+- 任务 92：Lei 18/2022 附件 arts. 77–82（pp65–68）、90-A（p72）、121-I、125–131（pp100–104）分别用于授予、续期、永久居留、ARI、蓝卡与 ERLD。ERLD 因缺席丧失后的恢复条件与决定期限见 art. 131(4)–(5)（p104）。投资选五项与历史过渡查 Lei 56/2023 arts. 42–44、55，蓝卡与通用拒绝的中间修订查 SRC-491。ARI 家庭团聚的资格及等待期例外见 Lei 61/2025 art. 2 对 arts. 98(1)、98(3)(c)、99、103(2) 的修订（pp4–6）。Lei 62/2026 arts. 2、4 为后续修订。
 
 - `policy-sources/2022-08-25-pt-lei-18-2022-dr164.pdf` → <https://files.diariodarepublica.pt/1s/2022/08/16400/0000200137.pdf>
 - `policy-sources/2023-10-06-pt-lei-56-2023-dr194.pdf` → <https://files.diariodarepublica.pt/1s/2023/10/19400/0000200050.pdf>
@@ -1198,14 +1290,15 @@ SRC-090 BOE · Ley 39/2015 行政程序法 PDF。
 ## SRC-125 PGD Lisboa 编纂版
 
 - 里斯本检察院网站的编纂文本，不是官方公报；快照为 ISO-8859-1 编码的打印页。只在公报原文未取得时使用，结果里注明。
-- Decreto Regulamentar 84/2007 `art. 63.º`（编纂版列出经 DR 2/2013、15-A/2015、9/2018、1/2024 修改）：n.º 14 证件到期后 6 个月内居留权不失效（AIMA 在 SRC-126 中按此条复述）；n.º 16 续期可在到期前 90 至 30 天内申请。任务 71 审核指出 n.º 16 由 DR 9/2018 第 2 条加入、DR 1/2024 未改其内容，两份公报原文均未存档（PD-149）。
+- Decreto Regulamentar 84/2007 `art. 63.º`（编纂版列出经 DR 2/2013、15-A/2015、9/2018、1/2024 修改）：n.º 14 证件到期后 6 个月内居留权不失效（AIMA 在 SRC-126 中按此条复述）；n.º 16 由 DR 9/2018 第 2 条加入，原公报见 SRC-472；DR 1/2024 未改此款，原公报见 SRC-471。
 - Decreto Regulamentar 84/2007 `art. 65.º-K`（编纂版列出初版为 DR 9/2018、经 DR 1/2024 修改）：符合 Lei 23/2007 art. 80 的黄金签证持有人申请永久居留时，发给投资类永久居留，不适用 art. 85 n.º 2 b、n.º 3–4（因出境注销）。
 - Código Civil `art. 279.º` b）期间起算的事件当天不计，c）按年计的期间止于对应日 24 时，没有对应日的止于该月末日；`art. 296.º` 法定期间同样适用。
 
 ## SRC-126 AIMA 页面
 
+- ARI 页 `Reagrupamento Familiar` 段明确允许家属与投资人同时递交，家属的授予取决于投资人主案获批。同名材料小节分列 `fora de Território Nacional` 与 `familiar em Território Nacional` 两条渠道。
 - ARI 页面：第 1 年停留不少于 7 天，"nos anos subsequentes"（此后各年）不少于 14 天；这是简写，AIMA 常见问题第 24 问与 SRC-124 art. 65-C 都写每个 2 年期 14 天，试点按 2 年期计（PD-148）；同页写明符合 art. 80 的持有人获发投资类永久居留（Autorização de Residência para Atividade de Investimento Permanente），不适用因出境注销的规定（引 DR 84/2007 art. 65-K）；另写 ARI 自证件签发日起有效 2 年。永久居留页面：持临时居留许可至少 5 年，证件 5 年换发。ERLD 页面：申请前紧邻 5 年合法、不间断居留。《Direito de Residência》：非欧盟国民的居留权在居留卡到期后 6 个月内仍然保留（引 DR 84/2007 art. 63 n.º 14）；2025-06-30 前到期的卡另延至 2026-04-15（PD-145）。
-- 交叉核对（未存档）：AIMA《Perguntas frequentes – Autorização de Residência para Investimento (ARI)》https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari ，2026-11-23 读取。第 24 问：第 1 年 7 天、此后每个 2 年期 14 天，与 art. 65-C 一致。下载存档须用户确认，暂未存档。
+- AIMA《Perguntas frequentes – Autorização de Residência para Investimento (ARI)》已在 SRC-481 归档。第 24 问列第 1 年 7 天、此后每个 2 年期 14 天，与 art. 65-C 一致。
 
 ## SRC-127 葡萄牙政府关于新国籍法的说明
 
@@ -2151,3 +2244,331 @@ SRC-074–078 的八份时间计算快照沿用原登记。下列编号按主题
 - c · `2026-11-23-ca-ee-doctors.html`（2023-05-02）。[官方原文](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/public-policies/physicians-4-2023.html)
 - d · `2026-11-23-ca-pnp-gazette.html`（2026-03-31）。[官方原文](https://gazette.gc.ca/rp-pr/p2/2026/2026-04-08/html/sor-dors63-eng.html)
 - e · `2026-05-28-ca-aip-pr-application.html`。IRCC AIP 申请指引（2026-05-28）“Police certificates and clearances” 第 1–2 段，允许应要求补交，警证通常自签发日起有效一年。“If a minor (child) is immigrating without both parents or guardians (IMM 5604)” 列出同意或替代证明。[官方原文](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/atlantic-immigration/how-to-immigrate/permanent-residence.html)
+
+## 爱尔兰完整版来源定位（任务 89）
+
+沿用 SRC-091 的编纂版 ss14–18、29A（PDF pp19–28、35–36）、SRC-095 的 ISD 身份与居住评分、签发及补件指引、SRC-096 的升级与家庭团聚 FAQ，以及 SRC-097 的申请表与维持条件。以下 PDF 页码按物理页序。
+
+- **SRC-380** regs. 9–10、13；Forms 8–11；替换 Form 8 §§8、11–12 与 Form 11 §5。
+- **SRC-381** Proof of identity、Proof of residence；Residency Affidavit；Changes to citizenship for people granted International Protection。
+  - `2026-11-23-ie-citizen-affidavit.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/citizenship/residency-affidavit-proof-form-citizenship-0092026.pdf)。
+- **SRC-382** Eligibility；What is e-Vetting?。
+- **SRC-383** Act ss4–5、9、19；S.I. 421/2025 regs. 1–5。
+- **SRC-095** Guide 的 Reckonable Residence for Refugees or people with international protection、70 Days Absence Rule 及 Document requirements for minors。难民专项区分递交前一年与此前累计期，并说明部长可按个案豁免。
+- **SRC-095** Guide 的 Reckonable Residence for Citizens of an EEA country, Switzerland or the UK 说明可用历史居住文件证明居住。一般和配偶的居住期分别见 SRC-091 ss15(1)(c)、15A(1)(e)–(f)，配偶的婚姻或民事伴侣关系年限见 s15A(1)(c)，缺席见 s15C。
+- **SRC-097** Eligibility、If your application is successful（许可可能被撤销）、How do I renew my Without Condition As To Time permission? 及 What are the conditions attached to my Stamp 5 permission。Stamp 5 线上 IRP 续期材料另见 SRC-384 的 Stamp 5 Renewals 清单。
+- **SRC-384** Stamp 1、Stamp 1G (1)、Stamp 3 (3)、Stamp 4 (1)–(4)、(7)–(8)、(12)、Stamp 5、Stamp 4 EUFam 与 WA 的登记及续期清单。在线续期 When should I submit a Renewal Application? 载明在共和国境内递交、IRP 到期前 12 周开放。Introduction 包含线上更换 Stamp 类别。登记 FAQ 的 Travel and Re-Entry Visas 区分持有效 IRP 返爱与紧急返爱签证，并要求后者的许可覆盖到计划返爱日。
+- **SRC-384** Stamp 4 (3) 的 First Time Registrations 第 6 项列医疗或旅行保险，有效期为 12 个月或覆盖全部较短停留期。同一表的 Renewals 列现有 IRP 和相应文件。已登记许可的配偶线上换签见 SRC-388 的 How do I apply? → Resident in the State on an existing permission，以及 SRC-387 June 2026 §5.5 注 20 所链接的 ISD 换签页，Criteria to change immigration permission → Change of Immigration Status from Stamp 1 → Stamp 4。[ISD 换签页](https://www.irishimmigration.ie/registering-your-immigration-permission/changing-your-immigration-permission/)
+- **SRC-385** Policy Document Archive；main changes。
+- **SRC-386** Financial Thresholds for Spouses, Civil Partners and De Facto Partners；Table 1。
+- **SRC-387** June 2026 §§2–10、12–17 和 Appendices C–E，其中 §6.2 为居住或拟居住在爱尔兰的爱尔兰公民担保人；November 2025 §§7、10、16；2016 §§16–17。
+  - June 2026 §5.5 将已在爱尔兰居住的申请人转介至各境内专门流程。§7.11 规定本政策下另一段关系的担保等待期。境内流程如何处理旧担保见 PD-330。
+  - `2026-11-23-ie-family-2016.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2021/04/Policy-document-on-Non-EEA-family-reunification.pdf)。
+  - `2026-11-23-ie-family-2025.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/11/FINAL-PDF-Revised-Family-Reunification-Policy.pdf)。
+  - `2026-11-23-ie-family-2026.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/06/Family-Reunification-Policy-12-June-2026.pdf)。
+- **SRC-388** 境内 de facto 的 Am I eligible? 要求双方已合法居住。爱尔兰公民配偶的 Am I eligible?、Where you have permission to be in Ireland 载明境内转换须核对申请人在境内及适用的许可或入境依据。境外 de facto 的 Who can sponsor me?、Police clearance、Medical insurance 与 What happens when I arrive in Ireland? 覆盖担保、申请与入境后的登记。爱尔兰公民配偶的 Recently entered the State on a D (Join Family) Visa or were given a Join family stamp by border control 指向首次登记清单。
+- **SRC-388** 配偶专页 Am I eligible? 下，Where you have permission to be in Ireland 列出财力和共同住址证明。Where you do not have permission to be in Ireland 列出配偶事务组的适用情形、过去三年 €40,000 且不含国家福利，以及不得成为国家过度负担。How do I apply? 指向专门申请表和材料清单。境内转换的政策范围见 SRC-387 June 2026 §5.5，普通境外团聚的住房和财务要求见 §§9–10。
+- **SRC-389** Irish citizens；What is a qualifying family member?；Permanent Residence Card/Certificate。
+- **SRC-390** regs. 2–6、8–20，其中 reg. 8 为普通家属居留证件，reg. 12(1)(b) 为非欧盟家属与 EU 公民合规居留，reg. 12(4) 为保留权利后的居留，reg. 15(1)–(3)、(8)–(9) 分别涉及家属首次申请永久居留卡及其续期与失效；Schedules 1、5–8。
+- **SRC-391** EUTR2 证书、EUTR3 永久卡、EUTR5 权利保留；EUTR3 pp2–3。
+  - `2026-11-23-ie-eu-eutr2-leaflet.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/05/Explanatory-leaflet-for-Form-EUTR2.pdf)。
+  - `2026-11-23-ie-eu-eutr2.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/05/Form-EUTR2.pdf)。
+  - `2026-11-23-ie-eu-eutr3-2026.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/09/Explanatory-leaflet-for-Form-EUTR3-updated-August-2026.pdf)。
+  - `2026-11-23-ie-eu-eutr5-leaflet.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2026/05/Explanatory-leaflet-for-Form-EUTR5.pdf)。
+- **SRC-392** S.I. regs. 2–7、10–12、14–23，其中 reg. 10(3)–(4) 为非欧盟非英国籍家属及过渡前后的可计居留和失权，regs. 11–12 涉及永久居留证件的首次签发与续期；Agreement Arts. 9–10、13、15–17。
+  - `2026-11-23-ie-wa-agreement.pdf` 对应 [官方 PDF](https://assets.publishing.service.gov.uk/media/5daaab7fed915d42a05eea12/Agreement_on_the_withdrawal_of_the_United_Kingdom_of_Great_Britain_and_Northern_Ireland_from_the_European_Union_and_the_European_Atomic_Energy_Community.pdf)。
+  - `2026-11-23-ie-wa-brexit-faq.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2022/03/Impact-of-Brexit-on-UK-Nationals-in-Ireland-and-their-non-EEA-national-family-members-March-2022.pdf)。
+- **SRC-393** Act ss2–4、9、18、21–24、36(2)(a)、47–48、55；S.I. 444/2024 reg. 7、Parts 6–8、Schedule 1；S.I. 643/2025 Schedule 8。
+  - `2026-11-23-ie-permit-mar-regs.pdf` 对应 [官方 PDF](https://www.irishstatutebook.ie/eli/2025/si/643/made/en/pdf)。
+- **SRC-394** Eligibility criteria；Remuneration criteria；Fees；Labour Market Needs Test；What’s next?。
+- **SRC-395** EMN NCP Ireland 问题 1；爱尔兰未参加 Directive 2003/109/EC。
+  - `2026-11-23-ie-eu-commission-ltr.pdf` 对应 [官方 PDF](https://ec.europa.eu/commission/presscorner/api/files/attachment/872342/COM_2022_650_1_EN_ACT_part1_v5.pdf)。
+  - `2026-11-23-ie-eu-emn-query-ltr.pdf` 对应 [官方 PDF](https://home-affairs.ec.europa.eu/system/files/2022-06/20221_directive_2003109ec_duration_of_absence_and_loss_of_the_long-term_resident_status%20%281%29.pdf)。
+- **SRC-397** Minimum Annual Remuneration updates。
+- **SRC-398** Eligibility、Conditions、FAQ；申请表 p1 与 §§3–6；医师说明 Permission to Change Immigration Status。How do I renew my Long Term Residency permission? 核对持有 LTR 期间的居住及工作证明，并单列领取经收入评估福利者的续期渠道。家属首办材料见 Can my spouse/dependent apply for Long Term Residence?。
+  - `2026-11-23-ie-ltr-doctors.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2021/05/SHOs-and-registrars-with-5-years-work.pdf)。
+  - `2026-11-23-ie-ltr-form.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2023/07/Long-Term-Residency-Application-Form.pdf)。
+- **SRC-399** Independent immigration permission。
+  - `2026-11-23-ie-domestic-abuse.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2024/01/Victims-of-Domestic-Abuse-Immigration-Guidelines-Dec-2023.pdf)。
+- **SRC-400** What Irish associations means；December 2025 指引 Steps 1–4 及 Table 1（p3）。
+  - `2026-11-23-ie-irish-assoc-dec-2025.pdf` 对应 [官方 PDF](https://www.irishimmigration.ie/wp-content/uploads/2025/12/IA-Guidance-footnote-updated-03-12-2025.pdf)。
+- **SRC-401** s2(1)–(2)。
+- **SRC-402** s63：overcrowding。
+- **SRC-404** Indexation。
+  - `2026-11-23-ie-permit-roadmap.pdf` 对应 [官方 PDF](https://enterprise.gov.ie/en/publications/publication-files/employment-permits-minimum-annual-remuneration-outcome-of-the-roadmap-review-2025.pdf)。
+- **SRC-405** Registration requirements for minors；Registering for the first time at 16 years of age 与 Minors (under 16 years) travelling to and from Ireland。免登记情形的入籍连续居住仍按 SRC-091 ss15B–15C 核对。
+- **SRC-406** Visa Fees；Visa fee exemptions。
+- **SRC-407** Employment Permits Act 2024；S.I. 444/2024 legislative history。
+- **SRC-408** ss203、286、295。
+- **SRC-409** Eligibility；Join non-EEA Family Member §9 及 Type of immigration permission。
+
+## SRC-470 葡萄牙 · Regulamento da Nacionalidade Portuguesa（DL 26/2022 重刊）
+
+arts. 6、14、18–19、25、27、37、44、56：无国籍旧程序、婚姻与同居声明、材料、葡语证明、费用与异议。旧制葡语的出生地与国籍推定见 art. 25(9)（公报 p42）。
+
+- `policy-sources/2022-03-18-pt-dl-26-2022.pdf` → <https://files.diariodarepublica.pt/1s/2022/03/05500/0000200059.pdf>
+
+## SRC-471 葡萄牙 · DR 1/2024，外国人法实施条例修订
+
+arts. 63–65、65-A、65-D/E/K、74（DR 84/2007）：续期、永居、ARI 与 ERLD。第 5 条第 5–8 款处理旧 ARI 项目过渡。
+
+- `policy-sources/2024-01-17-pt-dr-1-2024.pdf` → <https://files.diariodarepublica.pt/1s/2024/01/01200/0000600050.pdf>
+
+## SRC-472 葡萄牙 · DR 4/2022 与 DR 9/2018，外国人法实施条例
+
+DR 4/2022 重刊 arts. 5、63、65-A–E、74：担保、续期和 ARI 的证明。DR 9/2018 art. 2 修改 DR 84/2007 art. 63(16)：续期可在到期前 90 天内提出。
+
+- `policy-sources/2022-09-30-pt-dr-4-2022.pdf` → <https://files.diariodarepublica.pt/1s/2022/09/19000/0002800097.pdf>
+- `policy-sources/2018-09-11-pt-dr-9-2018.pdf` → <https://files.diariodarepublica.pt/1s/2018/09/17500/0471804757.pdf>
+
+## SRC-473 葡萄牙 · Portaria 1563/2007，居留生计标准
+
+arts. 2、5、7–9、11–13（公报 pp8866–8868）：家庭权重、按许可目的核对、合资格减免、永居与 ERLD 至少保障 12 个月。
+
+- `policy-sources/2007-12-11-pt-portaria-1563-2007.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2007/12/23800.pdf>
+
+## SRC-474 葡萄牙 · 本土与自治区最低工资参考及普通雇员社保份额
+
+DL 139/2025 arts. 2–3、7（本土 2026 EUR 920）；DLR 1/2026/M arts. 2、4（马德拉 EUR 980）；Resolução 26/2026 公报 p64（交叉记载亚速尔 EUR 966）；Lei 110/2009 附件 art. 53（普通雇员个人社保份额 11%）。
+
+- `policy-sources/2025-12-29-pt-dl-139-2025.pdf` → <https://files.diariodarepublica.pt/1s/2025/12/24900/0001400016.pdf>
+- `policy-sources/2026-02-03-pt-dlr-madeira-1-2026.pdf` → <https://files.diariodarepublica.pt/1s/2026/02/02300/0001400015.pdf>
+- `policy-sources/2026-07-30-pt-resolucao-madeira-26-2026.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2026/07/14600.pdf>
+- `policy-sources/2009-09-16-pt-lei-110-2009.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2009/09/18000.pdf>
+
+## SRC-475 葡萄牙 · AIMA 生计资源与证据说明
+
+“Montante / Forma de comprovar”：受养成年子女、工资单和服务收据、担保和其他收入证据。
+
+- `policy-sources/2026-11-23-pt-aima-meios.html` → <https://aima.gov.pt/pt/temas-transversais/meios-de-subsistencia>
+
+## SRC-476 葡萄牙 · AIMA 2026 年收费表与生效公告
+
+2026-03-01 生效。III.1–3、VI、XIV（pp2–4、费表末节）：续期、永居、ARI、ERLD 和渠道。
+
+- `policy-sources/2026-03-01-pt-aima-tabela-taxas.pdf` → <https://aima.gov.pt/media/pages/documents/dc677d0005-1772305205/tabela-de-taxas-e-demais-encargos-a-cobrar-pelos-procedimentos-administrativos.pdf>
+- `policy-sources/2026-02-28-pt-aima-atualizacao-taxas.html` → <https://aima.gov.pt/pt/noticias/atualizacao-da-tabela-de-taxas>
+
+## SRC-477 葡萄牙 · Portaria 307/2023，AIMA 收费及年度调整
+
+art. 3：每年 3 月 1 日按规定指数更新费用。
+
+- `policy-sources/2023-10-13-pt-portaria-307-2023.pdf` → <https://aima.gov.pt/media/pages/documents/fa233e86c7-1750429842/portaria-307.pdf>
+
+## SRC-478 葡萄牙 · Lei 37/2006，自由流动居留权
+
+arts. 2–3、6–13、14–17、21–24、29（公报 pp5717–5724）：适用身份、家庭、永久居留、文件与限制。
+其他亲属的个案审查见 art. 3(2)–(3)（p5717）。永久权取得与维持分别见 art. 10(1)–(5)（p5719）；第三国家属永久卡的缺席专条见 art. 17(4)（p5721），适用重叠记入 PD-396。
+
+- `policy-sources/2006-08-09-pt-lei-37-2006.pdf` → <https://files.diariodarepublica.pt/1s/2006/08/15300/57175724.pdf>
+
+## SRC-479 葡萄牙 · Portaria 13/2024、勘误、原费表及前次修订，自由流动收费
+
+Portaria 13/2024 art. 2（公报 pp14–15）：改 Portaria 1334-D/2010 art. 3；勘误修正生效条，2024-02-21 生效。
+
+- `policy-sources/2024-01-22-pt-portaria-13-2024.pdf` → <https://files.diariodarepublica.pt/1s/2024/01/01500/0001300017.pdf>
+- `policy-sources/2024-01-31-pt-portaria-32-2024.pdf` → <https://files.diariodarepublica.pt/1s/2024/01/02200/0001000010.pdf>
+- `policy-sources/2017-05-18-pt-portaria-164-2017.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2017/05/09600.pdf>
+- `policy-sources/2010-12-31-pt-portaria-1334-d-2010.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2010/12/25302.pdf>
+
+## SRC-480 葡萄牙 · PLA 与旧制语言证明法规
+
+Portaria 183/2020 art. 9 与 Portaria 184/2022：PLA 证书；Portaria 176/2014 arts. 2、4：旧国籍法律语言证明与测试。
+
+- `policy-sources/2020-08-05-pt-portaria-183-2020.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2020/08/15100.pdf>
+- `policy-sources/2022-07-21-pt-portaria-184-2022.pdf` → <https://files.diariodarepublica.pt/1s/2022/07/14000/0000200004.pdf>
+- `policy-sources/2014-09-11-pt-portaria-176-2014.pdf` → <https://files.diariodarepublica.pt/1s/2014/09/17500/0488804889.pdf>
+
+## SRC-481 葡萄牙 · AIMA ARI 常见问题
+
+FAQ 11–13、23–29：健康、生计、材料、续期和投资类永居。第 24 问按每两年一期核对最低停留。
+
+- `policy-sources/2026-11-23-pt-aima-ari-faq.html` → <https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari>
+
+## SRC-482 葡萄牙 · 里斯本大学 CAPLE · CIPLE
+
+“Detalhes do Exame”：A2 考试及抓取时的 EUR 95 价格。
+
+- `policy-sources/2026-11-23-pt-caple-ciple.html` → <https://caple.letras.ulisboa.pt/exame/2/ciple>
+
+## SRC-483 葡萄牙 · 司法部 · 婚姻与事实伴侣声明取得国籍旧指南
+
+“Documentos necessários / Quanto custa”：司法认定、声明材料与 EUR 250 费目。实体门槛以适用版国籍法为准。
+
+- `policy-sources/2026-11-23-pt-justica-casamento.html` → <https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/E-casado-ou-vive-em-uniao-de-facto-com-um-portugues-ha-mais-de-3-anos>
+
+## SRC-484 葡萄牙 · AIMA 自由流动永久证书、家属卡与线上入口
+
+“Quem pode requerer / Documentos”及门户公告：证书、家属卡、地址证据与旧预约衔接。
+
+- `policy-sources/2026-11-23-pt-aima-ue-certificado.html` → <https://aima.gov.pt/pt/nacionais-ue-e-familiares/nacionais-ue/certificado-de-residencia-permanente-para-nacionais-ue>
+- `policy-sources/2026-11-23-pt-aima-ue-cartao.html` → <https://aima.gov.pt/pt/nacionais-ue-e-familiares/familiares-de-nacionais-ue/cartao-de-residencia-permanente-para-familiares-de-nacionais-da-ue>
+- `policy-sources/2026-11-23-pt-aima-ue-portal.html` → <https://aima.gov.pt/pt/noticias/portal-de-renovacoes-atualizado-para-nacionais-da-uniao-europeia-ue-e-familiares>
+
+## SRC-485 葡萄牙 · DL 41/2023，AIMA 职权移转
+
+arts. 25–26：居留文件与国籍程序相关职权移转。
+
+- `policy-sources/2023-06-02-pt-dl-41-2023.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2023/06/10700.pdf>
+
+## SRC-486 葡萄牙 · DL 37-A/2024，废止部分无居留签证手续
+
+art. 3 及过渡条：旧 ARI 转创业居留的交叉条款已废止。
+
+- `policy-sources/2024-06-03-pt-dl-37-a-2024.pdf` → <https://files.diariodarepublica.pt/1s/2024/06/10601/0000200003.pdf>
+
+## SRC-487 葡萄牙 · Lei 39/2025 与 DL 496/1977，婚龄改革及民法成年
+
+Lei 39/2025 arts. 6–8：废止未成年人解放制度及过渡；DL 496/1977 art. 1 修改 Código Civil art. 130：满 18 周岁。
+
+- `policy-sources/2025-04-01-pt-lei-39-2025.pdf` → <https://files.diariodarepublica.pt/1s/2025/04/06400/0000300012.pdf>
+- `policy-sources/1977-11-25-pt-dl-496-1977.pdf` → <https://files.diariodarepublica.pt/1s/1977/11/27301/00010050.pdf>
+
+## SRC-488 葡萄牙 · DL 209/2012，国籍程序费用
+
+arts. 2、19：RERN art. 18(2.2.1) 成人程序 EUR 250，2012-10-01 生效。
+
+- `policy-sources/2012-09-19-pt-dl-209-2012.pdf` → <https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/legislacao/diplomas_legislativos/Documents/Decreto_Lei_209_2012.pdf>
+
+## SRC-489 葡萄牙 · Despacho 12941/2014，旧 PaN 测试费
+
+第 1–5 点：报名、查阅及复核；旧制预算，开放情况需核实。
+
+- `policy-sources/2014-10-23-pt-despacho-12941-2014.pdf` → <https://files.diariodarepublica.pt/2s/2014/10/205000000/2681226813.pdf>
+
+## SRC-490 葡萄牙 · Portaria 208/2017，投资低密度地区
+
+arts. 1–2、附件：认定地域清单。
+
+- `policy-sources/2017-07-13-pt-portaria-208-2017.pdf` → <https://files.diariodarepublica.pt/1s/2017/07/13400/0373103734.pdf>
+
+## SRC-491 葡萄牙 · Lei 53/2023，通用拒绝与 EU Blue Card
+
+art. 2 修改外国人法 arts. 77、81、121-I、121-J，扩展蓝卡欧盟累计居留规则。art. 10（公报 p24）规定 2023-10-29 生效。
+
+- `policy-sources/2023-08-31-pt-lei-53-2023.pdf` → <https://files.diariodarepublica.pt/1s/2023/08/16900/0000700024.pdf>
+
+## SRC-492 葡萄牙 · Lei 69/2026，总体规划
+
+附件“国籍”段为政策规划，未发布国籍考试、生计或宣誓参数。
+
+- `policy-sources/2026-11-18-pt-lei-69-2026.pdf` → <https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf>
+
+## SRC-493 欧盟法院 · Ogieriakhi（C-244/13）
+
+§§36–38、47 与主文第 1 点说明，配偶婚姻存续且双方在同一东道国满足适用居留条件时，分址居住不影响第三国配偶取得永久居留权。
+
+- `policy-sources/2014-07-10-pt-cjeu-c-244-13.pdf` → <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244>
+
+## SRC-494 欧委会 · 自由流动指引（C/2023/1392）
+
+§2.2.2.1（p12）说明配偶可在同一东道国分址居住。§§2.2.2.3–2.2.2.4（pp13–15）说明首次随行或团聚时核对受扶养事实，未满 21 岁取得派生居留权的直系后代满龄后仍受覆盖。§9.2 与注 236（p46）分别列普通缺席、必要兵役及一次不超过 12 个连续月的正当缺席。普通缺席在每个合法居留年度内累计，以合法居留起始日的周年为起点，正当缺席例外没有最低时长。
+
+- `policy-sources/2023-12-22-pt-eu-free-movement-guidance.pdf` → <https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng/pdf>
+
+## SRC-495 欧盟法院 · AT v Pensionsversicherungsanstalt（C-32/19）
+
+§§38–39、44 及主文将退休提前取得的工作和居留条件锚定在停止工作时。葡萄牙对应条文见 SRC-478 art. 11(1)(a)、(2)–(5)。
+
+- `policy-sources/2020-01-22-pt-cjeu-c-32-19.pdf` → <https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62019CJ0032>
+### SRC-230 居民身份、旅行、变更、再发与通用递交条件
+
+RV2.5、RV2.10、RV1.5、RV1.15、RV1.20、R5.66 复用 SRC-072。入籍在境日算法继续使用 SRC-070、073。
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+R2.40(d) 及其所引条例第 20(2A)(a)–(b) 条要求在入境管制区外的 residence class visa 申请中列入所有基于与主申的关系持有或正在申请 temporary entry class visa 的伴侣及受抚养子女。R2.40.2(a)、(b)(ii) 限定管制区递交人群，且每份申请只涉及一人。澳籍或澳永居人士到埠申请的居民签按 R5.30.1 审批（SRC-252）。曾持新西兰居民签者另按再次申请核对。[条例第 20 条](https://www.legislation.govt.nz/secondary-legislation/pco-drafted/2010/241/en/latest/sections/DLM3148143/) · [INZ R2.40](https://www.immigration.govt.nz/opsmanual/44893.htm)
+
+### SRC-231 DIA Citizenship Guidance Document（2026 年 10 月）
+
+- `policy-sources/2026-10-14-nz-dia-citizenship-guidance.pdf` → <https://www.dia.govt.nz/diawebsite.nsf/Files/Citizenship-2026/$file/Citizenship-Guidance-Document-October-2026.pdf>
+
+### SRC-232 govt.nz 入籍资格、申请、儿童、宣誓与拟实施考试
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-233 MBIE 移民费用和征费检讨，历史费率提案及 A6 地区和豁免口径
+
+Annex 6 的金额是 MBIE 提案；费区、豁免与当前应缴总额需依实际递交情况核实（PD-225）。
+
+- `policy-sources/2024-06-01-nz-mbie-cris-immigration-fees.pdf` → <https://www.regulation.govt.nz/assets/RIS-Documents/cris2-mbie-ifalr-jun24-v2.pdf>
+
+### SRC-234 DIA 入籍收费与调整公告
+
+- `policy-sources/2026-06-17-nz-dia-cris-citizenship-fees-2026.pdf` → <https://www.regulation.govt.nz/assets/RIS-Documents/Cost-Recovery-Impact-Statement-Citizenship-Fees-Amendment-Regulations-2026.pdf>
+
+### SRC-235 Skilled Residence 就业、雇主与工资核算
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-236 Skilled Migrant Category 与附录 21–23
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-237 Green List Tier 1、Tier 2 与附录 13
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+SR4.5(c) 要求 Straight to Residence 申请使用 INZ 的指定在线表格。即使申请人另有资格在入境管制区获发到埠居民签，递交 Tier 1 时仍须使用该表，并接受 R5.125 的普通筛查。[INZ SR4.5](https://www.immigration.govt.nz/opsmanual/77816.htm)
+
+### SRC-238 Care Workforce、Transport Sector 与附录 14
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-239 A4 居民健康标准、医疗证明与豁免，含公共医疗资格说明
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-240 A5 品格、无犯罪证明、延期与 R5.100 制裁
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-241 SR2.10、BF 英语证明及 ESOL；R5.65 预付条件
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-242 F2 伴侣类、担保与既往未纳入申请的家属
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-243 F4 父母类、R4 担保条件与收入表
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-244 BN 积极投资者及 BM 商业品格
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-245 BD2 商业投资者工签及 BI 居民签证
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-246 RW5 英语及 RW7 宗教工作者居留
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-247 IRD 个人税务居民身份
+
+快照与网址按登记行中的相同顺序对应；定位以条文号或页面小节为准。
+
+### SRC-248 财政部投资移民购房政策分析，非签证资格门槛
+
+本来源记录修法前的政策分析。修法生效及许可手续见 SRC-250、PD-233。
+
+- `policy-sources/2025-11-06-nz-treasury-sar-investor-home.pdf` → <https://www.regulation.govt.nz/assets/RIS-Documents/Supplementary-Analysis-Report-Enabling-investor-visa-holders-to-purchase-or-build-a-home-in-New-Zealand.pdf>
+
+### SRC-249 INZ 1028 收费表（2026 年 5 月版）
+
+p1 的 Application Fees 与 Immigration Levy 说明费区及豁免，p3 的 Residence class visa 与 Temporary visa 两栏列出 Active Investor Plus、Business Investor Category 和 Business Investor Work Visa 的申请费及征费。PD-225 列出 Band A/C 的普通总额。在线核对原版 PDF 四页。本机下载返回网站验证页，未将该响应归档为 PDF。
+
+### SRC-250 LINZ 投资者购房指引
+
+沿革页的 2026 年改革一节给出生效日。2026-03-26 版指引 pp1–2 列出适用签证、许可、购买价或购买加建造成本的严格门槛。沿革页概述以「500 万或以上」简写，详细指引的许可条件要求超过 500 万，PD-233 引用详细条件。自用住宅与签证认可投资的区分见该指引的 “Ways a house can be used” 一节。
+
+### SRC-251 商业投资者工签家属及缴费
+
+BD3.1(a)–(e) 转引 E4.1.10 与 E4.1.20，按临时签证规定核对随行伴侣与子女。E4.50.1(a)–(c) 规定纸质申请的身份、表格与费用。快照与网址按登记行中的相同顺序对应。
+
+### SRC-252 受抚养子女在新西兰非法居留
+
+R5.125(a) 涵盖任一申请人的亲生或收养受抚养子女。(b) 规定未满 16 岁子女的迁出权例外。(c)(i)–(ii) 排除 RV2、RV4。(c)(iii) 的管制区例外明引 R2.40.2（SRC-230）及 R5.30.1；后者按澳大利亚护照、澳永居或居民返程签证核对到埠居民签。申请人的澳籍或澳永居身份本身不能使其选择的普通居留类别免于筛查。[INZ R5.125](https://www.immigration.govt.nz/opsmanual/91747.htm) · [INZ R5.30.1(a)–(b)](https://www.immigration.govt.nz/opsmanual/30996.htm)

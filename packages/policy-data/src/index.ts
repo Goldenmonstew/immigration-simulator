@@ -24,13 +24,26 @@ export {
   auPublicCriteria,
   auCharges,
 } from './parameters/australia-2026-11';
-export { newZealand2026_11 } from './parameters/new-zealand-2026-11';
+export {
+  newZealand2026_11,
+  nzResidentParameters,
+  nzFamilyParameters,
+  nzSkilledParameters,
+  nzCommonParameters,
+  newZealandFull2026_11,
+} from './parameters/new-zealand-2026-11';
 export { canada2026_11, canadaFull2026_11 } from './parameters/canada-2026-11';
 export { unitedStates2026_11 } from './parameters/united-states-2026-11';
 export { spain2026_11, spainFull2026_11 } from './parameters/spain-2026-11';
 export { greece2026_11 } from './parameters/greece-2026-11';
-export { ireland2026_11 } from './parameters/ireland-2026-11';
-export { portugal2026_11 } from './parameters/portugal-2026-11';
+export {
+  ireland2026_11,
+  irelandFull2026_11,
+} from './parameters/ireland-2026-11';
+export {
+  portugal2026_11,
+  portugalFull2026_11,
+} from './parameters/portugal-2026-11';
 export {
   japan2026_11,
   japanFull2026_11,

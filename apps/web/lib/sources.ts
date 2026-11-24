@@ -195,6 +195,54 @@ export const sourceUrls: Record<string, string> = {
     'https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a',
   'SRC-127':
     'https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio',
+  'SRC-470':
+    'https://files.diariodarepublica.pt/1s/2022/03/05500/0000200059.pdf',
+  'SRC-471':
+    'https://files.diariodarepublica.pt/1s/2024/01/01200/0000600050.pdf',
+  'SRC-472':
+    'https://files.diariodarepublica.pt/1s/2022/09/19000/0002800097.pdf',
+  'SRC-473':
+    'https://files.diariodarepublica.pt/gratuitos/1s/2007/12/23800.pdf',
+  'SRC-474':
+    'https://files.diariodarepublica.pt/1s/2025/12/24900/0001400016.pdf',
+  'SRC-475': 'https://aima.gov.pt/pt/temas-transversais/meios-de-subsistencia',
+  'SRC-476':
+    'https://aima.gov.pt/media/pages/documents/dc677d0005-1772305205/tabela-de-taxas-e-demais-encargos-a-cobrar-pelos-procedimentos-administrativos.pdf',
+  'SRC-477':
+    'https://aima.gov.pt/media/pages/documents/fa233e86c7-1750429842/portaria-307.pdf',
+  'SRC-478': 'https://files.diariodarepublica.pt/1s/2006/08/15300/57175724.pdf',
+  'SRC-479':
+    'https://files.diariodarepublica.pt/1s/2024/01/01500/0001300017.pdf',
+  'SRC-480':
+    'https://files.diariodarepublica.pt/gratuitos/1s/2020/08/15100.pdf',
+  'SRC-481':
+    'https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari',
+  'SRC-482': 'https://caple.letras.ulisboa.pt/exame/2/ciple',
+  'SRC-483':
+    'https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/E-casado-ou-vive-em-uniao-de-facto-com-um-portugues-ha-mais-de-3-anos',
+  'SRC-484':
+    'https://aima.gov.pt/pt/nacionais-ue-e-familiares/nacionais-ue/certificado-de-residencia-permanente-para-nacionais-ue',
+  'SRC-485':
+    'https://files.diariodarepublica.pt/gratuitos/1s/2023/06/10700.pdf',
+  'SRC-486':
+    'https://files.diariodarepublica.pt/1s/2024/06/10601/0000200003.pdf',
+  'SRC-487':
+    'https://files.diariodarepublica.pt/1s/2025/04/06400/0000300012.pdf',
+  'SRC-488':
+    'https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/legislacao/diplomas_legislativos/Documents/Decreto_Lei_209_2012.pdf',
+  'SRC-489':
+    'https://files.diariodarepublica.pt/2s/2014/10/205000000/2681226813.pdf',
+  'SRC-490':
+    'https://files.diariodarepublica.pt/1s/2017/07/13400/0373103734.pdf',
+  'SRC-491':
+    'https://files.diariodarepublica.pt/1s/2023/08/16900/0000700024.pdf',
+  'SRC-492':
+    'https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf',
+  'SRC-493':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244',
+  'SRC-494': 'https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng',
+  'SRC-495':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62019CJ0032',
   'SRC-110': 'https://laws.e-gov.go.jp/law/326CO0000000319',
   'SRC-111': 'https://laws.e-gov.go.jp/law/325AC0000000147',
   'SRC-112': 'https://laws.e-gov.go.jp/law/129AC0000000089',
@@ -414,4 +462,83 @@ export const sourceUrls: Record<string, string> = {
     'https://www.publicationsduquebec.gouv.qc.ca/fileadmin/gazette/pdf_encrypte/lois_reglements/2026F/88289.pdf',
   'SRC-279':
     'https://www.ontario.ca/page/oinp-employer-guide?redirect_id=page%2Fontario-immigrant-nominee-program-oinp-employer-guide&redirect_year=2026?redirect_id=page%2Foinp-employer-job-offer-streams-employer-guide&redirect_year=2026',
+  'SRC-380': 'https://www.irishstatutebook.ie/eli/2011/si/569/made/en/print',
+  'SRC-381':
+    'https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by-naturalisation/proofs-of-identity-and-residence/',
+  'SRC-382':
+    'https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by-naturalisation/citizenship-applicants-guide-to-an-garda-siochana-national-vetting-bureau-e-vetting/',
+  'SRC-383': 'https://revisedacts.lawreform.ie/eli/2004/act/1/revised/en/html',
+  'SRC-384':
+    'https://www.irishimmigration.ie/registering-your-immigration-permission/how-to-renew-your-current-permission/renewing-your-registration-permission-if-you-live-in-the-republic-of-ireland/',
+  'SRC-385':
+    'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/policy-document-archive/',
+  'SRC-386':
+    'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/financial-thresholds/',
+  'SRC-387':
+    'https://www.irishimmigration.ie/wp-content/uploads/2026/06/Family-Reunification-Policy-12-June-2026.pdf',
+  'SRC-388':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/spouse-civil-partner-of-irish-national-scheme/',
+  'SRC-389':
+    'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/joining-an-eea-or-swiss-national/eu-treaty-rights/',
+  'SRC-390': 'https://www.irishstatutebook.ie/eli/2015/si/548/made/en/print',
+  'SRC-391':
+    'https://www.irishimmigration.ie/wp-content/uploads/2026/09/Explanatory-leaflet-for-Form-EUTR3-updated-August-2026.pdf',
+  'SRC-392': 'https://www.irishstatutebook.ie/eli/2020/si/728/made/en/print',
+  'SRC-393': 'https://www.irishstatutebook.ie/eli/2024/act/17/enacted/en/print',
+  'SRC-394':
+    'https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/permit-types/critical-skills-employment-permit/',
+  'SRC-395':
+    'https://home-affairs.ec.europa.eu/system/files/2022-06/20221_directive_2003109ec_duration_of_absence_and_loss_of_the_long-term_resident_status%20%281%29.pdf',
+  'SRC-397':
+    'https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/latest-updates/',
+  'SRC-398':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/long-term-residency/',
+  'SRC-399':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/immigration-guidelines-for-victims-of-domestic-abuse/',
+  'SRC-400':
+    'https://www.irishimmigration.ie/apply-for-irish-citizenship-by-irish-descent-or-irish-associations/',
+  'SRC-401': 'https://www.irishstatutebook.ie/eli/1985/act/2/enacted/en/print',
+  'SRC-402': 'https://revisedacts.lawreform.ie/eli/1966/act/21/revised/en/html',
+  'SRC-404':
+    'https://enterprise.gov.ie/en/publications/publication-files/employment-permits-minimum-annual-remuneration-outcome-of-the-roadmap-review-2025.pdf',
+  'SRC-405':
+    'https://www.irishimmigration.ie/registering-your-immigration-permission/how-to-register-your-immigration-permission-for-the-first-time/registration-requirements-for-minors/',
+  'SRC-406':
+    'https://www.irishimmigration.ie/preclearance-and-entry-visas-fees/',
+  'SRC-407': 'https://www.irishstatutebook.ie/eli/isbc/2024_17.html',
+  'SRC-408':
+    'https://www.irishstatutebook.ie/eli/2026/act/9/enacted/en/print.html',
+  'SRC-409':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/family-dependents/',
+  'SRC-230': 'https://www.immigration.govt.nz/opsmanual/43640.htm',
+  'SRC-231':
+    'https://www.dia.govt.nz/diawebsite.nsf/Files/Citizenship-2026/$file/Citizenship-Guidance-Document-October-2026.pdf',
+  'SRC-232':
+    'https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/',
+  'SRC-233':
+    'https://www.regulation.govt.nz/assets/RIS-Documents/cris2-mbie-ifalr-jun24-v2.pdf',
+  'SRC-234':
+    'https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/citizenship-fees/',
+  'SRC-235': 'https://www.immigration.govt.nz/opsmanual/77806.htm',
+  'SRC-236': 'https://www.immigration.govt.nz/opsmanual/77811.htm',
+  'SRC-237': 'https://www.immigration.govt.nz/opsmanual/77204.htm',
+  'SRC-238': 'https://www.immigration.govt.nz/opsmanual/78790.htm',
+  'SRC-239': 'https://www.immigration.govt.nz/opsmanual/46506.htm',
+  'SRC-240': 'https://www.immigration.govt.nz/opsmanual/35057.htm',
+  'SRC-241': 'https://www.immigration.govt.nz/opsmanual/77808.htm',
+  'SRC-242': 'https://www.immigration.govt.nz/opsmanual/46503.htm',
+  'SRC-243': 'https://www.immigration.govt.nz/opsmanual/73244.htm',
+  'SRC-244': 'https://www.immigration.govt.nz/opsmanual/78330.htm',
+  'SRC-245': 'https://www.immigration.govt.nz/opsmanual/88421.htm',
+  'SRC-246': 'https://www.immigration.govt.nz/opsmanual/42677.htm',
+  'SRC-247':
+    'https://www.ird.govt.nz/international-tax/individuals/tax-residency-status-for-individuals',
+  'SRC-248':
+    'https://www.regulation.govt.nz/assets/RIS-Documents/Supplementary-Analysis-Report-Enabling-investor-visa-holders-to-purchase-or-build-a-home-in-New-Zealand.pdf',
+  'SRC-249':
+    'https://www.immigration.govt.nz/assets/inz/documents/forms-and-guides/Fees-Guide-INZ-1028.pdf',
+  'SRC-250':
+    'https://www.linz.govt.nz/sites/default/files/doc/guidance-investor-visa-holders-long-form-march2026-v3.pdf',
+  'SRC-251': 'https://www.immigration.govt.nz/opsmanual/88409.htm',
+  'SRC-252': 'https://www.immigration.govt.nz/opsmanual/91747.htm',
 };
