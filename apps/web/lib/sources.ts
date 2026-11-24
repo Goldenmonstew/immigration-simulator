@@ -191,6 +191,54 @@ export const sourceUrls: Record<string, string> = {
     'https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a',
   'SRC-127':
     'https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio',
+  'SRC-470':
+    'https://files.diariodarepublica.pt/1s/2022/03/05500/0000200059.pdf',
+  'SRC-471':
+    'https://files.diariodarepublica.pt/1s/2024/01/01200/0000600050.pdf',
+  'SRC-472':
+    'https://files.diariodarepublica.pt/1s/2022/09/19000/0002800097.pdf',
+  'SRC-473':
+    'https://files.diariodarepublica.pt/gratuitos/1s/2007/12/23800.pdf',
+  'SRC-474':
+    'https://files.diariodarepublica.pt/1s/2025/12/24900/0001400016.pdf',
+  'SRC-475': 'https://aima.gov.pt/pt/temas-transversais/meios-de-subsistencia',
+  'SRC-476':
+    'https://aima.gov.pt/media/pages/documents/dc677d0005-1772305205/tabela-de-taxas-e-demais-encargos-a-cobrar-pelos-procedimentos-administrativos.pdf',
+  'SRC-477':
+    'https://aima.gov.pt/media/pages/documents/fa233e86c7-1750429842/portaria-307.pdf',
+  'SRC-478': 'https://files.diariodarepublica.pt/1s/2006/08/15300/57175724.pdf',
+  'SRC-479':
+    'https://files.diariodarepublica.pt/1s/2024/01/01500/0001300017.pdf',
+  'SRC-480':
+    'https://files.diariodarepublica.pt/gratuitos/1s/2020/08/15100.pdf',
+  'SRC-481':
+    'https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari',
+  'SRC-482': 'https://caple.letras.ulisboa.pt/exame/2/ciple',
+  'SRC-483':
+    'https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/E-casado-ou-vive-em-uniao-de-facto-com-um-portugues-ha-mais-de-3-anos',
+  'SRC-484':
+    'https://aima.gov.pt/pt/nacionais-ue-e-familiares/nacionais-ue/certificado-de-residencia-permanente-para-nacionais-ue',
+  'SRC-485':
+    'https://files.diariodarepublica.pt/gratuitos/1s/2023/06/10700.pdf',
+  'SRC-486':
+    'https://files.diariodarepublica.pt/1s/2024/06/10601/0000200003.pdf',
+  'SRC-487':
+    'https://files.diariodarepublica.pt/1s/2025/04/06400/0000300012.pdf',
+  'SRC-488':
+    'https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/legislacao/diplomas_legislativos/Documents/Decreto_Lei_209_2012.pdf',
+  'SRC-489':
+    'https://files.diariodarepublica.pt/2s/2014/10/205000000/2681226813.pdf',
+  'SRC-490':
+    'https://files.diariodarepublica.pt/1s/2017/07/13400/0373103734.pdf',
+  'SRC-491':
+    'https://files.diariodarepublica.pt/1s/2023/08/16900/0000700024.pdf',
+  'SRC-492':
+    'https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf',
+  'SRC-493':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244',
+  'SRC-494': 'https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng',
+  'SRC-495':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62019CJ0032',
   'SRC-110': 'https://laws.e-gov.go.jp/law/326CO0000000319',
   'SRC-111': 'https://laws.e-gov.go.jp/law/325AC0000000147',
   'SRC-112': 'https://laws.e-gov.go.jp/law/129AC0000000089',
@@ -219,6 +267,276 @@ export const sourceUrls: Record<string, string> = {
     'https://www.verwaltungsvorschriften-im-internet.de/pdf/BMI-MI3-20091026-SF-A001.pdf',
   'SRC-109':
     'https://www.bamf.de/DE/Themen/MigrationAufenthalt/ZuwandererDrittstaaten/Migrathek/Niederlassen/niederlassen-node.html',
+  'SRC-440': 'https://laws.e-gov.go.jp/law/356M50000010054',
+  'SRC-441':
+    'https://laws.e-gov.go.jp/api/2/law_data/326CO0000000319_20270401_506AC0000000060?response_format=xml&law_full_text_format=xml',
+  'SRC-442': 'https://laws.e-gov.go.jp/law/403AC0000000071',
+  'SRC-443': 'https://laws.e-gov.go.jp/law/410CO0000000178',
+  'SRC-444': 'https://www.moj.go.jp/isa/01_00644.html',
+  'SRC-445': 'https://www.moj.go.jp/ONLINE/NATIONALITY/6-2.html',
+  'SRC-446': 'https://laws.e-gov.go.jp/law/359M50000010039',
+  'SRC-447': 'https://laws.e-gov.go.jp/law/322AC0000000224',
+  'SRC-448': 'https://laws.e-gov.go.jp/law/426M60000010037',
+  'SRC-449': 'https://laws.e-gov.go.jp/law/505M60000010025',
+  'SRC-450': 'https://www.moj.go.jp/isa/content/001436512.pdf',
+  'SRC-451': 'https://www.moj.go.jp/isa/applications/procedures/16-10.html',
+  'SRC-452': 'https://laws.e-gov.go.jp/law/402M50000010016',
+  'SRC-453':
+    'https://www.moj.go.jp/isa/applications/resources/nyukan_nyukan36.html',
+  'SRC-454': 'https://laws.e-gov.go.jp/law/322AC0000000026',
+  'SRC-455': 'https://www.moj.go.jp/isa/content/001351658.pdf',
+  'SRC-456': 'https://www.moj.go.jp/isa/support/portal/guidebook_all.html',
+  'SRC-457': 'https://www.moj.go.jp/isa/tokutei.html',
+  'SRC-458': 'https://www.moj.go.jp/isa/policies/bill/nyukan_hourei_h02.html',
+  'SRC-459': 'https://houmukyoku.moj.go.jp/tokyo/page000001_00891.html',
+  'SRC-460':
+    'https://www.japaneselawtranslation.go.jp/ja/laws/download/4713/14/s25Aa001470504je16.0_r4A102.pdf',
+  'SRC-461': 'https://www.moj.go.jp/isa/immigration/procedures/16-5.html',
+  'SRC-462': 'https://laws.e-gov.go.jp/law/327CO0000000074',
+  'SRC-410': 'https://www.gesetze-im-internet.de/aufenthv/BJNR294510004.html',
+  'SRC-411': 'https://www.gesetze-im-internet.de/einbtestv/BJNR164900008.html',
+  'SRC-412': 'https://www.gesetze-im-internet.de/intv/BJNR337000004.html',
+  'SRC-413': 'https://www.gesetze-im-internet.de/bmg/BJNR108410013.html',
+  'SRC-414': 'https://service.berlin.de/dienstleistung/318998/',
+  'SRC-415': 'https://service.berlin.de/dienstleistung/354205/',
+  'SRC-416': 'https://service.berlin.de/dienstleistung/352770/',
+  'SRC-417': 'https://service.berlin.de/dienstleistung/326564/',
+  'SRC-418': 'https://service.berlin.de/dienstleistung/324863/',
+  'SRC-419': 'https://service.berlin.de/dienstleistung/121864/',
+  'SRC-420':
+    'https://www.bundesanzeiger.de/pub/publication/REViP4bN6jVdpGxPaiQ/content/REViP4bN6jVdpGxPaiQ/BAnz%20AT%2018.12.2025%20B3.pdf?inline=',
+  'SRC-421':
+    'https://www.make-it-in-germany.com/de/ankommen-bleiben/dauerhaft-in-deutschland/niederlassungserlaubnis',
+  'SRC-422':
+    'https://www.gesetze-im-internet.de/freiz_gg_eu_2004/BJNR198600004.html',
+  'SRC-423': 'https://www.gesetze-im-internet.de/sgb_6/__35.html',
+  'SRC-424': 'https://www.gesetze-im-internet.de/bzrg/__46.html',
+  'SRC-425':
+    'https://www.gesetze-im-internet.de/svbezgrv_2026/BJNR1160A0025.html',
+  'SRC-426':
+    'https://www.bmas.de/DE/Arbeit/Grundsicherung-fuer-Arbeitsuchende/Leistungen-und-Bedarfe-in-der-Grundsicherung-fuer-Arbeitsuchende/leistungen-und-bedarfe-in-der-grundsicherung-fuer-arbeitsuchende-art.html',
+  'SRC-427': 'https://service.berlin.de/dienstleistung/327012/',
+  'SRC-428': 'https://service.berlin.de/dienstleistung/326554/',
+  'SRC-429': 'https://service.berlin.de/dienstleistung/324281/',
+  'SRC-430': 'https://service.berlin.de/dienstleistung/326558/',
+  'SRC-431': 'https://service.berlin.de/dienstleistung/326556/',
+  'SRC-432':
+    'https://www.bamf.de/SharedDocs/Anlagen/DE/Integration/Integrationskurse/Lehrkraefte/konzeption-fuer-die-zusatzqualifizierung-von-lehrkraeften-neu-pdf.pdf?__blob=publicationFile&v=6',
+  'SRC-433': 'https://www.gesetze-im-internet.de/pauswgebv/__1.html',
+  'SRC-434':
+    'https://www.bgbl.de/xaver/bgbl/start.xav?start=%2F%2F%2A%5B%40attr_id%3D%27I_2017_47_inhaltsverz%27%5D',
+  'SRC-435': 'https://www.bverwg.de/160811U1C12.10.0',
+  'SRC-436': 'https://www.gesetze-im-internet.de/sgb_6/__159.html',
+  'SRC-437':
+    'https://publications.europa.eu/resource/cellar/9d5fe9f4-69bd-11f1-ae88-01aa75ed71a1.0005.02/DOC_1',
+  'SRC-438':
+    'https://www.recht.bund.de/bgbl/1/2026/111/regelungstext.pdf?__blob=publicationFile',
+  'SRC-439':
+    'https://www.recht.bund.de/bgbl/1/2023/217/regelungstext.pdf?__blob=publicationFile',
+  'SRC-200':
+    'https://www.legislation.gov.au/F1996B03551/2026-11-12/2026-11-12/text',
+  'SRC-201':
+    'https://www.legislation.gov.au/F2019L01400/2019-10-31/2019-10-31/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-202':
+    'https://www.legislation.gov.au/F2022L00231/2022-03-02/2022-03-02/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-203':
+    'https://www.legislation.gov.au/F2019L01404/2024-12-07/2024-12-07/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-204':
+    'https://www.legislation.gov.au/F2018L01092/2024-12-07/2024-12-07/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-205':
+    'https://www.legislation.gov.au/F2025L00904/2025-08-06/2025-08-06/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-206':
+    'https://www.legislation.gov.au/F2025L00905/2025-08-06/2025-08-06/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-207':
+    'https://www.legislation.gov.au/F2019L00278/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-208':
+    'https://www.legislation.gov.au/F2024L01618/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-209':
+    'https://www.legislation.gov.au/F2016L01916/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-210':
+    'https://www.legislation.gov.au/F2018L00284/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-211':
+    'https://www.legislation.gov.au/C1958A00062/2026-10-08/2026-10-08/text/original/epub/OEBPS/document_2/document_2.html',
+  'SRC-212':
+    'https://www.legislation.gov.au/F2009L02356/2026-11-01/2026-11-01/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-213':
+    'https://www.legislation.gov.au/C2004A00101/2026-11-04/2026-11-04/text/original/epub/OEBPS/document_1/document_1.html',
+  'SRC-214':
+    'https://immi.homeaffairs.gov.au/visas/employing-and-sponsoring-someone/sponsoring-workers/nominating-a-position/salary-requirements',
+  'SRC-215':
+    'https://immi.homeaffairs.gov.au/citizenship/test-and-interview/learn-about-citizenship-interview-and-test',
+  'SRC-216':
+    'https://immi.homeaffairs.gov.au/entering-and-leaving-australia/new-zealand-citizens/pathway-to-permanent-resident-and-citizenship',
+  'SRC-217': 'https://immi.homeaffairs.gov.au/form-listing/forms/1298i.pdf',
+  'SRC-218':
+    'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/health/protecting-health-care-and-community-services',
+  'SRC-219':
+    'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/health/health-waiver',
+  'SRC-220':
+    'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/character',
+  'SRC-221':
+    'https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges/current-visa-pricing',
+  'SRC-225':
+    'https://immi.homeaffairs.gov.au/visas/working-in-australia/skills-assessment',
+  'SRC-226':
+    'https://immi.homeaffairs.gov.au/help-support/meeting-our-requirements/english-language/competent-english',
+  'SRC-229':
+    'https://ielts.org/take-a-test/your-results/ielts-scoring-in-detail',
+  'SRC-320': 'https://www.boe.es/buscar/act.php?id=BOE-A-2000-544',
+  'SRC-321': 'https://www.boe.es/eli/es/rd/2015/11/06/1004/con',
+  'SRC-322': 'https://www.boe.es/eli/es/o/2016/09/30/jus1625/con',
+  'SRC-323':
+    'https://www.mjusticia.gob.es/es/ciudadania/nacionalidad/informacion-nacionalidad',
+  'SRC-324':
+    'https://www.inclusion.gob.es/web/migraciones/w/50.-autorizacion-de-residencia-de-larga-duracion-ue',
+  'SRC-325': 'https://www.boe.es/buscar/act.php?id=BOE-A-2025-12056',
+  'SRC-326': 'https://www.boe.es/buscar/act.php?id=BOE-A-2022-22128',
+  'SRC-327': 'https://www.boe.es/buscar/act.php?id=BOE-A-2007-4184',
+  'SRC-328':
+    'https://www.inclusion.gob.es/web/migraciones/w/63.-tarjeta-de-residencia-permanente-de-familiar-de-ciudadano-de-la-union-europea',
+  'SRC-329': 'https://www.boe.es/eli/es/o/2012/07/09/pre1490',
+  'SRC-330': 'https://www.boe.es/doue/2004/229/L00035-00048.pdf',
+  'SRC-331':
+    'https://eur-lex.europa.eu/legal-content/ES/TXT/HTML/?uri=CELEX:02003L0109-20110520',
+  'SRC-332': 'https://www.boe.es/buscar/act.php?id=BOE-A-2013-10074',
+  'SRC-333':
+    'https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0-1',
+  'SRC-334': 'https://www.boe.es/buscar/act.php?id=BOE-A-2015-7851',
+  'SRC-335':
+    'https://bruselas.cervantes.es/es/examenes_espanol/ccse/ccse.htm?cadena_busqueda=2026',
+  'SRC-336':
+    'https://examenes.cervantes.es/sites/default/files/ic-tabla-precios-dele-2026.pdf',
+  'SRC-337': 'https://www.boe.es/buscar/act.php?id=BOE-A-2021-21007',
+  'SRC-338': 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2024-24099',
+  'SRC-339':
+    'https://www.poderjudicial.es/cgpj/es/Poder-Judicial/Audiencia-Nacional/Jurisprudencia/Actualidad-Jurisprudencial/ci.AN-C-A--Estima-el-recurso-contra-resolucion-de-la-DGRN---que-acuerda-conceder-la-nacionalidad-espanola-por-residencia--Anula-la-misma-por-su-disconformidad-a-Derecho--La-permanencia-en-Espana-amparada-en-la-tarjeta-de-estudiante-o-en-autorizacion-de-estancia-para-cursar-estudios-no-puede-considerarse-que-reuna-las-notas-exigidas-de-residencia-legal--continuada-e-inmediatamente-anterior-a-la-peticion-previsto-en-el-art--22-3-del-CC-para-la-adquisicion-de-la-nacionalidad-.formato3',
+  'SRC-340': 'https://www.boe.es/buscar/act.php?id=BOE-A-2026-3815',
+  'SRC-341': 'https://www.boe.es/buscar/act.php?id=BOE-A-2006-7899',
+  'SRC-342': 'https://www.boe.es/buscar/doc.php?id=BOE-A-2024-18114',
+  'SRC-343': 'https://www.boe.es/buscar/act.php?id=BOE-A-2011-12628',
+  'SRC-344':
+    'https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/PrestacionesPensionesTrabajadores/10963/28393/28396/28472?changeLanguage=es',
+  'SRC-345':
+    'https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue',
+  'SRC-346': 'https://www.boe.es/buscar/doc.php?id=BOE-A-2022-4916',
+  'SRC-347': 'https://www.boe.es/buscar/act.php?id=BOE-A-2011-8222',
+  'SRC-348':
+    'https://curia.europa.eu/jcms/upload/docs/application/pdf/2022-01/cp220010es.pdf',
+  'SRC-349': 'https://www.boe.es/buscar/act.php?id=BOE-A-2004-12010',
+  'SRC-260': 'https://laws-lois.justice.gc.ca/eng/XML/C-29.xml',
+  'SRC-261': 'https://laws-lois.justice.gc.ca/eng/XML/I-2.5.xml',
+  'SRC-262':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/adult-minor/who.html',
+  'SRC-263':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/canadian-citizenship/become-canadian-citizen/eligibility/language-proof.html',
+  'SRC-264': 'https://ircc.canada.ca/english/information/fees/fees.asp',
+  'SRC-265':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/permanent-residents/status.html',
+  'SRC-266':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/admissibility-enforcement/inadmissibility/reasons.html',
+  'SRC-267':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/who-can-apply/federal-skilled-workers.html',
+  'SRC-268':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/proof-funds.html',
+  'SRC-269':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/ministerial-instructions/express-entry-application-management-system.html',
+  'SRC-270':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/atlantic-immigration/how-to-immigrate/eligibility.html',
+  'SRC-271':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/provincial-nominees.html',
+  'SRC-272': 'https://www.ontario.ca/laws/regulation/170422',
+  'SRC-273':
+    'https://www.quebec.ca/en/immigration/permanent/skilled-workers/skilled-worker-selection-program/requirements',
+  'SRC-274':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/family-sponsorship/spouse-partner-children/eligibility.html',
+  'SRC-275':
+    'https://www.quebec.ca/en/immigration/permanent/sponsor-family-member/sponsoring-spouse-conjugal-partner',
+  'SRC-276':
+    'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/rounds-invitations/category-based-selection.html',
+  'SRC-277': 'https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1110024101',
+  'SRC-278':
+    'https://www.publicationsduquebec.gouv.qc.ca/fileadmin/gazette/pdf_encrypte/lois_reglements/2026F/88289.pdf',
+  'SRC-279':
+    'https://www.ontario.ca/page/oinp-employer-guide?redirect_id=page%2Fontario-immigrant-nominee-program-oinp-employer-guide&redirect_year=2026?redirect_id=page%2Foinp-employer-job-offer-streams-employer-guide&redirect_year=2026',
+  'SRC-380': 'https://www.irishstatutebook.ie/eli/2011/si/569/made/en/print',
+  'SRC-381':
+    'https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by-naturalisation/proofs-of-identity-and-residence/',
+  'SRC-382':
+    'https://www.irishimmigration.ie/how-to-become-a-citizen/become-an-irish-citizen-by-naturalisation/citizenship-applicants-guide-to-an-garda-siochana-national-vetting-bureau-e-vetting/',
+  'SRC-383': 'https://revisedacts.lawreform.ie/eli/2004/act/1/revised/en/html',
+  'SRC-384':
+    'https://www.irishimmigration.ie/registering-your-immigration-permission/how-to-renew-your-current-permission/renewing-your-registration-permission-if-you-live-in-the-republic-of-ireland/',
+  'SRC-385':
+    'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/policy-document-archive/',
+  'SRC-386':
+    'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/financial-thresholds/',
+  'SRC-387':
+    'https://www.irishimmigration.ie/wp-content/uploads/2026/06/Family-Reunification-Policy-12-June-2026.pdf',
+  'SRC-388':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/spouse-civil-partner-of-irish-national-scheme/',
+  'SRC-389':
+    'https://www.irishimmigration.ie/coming-to-join-family-in-ireland/joining-an-eea-or-swiss-national/eu-treaty-rights/',
+  'SRC-390': 'https://www.irishstatutebook.ie/eli/2015/si/548/made/en/print',
+  'SRC-391':
+    'https://www.irishimmigration.ie/wp-content/uploads/2026/09/Explanatory-leaflet-for-Form-EUTR3-updated-August-2026.pdf',
+  'SRC-392': 'https://www.irishstatutebook.ie/eli/2020/si/728/made/en/print',
+  'SRC-393': 'https://www.irishstatutebook.ie/eli/2024/act/17/enacted/en/print',
+  'SRC-394':
+    'https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/permit-types/critical-skills-employment-permit/',
+  'SRC-395':
+    'https://home-affairs.ec.europa.eu/system/files/2022-06/20221_directive_2003109ec_duration_of_absence_and_loss_of_the_long-term_resident_status%20%281%29.pdf',
+  'SRC-397':
+    'https://enterprise.gov.ie/en/what-we-do/workplace-and-skills/employment-permits/latest-updates/',
+  'SRC-398':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/long-term-residency/',
+  'SRC-399':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/immigration-guidelines-for-victims-of-domestic-abuse/',
+  'SRC-400':
+    'https://www.irishimmigration.ie/apply-for-irish-citizenship-by-irish-descent-or-irish-associations/',
+  'SRC-401': 'https://www.irishstatutebook.ie/eli/1985/act/2/enacted/en/print',
+  'SRC-402': 'https://revisedacts.lawreform.ie/eli/1966/act/21/revised/en/html',
+  'SRC-404':
+    'https://enterprise.gov.ie/en/publications/publication-files/employment-permits-minimum-annual-remuneration-outcome-of-the-roadmap-review-2025.pdf',
+  'SRC-405':
+    'https://www.irishimmigration.ie/registering-your-immigration-permission/how-to-register-your-immigration-permission-for-the-first-time/registration-requirements-for-minors/',
+  'SRC-406':
+    'https://www.irishimmigration.ie/preclearance-and-entry-visas-fees/',
+  'SRC-407': 'https://www.irishstatutebook.ie/eli/isbc/2024_17.html',
+  'SRC-408':
+    'https://www.irishstatutebook.ie/eli/2026/act/9/enacted/en/print.html',
+  'SRC-409':
+    'https://www.irishimmigration.ie/my-situation-has-changed-since-i-arrived-in-ireland/family-dependents/',
+  'SRC-230': 'https://www.immigration.govt.nz/opsmanual/43640.htm',
+  'SRC-231':
+    'https://www.dia.govt.nz/diawebsite.nsf/Files/Citizenship-2026/$file/Citizenship-Guidance-Document-October-2026.pdf',
+  'SRC-232':
+    'https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/requirements-for-nz-citizenship/',
+  'SRC-233':
+    'https://www.regulation.govt.nz/assets/RIS-Documents/cris2-mbie-ifalr-jun24-v2.pdf',
+  'SRC-234':
+    'https://www.govt.nz/browse/passports-citizenship-and-identity/nz-citizenship/citizenship-fees/',
+  'SRC-235': 'https://www.immigration.govt.nz/opsmanual/77806.htm',
+  'SRC-236': 'https://www.immigration.govt.nz/opsmanual/77811.htm',
+  'SRC-237': 'https://www.immigration.govt.nz/opsmanual/77204.htm',
+  'SRC-238': 'https://www.immigration.govt.nz/opsmanual/78790.htm',
+  'SRC-239': 'https://www.immigration.govt.nz/opsmanual/46506.htm',
+  'SRC-240': 'https://www.immigration.govt.nz/opsmanual/35057.htm',
+  'SRC-241': 'https://www.immigration.govt.nz/opsmanual/77808.htm',
+  'SRC-242': 'https://www.immigration.govt.nz/opsmanual/46503.htm',
+  'SRC-243': 'https://www.immigration.govt.nz/opsmanual/73244.htm',
+  'SRC-244': 'https://www.immigration.govt.nz/opsmanual/78330.htm',
+  'SRC-245': 'https://www.immigration.govt.nz/opsmanual/88421.htm',
+  'SRC-246': 'https://www.immigration.govt.nz/opsmanual/42677.htm',
+  'SRC-247':
+    'https://www.ird.govt.nz/international-tax/individuals/tax-residency-status-for-individuals',
+  'SRC-248':
+    'https://www.regulation.govt.nz/assets/RIS-Documents/Supplementary-Analysis-Report-Enabling-investor-visa-holders-to-purchase-or-build-a-home-in-New-Zealand.pdf',
+  'SRC-249':
+    'https://www.immigration.govt.nz/assets/inz/documents/forms-and-guides/Fees-Guide-INZ-1028.pdf',
+  'SRC-250':
+    'https://www.linz.govt.nz/sites/default/files/doc/guidance-investor-visa-holders-long-form-march2026-v3.pdf',
+  'SRC-251': 'https://www.immigration.govt.nz/opsmanual/88409.htm',
+  'SRC-252': 'https://www.immigration.govt.nz/opsmanual/91747.htm',
   'SRC-350':
     'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2007/20070100135.pdf',
   'SRC-351':
@@ -269,8 +587,7 @@ export const sourceUrls: Record<string, string> = {
     'https://www.hellenicparliament.gr/UserFiles/67715b2c-ec81-4f0c-ad6a-476a34d732bd/12574231.pdf',
   'SRC-374':
     'https://mitos.gov.gr/index.php/ΔΔ:Άδεια_διαμονής_κατόπιν_έγκρισης_μετάκλησης_για_εξαρτημένη_εργασία_–_Ανανέωση_(«Ε.4»)',
-  'SRC-375':
-    'https://api.et.gr/apiFEK/2/2025/6014/pdf',
+  'SRC-375': 'https://api.et.gr/apiFEK/2/2025/6014/pdf',
   'SRC-376':
     'https://en.mitos.gov.gr/index.php/%CE%94%CE%94%3AResidence_permit_for_family_members_of_a_highly_qualified_residence_permit_holder_%28%E2%80%98E.1%E2%80%99%29_%E2%80%93_Initial_granting',
   'SRC-377':

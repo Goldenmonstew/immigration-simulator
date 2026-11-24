@@ -56,6 +56,23 @@ const INVESTOR = new Set<NzResidentCategory>(['aip-growth', 'aip-balanced']);
 const n = (x: number) => x.toLocaleString('en');
 
 export function evaluateNewZealand(req: NzRequest): NzResult {
+  // The time-only questionnaire assumes an onshore grant on a departure day.
+  const granted = req.residentVisa.granted;
+  const abroadAtGrant = req.trips.find(
+    (trip) => trip.departed < granted && granted < trip.returned,
+  );
+  const firstDay =
+    granted < req.firstArrival
+      ? req.firstArrival
+      : (abroadAtGrant?.returned ?? granted);
+  return evaluateNewZealandTime(req, firstDay, true);
+}
+
+export function evaluateNewZealandTime(
+  req: NzRequest,
+  firstDay: IsoDate,
+  assumesOnshoreDepartureGrant = false,
+): NzResult {
   const L = textFor(req);
   const sim = req.simulationDate;
   const granted = req.residentVisa.granted;
@@ -73,16 +90,6 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
   for (const trip of req.trips)
     days.mark(away, addDays(trip.departed, 1), addDays(trip.returned, -1));
 
-  // First day in New Zealand as a resident (R5.66.5(b)): the grant day if
-  // granted in New Zealand, else the first entry after the grant. A grant on
-  // a departure day is taken to be in New Zealand.
-  const abroadAtGrant = req.trips.find(
-    (trip) => trip.departed < granted && granted < trip.returned,
-  );
-  const firstDay =
-    granted < req.firstArrival
-      ? req.firstArrival
-      : (abroadAtGrant?.returned ?? granted);
   const offshoreGrant = firstDay !== granted;
   const firstEntryBy = addDays(
     afterYears(granted, v.firstEntryYears.value),
@@ -144,10 +151,15 @@ export function evaluateNewZealand(req: NzRequest): NzResult {
     '最早日期假设模拟日之后一直在新西兰（已录入的未来出境除外）。',
     'Projected dates assume you stay in New Zealand after the simulation date, apart from trips you entered.',
   );
-  const firstDayNote = L(
-    `首次以居民身份在新西兰之日按 ${firstDay} 计：境内获批的为获批日，境外获批的为之后首次入境日；出境当天获批的按在境内计。`,
-    `Your first day in New Zealand as a resident is taken as ${firstDay}: the grant day if granted in New Zealand, otherwise your next arrival. A grant on a day you left counts as in New Zealand.`,
-  );
+  const firstDayNote = assumesOnshoreDepartureGrant
+    ? L(
+        `首次以居民身份在新西兰之日按 ${firstDay} 计：境内获批的为获批日，境外获批的为之后首次入境日；出境当天获批的按在境内计。`,
+        `Your first day in New Zealand as a resident is taken as ${firstDay}: the grant day if granted in New Zealand, otherwise your next arrival. A grant on a day you left counts as in New Zealand.`,
+      )
+    : L(
+        `首次以居民身份在新西兰之日为 ${firstDay}。境内获批的从获批日算，境外获批的从首次凭该居民签获准入境之日算。`,
+        `Your first day as a resident is ${firstDay}: the grant date for an onshore grant, or the first entry permission on that resident visa for an offshore grant.`,
+      );
   const lapsed = L(
     `居民签证在境外获批（${granted}），但首次入境（${firstDay}）晚于期限 ${firstEntryBy}；按 R5.66.1，须重新申请居民签证。`,
     `Your resident visa was granted outside New Zealand (${granted}) but your first arrival (${firstDay}) is after the deadline of ${firstEntryBy}; under R5.66.1 you would need to apply for a resident visa again.`,
