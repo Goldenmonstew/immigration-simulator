@@ -68,7 +68,7 @@ export const canadaGoals: CaFullPathwayId[] = [
 ];
 
 const v = canadaFull2026_11.values;
-const maxLevel = 12;
+export const maxLevel = 12;
 
 type Label = CanadaFieldLabel;
 const bool = (name: string, label = name as Label): CanadaField => ({

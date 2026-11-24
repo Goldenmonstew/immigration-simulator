@@ -79,6 +79,10 @@ export const zhCN = {
   'ca.whatif.invalidDates':
     '请填写有效日期；回到加拿大的日期不能早于离开的日期。',
   'ca.whatif.invalidNumber': '请填写有效的非负数值。',
+  'ca.whatif.tripNeedsRecord':
+    '问卷还没有出境记录。只加一趟不能代表完整行程，请先在问卷里填写出境记录，或确认没有记录。',
+  'ca.whatif.crsNeedsRound':
+    '问卷还没有填写邀请轮次。请先在问卷的 Express Entry 步骤填写轮次日期，再比较 CRS 分数。',
   'ca.policy.title': '加拿大现行法律',
   'ca.policy.pageTitle': '加拿大政策依据',
   'ca.policy.feeChange': '联邦永居申请费调整',
@@ -179,6 +183,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ca.whatif.invalidDates':
     'Enter valid dates. The date you come back cannot be before the date you leave.',
   'ca.whatif.invalidNumber': 'Enter a valid number of zero or more.',
+  'ca.whatif.tripNeedsRecord':
+    'Your answers have no travel record yet. One extra trip cannot stand for your full history, so first add your trips in the questionnaire or confirm you have none.',
+  'ca.whatif.crsNeedsRound':
+    'Your answers have no invitation round yet. Add the round date in the Express Entry step of the questionnaire before comparing CRS scores.',
   'ca.policy.title': 'Current Canadian law',
   'ca.policy.pageTitle': 'Policy basis for Canada',
   'ca.policy.feeChange': 'Federal permanent residence fees adjusted',

@@ -678,6 +678,173 @@ test('comparison controls change only the moved answers and move the date', () =
   );
 });
 
+// Citizenship, Express Entry and Quebec answers the comparison controls move.
+function comparisonDraft(): CanadaDraft {
+  const { answers } = residencyDraft();
+  return {
+    ...residencyDraft(),
+    goals: ['CA-CITIZENSHIP', 'CA-EE-CEC', 'CA-QC-PSTQ'],
+    answers: {
+      ...answers,
+      dateOfBirth: '1990-01-01',
+      residence: {
+        ...answers.residence,
+        language: { evidence: 'accepted-levels', speaking: 5, listening: 6 },
+        test: { outcome: 'passed', correct: 18 },
+      },
+      express: {
+        round: { date: '2026-11-01', confirmedCrs: 480 },
+        primary: {
+          levels: { listening: 9, speaking: 9, reading: 9, writing: 9 },
+        },
+        funds: { availableAtApplication: 15000 },
+      },
+      quebec: {
+        availableFunds: 5000,
+        french: {
+          evidence: 'approved-test',
+          listening: 7,
+          speaking: 7,
+          reading: 7,
+          writing: 7,
+        },
+      },
+    },
+  };
+}
+
+// review95-1 #6: every accepted comparison can be shared and reopened.
+test('comparison controls accept only answers a share link can reopen', () => {
+  const draft = comparisonDraft();
+  expect(decodeDraft(ca, encodeDraft(ca, draft))).toBeDefined();
+  const { whatif } = ca;
+  const initial = whatif.initial(draft);
+  expect(
+    whatif.validate(draft, {
+      ...initial,
+      citizenshipLevel: 4.5,
+      eeLanguage: 13,
+      qcFrench: 13,
+      crs: 500.5,
+    }),
+  ).toEqual({
+    citizenshipLevel: 'ca.error.integer',
+    eeLanguage: 'ca.error.range',
+    qcFrench: 'ca.error.range',
+    crs: 'ca.error.integer',
+  });
+  const knobs = {
+    ...initial,
+    simulationDate: '2027-03-01',
+    tripFrom: '2026-12-01',
+    tripTo: '2026-12-10',
+    citizenshipLevel: 12,
+    citizenshipTest: 'retry',
+    eeLanguage: 12,
+    qcFrench: 0,
+    crs: 500,
+    eeFunds: 1.5,
+    qcFunds: 0,
+  } as const;
+  const after = whatif.apply(draft, knobs);
+  expect(whatif.validate(after, knobs)).toEqual({});
+  expect(decodeDraft(ca, encodeDraft(ca, after))).toEqual(
+    ca.activeAnswers!(after),
+  );
+  const html = render(<WhatIfView country={ca} draft={draft} />);
+  for (const id of ['citizenship-level', 'ee-language', 'qc-french'])
+    expect(html).toMatch(new RegExp(`id="ca-whatif-${id}"[^>]* max="12"`));
+});
+
+test('comparison controls clear answers, drop the old test score and keep unknown travel unknown', () => {
+  const draft = comparisonDraft();
+  const { whatif } = ca;
+  const initial = whatif.initial(draft);
+  expect(whatif.apply(draft, initial)).toEqual(draft);
+  expect(render(<WhatIfView country={ca} draft={draft} />)).toContain(
+    t('whatif.unchanged'),
+  );
+  const r11 = (compared: CanadaDraft) =>
+    pathway(compared, 'CA-CITIZENSHIP').checks.find(
+      ({ id }) => id === 'CA-R11',
+    )!.status;
+  expect(r11(draft)).toBe('MET');
+  for (const [outcome, status] of [
+    ['finally-failed', 'NOT_MET'],
+    ['not-taken', 'UNKNOWN'],
+    [undefined, 'UNKNOWN'],
+  ] as const) {
+    const after = whatif.apply(draft, { ...initial, citizenshipTest: outcome });
+    expect(after.answers.residence?.test).toEqual(outcome ? { outcome } : {});
+    expect(r11(after), String(outcome)).toBe(status);
+  }
+
+  // Clearing a box clears the answer it controls.
+  const cleared = whatif.apply(draft, {
+    ...initial,
+    citizenshipLevel: undefined,
+    eeLanguage: undefined,
+    crs: undefined,
+    eeFunds: undefined,
+    qcFunds: undefined,
+    qcFrench: undefined,
+  });
+  expect(cleared.answers.residence?.language).toEqual({
+    evidence: 'accepted-levels',
+  });
+  expect(cleared.answers.express).toEqual({
+    round: { date: '2026-11-01' },
+    primary: {},
+    funds: {},
+  });
+  expect(cleared.answers.quebec).toEqual({
+    french: { evidence: 'approved-test' },
+  });
+  expect(render(<WhatIfView country={ca} draft={cleared} />)).toContain(
+    t('whatif.unchanged'),
+  );
+
+  // Without a travel record one added trip cannot stand for the whole history.
+  const { trips, ...unknown } = residencyDraft().answers;
+  expect(trips).toHaveLength(1);
+  const noTrips = { ...residencyDraft(), answers: unknown };
+  const added = whatif.apply(noTrips, {
+    ...whatif.initial(noTrips),
+    tripFrom: '2026-12-01',
+    tripTo: '2026-12-10',
+  });
+  expect(added.answers.trips).toBeUndefined();
+  expect(pathway(added, 'CA-RESIDENCY').status).toBe('UNKNOWN');
+  const lab = render(
+    <WhatIfView country={ca} draft={noTrips} target={{ focus: 'trip' }} />,
+  );
+  expect(lab).toMatch(/<p id="ca-whatif-trip-from" tabindex="-1"/);
+  expect(lab).toContain(t('ca.whatif.tripNeedsRecord'));
+});
+
+test('condition links go only to controls that can change them', () => {
+  const { whatif } = ca;
+  // CA-R31 checks test and ECA validity, not the levels.
+  expect(whatif.focusForRule('CA-R31', 'CA-EE-CEC')).toBeUndefined();
+  expect(whatif.focusForRule('CA-R41', 'CA-EE-CEC')).toBe('eeLanguage');
+  // Without a round, the CRS link lands on a note saying what to add first.
+  const draft = comparisonDraft();
+  const { round, ...express } = draft.answers.express!;
+  expect(round).toBeDefined();
+  const lab = render(
+    <WhatIfView
+      country={ca}
+      draft={{ ...draft, answers: { ...draft.answers, express } }}
+      target={{ focus: 'crs' }}
+    />,
+  );
+  expect(lab).toMatch(/<p id="ca-whatif-crs" tabindex="-1"/);
+  expect(lab).toContain(t('ca.whatif.crsNeedsRound'));
+  expect(render(<WhatIfView country={ca} draft={draft} />)).toMatch(
+    /<input id="ca-whatif-crs"/,
+  );
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'results and the comparison render conditions, sources and the control link in %s',
   (locale) => {

@@ -1,6 +1,7 @@
 import { CanadaWhatIfControls } from '../app/canada/whatif/controls';
 import type { TranslationKey } from '../i18n';
 import type { CanadaDraft } from './canada-draft';
+import { maxLevel } from './canada-fields';
 import { validDate } from './questionnaire';
 import type { CountryWhatIf } from './whatif';
 
@@ -44,7 +45,6 @@ const focusByCondition: Record<string, keyof typeof canadaFocusControls> = {
   'CA-R10': 'citizenshipLevel',
   'CA-R11': 'citizenshipTest',
   'CA-R30': 'crs',
-  'CA-R31': 'eeLanguage',
   'CA-R34': 'eeLanguage',
   'CA-R41': 'eeLanguage',
   'CA-R44': 'eeLanguage',
@@ -54,6 +54,20 @@ const focusByCondition: Record<string, keyof typeof canadaFocusControls> = {
   'CA-R64': 'qcFrench',
   'CA-R76': 'income',
 };
+
+// Each number control follows the question it changes, so every accepted
+// comparison can be shared and reopened.
+const level = { integer: true, max: maxLevel };
+export const canadaNumberKnobs = {
+  citizenshipLevel: level,
+  eeLanguage: level,
+  crs: { integer: true },
+  eeFunds: {},
+  aipFunds: {},
+  qcFunds: {},
+  qcFrench: level,
+  income: {},
+} satisfies Record<string, { integer?: boolean; max?: number }>;
 
 const skills = ['listening', 'speaking', 'reading', 'writing'] as const;
 // One level for several skills: the lowest decides the outcome.
@@ -88,59 +102,75 @@ function initial(draft: CanadaDraft): CanadaWhatIf {
   };
 }
 
+// Set the moved answers. A cleared control removes the answer it controls.
+function put<T extends object>(record: T | undefined, patch: Partial<T>): T {
+  const next = { ...record, ...patch };
+  for (const key in patch) if (patch[key] === undefined) delete next[key];
+  return next as T;
+}
+
 // Only controls moved away from the questionnaire answers change the draft.
 function apply(draft: CanadaDraft, knobs: CanadaWhatIf): CanadaDraft {
   const before = initial(draft);
-  const changed = (key: keyof CanadaWhatIf) =>
-    knobs[key] !== undefined && knobs[key] !== before[key];
+  const changed = (key: keyof CanadaWhatIf) => knobs[key] !== before[key];
   const answers = structuredClone(draft.answers);
-  if (knobs.tripFrom && knobs.tripTo)
+  // Without a travel record, one more trip is not the whole history.
+  if (answers.trips && knobs.tripFrom && knobs.tripTo)
     answers.trips = [
-      ...(answers.trips ?? []),
+      ...answers.trips,
       { departed: knobs.tripFrom, returned: knobs.tripTo },
     ];
-  if (changed('citizenshipLevel') || changed('citizenshipTest')) {
-    const residence = (answers.residence ??= {});
-    if (changed('citizenshipLevel'))
-      residence.language = {
-        ...residence.language,
+  if (changed('citizenshipLevel'))
+    (answers.residence ??= {}).language = put(answers.residence.language, {
+      ...(knobs.citizenshipLevel !== undefined && {
         evidence: 'accepted-levels',
-        speaking: knobs.citizenshipLevel,
-        listening: knobs.citizenshipLevel,
-      };
-    if (changed('citizenshipTest'))
-      residence.test = { ...residence.test, outcome: knobs.citizenshipTest };
-  }
+      }),
+      speaking: knobs.citizenshipLevel,
+      listening: knobs.citizenshipLevel,
+    });
+  // The result replaces the recorded score, which would otherwise pass.
+  if (changed('citizenshipTest'))
+    (answers.residence ??= {}).test = put(answers.residence.test, {
+      outcome: knobs.citizenshipTest,
+      correct: undefined,
+    });
   if (changed('eeLanguage'))
-    (answers.express ??= {}).primary = {
-      ...answers.express?.primary,
-      levels: allSkills(knobs.eeLanguage!),
-    };
+    (answers.express ??= {}).primary = put(answers.express.primary, {
+      levels:
+        knobs.eeLanguage === undefined
+          ? undefined
+          : allSkills(knobs.eeLanguage),
+    });
   if (changed('crs') && answers.express?.round)
-    answers.express.round.confirmedCrs = knobs.crs;
+    answers.express.round = put(answers.express.round, {
+      confirmedCrs: knobs.crs,
+    });
   if (changed('eeFunds'))
-    (answers.express ??= {}).funds = {
-      ...answers.express?.funds,
+    (answers.express ??= {}).funds = put(answers.express.funds, {
       availableAtApplication: knobs.eeFunds,
-    };
+    });
   if (changed('aipFunds'))
-    (answers.atlantic ??= {}).funds = {
-      ...answers.atlantic?.funds,
+    (answers.atlantic ??= {}).funds = put(answers.atlantic.funds, {
       availableAtApplication: knobs.aipFunds,
-    };
+    });
   if (changed('qcFunds'))
-    (answers.quebec ??= {}).availableFunds = knobs.qcFunds;
+    answers.quebec = put(answers.quebec, { availableFunds: knobs.qcFunds });
   if (changed('qcFrench'))
-    (answers.quebec ??= {}).french = {
-      evidence: 'approved-test',
-      ...answers.quebec?.french,
-      ...allSkills(knobs.qcFrench!),
-    };
+    (answers.quebec ??= {}).french =
+      knobs.qcFrench === undefined
+        ? put(
+            answers.quebec.french,
+            Object.fromEntries(skills.map((skill) => [skill, undefined])),
+          )
+        : {
+            evidence: 'approved-test',
+            ...answers.quebec.french,
+            ...allSkills(knobs.qcFrench),
+          };
   if (changed('income'))
-    (answers.family ??= {}).federalIncome = {
-      ...answers.family?.federalIncome,
+    (answers.family ??= {}).federalIncome = put(answers.family.federalIncome, {
       eligibleNoaIncome: knobs.income,
-    };
+    });
   return { ...draft, simulationDate: knobs.simulationDate, answers };
 }
 
@@ -156,19 +186,15 @@ function validate(_: CanadaDraft, knobs: CanadaWhatIf) {
     )
   )
     errors.trip = 'ca.whatif.invalidDates';
-  for (const key of [
-    'citizenshipLevel',
-    'eeLanguage',
-    'crs',
-    'eeFunds',
-    'aipFunds',
-    'qcFunds',
-    'qcFrench',
-    'income',
-  ] as const) {
-    const value = knobs[key];
-    if (value !== undefined && !(Number.isFinite(value) && value >= 0))
+  for (const [key, limits] of Object.entries(canadaNumberKnobs)) {
+    const value = knobs[key as keyof typeof canadaNumberKnobs];
+    if (value === undefined) continue;
+    if (!(Number.isFinite(value) && value >= 0))
       errors[key] = 'ca.whatif.invalidNumber';
+    else if ('integer' in limits && !Number.isInteger(value))
+      errors[key] = 'ca.error.integer';
+    else if ('max' in limits && value > limits.max)
+      errors[key] = 'ca.error.range';
   }
   return errors;
 }
