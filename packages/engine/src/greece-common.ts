@@ -316,12 +316,13 @@ export function commonChecks(
         ? req.longTerm?.stage === 'renewal'
         : id === 'GR-TEN-YEAR' && req.tenYear?.stage === 'renewal';
   const initialGold = gold && initialInvestor(req);
+  const initialReunion = reunion && req.familyTcn?.stage === 'initial';
   const overseas = initialGold && overseasInvestorFiling(req);
   const initialEntry =
     initialGold ||
     (greekFamily && req.greekFamily?.stage === 'initial') ||
     (work && !renewal) ||
-    (reunion && req.familyTcn?.stage === 'initial');
+    initialReunion;
   if (initialEntry) {
     const family = req.familyTcn;
     const blueCardFamily = reunion && family?.sponsor === 'blue-card';
@@ -399,13 +400,11 @@ export function commonChecks(
   }
   if (!greekFamily && !euFamily && id !== 'GR-LONG-TERM')
     checks.push(characterCheck(req, c));
+  // These initial permit procedures list a public-health condition for all entry routes.
   if (
-    initialEntry &&
-    (reunion ||
-      entry === 'national-visa' ||
-      entry === 'short-stay' ||
-      entry === 'outside' ||
-      entry === undefined)
+    initialGold ||
+    (work && req.work?.stage === 'initial') ||
+    initialReunion
   ) {
     const deferred =
       req.deferredInitialEvidence?.includes('public-hospital-certificate') &&
@@ -413,8 +412,8 @@ export function commonChecks(
     checks.push(
       c.check(
         'C-04',
-        '首次入境公共卫生要求',
-        'Public health at first entry',
+        '首次申领本类居留许可的公共卫生条件',
+        'Public health for the initial grant of this permit',
         req.publicHealth === 'cleared' || deferred
           ? true
           : req.publicHealth === 'entry-refused'
@@ -422,17 +421,26 @@ export function commonChecks(
             : undefined,
         [
           grSource('F16', 'arts. 8(d), 10(9), 176(11)'),
-          ...(reunion ? [grSource('F16', 'art. 88(1)(α)–(β)')] : []),
-          ...(reunion && req.familyTcn?.sponsor === 'blue-card'
+          ...(kind === 'E1'
+            ? [grSource('F16', 'arts. 31(1)(στ), 35(1)(γ)')]
+            : []),
+          ...(kind === 'E4'
+            ? [grSource('F49', 'initial grant, condition 7')]
+            : []),
+          ...(initialGold && req.goldenVisa?.kind === 'conversion'
+            ? [grSource('F40', 'initial grant, conditions 2, 11')]
+            : []),
+          ...(initialReunion ? [grSource('F16', 'art. 88(1)(β)')] : []),
+          ...(initialReunion && req.familyTcn?.sponsor === 'blue-card'
             ? [grSource('F60', 'procedure 517141, condition 5')]
             : []),
         ],
         deferred
           ? `首次递件后 ${p.initialEvidenceMonths.value} 个月内补交公立医院证明。`
-          : '需确认首次入境的公共卫生结论。可能的风险须由主管机关认定。',
+          : '本类别首签须符合公共卫生条件。可能的风险须由主管机关认定。',
         deferred
           ? `Supply the public hospital certificate within ${p.initialEvidenceMonths.value} months of filing.`
-          : 'Confirm public health clearance for first entry. A possible risk requires a decision by the competent authority.',
+          : 'Public health clearance is required for the initial grant of this permit. A possible risk requires a decision by the competent authority.',
         req.publicHealth === 'possible-risk' ? ['PD-302'] : [],
       ),
     );

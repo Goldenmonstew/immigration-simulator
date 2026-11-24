@@ -628,6 +628,29 @@ describe('property and family reviews through evaluateGreeceFull', () => {
   );
 
   test.each([
+    [undefined, 'UNKNOWN'],
+    ['possible-risk', 'UNKNOWN'],
+    ['cleared', 'MET'],
+  ] as const)(
+    'Β.5 change of use on a valid permit checks public health (%s)',
+    (publicHealth, status) => {
+      const path = full('GR-GOLDEN-VISA', {
+        entry: 'permit',
+        permits: [{ kind: 'regular', from: '2026-01-01', to: '2027-01-01' }],
+        goldenVisa: {
+          ...investor,
+          kind: 'conversion',
+          qualifyingValueEur: 250000,
+          conversionComplete: true,
+          conversionActDate: '2024-04-05',
+        },
+        publicHealth,
+      });
+      verify(path, 'C-04', status);
+    },
+  );
+
+  test.each([
     [false, 'NOT_MET'],
     [undefined, 'UNKNOWN'],
     [true, 'MET'],

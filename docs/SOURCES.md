@@ -1080,6 +1080,9 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 复用 SRC-086（移民法典）、SRC-087（三份修法对应的 ΦΕΚ）、SRC-088（国籍年限）与 SRC-089（国籍法典编纂版、内政部指南）。同号多文件沿用各自的官方链接。
 
+- SRC-086 第 8(d) 条规定一般公共卫生条件及首次发卡后新发疾病的保护。对 Ε.1，另见第 31(1)(στ)、35(1)(γ) 条。ΜΙΤΟΣ 的 Ε.1 境内转换手续条件 1 接受合资格的有效居留许可，条件 5 单列公共卫生。短停首签为条件 3，雇主邀请首签为 SRC-366 条件 5。Ε.4 受雇首签见 SRC-367 条件 7。Β.5 用途变更首签见 SRC-368 条件 2、11。Ο.1 首签见第 88(1)(β) 条及 SRC-376 条件 5。Ο.3 首卡的第 93(5)、(8) 条列公共秩序及安全，SRC-356 第 25 条列相应医保证明。[移民法典第 8 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=14) · [Ε.1 境内转换](https://en.mitos.gov.gr/index.php/ΔΔ:Highly_qualified_residence_permit_(‘E.1’)_in_the_context_of_a_change_of_purpose_procedure_pursuant_to_Article_12_of_Law_5038/2023_–_Initial_granting) · [Ε.1 短停首签](https://en.mitos.gov.gr/index.php/ΔΔ:Residence_permit_of_a_highly_qualified_employee_(‘E.1’)_following_admission_with_a_uniform_visa_or_visa-free_regime_–_Initial_granting)
+- SRC-087 的 ν. 5275/2026 第 38 条改写法典第 161(1)(a) 条，Μ.2 普通首签的融入要求改依长期居民的第 144(1)(γ) 条，举证方式见第 160 条。第 69 条规定自公布日 2026-02-06 生效。[修订条文](https://api.et.gr/apiFEK/1/2026/17/pdf#page=40) · [生效条款](https://api.et.gr/apiFEK/1/2026/17/pdf#page=63)
+
 - SRC-086 · Ο.1 家属与主申请人同步首签。蓝卡两份完整申请同时决定并通知，企业内部调动的两份申请同时审查，研究人员与家属申请同时审查而家属须待研究人员获准后发卡。第 60(2)、95(2) 条分别规定特殊就业和投资者家属随行及许可同日到期。[第 42(3) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=35) · [第 56(5)(β) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=44) · [第 112(2) 条](https://api.et.gr/apiFEK/1/2023/81/pdf#page=75)
 
 - SRC-350 · `2007-06-21-gr-fek-a135-2007-pd106.pdf`。总统令第 7、10–17、21 条，欧盟家属保留权、永居、缺席与比例审查。 [官方原件](https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2007/20070100135.pdf)

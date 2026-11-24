@@ -398,7 +398,32 @@ describe('common permit rules', () => {
       }).status,
     ).toBe('MET');
   });
-  test('national-visa, in-country and health screening apply at first entry', () => {
+  test.each(['national-visa', 'short-stay', 'permit'] as const)(
+    'only initial procedures listing public health include C-04 with entry %s',
+    (entry) => {
+      const result = evaluateGreeceFull({
+        ...base,
+        entry,
+        longTerm: { ...base.longTerm, stage: 'initial' },
+        goldenVisa: { stage: 'initial' },
+        nationality: { stage: 'application' },
+        tenYear: { stage: 'initial', basis: 'residence' },
+        greekFamily: { stage: 'initial' },
+        euFamily: { stage: 'permanent' },
+        work: { permit: 'E4', stage: 'initial' },
+        familyTcn: { stage: 'initial' },
+      });
+      const screened = result.columns[0].pathways.filter((p) =>
+        p.checks.some((check) => check.id === 'C-04'),
+      );
+      expect(screened.map((p) => p.id)).toEqual([
+        'GR-GOLDEN-VISA',
+        'GR-WORK',
+        'GR-FAMILY-TCN',
+      ]);
+    },
+  );
+  test('initial employment checks lawful entry and public health separately', () => {
     expect(check('C-02', { entry: 'short-stay' }).status).toBe('NOT_MET');
     expect(
       check('C-02', {

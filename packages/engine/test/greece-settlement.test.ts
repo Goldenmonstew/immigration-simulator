@@ -389,6 +389,20 @@ describe('M.2 acquisition and conversion', () => {
     expect(full(ty, { ...covered, simulationDate: filing }).status).toBe('MET');
   });
 
+  test('an M.2 filing projected across the reform uses the integration rule in force on filing', () => {
+    const request = {
+      permits: [{ kind: 'regular', from: '2016-02-10', to: '2027-01-01' }],
+      tenYear: { ...good.tenYear, legacyEconomicAndSocialIntegration: true },
+      integration: { basis: 'none' },
+    } satisfies Partial<GrFullRequest>;
+    for (const simulationDate of ['2026-02-05', '2026-02-10']) {
+      const path = full(ty, { ...request, simulationDate });
+      expect(path.checks.find((c) => c.id === 'TY-02')?.status).toBe('NOT_MET');
+      expect(path.status).toBe('NOT_MET');
+      expect(path.earliestDate).toBeUndefined();
+    }
+  });
+
   test('the original article 161 integration and conversion rules apply before commencement', () => {
     const r = {
       simulationDate: '2026-02-05',

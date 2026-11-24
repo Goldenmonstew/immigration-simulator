@@ -274,7 +274,9 @@ function integrationCheck(r: GrFullRequest, c: GrContext, id: string) {
     '希腊语及历史文化融入',
     'Greek language, history and culture',
     met,
-    integrationLaw,
+    id === 'TY-02'
+      ? [grSource('F36', 'arts. 38 (art. 161(1)(a)), 69'), ...integrationLaw]
+      : integrationLaw,
     `可提交认可学历、身份或语言证书；全科 Α2 须满 ${p.total} 分且至少 ${p.sections} 项达 ${p.sectionPercent}%（€${p.fullFee}），持语证仅考历史须满 ${p.history} 分（€${p.historyFee}）。${legacy ? '原第 145(2)(γ) 条接受合法居留' : '连续合法居留'} ${p.consecutiveYears} 年也可举证，学习期与续卡断档须核实。`,
     `Provide recognised education, status or language evidence. The full A2 exam requires ${p.total} points and ${p.sections} sections at ${p.sectionPercent}% (€${p.fullFee}). With a language certificate, history requires ${p.history} points (€${p.historyFee}). The ${p.consecutiveYears}-year option requires ${legacy ? 'documented lawful residence under former article 145(2)(γ)' : 'an uninterrupted lawful record'}. Study and disputed renewal gaps need review.`,
     met === undefined && r.integration?.includesStudyOrDisputedGap
@@ -588,9 +590,12 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
           : undefined,
       ),
     );
-    if (!youth)
+    if (!youth) {
+      // A residence anniversary can place the first possible filing under the amended law.
+      const filingDate =
+        typeof eligible === 'string' ? eligible : r.simulationDate;
       checks.push(
-        legacy
+        filingDate < v.workReformEffective.value
           ? c.check(
               'TY-02',
               '经济与社会融入',
@@ -598,8 +603,13 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
               e.legacyEconomicAndSocialIntegration,
               [migration('161(1)(a), original text'), citizenship('5Α(1)(δ)')],
             )
-          : integrationCheck(r, c, 'TY-02'),
+          : integrationCheck(
+              legacy ? { ...r, simulationDate: filingDate } : r,
+              c,
+              'TY-02',
+            ),
       );
+    }
     checks.push(
       c.check(
         'TY-03',

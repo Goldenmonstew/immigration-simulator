@@ -22,7 +22,7 @@
 | C-01 | 有效护照、有效期基准或获认可的替代证件；家属与入籍走各自的身份证明 | 086、089、350、356 |
 | C-02 | 入境、境内转换、Β.5 境外授权递交，以及 Ε.1、普通 Ε.4、战略项目和已获蓝卡者家属的短期停留 | 086、087、356、376 |
 | C-03 | 普通居留的刑事记录、严重安全名单和行政审查；Μ.1、国籍和欧盟体系家属有各自的专属检查 | 086 |
-| C-04 | 首次入境公共卫生结论，含 Ο.1 家属合法短停 | 086、376 |
+| C-04 | Β.5、Ε.1／Ε.4 及 Ο.1 首签的公共卫生条件，含持有效居留许可在境内递交 | 086、366、367、368、376 |
 | C-05 | 公保或私保的连续性、三项保额、最高自付、除外与期限；受雇或家属另有专属检查 | 352、356 |
 | C-06 | 住址和身份变更、新生儿与护照续发的申报期限及罚款 | 086 |
 | C-07、C-07-window | 指纹年龄、身体豁免、通知、制卡，以及适用的续期窗口。Μ.1 换卡适用第 146(2) 条 | 086、087、356 |
@@ -399,3 +399,40 @@ PROGRESS 第 661 条。建议提交名为 `Fix: 修正希腊首签卫生检查�
 ### 4. 发现与建议
 
 PD-319 待补的证据是主管机关明确接受蓝卡主申请待批时，家属凭合法短停同步递交首签的手续依据。Μ.2 案例需要补充个人续期或许可记录，适用条款见 SRC-087 第 38 条。
+
+## 第十轮审核修正（review88-10）
+
+### 1. 做了什么
+
+PROGRESS 第 662 条。建议提交名为 `Fix: 按首签手续核对希腊公共卫生条件并修正 Μ.2 跨修法预测（review88-10）`。
+
+**首签公共卫生（C-04）。** 八条路径中，Β.5、受雇 Ε.1／Ε.4、家庭团聚 Ο.1 的首签列有公共卫生条件。是否生成 C-04 取决于所办手续。D 签、合法短停、境内持卡等入境依据由 C-02 独立判断。下表的“未单列”指该申请阶段的专门手续，边境的公共卫生规定见 SRC-086 第 8(d) 条。
+
+| 路径与申请阶段 | 专门手续是否列明公共卫生 | 核对依据 |
+|---|---|---|
+| Μ.1 首次取得欧盟长期居民身份 | 未单列。另查本人及家属的医疗保险、公共秩序与安全。 | SRC-086 第 144(1)、145(1)、(4) 条，SRC-087 ν. 5307/2026 第 179 条，SRC-356 第 57(1) 条。[长期居民首申材料](https://api.et.gr/apiFEK/2/2024/1807/pdf#page=34) |
+| Β.5 房产投资首签 | 列明。用途变更手续把有效居留许可列为递件依据，同时列有公共卫生条件。列入保护名录的房产和旅游租约首签也明列该条件。 | SRC-086 第 8(d) 条，SRC-368 条件 2、11。[用途变更](https://en.mitos.gov.gr/index.php/ΔΔ:Permanent_golden_visa_(change_of_use)_–_Initial_issuance) · [受保护房产，条件 10](https://en.mitos.gov.gr/index.php/ΔΔ:Golden_visa_programme_(investment_in_a_listed_real_property)_–_Initial_issuance) · [旅游租约，条件 9](https://en.mitos.gov.gr/index.php/ΔΔ:Golden_visa_(timeshare)_–_Initial_issuance) |
+| 归化申请 | 未单列。国籍法典列申请资格、融入、公共秩序及国家安全。 | SRC-089 第 5、5Α、5Β 条。[国籍法典](https://www.ypes.gr/wp-content/uploads/2025/09/20250917-KEI-NOMOS.pdf#page=7) |
+| Μ.2 首次取得十年居留 | 未单列。普通通道及出生／学籍通道另核完整医疗与住院保险。 | SRC-087 第 38 条所订第 161(1)、(3) 条，SRC-356 第 58(1) 条。[十年居留条款](https://api.et.gr/apiFEK/1/2026/17/pdf#page=40) |
+| 希腊公民家属 Ο.3 首卡及转 Μ.3 永久卡 | 均未单列。Ο.3 首卡单列公共秩序与安全，另需医保证明。部分亲属的健康情况用于证明其需要照护。 | SRC-086 第 93(4)、(5)、(8) 条，SRC-356 第 25 条，SRC-087 第 27–28 条。[Ο.3 首卡](https://api.et.gr/apiFEK/1/2023/81/pdf#page=62) · [Μ.3 永久卡](https://api.et.gr/apiFEK/1/2026/17/pdf#page=33) |
+| 其他欧盟公民家属 Ν 首次取得永久卡 | 永久卡手续未单列。主管机关在首次普通居留卡手续中明确列有公共卫生；该初卡阶段在本路径的模拟范围之外。 | SRC-350 第 10、13–17 条，SRC-356 第 59 条。[普通居留卡](https://www.gov.gr/en/sdg/residence/residence-cards-for-union-citizens-and-their-family-members/general/residence-of-third-country-citizens-who-are-family-members-of-eu-citizens) · [永久卡](https://www.gov.gr/en/sdg/residence/residence-cards-for-union-citizens-and-their-family-members/residence-documents-for-third-country-nationals-family-members-of-e-u-citizens/permanent-residence) |
+| Ε.1／Ε.4 受雇工作首签 | 两类均列明。Ε.1 雇主邀请和境内转换均见条件 5，短停首签见条件 3。Ε.4 受雇首签见条件 7。 | SRC-086 第 8(d)、31(1)(στ)、35(1)(γ) 条，SRC-366 条件 5，SRC-367 条件 7。[Ε.1 境内转换，条件 1、5](https://en.mitos.gov.gr/index.php/ΔΔ:Highly_qualified_residence_permit_(‘E.1’)_in_the_context_of_a_change_of_purpose_procedure_pursuant_to_Article_12_of_Law_5038/2023_–_Initial_granting) · [Ε.1 短停首签](https://en.mitos.gov.gr/index.php/ΔΔ:Residence_permit_of_a_highly_qualified_employee_(‘E.1’)_following_admission_with_a_uniform_visa_or_visa-free_regime_–_Initial_granting) |
+| 第三国公民家属 Ο.1 首签及 Ο.2 自主居留 | Ο.1 首签列明，含蓝卡家属。Ο.2 从原家属居留取得自主权，专门手续未单列初次卫生筛查。 | SRC-086 第 88(1)(β)、90 条，SRC-356 第 23–24 条，SRC-376 条件 2、5。[Ο.1 蓝卡家属手续](https://en.mitos.gov.gr/index.php/ΔΔ:Residence_permit_for_family_members_of_a_highly_qualified_residence_permit_holder_(‘E.1’)_–_Initial_granting) |
+
+**Μ.2 跨修法的预计递件日（TY-02）。** 修订后的第 161(1)(a) 条要求普通首签按长期居民规则证明融入。审核案例在 2026-02-05 模拟，连续居留到 2026-02-10 才满十年，其间修法于 2026-02-06 生效。即使已满足旧法的经济与社会融入要求，明确填报新法融入依据为 `none` 时，预测和递件当日的 TY-02 与路径均为 `NOT_MET`，最早日期留空。居留及融入的确定等待期仍取较晚日期，并复核届时的许可覆盖。依据为 SRC-086 原第 161(1)(a) 条、SRC-087 第 37、38、69 条。[修订条文](https://api.et.gr/apiFEK/1/2026/17/pdf#page=40) · [生效条款](https://api.et.gr/apiFEK/1/2026/17/pdf#page=63)
+
+### 2. 怎么验证的
+
+在基线 `d8fd45dd` 的相应实现上，新增回归共复现 10 项失败。Ε.1 境内转换及 Β.5 用途变更各用一张模拟日仍有效的希腊居留许可，分别核对卫生资料缺失、风险待认定及审查通过。修正后二者的 C-04 与整条路径均依次为 `UNKNOWN`、`UNKNOWN`、`MET`。另用 D 签、合法短停、持卡逐一核对八条路径是否生成 C-04。Μ.2 回归同时断言预测日及递件当日的 TY-02、路径和最早日期。
+
+运行 `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine exec vitest run test/greece-full.test.ts test/greece-property-family.test.ts test/greece-work-family.test.ts test/greece-settlement.test.ts`，4 个文件共 322 项通过。
+
+设置 `VITEST_MAX_WORKERS=2` 后串行执行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整链退出码为 0。共 5,580 项测试通过（error-report 2、policy-data 23、engine 3,547、game 1,348、web 660）。既有文案导出测试按 `EXPORT_WORDING` 配置跳过 1 项。静态构建完成 27/27 页，已确认 `apps/web/out/greece.html` 非空。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+本轮按要求未提交。时间版 `evaluateGreece`、原时间版测试、共用结果结构与网页目录相对基线均无差异。验收在本地完成，未运行浏览器 e2e 或部署。
+
+### 4. 发现与建议
+
+个案公共卫生风险待主管机关认定时继续使用 PD-302。此次复核沿用已有 SRC 和 PD，无需新增编号。

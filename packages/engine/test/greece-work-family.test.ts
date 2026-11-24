@@ -173,6 +173,25 @@ test.each([
   },
 );
 
+test.each([
+  [undefined, 'UNKNOWN'],
+  ['possible-risk', 'UNKNOWN'],
+  ['cleared', 'MET'],
+] as const)(
+  'Ε.1 domestic switch from a valid permit checks public health (%s)',
+  (publicHealth, status) => {
+    const path = route('GR-WORK', {
+      simulationDate: '2024-11-23',
+      entry: 'permit',
+      permits: [{ kind: 'regular', from: '2024-01-01', to: '2025-01-01' }],
+      work: { ...blue, admission: 'domestic-switch' },
+      publicHealth,
+    });
+    expect(path.checks.find((item) => item.id === 'C-04')?.status).toBe(status);
+    expect(path.status).toBe(status);
+  },
+);
+
 test('residence and age waits use the actual anniversary and require every other condition', () => {
   const familyTcn: Family = {
     ...reunion,
