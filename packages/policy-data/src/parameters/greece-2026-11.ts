@@ -282,11 +282,90 @@ export function grSource(
   return { srcId, url, locator };
 }
 
+// Filing rules and the projection calendar share these commencement parameters.
+const commencements = {
+  examPreviousRulesFrom: {
+    value: '2024-03-04',
+    sources: [grSource('F19', 'art. 7 and final publication clause')],
+  },
+  migrationCodeFrom: {
+    value: '2024-03-31',
+    sources: [
+      grSource('F18', 'art. 97(3), amending Migration Code art. 179(1)–(2)'),
+    ],
+  },
+  wage2024Effective: {
+    value: '2024-04-01',
+    sources: [grSource('F22', 'ΥΑ 25058/2024, commencement')],
+  },
+  gvReformEffective: {
+    value: '2024-04-05',
+    sources: [grSource('F23', 'arts. 64, 69(1)'), grSource('F53', 'II(γ)')],
+  },
+  workEmployerEffective: {
+    value: '2024-05-02',
+    sources: [grSource('F24', 'ΚΥΑ 133226/2024, art. 4 (commencement)')],
+  },
+  examInterimRulesFrom: {
+    value: '2024-08-05',
+    sources: [
+      grSource('F55', 'art. 7 and final repeal of decision 15478/2024'),
+    ],
+  },
+  incomeMethodEffective: {
+    value: '2024-09-17',
+    sources: [grSource('F26', 'ΚΥΑ 225679/2024, arts. 2–3, 7(1)')],
+  },
+  examWrittenRulesFrom: {
+    value: '2025-03-10',
+    sources: [grSource('F30', 'art. 7 and final repeal of decision 384/2024')],
+  },
+  previousWageEffective: {
+    value: '2025-04-01',
+    sources: [grSource('F31', 'ΥΑ 8233/2025, commencement')],
+  },
+  naturalisationReformFrom: {
+    value: '2025-09-02',
+    sources: [grSource('F33', 'arts. 96, 98, 122(1)')],
+  },
+  gvConversionDecisionEffective: {
+    value: '2025-11-11',
+    sources: [grSource('F59', 'arts. 3–4, pp. 75069–75070')],
+  },
+  workReformEffective: {
+    value: '2026-02-06',
+    sources: [
+      grSource('F36', 'arts. 12, 19, 21, 28, 37–38, 52, 69 (commencement)'),
+    ],
+  },
+  minimumWageEffective: {
+    value: '2026-04-01',
+    sources: [grSource('F37', 'ΥΑ 8934/2026, commencement')],
+  },
+  examCurrentRulesFrom: {
+    value: '2026-04-24',
+    sources: [grSource('F56', 'arts. 8–9, repeal of decision 10802/2025')],
+  },
+  protectionCreditFrom: {
+    value: '2026-06-12',
+    sources: [grSource('F38', 'arts. 179, 265(1), 144(2)–(2A) as amended')],
+  },
+  economicCircularFrom: {
+    value: '2026-09-24',
+    sources: [grSource('F54', 'heading; pp5–6, pending and new applications')],
+  },
+} satisfies Record<string, Parameter<string>>;
+
+export const grPolicyEffectiveDates = Object.values(commencements).map(
+  (parameter) => parameter.value,
+);
+
 export const greeceFull2026_11 = {
   ruleSetId: 'gr.current-law-2026-11',
   asOf: '2026-11-23',
   values: {
     ...greece2026_11.values,
+    ...commencements,
     passport: {
       value: { remainingMonths: 3, blankPages: 2, issueYears: 10 },
       sources: [grSource('F16', 'art. 8(a)')],
@@ -322,12 +401,6 @@ export const greeceFull2026_11 = {
         grSource('F21', 'art. 2(c)'),
       ],
     },
-    migrationCodeFrom: {
-      value: '2024-03-31',
-      sources: [
-        grSource('F18', 'art. 97(3), amending Migration Code art. 179(1)–(2)'),
-      ],
-    },
     originalProtectionFullCreditMonths: {
       value: 18,
       sources: [grSource('F16', 'art. 144(2), p4194')],
@@ -354,10 +427,6 @@ export const greeceFull2026_11 = {
     backlogFilingFrom: {
       value: '2022-01-01',
       sources: [grSource('F36', 'arts. 52(1), 69, pp483–484')],
-    },
-    protectionCreditFrom: {
-      value: '2026-06-12',
-      sources: [grSource('F38', 'arts. 179, 265(1), 144(2)–(2A) as amended')],
     },
     generalCharacter: {
       value: { sentenceMonths: 12, childScreenAge: 15, listingYears: 5 },
@@ -460,36 +529,6 @@ export const greeceFull2026_11 = {
       value: { initial: 550, repeat: 200, reduced: 100 },
       sources: [grSource('F34', 'ΚΕΙ art. 6(1)(ζ)')],
     },
-    examPreviousRulesFrom: {
-      value: '2024-03-04',
-      sources: [grSource('F19', 'art. 7 and final publication clause')],
-    },
-    examInterimRulesFrom: {
-      value: '2024-08-05',
-      sources: [
-        grSource('F55', 'art. 7 and final repeal of decision 15478/2024'),
-      ],
-    },
-    examWrittenRulesFrom: {
-      value: '2025-03-10',
-      sources: [
-        grSource('F30', 'art. 7 and final repeal of decision 384/2024'),
-      ],
-    },
-    examCurrentRulesFrom: {
-      value: '2026-04-24',
-      sources: [grSource('F56', 'arts. 8–9, repeal of decision 10802/2025')],
-    },
-    naturalisationReformFrom: {
-      value: '2025-09-02',
-      sources: [grSource('F33', 'arts. 96, 98, 122(1)')],
-    },
-    economicCircularFrom: {
-      value: '2026-09-24',
-      sources: [
-        grSource('F54', 'heading; pp5–6, pending and new applications'),
-      ],
-    },
     naturalisationIncomeYears: {
       value: { general: 5, 'three-year': 3, 'twelve-year': 7 },
       sources: [
@@ -531,14 +570,6 @@ export const greeceFull2026_11 = {
     investorEntryMonths: {
       value: 12,
       sources: [grSource('F16', 'art. 10(11)')],
-    },
-    gvReformEffective: {
-      value: '2024-04-05',
-      sources: [grSource('F23', 'arts. 64, 69(1)'), grSource('F53', 'II(γ)')],
-    },
-    gvConversionDecisionEffective: {
-      value: '2025-11-11',
-      sources: [grSource('F59', 'arts. 3–4, pp. 75069–75070')],
     },
     gvInvestment: {
       value: {
@@ -664,10 +695,6 @@ export const greeceFull2026_11 = {
       value: 41.09,
       sources: [grSource('F37', 'ΥΑ 8934/2026, operative point β')],
     },
-    minimumWageEffective: {
-      value: '2026-04-01',
-      sources: [grSource('F37', 'ΥΑ 8934/2026, commencement')],
-    },
     previousMonthlyGrossEur: {
       value: 880,
       sources: [grSource('F31', 'ΥΑ 8233/2025, operative point α')],
@@ -675,14 +702,6 @@ export const greeceFull2026_11 = {
     previousDailyGrossEur: {
       value: 39.3,
       sources: [grSource('F31', 'ΥΑ 8233/2025, operative point β')],
-    },
-    previousWageEffective: {
-      value: '2025-04-01',
-      sources: [grSource('F31', 'ΥΑ 8233/2025, commencement')],
-    },
-    incomeMethodEffective: {
-      value: '2024-09-17',
-      sources: [grSource('F26', 'ΚΥΑ 225679/2024, arts. 2–3, 7(1)')],
     },
     annualPayPeriods: {
       value: 14,
@@ -702,22 +721,12 @@ export const greeceFull2026_11 = {
         ),
       ],
     },
-    workReformEffective: {
-      value: '2026-02-06',
-      sources: [
-        grSource('F36', 'arts. 12, 19, 21, 28, 37–38, 52, 69 (commencement)'),
-      ],
-    },
     workContractMonths: {
       value: { blue: 6, employee: 6, employeeBeforeReform: 12 },
       sources: [
         grSource('F16', 'arts. 31(1)(α), 61(3)(α)'),
         grSource('F36', 'art. 21 (art. 61(3)(α))'),
       ],
-    },
-    workEmployerEffective: {
-      value: '2024-05-02',
-      sources: [grSource('F24', 'ΚΥΑ 133226/2024, art. 4 (commencement)')],
     },
     workEmployer: {
       value: {
@@ -820,10 +829,6 @@ export const greeceFull2026_11 = {
         protectedLeaveMonths: 12,
       },
       sources: [grSource('F16', 'art. 36(2)–(3)')],
-    },
-    wage2024Effective: {
-      value: '2024-04-01',
-      sources: [grSource('F22', 'ΥΑ 25058/2024, commencement')],
     },
     wage2024GrossEur: {
       value: { monthly: 830, daily: 37.07 },

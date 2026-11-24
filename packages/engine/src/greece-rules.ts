@@ -84,6 +84,13 @@ export function insuranceMet(
 
 export function grContext(locale?: Locale) {
   const L = textFor({ locale });
+  const calendarChanges = new Set<IsoDate>();
+  // A rule keyed to the filing year changes at New Year unless the relevant date is already fixed.
+  function filingYear(review: IsoDate, recordedDate?: IsoDate) {
+    const year = Number((recordedDate ?? review).split('-')[0]);
+    if (!recordedDate) calendarChanges.add(`${year + 1}-01-01`);
+    return year;
+  }
   // Only a known wait can clear a NOT_MET check on a predictable date.
   const waitDates = new Map<CountryCheck, IsoDate>();
   // A dated requirement can survive a change in law even when another fact
@@ -135,6 +142,14 @@ export function grContext(locale?: Locale) {
     if (typeof due === 'string') filingDates.set(result, due);
     return result;
   }
-  return { check, L, waitDates, whenDue, filingDates };
+  return {
+    check,
+    L,
+    waitDates,
+    whenDue,
+    filingDates,
+    filingYear,
+    calendarChanges,
+  };
 }
 export type GrContext = ReturnType<typeof grContext>;

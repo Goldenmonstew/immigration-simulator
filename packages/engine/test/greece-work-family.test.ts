@@ -992,6 +992,22 @@ describe('Gr employment routes', () => {
       });
     }
   });
+  test('Ε.1 renewal projected across New Year needs the salary threshold for the filing year', () => {
+    const request: Partial<GrFullRequest> = {
+      entry: 'permit',
+      currentCardExpiresOn: '2025-03-02',
+      work: { ...blue, stage: 'renewal', taxesSettledDuringPermit: true },
+    };
+    for (const simulationDate of ['2024-12-31', '2025-01-02']) {
+      const result = route('GR-WORK', { ...request, simulationDate });
+      expect(result.checks.find((c) => c.id === 'WK-01')).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-317'],
+      });
+      expect(result.status).toBe('UNKNOWN');
+      expect(result.earliestDate).toBeUndefined();
+    }
+  });
   test('Blue Card contract, credentials, lawful short stay and approved employment', () => {
     expect(work('WK-02', blue).status).toBe('MET');
     expect(work('WK-02', { ...blue, contractMonths: 5 }).status).toBe(

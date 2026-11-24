@@ -114,6 +114,36 @@ describe('M.1 long-term grant and retention', () => {
     );
   });
   test.each([
+    ['2021-04-01', '2026-04-01', 12320, 'UNKNOWN'],
+    ['2021-05-01', '2026-05-01', 12320, 'UNKNOWN'],
+    ['2021-05-01', '2026-05-01', 12880, 'MET'],
+  ] as const)(
+    'ordinary M.1 residence from %s allows filing on %s only with sufficient income (€%s)',
+    (from, filing, netEur, incomeStatus) => {
+      const request: Partial<GrFullRequest> = {
+        permits: [{ kind: 'regular', from, to: '2026-11-01' }],
+        residenceIncome: { netEur, dependants: 0, regularAndDocumented: true },
+      };
+      const forecast = full(lt, { ...request, simulationDate: '2026-03-31' });
+      const filed = full(lt, { ...request, simulationDate: filing });
+      for (const result of [forecast, filed]) {
+        const income = result.checks.find((c) => c.id === 'LT-02');
+        expect(income?.status).toBe(incomeStatus);
+        if (incomeStatus === 'UNKNOWN') {
+          expect(income?.pendingDetails).toContain('PD-304');
+          expect(result.pendingDetails).toContain('PD-304');
+          expect(result.earliestDate).toBeUndefined();
+        } else {
+          expect(result.earliestDate).toBe(filing);
+        }
+      }
+      expect(forecast.status).toBe(
+        incomeStatus === 'MET' ? 'FUTURE' : 'UNKNOWN',
+      );
+      expect(filed.status).toBe(incomeStatus);
+    },
+  );
+  test.each([
     ['2021-04-01', '2022-04-01', '2026-06-12'],
     ['2021-08-01', '2022-08-01', '2026-08-01'],
   ])(
@@ -956,16 +986,28 @@ describe('ΚΕΙ naturalisation', () => {
       lastRejection: '2025-08-01',
       preReformObjectionException: true,
     };
-    const before = full(nat, { nationality, simulationDate: '2025-09-01' });
-    expect(before.checks.find((c) => c.id === 'NAT-06')?.status).toBe(
-      'NOT_MET',
-    );
-    expect(before.checks.find((c) => c.id === 'NAT-11')).toMatchObject({
+    const review = {
+      nationality,
+      simulationDate: '2025-09-01',
+      permits: [{ kind: 'regular', from: '2018-09-03' }],
+    } satisfies Partial<GrFullRequest>;
+    expect(status(nat, 'NAT-06', review)).toBe('NOT_MET');
+    expect(check(nat, 'NAT-11', review)).toMatchObject({
       status: 'NOT_MET',
       explanation: expect.stringContaining('2026-08-01'),
     });
-    expect(before.status).toBe('NOT_MET');
-    expect(before.earliestDate).toBeUndefined();
+    // Residence matures just after the reform lifts the bar. The fifth tax record counts at New Year.
+    const before = full(nat, review);
+    expect(before).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-01-01',
+    });
+    expect(full(nat, { ...review, simulationDate: '2025-09-03' }).status).toBe(
+      'UNKNOWN',
+    );
+    expect(full(nat, { ...review, simulationDate: '2026-01-01' }).status).toBe(
+      'MET',
+    );
     const after = full(nat, {
       nationality: {
         ...nationality,

@@ -72,6 +72,51 @@ test.each([
   },
 );
 
+test.each([
+  ['2007-11-10', '2025-11-10', 'NOT_MET'],
+  ['2007-11-11', '2025-11-11', 'FUTURE'],
+  ['2007-11-12', '2025-11-12', 'FUTURE'],
+] as const)(
+  'Β.5 heir born on %s presents a registration application receipt on attaining majority',
+  (birthDate, filing, forecastStatus) => {
+    const facts: Partial<GrFullRequest> = {
+      birthDate,
+      entry: 'outside',
+      overseasInvestorMandate: true,
+      goldenVisa: {
+        stage: 'initial',
+        regime: 'current',
+        kind: 'standard',
+        zone: 'named-high-cost',
+        assessedValueEur: 800000,
+        acquisition: 'inheritance',
+        title: 'sole',
+        notarialEvidence: true,
+        registeredTransferEvidence: 'application-receipt',
+        e9DeclarationCopy: true,
+        use: 'residential-or-long-let',
+        worksInGreeceUnderThisPermit: false,
+        family: [],
+      },
+    };
+    const forecast = assess('GR-GOLDEN-VISA', '2025-11-10', facts);
+    const filed = assess('GR-GOLDEN-VISA', filing, facts);
+    expect(forecast.status).toBe(forecastStatus);
+    expect(forecast.earliestDate).toBe(
+      forecastStatus === 'FUTURE' ? filing : undefined,
+    );
+    const filingStatus = forecastStatus === 'FUTURE' ? 'MET' : 'NOT_MET';
+    expect(filed.checks.find((c) => c.id === 'GV-03')?.status).toBe(
+      filingStatus,
+    );
+    expect(filed.status).toBe(filingStatus);
+    if (forecastStatus === 'FUTURE')
+      expect(
+        forecast.checks.find((c) => c.id === 'GV-03')?.explanation,
+      ).toContain(filing);
+  },
+);
+
 test('Ο.3 conversion on the reform date needs evidence of the interruption after the old card expired', () => {
   const facts: Partial<GrFullRequest> = {
     greekFamily: {

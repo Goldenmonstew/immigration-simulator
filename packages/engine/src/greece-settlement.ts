@@ -718,7 +718,7 @@ function convictionClear(r: GrFullRequest, filing: IsoDate) {
   return firstClear === filing || firstClear;
 }
 
-function economicIntegration(r: GrFullRequest) {
+function economicIntegration(r: GrFullRequest, c: GrContext) {
   const e = r.nationality;
   if (
     !r.route ||
@@ -727,8 +727,7 @@ function economicIntegration(r: GrFullRequest) {
   )
     return e?.taxAndSocialInsuranceCurrent === false ? false : undefined;
   const p = v.naturalisationIncome.value;
-  const filing = e.pendingApplicationFiledOn ?? r.simulationDate;
-  const end = Number(filing.split('-')[0]);
+  const end = c.filingYear(r.simulationDate, e.pendingApplicationFiledOn);
   const required = v.naturalisationIncomeYears.value[r.route];
   const window = pilot.nationalityYears.value[r.route];
   const records = Array.from({ length: window }, (_, i) => ({
@@ -791,7 +790,7 @@ function economicIntegration(r: GrFullRequest) {
 export function nationalityIncomeCheck(r: GrFullRequest, c: GrContext) {
   const e = r.nationality ?? {};
   const exam = v.naturalisationExam.value;
-  const financial = economicIntegration(r);
+  const financial = economicIntegration(r, c);
   const holistic = r.simulationDate >= v.economicCircularFrom.value;
   const years = r.route && v.naturalisationIncomeYears.value[r.route];
   const income = v.naturalisationIncome.value;
@@ -881,7 +880,8 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   const order = examinationOrders.find((rule) => rule.from <= examOn);
   const examYearAge =
     r.birthDate &&
-    Number(examOn.split('-')[0]) - Number(r.birthDate.split('-')[0]);
+    c.filingYear(r.simulationDate, e.examOn ?? e.pendingApplicationFiledOn) -
+      Number(r.birthDate.split('-')[0]);
   const oral = any(
     typeof examYearAge === 'number' ? examYearAge > exam.oralAge : undefined,
     e.disabilityPercent === undefined

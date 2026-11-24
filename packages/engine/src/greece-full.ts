@@ -1,4 +1,5 @@
 import {
+  grPolicyEffectiveDates,
   grSource,
   greeceFull2026_11 as policy,
 } from '@uk-immigration/policy-data';
@@ -565,15 +566,9 @@ function filingConditions(
     candidate: candidate.sort().at(-1),
     filingDates: c.filingDates,
     waitDates: c.waitDates,
+    calendarChanges: c.calendarChanges,
   };
 }
-
-// SRC-087: ν. 5100/2024 arts. 64, 69; ν. 5275/2026 art. 69; ν. 5307/2026 art. 265.
-const amendments = [
-  policy.values.gvReformEffective.value,
-  policy.values.workReformEffective.value,
-  policy.values.protectionCreditFrom.value,
-];
 
 function filingUnderApplicableLaw(
   id: GrFullPathwayId,
@@ -584,15 +579,11 @@ function filingUnderApplicableLaw(
   const initial = filingConditions(id, req, scope, times);
   const waitsFromReview = new Map<string, IsoDate>();
   const firstCandidate = initial.candidate;
-  // SRC-087 changes the Migration Code. An independently blocked citizenship
-  // or EU-family application has no filing forecast under its own code.
   if (
     !firstCandidate ||
-    !amendments.some(
+    ![...grPolicyEffectiveDates, ...initial.calendarChanges].some(
       (date) => req.simulationDate < date && date <= firstCandidate,
-    ) ||
-    (!initial.canProject &&
-      (id === 'GR-NATIONALITY' || id === 'GR-EU-FAMILY-PR'))
+    )
   )
     return {
       initial,
@@ -601,7 +592,7 @@ function filingUnderApplicableLaw(
       waitsFromReview,
     };
 
-  const milestones = [...amendments];
+  const milestones = [...grPolicyEffectiveDates];
   if (id === 'GR-LONG-TERM' || id === 'GR-TEN-YEAR') {
     // A recorded grant can bring a newly creditable period into the calculation.
     for (const period of req.backlogRenewals ?? [])
@@ -609,22 +600,31 @@ function filingUnderApplicableLaw(
     if (id === 'GR-LONG-TERM' && req.grantedProtection)
       milestones.push(req.grantedProtection.grantedOn);
   }
-  milestones.sort();
   let filing = initial;
   let on = req.simulationDate;
-  let target = firstCandidate;
-  while (on < target) {
-    on = milestones.find((date) => date > on && date <= target) ?? target;
+  let horizon = firstCandidate;
+  while (on < horizon) {
+    // Try an earlier opening without discarding later changes if it is still blocked.
+    on = [
+      ...milestones,
+      ...filing.calendarChanges,
+      filing.candidate ?? horizon,
+      horizon,
+    ]
+      .filter((date) => date > on)
+      .sort()[0];
     for (const [check, due] of filing.filingDates)
       waitsFromReview.set(check.id, due < on ? due : on);
     filing = filingConditions(id, { ...req, simulationDate: on }, scope);
-    if (filing.candidate && filing.candidate > on) target = filing.candidate;
-    else if (
-      filing.canProject &&
-      (!filing.needed || filing.jointTime?.status === 'MET')
+    if (
+      filing.rules.every(
+        (check) => check.id === 'C-06' || check.status === 'MET',
+      ) &&
+      (!filing.needed || filing.time?.status === 'MET')
     )
       break;
-    // If an intermediate law blocks the date, still verify the original filing under the next law.
+    if (filing.candidate && filing.candidate > horizon)
+      horizon = filing.candidate;
   }
   return { initial, filing, projectedOn: on, waitsFromReview };
 }
@@ -739,11 +739,10 @@ export function evaluateGreeceFull(req: GrFullRequest): CountryResult {
           explanation: summary,
         };
       }
-      if (incomeIndex >= 0 && !projectedOn) {
-        const income = nationalityIncomeCheck(
-          { ...req, simulationDate: earliestDate },
-          c,
-        );
+      if (incomeIndex >= 0) {
+        const income = projectedOn
+          ? rules[incomeIndex]
+          : nationalityIncomeCheck({ ...req, simulationDate: earliestDate }, c);
         const filing = c.L(
           `按预计递件日 ${earliestDate} 核对税年材料。`,
           `Tax years are assessed as of the projected filing date, ${earliestDate}. `,

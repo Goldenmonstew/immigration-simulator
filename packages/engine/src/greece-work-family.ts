@@ -193,7 +193,10 @@ function employerFinance(w: WorkAnswers, reformed: boolean) {
   );
 }
 
-function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
+function workChecks(
+  req: GrFullRequest,
+  { check, filingYear }: GrContext,
+): CountryCheck[] {
   const w = req.work ?? {};
   const checks: CountryCheck[] = [];
   if (!w.permit) {
@@ -265,7 +268,7 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
   } else if (isBlue) {
     const salary = p.workBlueSalary.value;
     const knownYear =
-      Number(req.simulationDate.split('-')[0]) === salary.lastPublishedYear;
+      filingYear(req.simulationDate) === salary.lastPublishedYear;
     checks.push(
       check(
         'WK-01',
