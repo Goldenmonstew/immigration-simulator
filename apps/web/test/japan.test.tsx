@@ -904,10 +904,13 @@ test('sharing a later filing date keeps the issued permit valid for the planned 
   expect(comparison).toMatch(
     /<dt>结论<\/dt><dd[^>]*><span[^>]*>已满足条件<\/span><span aria-hidden="true">→<\/span><span>已满足条件<\/span>/,
   );
+  expect(comparison).toContain('与当前情景相同');
+  expect(comparison).not.toContain('假设于 2026-11-27 递交');
   for (const source of [baseline, compared, encodeDraft(jp, compared)]) {
     const { draft, result, shared } = readPageResult(jp, 'zh-CN', source);
     expect(shared).toBe(typeof source === 'string');
     const path = result!.columns[0].pathways[0];
+    expect(path.summary).not.toContain('假设于 2026-11-27 递交');
     const html = renderToStaticMarkup(
       <ResultView country={jp} result={result!} draft={draft} />,
     );

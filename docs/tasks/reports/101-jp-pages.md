@@ -1071,3 +1071,54 @@ PD-136 已登记返日与重新上陆日不一致、续期处分日待核时的�
 ### 4. 发现与建议
 
 旧分享如仍带有原行程日期，或实际录入的返日与分享返日不同，可以识别假设。若旧链接只保存了覆盖后的日期，接收方无法从该值还原录入来源。可从原问卷重新生成分享。真实浏览器验证可使用本轮已加入的日本 Playwright 无脚本用例。
+
+## 第二十六轮审核修正（review101-26）
+
+### 1. 做了什么
+
+建议提交 `Fix: 日本对比与分享仅在消费拟递交日的路径附加假设递交说明（review101-26）`。进度编号 816。
+
+- 在 `apps/web/lib/japan-module.ts` 中收紧假设递交日说明（`jp.result.hypotheticalFiling`）的挂载范围：仅当路径实际消费 `applicationDate` 时才附加「本次评估假设于 {date} 递交。」/ “This assessment assumes a filing date of {date}.”。
+  - みなし再入国许可（`jp.reentry.deemed`）在出境时表明返日意图办理，基础手续费固定为 JPY 0，资格、期限和连续性均按出境日与返日日评估，不使用拟递交日，不再附加假设递交日说明。只选みなし并在对比页仅修改拟递交日时，对比页与分享回读均不显示假设递交日，对比卡片继续提示「与当前情景相同」。
+  - 普通再入国许可（`jp.reentry.ordinary`）仅在尚未持有已生效许可的新申请场景（`!ordinaryFilingDays(confirmed, trip)?.held`，即未填 `permit.effectiveOn` 或生效日晚于模拟日）消费拟递交日；若普通许可在模拟日或之前已经生效（`ordinaryFilingDays(confirmed, trip)?.held === true`），新申请资格、在线渠道和基础手续费均不适用，合法在留按出境日核对，同样不附加假设递交日说明，并在其余输入不变时提示「与当前情景相同」。
+- 逐一复核了日本对比页全部 11 个可改字段对应的消费路径与假设说明绑定边界：
+
+| 对比控件 | 对应字段 | 实际使用该字段的路径 | 不使用该字段的路径 | 假设说明或摘要挂载规则 |
+|---|---|---|---|---|
+| 拟递交日期 | `applicationDate` | 全部 13 条永住路径（`jp.pr.*`）、全部 10 条帰化路径（`jp.nat.*`）、普通再入国新申请（`jp.reentry.ordinary` 且 `!ordinaryFilingDays(confirmed, trip)?.held`）、難民旅行証明書（`jp.reentry.refugee-travel-document`，按收件日期核对 `jp.reentry.travel-fee`） | みなし再入国（`jp.reentry.deemed`）、已生效的普通再入国许可（`jp.reentry.ordinary` 且 `ordinaryFilingDays(confirmed, trip)?.held === true`） | `jp.result.hypotheticalFiling` 仅挂在左列实际使用拟递交日的路径摘要上；不使用该字段的路径不挂说明，其余输入未变时 `diff.changed` 为 `false` |
+| 使用普通再入国許可的返日日期 | `returns.ordinary` | `jp.reentry.ordinary` | `jp.pr.*`、`jp.nat.*`、`jp.reentry.deemed`、`jp.reentry.refugee-travel-document` | `jp.result.hypotheticalReturn` 仅在 `pathway.id === 'jp.reentry.ordinary'` 且该路线发生假设返日比较时挂载 |
+| 使用みなし再入国許可的返日日期 | `returns.deemed` | `jp.reentry.deemed` | `jp.pr.*`、`jp.nat.*`、`jp.reentry.ordinary`、`jp.reentry.refugee-travel-document` | `jp.result.hypotheticalReturn` 仅在 `pathway.id === 'jp.reentry.deemed'` 且该路线发生假设返日比较时挂载 |
+| 持難民旅行証明書的返日日期 | `returns['refugee-travel-document']` | `jp.reentry.refugee-travel-document` | `jp.pr.*`、`jp.nat.*`、`jp.reentry.ordinary`、`jp.reentry.deemed` | `jp.result.hypotheticalReturn` 仅在 `pathway.id === 'jp.reentry.refugee-travel-document'` 且该路线发生假设返日比较时挂载 |
+| 假设在留期间没有出境记录 | `noTrips` | 已选的永住路径（`jp.pr.*`）与帰化路径（`jp.nat.*`） | 三条再入国路径（`jp.reentry.*` 仍保留匹配的共同历史作为该次出境的再入国证据） | 时间线引擎仅在 `jp.pr.*` 与 `jp.nat.*` 的摘要中输出无出境记录表述，不改动任何 `jp.reentry.*` 摘要 |
+| 入管已认可永住所需的日语能力 | `prJapaneseB1` | 已选的永住路径（`jp.pr.*` 的 `jp.pr.japanese-language`） | `jp.nat.*`、`jp.reentry.*` | 仅修改 `permanentResidence.evidence.japaneseB1Confirmed`，只影响 `jp.pr.*` |
+| 申请人年收入（日元） | `prIncome` | 已选的永住路径（`jp.pr.*` 的 `jp.pr.independent-livelihood`、`jp.pr.household-income` 及高度人材/J-Skip 收入回退） | `jp.nat.*`、`jp.reentry.*` | 仅修改 `permanentResidence.evidence.applicantAnnualIncomeYen`，只影响 `jp.pr.*` |
+| 入管已确认世带收入符合要求 | `prHousehold` | 已选的永住路径（`jp.pr.*` 的 `jp.pr.household-income`） | `jp.nat.*`、`jp.reentry.*` | 仅修改 `permanentResidence.evidence.householdIncomeConfirmed`，只影响 `jp.pr.*` |
+| 法务局已认可帰化所需的日语能力 | `natJapanese` | 已选的帰化路径（`jp.nat.*` 的 `jp.nat.japanese-language`） | `jp.pr.*`、`jp.reentry.*` | 仅修改 `naturalisation.evidence.japaneseLanguage.authorityConfirmed`，只影响 `jp.nat.*` |
+| 已完成法务局面谈及适用评估 | `interview` | 已选的帰化路径（`jp.nat.*` 的 `jp.nat.interview-and-assessment`） | `jp.pr.*`、`jp.reentry.*` | 仅修改 `naturalisation.evidence.requiredInterviewAndAssessmentComplete`，只影响 `jp.nat.*` |
+| 已确认帰化生计条件 | `natLivelihood` | 已选的帰化路径（`jp.nat.*` 的 `jp.nat.livelihood`） | `jp.pr.*`、`jp.reentry.*` | 仅修改 `naturalisation.evidence.livelihoodConfirmed`，只影响 `jp.nat.*` |
+
+- 在 `apps/web/test/japan-questionnaire.test.tsx` 新增中英双语回归用例 `changing only the proposed filing date leaves a deemed-only comparison and copied share unchanged (%s)`：只选みなし再入国，模拟日 `2026-11-24`，出境日 `2026-12-04`，在对比页仅把拟递交日改为 `2026-11-20`，验证对比页显示「与当前情景相同」/ “Unchanged from the current scenario” 且不含假设递交日说明，复制分享链接回读后的结果对象与修改前严格相等。
+- 在 `apps/web/test/japan.test.tsx` 的已生效普通许可回归 `sharing a later filing date keeps the issued permit valid for the planned November trip` 中补充断言：仅修改拟递交日时对比页显示「与当前情景相同」，且对比页与分享回读均不出现假设递交日说明。
+
+### 2. 怎么验证的
+
+对照基线 `033d3ec7`，在 `2026-11-24` 回放本轮审核复现与历轮日本回归：
+
+| 场景与操作 | 基线 `033d3ec7` | 修正后 |
+|---|---|---|
+| 只选みなし再入国，模拟日 `2026-11-24`、出境日 `2026-12-04`，对比页只把拟递交日改为 `2026-11-20` | 对比摘要与复制分享回读都显示「本次评估假设于 2026-11-20 递交。」，`diff.changed` 为 `true`，不显示「与当前情景相同」 | 对比摘要与分享回读均不含假设递交日说明，完整路径结果与原情景严格一致，对比页显示「与当前情景相同」 |
+| 已生效普通再入国许可（`effectiveOn: 2026-11-01`、模拟日 `2026-11-24`），对比页只把拟递交日改为 `2026-11-27` | 对比摘要与分享回读附加「本次评估假设于 2026-11-27 递交。」，不显示「与当前情景相同」 | 对比摘要与分享回读均不附加假设递交日说明，对比页显示「与当前情景相同」 |
+| 一般永住、帰化、普通再入国新申请及難民旅行証明書在对比页修改拟递交日 | 对比摘要与分享回读显示假设递交日说明 | 与 `033d3ec7` 一致 |
+
+回放全部日本引擎与网页回归（`packages/engine/test/japan.test.ts`、`packages/engine/test/japan-full.test.ts` 共 277 项；`apps/web/test/japan.test.tsx`、`apps/web/test/japan-questionnaire.test.tsx` 共 184 项，含第 1–25 轮全部复现用例），全部通过；除本轮修正的「不使用拟递交日的路径不再附加假设递交日说明并保持与当前情景相同」外，历轮已覆盖的结论与 `033d3ec7` 完全一致。英国页面与组件未修改，英国全部回归测试保持通过。
+
+设置 `VITEST_MAX_WORKERS=2` 后运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码为 0。全仓 **6,819 项单测通过，1 项既有测试跳过**（`error-report` 2、`policy-data` 23、`engine` 4,606、`game` 1,348、`web` 840；三包 `policy-data` + `engine` + `web` 合计 5,469 项通过、1 项跳过）。Next 静态构建生成 32 个页面，`git diff --check` 退出码为 0。
+
+### 3. 没做或没验证的
+
+- 按要求未执行 `git commit`、`git push`，未运行 Playwright。
+- **已知边界**：日本三个场景页（`/japan/result`、`/japan/simulate`、`/japan/whatif`）的「跳到主要内容」采用 `<button type="button">` 以避免在 React 接管前触发 `#main` 锚点导航冲掉 URL 场景片段；因此在静态 HTML 已渲染但 React 尚未完成接管（或禁用脚本）期间，按回车会保留场景 URL 片段，但无法把焦点移到 `#main` 正文，聚焦正文从 React 接管后生效。按本轮要求记录为已知边界，不做改动。
+
+### 4. 发现与建议
+
+无范围外新增问题。

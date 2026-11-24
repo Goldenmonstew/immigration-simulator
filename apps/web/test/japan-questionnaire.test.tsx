@@ -1671,6 +1671,46 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test.each(['zh-CN', 'en'] as const)(
+  'changing only the proposed filing date leaves a deemed-only comparison and copied share unchanged (%s)',
+  async (locale) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-24T12:00:00Z'));
+    const draft: JapanDraft = {
+      ...jp.createDraft(),
+      completed: true,
+      simulationDate: '2026-11-24',
+      reentry: [{ route: 'deemed', departureOn: '2026-12-04' }],
+    };
+    const before = readPageResult(jp, locale, draft).result!.columns[0]
+      .pathways[0];
+    const knobs = {
+      ...jp.whatif.initial(draft),
+      applicationDate: '2026-11-20',
+    };
+    const filing = t('jp.result.hypotheticalFiling', locale).replace(
+      '{date}',
+      '2026-11-20',
+    );
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <WhatIfView
+          country={{ ...jp, whatif: { ...jp.whatif, initial: () => knobs } }}
+          draft={draft}
+        />
+      </LocaleContext>,
+    );
+    expect(html).toContain(t('whatif.unchanged', locale));
+    expect(html).not.toContain(filing);
+    const compared = jp.whatif.apply(draft, knobs);
+    const shared = readPageResult(jp, locale, await copyJapanShare(compared));
+    expect(shared.shared).toBe(true);
+    const after = shared.result!.columns[0].pathways[0];
+    expect(after.summary).not.toContain(filing);
+    expect(after).toEqual(before);
+  },
+);
+
 test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
   'the %s return assumption in a share preserves an actual landing',
   async (route) => {
