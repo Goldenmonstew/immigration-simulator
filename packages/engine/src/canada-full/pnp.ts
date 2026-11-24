@@ -29,6 +29,7 @@ export interface PnpAnswers {
   capitalInActiveBusinessInNominatingProvince?: boolean;
   investmentExceptionDocumented?: boolean;
   nominationIssued?: IsoDate;
+  completeNominationApplicationReceived?: IsoDate;
   nominationExpires?: IsoDate;
   federalFiled?: IsoDate;
   viaPrPortal?: boolean;

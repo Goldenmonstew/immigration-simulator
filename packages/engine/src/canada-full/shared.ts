@@ -1,12 +1,20 @@
-import type { SourceRef } from '@uk-immigration/policy-data';
+import {
+  canadaFull2026_11 as ca,
+  type SourceRef,
+} from '@uk-immigration/policy-data';
 import type { CaPathway, CaRequest } from '../canada';
 import type { CountryCheck } from '../country-result';
+import { fullYears } from '../dates';
 import type { Lang } from '../rule';
 import type { IsoDate } from '../types';
 import type { AtlanticAnswers } from './atlantic';
 import type { ExpressAnswers } from './express';
 import type { FamilyAnswers } from './family';
-import type { FederalAnswers, FederalApplication } from './federal';
+import type {
+  FederalAnswers,
+  FederalApplication,
+  FederalMember,
+} from './federal';
 import type { CaFullPathwayId } from './index';
 import type { PnpAnswers } from './pnp';
 import type { QuebecAnswers } from './quebec';
@@ -38,7 +46,7 @@ interface FilingDates {
   federal?: IsoDate;
   provincial?: IsoDate;
   employer?: IsoDate;
-  completeFamilyApplication?: IsoDate;
+  childAgeLockIn?: IsoDate;
   firstCardDetails?: IsoDate;
   citizenshipSigning?: IsoDate;
 }
@@ -103,6 +111,18 @@ export function filingDatesForRoute(
       dates.find((date) => date !== undefined)
     );
   }
+  function completeFederalReceipt(
+    federal: IsoDate | undefined,
+    confirmed?: IsoDate,
+  ) {
+    return receivedBy(
+      confirmed ??
+        (application && completePrApplication(application)
+          ? federal
+          : undefined),
+      req.simulationDate,
+    );
+  }
   const eeReceipt =
     req.express?.invitation?.program === id
       ? req.express.applicationDate
@@ -110,8 +130,10 @@ export function filingDatesForRoute(
   switch (id) {
     case 'CA-EE-FSW':
     case 'CA-EE-CEC':
-    case 'CA-EE-FST':
-      return { federal: federalDate(eeReceipt) };
+    case 'CA-EE-FST': {
+      const federal = federalDate(eeReceipt);
+      return { federal, childAgeLockIn: completeFederalReceipt(federal) };
+    }
     case 'CA-PNP':
       return {
         federal: federalDate(
@@ -120,28 +142,85 @@ export function filingDatesForRoute(
         ),
         provincial: req.pnp?.ontario?.filed,
         employer: req.pnp?.ontario?.employerFiled,
+        childAgeLockIn: receivedBy(
+          req.pnp?.completeNominationApplicationReceived,
+          req.simulationDate,
+        ),
       };
     case 'CA-AIP':
-      return { federal: federalDate(req.atlantic?.applicationDate) };
+      return {
+        federal: federalDate(req.atlantic?.applicationDate),
+        childAgeLockIn: receivedBy(
+          req.atlantic?.completeEndorsementApplicationReceived,
+          req.simulationDate,
+        ),
+      };
     case 'CA-QC-PSTQ':
       return {
         federal: federalDate(req.quebec?.federalReceived),
         provincial: req.quebec?.filed,
+        childAgeLockIn: receivedBy(
+          req.quebec?.completeSelectionApplicationReceived,
+          req.simulationDate,
+        ),
       };
     case 'CA-FAMILY': {
       const complete = req.family?.completeApplicationReceived;
       const federal = federalDate(req.family?.filingDate, complete);
       return {
         federal,
-        completeFamilyApplication:
-          complete ??
-          (application && completePrApplication(application)
-            ? federal
-            : undefined),
+        childAgeLockIn: completeFederalReceipt(federal, complete),
         provincial: req.family?.province?.submissionDate,
       };
     }
   }
+}
+
+export interface DependentChildAnswers {
+  /** From the lock-in date through processing as of the simulation date. */
+  unmarriedAndUnpartnered?: boolean;
+  dependentBeforeCutoffAndContinuing?: boolean;
+  unableToSupportSelfDueToCondition?: boolean;
+}
+
+export function dependentChildEligible(
+  birth: IsoDate | undefined,
+  lockIn: IsoDate | undefined,
+  child: DependentChildAnswers | undefined,
+) {
+  if (!birth || !lockIn) return undefined;
+  return fullYears(birth, lockIn) < ca.values.familyChildAge.value
+    ? child?.unmarriedAndUnpartnered
+    : all(
+        child?.dependentBeforeCutoffAndContinuing,
+        child?.unableToSupportSelfDueToCondition,
+      );
+}
+
+export function accompanyingChildrenEligible(
+  members: FederalMember[] | undefined,
+  lockIn: IsoDate | undefined,
+  soleChildAnswers?: DependentChildAnswers,
+) {
+  if (!members) return undefined;
+  const children = members.filter(
+    (m) =>
+      (m.relationship === 'child' || m.relationship === 'grandchild') &&
+      m.accompanying !== false,
+  );
+  return all(
+    ...children.map((member) => {
+      // The original family questionnaire has one child answer, with no member ID.
+      const answers =
+        children.length === 1 ? { ...soleChildAnswers, ...member } : member;
+      const eligible = dependentChildEligible(
+        member.dateOfBirth,
+        lockIn,
+        answers,
+      );
+      return member.accompanying || eligible === true ? eligible : undefined;
+    }),
+  );
 }
 
 export interface Item extends CountryCheck {

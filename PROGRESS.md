@@ -481,3 +481,9 @@
 | 567 | 任务 85 第五轮审核修正（review85-5）。逐项核对十条路径的收件期限和文书效期。EE、安省、魁省、首卡及担保批次以本阶段实际收件为据；区分按期收件后自然到期、迟交和撤销，覆盖提名、CSQ、AIP 背书及邀请。补官方来源与单项、路径回归。 | packages/engine/src/canada-full/{shared,express,pnp,quebec,atlantic,family,residence}.ts、packages/engine/test/canada-*-full.test.ts、policy-sources/、docs/{SOURCES,pending-details}.md、docs/tasks/reports/85-ca-rules.md |
 | 568 | 任务 85 第六轮审核修正（review85-6）。七条初次 PR 路径的 R26 按实际联邦收件日核警证效期，按每份警证在本申请的回执确认补件。R29 从邀请签发次日起算备用期限。新增家庭担保、AIP、FSW 的单项与整条路径回归，补官方来源及 PD-245。 | packages/engine/src/canada-full/{federal-documents,federal,express}.ts、packages/engine/test/canada-{federal,family,atlantic,express}-full.test.ts、packages/policy-data/src/parameters/canada-2026-11.ts、policy-sources/、docs/{SOURCES,pending-details}.md、docs/tasks/reports/85-ca-rules.md |
 | 569 | 任务 85 第七轮审核修正（review85-7）。七条初次 PR 路径的 R26 按各自联邦收件日核现居国警证的六个月窗口及签发机关效期，原居国核停留覆盖。索证信流程按本申请说明、待补及 IRCC 回执判定。补 FSW 单项与整条路径回归、跨路径测试、SRC-266j/k 和 PD-245。 | packages/engine/src/canada-full/{federal-documents,federal}.ts、packages/engine/test/canada-{express,federal}-full.test.ts、packages/policy-data/src/parameters/canada-2026-11.ts、policy-sources/、docs/{SOURCES,pending-details}.md、docs/tasks/reports/85-ca-rules.md |
+
+## 2026-11-24
+
+| # | 改动描述 | 涉及文件 |
+|---|---|---|
+| 570 | 任务 85 第八轮审核修正（review85-8）。R26 按 IRCC 收到该份补件的日期核对现居国警证的签发窗口和机关效期。经济类 R25、家庭担保 R74 按各项目锁龄日和审理期间的逐人事实核对随行子女。补公开入口回归，报告列出十条路径和 R36 已知风险。 | packages/engine/src/canada-full/{atlantic,family,federal-documents,federal,pnp,quebec,shared}.ts、packages/engine/test/canada-{atlantic,family,federal,quebec}-full.test.ts、docs/pending-details.md、docs/tasks/reports/85-ca-rules.md |

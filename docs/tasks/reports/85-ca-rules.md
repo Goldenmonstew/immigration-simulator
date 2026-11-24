@@ -445,3 +445,59 @@ FSW、CEC、FST、PNP（含 Base 与 Enhanced）、魁省技术移民、AIP 和�
 ## 风险
 
 FSW 申请人获邀时恰好 67 分，若仅因递交前生日降到 66 分，R36 仍可能输出 `NOT_MET`。选拔分及年龄分依据 SRC-267a “Selection factors” 和 SRC-261b，IRPR ss.76(1)(a)(iv)、81。IRCC 公共政策 “Conditions” 允许获授权官员在其他条件满足时给予豁免，本轮仅记录这项风险。[IRCC 获邀后年龄豁免政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)
+
+## 第八轮审核修正（review85-8）
+
+### 1. 做了什么
+
+建议提交 `Fix: 修正补交警证效期与随行子女资格（review85-8）`。
+
+**R26** 以 IRCC 收到该份现居国警证的日期核对两项效期。随申请递交时用本路径的联邦收件日，应要求补交时用同一申请、同一份警证的补件收件日。签发超过六个日历月或证上有效末日已过，均为 `NOT_MET`。迪拜警证未注明末日，且收件恰逢签发满三个月当天，仍为 `UNKNOWN`（PD-245）。六个月窗口见 SRC-266g “How long your police certificate is valid”，迪拜期限见 SRC-266k 服务说明首段末句。AIP 补件依据 SRC-279b IMM 0155 第 4 页第 19 项及 IRCC AIP 指引 “Police certificates and clearances”。通用指引把六个月写在申请提交日，本轮按任务约定将同一窗口用于首次补交该份证书的收件日。[IRCC 警证效期](https://www.canada.ca/en/immigration-refugees-citizenship/services/application/medical-police/police-certificates/when.html) · [IRCC AIP 申请指引](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/atlantic-immigration/how-to-immigrate/permanent-residence.html)
+
+**随行子女**由六条经济类路径的 R25 和家庭担保的 R74 逐人核对。锁龄日未满 22 岁，须自该日起持续无配偶或 common-law partner。审理期间结婚或形成 common-law 关系，即使已如实申报，该子女也失去随行资格。锁龄日已满 22 岁者依另一法定条件核对，须自满 22 岁前持续经济依赖父母，且因身心状况无法经济自立。门槛沿用 `familyChildAge`。依据 SRC-261b，IRPR s.1(3)、s.2 “dependent child” (a)、(b)(i)–(ii)、s.25.1(1)、(3)–(5)，以及 SRC-274c Guide 5289 “Definitions of dependent children”。[IRPR 第 2 条](https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/section-2.html) · [IRCC 家庭担保指南](https://www.canada.ca/en/immigration-refugees-citizenship/services/application/application-forms-guides/guide-5289-sponsor-your-spouse-common-law-partner-conjugal-partner-dependent-child-complete-guide.html)
+
+**十条路径排查清单**
+
+七条初次 PR 路径的 R20 核家属及变更申报，R21–R26 核适用成员的准入、体检、警证及生物识别，R27/R28 按家庭组成估费。申报变更或通过检查后，当前申请仍须逐人满足下表所列的子女资格条件。各路径的法定锁龄时点见 SRC-261b，IRPR s.25.1 对应款及 IRCC 的分项目说明。[IRPR 第 25.1 条](https://laws-lois.justice.gc.ca/eng/regulations/SOR-2002-227/section-25.1.html) · [IRCC 年龄锁定指引及配偶担保、省提名示例](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/age-limit-requirements-dependent-children.html)
+
+| 路径 | 随行子女资格与锁龄日 | 核对过的其他家属事项 |
+|---|---|---|
+| `CA-EE-FSW` | R25，本项目完整联邦 PR 申请收件日 | R36 的配偶及亲属适应性分数、R38 的家庭人数与资金 |
+| `CA-EE-CEC` | R25，本项目完整联邦 PR 申请收件日 | 项目经验和语言条件针对主申请人 |
+| `CA-EE-FST` | R25，本项目完整联邦 PR 申请收件日 | R38 的家庭人数与资金 |
+| `CA-PNP` | R25，省或地区收到完整提名申请之日，Base、Enhanced 相同 | R45–R47 的省提名、联邦递交及安省邀请，R49 的家属持股 |
+| `CA-QC-PSTQ` | R25，魁省收到完整永久甄选申请之日 | R62 家庭资金、R63 随员价值观证明、R64 配偶法语、R69 各随员 CSQ、R70 省费 |
+| `CA-AIP` | R25，省收到完整 endorsement 申请之日 | R55 背书、R56 申请人及伴侣的雇主持股、R59 家庭资金 |
+| `CA-FAMILY` | R74，完整联邦申请收件日。核直接担保子女，也核配偶或伴侣所带的随行子女，包括境内和魁省担保 | R71–R73、R75 的担保人、伴侣与申请类别，R76–R80 的联邦及魁省承诺、监护、收入、批次及费用 |
+| `CA-RESIDENCY` | 已取得 PR，按本人居住义务评估 | R03 可按证据计入境外陪同家属日数 |
+| `CA-CITIZENSHIP` | 个人普通入籍，无初次 PR 随行子女资格项 | R06 核签署和未成年代办，R08 核本人可计居住日及例外 |
+| `CA-CIT-MINOR-52` | 未成年人本人申请入籍，无初次 PR 随行子女资格项 | R06 核父母身份、亲子关系与签署 |
+
+随行子女及孙辈的资料取自 `federal.members`。伴侣担保只有一名随行子女时，也支持审核复现使用的 `family.child.unmarriedAndUnpartnered`。有多名子女时分别读取各人的答案。缺适用阶段的完整收件日、仅有未来日期或缺决定资格的个人资料时返回 `UNKNOWN`（PD-245）。PNP、AIP 和魁省技术移民分别用 `completeNominationApplicationReceived`、`completeEndorsementApplicationReceived` 和 `completeSelectionApplicationReceived` 记录完整申请的收件日期。
+
+### 2. 怎么验证的
+
+在基线 `4b8b4dd` 上先运行新增的两组公开入口回归，观察到 5 个失败用例。修正后，每种情形均通过 `evaluateCanadaFull` 断言单项及整条路径。
+
+| 公开入口输入 | 单项与整条路径的实际结果 |
+|---|---|
+| AIP 于 6 月 10 日递交。现居迪拜的同一份警证于 7 月 1 日签发，证上末日为 10 月 1 日 | IRCC 于 9 月 20 日或 10 月 1 日收到时，R26 与 AIP 均为 `MET`。10 月 20 日才收到，两者均为 `NOT_MET` |
+| 同一份迪拜警证，未注明证上末日 | 10 月 1 日收到，两者均为 `UNKNOWN`。10 月 20 日收到，两者均为 `NOT_MET` |
+| 现居国警证于 4 月 20 日签发，证上末日为次年 4 月 20 日 | 10 月 20 日收到，两者均为 `MET`。10 月 21 日收到，两者均为 `NOT_MET` |
+| 魁省外配偶担保于 10 月 20 日完整收件。随行子女出生于 2005 年 1 月 1 日 | 11 月 5 日仍未婚且无 common-law partner，R74 与家庭担保均为 `MET`。11 月 23 日已结婚且已申报，R20 仍为 `MET`，R74 与家庭担保均为 `NOT_MET`。婚姻及伴侣状态缺失时，后两者均为 `UNKNOWN` |
+
+另覆盖多名随行子女答案不同、锁龄后过生日、各经济路径取各自阶段的收件日，以及达到年龄上限后的持续依赖条件。`pnpm --filter @uk-immigration/engine test test/canada --reporter=dot` 通过 8 个文件、221 项测试，包含原时间引擎回归。
+
+全仓验收 `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 首次运行退出码为 0。5,446 项测试通过，1 项既有测试跳过，构建生成 27 个静态页面。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+按任务要求，改动保留在工作区，未提交或推送。与 `4b8b4dd` 比对，时间引擎 `evaluateCanada`、原时间测试和加拿大页面均无差异。本轮没有运行浏览器 E2E 或部署。
+
+### 4. 发现与建议
+
+问卷接入完整版时，可在每名随行子女名下询问自锁龄日起是否曾结婚或形成 common-law 关系，以便家庭成员分别作答。
+
+## 风险
+
+R36 仍可能将 FSW 获邀时恰好 67 分、递交前仅因生日降至 66 分的个案判为 `NOT_MET`。分数依据 SRC-267a “Selection factors” 及 SRC-261b，IRPR ss.76(1)(a)(iv)、81。IRCC 公共政策 “Conditions” 允许获授权官员对符合条件的个案给予豁免。本轮按审核意见记录该风险，R36 保持原判定。[IRCC 获邀后年龄豁免政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)

@@ -203,11 +203,6 @@ export function policeDocuments(
           supplementReceivedOn > asOf
         )
           return undefined;
-        // IRCC may receive the requested certificate directly from the issuer.
-        if (!certificateIssued)
-          return requestLetterStage || stay.issuer === 'hong-kong-police'
-            ? true
-            : undefined;
       } else {
         if (
           requestLetterStage ||
@@ -223,20 +218,34 @@ export function policeDocuments(
           return stay.missing ? false : checklist;
         }
       }
+      const receivedOn = supplementReceivedOn ?? filing;
+      if (
+        stay.currentCountry &&
+        stay.certificateExpires &&
+        receivedOn > stay.certificateExpires
+      )
+        return false;
+      // IRCC may receive the requested certificate directly from the issuer.
+      if (!certificateIssued)
+        return requestLetterStage || stay.issuer === 'hong-kong-police'
+          ? true
+          : undefined;
       // 'until' is the first day no longer staying in that country.
       if (!stay.currentCountry) return certificateIssued >= end;
       if (
-        certificateIssued < addMonths(filing, -police.currentCertificateMonths)
+        certificateIssued <
+        addMonths(receivedOn, -police.currentCertificateMonths)
       )
         return false;
-      if (stay.certificateExpires) return filing <= stay.certificateExpires;
-      if (stay.issuer === 'dubai-police') {
+      if (!stay.certificateExpires && stay.issuer === 'dubai-police') {
         const anniversary = addMonths(
           certificateIssued,
           police.dubaiCertificateMonths,
         );
         // The issuer specifies a duration, without defining the last valid day (PD-245).
-        return filing === anniversary ? undefined : filing < anniversary;
+        return receivedOn === anniversary
+          ? undefined
+          : receivedOn < anniversary;
       }
       return true;
     }),

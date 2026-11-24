@@ -2,12 +2,15 @@ import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addMonths, addYears, fullYears } from '../dates';
 import type { IsoDate } from '../types';
 import {
+  accompanyingChildrenEligible,
   all,
   any,
+  dependentChildEligible,
   filingDatesForRoute,
   receivedBy,
   ref,
   type Context,
+  type DependentChildAnswers,
   type Item,
 } from './shared';
 
@@ -59,11 +62,9 @@ export interface FamilyAnswers {
   partnershipSince?: IsoDate;
   legalOrPracticalBarriersConfirmed?: boolean;
   sponsoredOutsideCanada?: boolean;
-  child?: {
+  /** For the sponsored child, or for a partner's sole accompanying child. */
+  child?: DependentChildAnswers & {
     parentageConfirmed?: boolean;
-    unmarriedAndUnpartnered?: boolean;
-    dependentBeforeCutoffAndContinuing?: boolean;
-    unableToSupportSelfDueToCondition?: boolean;
     priorDisclosureExamOrExceptionConfirmed?: boolean;
     custodyAndConsentReady?: boolean;
   };
@@ -213,20 +214,7 @@ export function familyChecks({ req, L, check }: Context): Item[] {
               f.sponsoredOutsideCanada,
             )
           : undefined;
-  const childAge =
-    req.dateOfBirth && filing.completeFamilyApplication
-      ? fullYears(req.dateOfBirth, filing.completeFamilyApplication)
-      : undefined;
   const child = f.child;
-  const childDependency =
-    childAge === undefined
-      ? undefined
-      : childAge < v.familyChildAge.value
-        ? child?.unmarriedAndUnpartnered
-        : all(
-            child?.dependentBeforeCutoffAndContinuing,
-            child?.unableToSupportSelfDueToCondition,
-          );
   const isFamilyClass =
     f.applicationClass === undefined
       ? undefined
@@ -466,16 +454,25 @@ export function familyChecks({ req, L, check }: Context): Item[] {
         ? undefined
         : all(
             child?.priorDisclosureExamOrExceptionConfirmed,
+            accompanyingChildrenEligible(
+              req.federal?.members,
+              filing.childAgeLockIn,
+              partner ? child : undefined,
+            ),
             partner ||
               all(
-                childDependency,
+                dependentChildEligible(
+                  req.dateOfBirth ?? req.federal?.principal?.dateOfBirth,
+                  filing.childAgeLockIn,
+                  child,
+                ),
                 child?.parentageConfirmed,
                 child?.custodyAndConsentReady,
               ),
           ),
       L(
-        `所有申请人均核先前申报/移民检查及适用例外；子女以完整申请收件日锁龄，未满 ${v.familyChildAge.value} 岁须无配偶/同居伴侣，达到该年龄须证明持续依赖及身心状况导致无法自立。`,
-        `Check prior declaration, examination or an accepted exception for every sponsored person. Child age locks at complete receipt. Under ${v.familyChildAge.value} check unmarried and unpartnered status; otherwise verify continued dependency due to a physical or mental condition.`,
+        `核对先前申报、移民检查及适用例外。直接担保和随行的子女均在完整申请收件日锁龄。当日未满 ${v.familyChildAge.value} 岁者，审理期间须持续无配偶或同居伴侣。已达该年龄者，须自该年龄前持续经济依赖父母，且因身心状况无法自立。`,
+        `Check prior declaration, examination and applicable exceptions. Age locks at complete receipt for both directly sponsored and accompanying children. A child under ${v.familyChildAge.value} on that date must remain unmarried and without a common-law partner throughout processing. Older children must have depended on parental financial support since before that age and remain unable to support themselves due to a physical or mental condition.`,
       ),
       [
         ref('SRC-261', 'IRPR ss.2, 25.1, 117(9)–(11), 125'),

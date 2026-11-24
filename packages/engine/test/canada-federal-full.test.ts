@@ -263,6 +263,98 @@ describe('initial PR federal checks', () => {
       }).pendingDetails,
     ).toContain('PD-245');
   });
+  test.each([
+    ['CA-EE-FSW', {}, '2026-09-20'],
+    ['CA-EE-CEC', {}, '2026-09-20'],
+    ['CA-EE-FST', {}, '2026-09-20'],
+    [
+      'CA-PNP',
+      {
+        pnp: {
+          mode: 'base',
+          completeNominationApplicationReceived: '2026-09-20',
+        },
+      },
+      '2026-10-20',
+    ],
+    [
+      'CA-PNP',
+      {
+        pnp: {
+          mode: 'enhanced',
+          completeNominationApplicationReceived: '2026-09-20',
+        },
+      },
+      '2026-10-20',
+    ],
+    [
+      'CA-QC-PSTQ',
+      { quebec: { completeSelectionApplicationReceived: '2026-09-20' } },
+      '2026-10-20',
+    ],
+    [
+      'CA-AIP',
+      { atlantic: { completeEndorsementApplicationReceived: '2026-09-20' } },
+      '2026-10-20',
+    ],
+  ] as const)(
+    'R25 on %s uses the child’s age at complete receipt and continuing relationship status (%j)',
+    (id, stage, filedOn) => {
+      for (const [unmarriedAndUnpartnered, expected] of [
+        [true, 'MET'],
+        [false, 'NOT_MET'],
+        [undefined, 'UNKNOWN'],
+      ] as const) {
+        const member: FederalMember = {
+          ...person,
+          relationship: 'child',
+          accompanying: true,
+          otherAdmissibility: 'clear',
+          dateOfBirth: '2004-10-01',
+          unmarriedAndUnpartnered,
+          dependentBeforeCutoffAndContinuing: false,
+        };
+        const route = result(id, {
+          ...stage,
+          federal: {
+            ...federal,
+            applications: { [id]: { ...filed, filedOn } },
+            members: [member],
+          },
+        });
+        expect(
+          route.checks.find((check) => check.id === 'CA-R25')?.status,
+        ).toBe(expected);
+        if (expected === 'NOT_MET') expect(route.status).toBe('NOT_MET');
+      }
+    },
+  );
+
+  test('R25 requires the complete provincial receipt and applies the older-child criteria at lock-in', () => {
+    const member: FederalMember = {
+      relationship: 'child',
+      accompanying: true,
+      otherAdmissibility: 'clear',
+      dateOfBirth: '2004-10-20',
+      unmarriedAndUnpartnered: false,
+      dependentBeforeCutoffAndContinuing: true,
+      unableToSupportSelfDueToCondition: true,
+    };
+    const answers = { members: [member], applications: { 'CA-PNP': filed } };
+    for (const [completeNominationApplicationReceived, expected] of [
+      [undefined, 'UNKNOWN'],
+      ['2026-11-24', 'UNKNOWN'],
+      ['2026-10-19', 'NOT_MET'],
+      ['2026-10-20', 'MET'],
+    ] as const) {
+      expect(
+        c(25, answers, 'CA-PNP', {
+          pnp: { completeNominationApplicationReceived },
+        }).status,
+      ).toBe(expected);
+    }
+  });
+
   test('R25 checks both the filing date and the simulation date against the misrepresentation bar', () => {
     const status = (filedOn: string, simulationDate = sim) =>
       c(

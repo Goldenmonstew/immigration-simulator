@@ -27,6 +27,7 @@ import {
 type Province = 'NS' | 'NB' | 'PE' | 'NL' | 'other';
 export interface AtlanticAnswers {
   applicationDate?: string;
+  completeEndorsementApplicationReceived?: string;
   destination?: Province;
   jobProvince?: Province;
   settlementPlanGivenToEmployer?: boolean;

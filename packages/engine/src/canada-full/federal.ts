@@ -1,6 +1,7 @@
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { addYears, fullYears } from '../dates';
 import {
+  accompanyingChildrenEligible,
   all,
   any,
   completePrApplication,
@@ -8,6 +9,7 @@ import {
   receivedBy,
   ref,
   type Context,
+  type DependentChildAnswers,
   type Item,
 } from './shared';
 import { biometrics, medicalExam, policeDocuments } from './federal-documents';
@@ -46,7 +48,7 @@ export interface FederalPerson extends DocumentAnswers {
   exam?: MedicalExam;
 }
 
-export interface FederalMember extends FederalPerson {
+export interface FederalMember extends FederalPerson, DependentChildAnswers {
   relationship: 'spouse' | 'common-law' | 'child' | 'grandchild';
   relationshipBrokenDown?: boolean;
   custodyOrAuthorityUnderSection23?: boolean;
@@ -273,7 +275,7 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
         : id === 'CA-PNP' && !req.pnp?.mode
           ? 'unknown'
           : 'checklist';
-  const filed = filingDatesForRoute(req, id).federal;
+  const { federal: filed, childAgeLockIn } = filingDatesForRoute(req, id);
   const date = filed ?? req.simulationDate;
   const principalDob = (p: FederalPerson) =>
     p.dateOfBirth ?? (p === a.principal ? req.dateOfBirth : undefined);
@@ -443,15 +445,22 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
         misrepresentationCleared(a, filed, req.simulationDate),
         cleared(a.protectionAndCompliance),
         familyScope,
+        family || accompanyingChildrenEligible(a.members, childAgeLockIn),
       ),
       L(
         `分别核对非社会救助生计安排、保护身份和合规决定。虚报禁期自境外最终认定或境内遣返令执行日起 ${criminal.misrepresentationYears} 年。核对模拟日是否仍在禁期内，以及 PR 申请是否在禁期内递交。未随行家属按关系、监护及正式决定核对。`,
         `Check support without social assistance, protection and compliance decisions. The ${criminal.misrepresentationYears}-year misrepresentation bar runs from the final overseas finding or enforcement of an inland removal order. Check whether the bar applies on the simulation date and whether the PR application was filed during the bar. Review relationship and custody for non-accompanying family members.`,
-      ),
+      ) +
+        (family
+          ? ''
+          : L(
+              ' 随行子女以本项目完整申请的收件日锁龄。低于年龄上限者须持续无配偶或同居伴侣，已达上限者核对持续经济依赖及身心状况。',
+              ' For each accompanying child, use the age at complete receipt for the applicable program stage. Children under the age limit must remain unmarried and without a common-law partner. For older children, check continued financial dependency and the disabling condition.',
+            )),
       [
         ref(
           'SRC-261',
-          'IRPA ss.39–42, especially s.40(2)(a), (3); IRPR ss.23, 70(1)(e), 72(1), 125',
+          'IRPA ss.39–42, especially s.40(2)(a), (3); IRPR ss.1(3), 2 (dependent child), 23, 25.1(1), (3)–(5), 70(1)(e), 72(1), 125',
         ),
       ],
       ['PD-243', 'PD-245'],
@@ -475,8 +484,8 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
         ),
       ),
       L(
-        `本路径联邦收件时，现居国警证须在此前 ${ca.values.federalPolice.value.currentCertificateMonths} 个月内签发，且符合签发机关注明的效期。原居国警证可在到期后使用，须覆盖最后一次符合条件的停留。需要 IRCC 索证信时，随申请上传说明，等候发信及补件；香港警方直送的警证以 IRCC 对该份警证的收件回执确认。AIP 可先递交申请。另核本次 PR 生物识别。`,
-        `At federal receipt for this application, a current-country certificate must have been issued within the previous ${ca.values.federalPolice.value.currentCertificateMonths} months and must meet the issuer’s validity limit. An expired former-country certificate can qualify if it covers the last qualifying stay. Where IRCC requires a request letter, upload the explanation with the application and await the letter and certificate. For Hong Kong, confirm IRCC received the certificate from the police. AIP permits initial filing without all certificates. Check PR biometrics separately.`,
+        `现居国警证以 IRCC 收到该份证书的日期核对：随申请提交用本路径联邦收件日，补交用本路径的补件收件日。证书须在此前 ${ca.values.federalPolice.value.currentCertificateMonths} 个月内签发，且符合签发机关注明的效期。原居国警证可在到期后使用，须覆盖最后一次符合条件的停留。需要 IRCC 索证信时，随申请上传说明，等候发信及补件；香港警方直送的警证以 IRCC 对该份警证的收件回执确认。AIP 可先递交申请。另核本次 PR 生物识别。`,
+        `Use the date IRCC received the current-country certificate for this application, whether at initial filing or as a supplement. It must have been issued within the previous ${ca.values.federalPolice.value.currentCertificateMonths} months and must meet the issuer’s validity limit. An expired former-country certificate can qualify if it covers the last qualifying stay. Where IRCC requires a request letter, upload the explanation with the application and await the letter and certificate. For Hong Kong, confirm IRCC received the certificate from the police. AIP permits initial filing without all certificates. Check PR biometrics separately.`,
       ),
       [
         ref('SRC-261', 'IRPA ss.10.01, 16; IRPR Part 1, Division 2.1'),

@@ -73,6 +73,7 @@ export interface QuebecAnswers {
   invitationRevoked?: boolean;
   accepted?: IsoDate;
   filed?: IsoDate;
+  completeSelectionApplicationReceived?: IsoDate;
   invitationCriteriaProven?: boolean;
   sameInvitedOccupationAndStream?: boolean;
   hadRecognitionAtAcceptance?: boolean;

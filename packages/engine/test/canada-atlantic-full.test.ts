@@ -67,6 +67,56 @@ function rule(n: number, change: Partial<AtlanticAnswers> = {}) {
 }
 describe('Atlantic Immigration Program', () => {
   test.each([
+    ['dubai-police', '2026-07-01', '2026-10-01', '2026-09-20', 'MET'],
+    ['dubai-police', '2026-07-01', '2026-10-01', '2026-10-01', 'MET'],
+    ['dubai-police', '2026-07-01', '2026-10-01', '2026-10-20', 'NOT_MET'],
+    ['dubai-police', '2026-07-01', undefined, '2026-10-01', 'UNKNOWN'],
+    ['dubai-police', '2026-07-01', undefined, '2026-10-20', 'NOT_MET'],
+    [undefined, '2026-04-20', '2027-04-20', '2026-10-20', 'MET'],
+    [undefined, '2026-04-20', '2027-04-20', '2026-10-21', 'NOT_MET'],
+  ] as const)(
+    'R26 and AIP: %s current certificate issued %s, expires %s, supplement received %s → %s',
+    (
+      issuer,
+      certificateIssued,
+      certificateExpires,
+      supplementReceivedOn,
+      expected,
+    ) => {
+      const result = evaluateCanadaFull({
+        simulationDate: when,
+        atlantic: {
+          ...base,
+          applicationDate: '2026-06-10',
+          workHistory: [{ ...job, from: '2024-01-01', to: '2025-12-31' }],
+        },
+        federal: {
+          ...federal,
+          applications: { 'CA-AIP': { ...filed, filedOn: undefined } },
+          principal: {
+            ...person,
+            exam: { disposition: 'exempt' },
+            foreignStays: [
+              {
+                from: '2021-01-01',
+                currentCountry: true,
+                issuer,
+                certificateIssued,
+                certificateExpires,
+                supplementReceipts: { 'CA-AIP': supplementReceivedOn },
+              },
+            ],
+          },
+        },
+      }).columns[0].pathways.find((p) => p.id === 'CA-AIP')!;
+      expect(result.checks.find((c) => c.id === 'CA-R26')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    },
+  );
+
+  test.each([
     [undefined, undefined, true, 'UNKNOWN'],
     ['2026-06-09', undefined, false, 'MET'],
     ['2026-07-01', undefined, false, 'UNKNOWN'],

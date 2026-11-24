@@ -122,6 +122,7 @@ describe('Québec PSTQ selection and federal filing', () => {
           ...base,
           availableFunds: 10000,
           accompanyingMinorChildren: 1,
+          completeSelectionApplicationReceived: base.filed,
           principalCsqIssued: '2026-11-02',
           accompanyingCsqs: [
             { status, issued: '2026-11-02', expires: '2026-11-21' },
@@ -136,6 +137,7 @@ describe('Québec PSTQ selection and federal filing', () => {
             dateOfBirth: '2017-06-01',
             relationship: 'child',
             accompanying: true,
+            unmarriedAndUnpartnered: true,
             otherAdmissibility: 'clear',
             exam: {
               instructionOn: date,

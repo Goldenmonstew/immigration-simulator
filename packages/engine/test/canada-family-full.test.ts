@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { evaluateCanadaFull } from '../src';
 import type { FamilyAnswers } from '../src/canada-full/family';
+import type { FederalMember } from '../src/canada-full/federal';
 import { federal, filed, person } from './canada-federal-fixture';
 
 const base: FamilyAnswers = {
@@ -58,6 +59,7 @@ function inspect(id: string, changes: FamilyAnswers = {}, dob = '1990-11-23') {
     simulationDate: '2026-11-23',
     dateOfBirth: dob,
     locale: 'en',
+    federal: { members: [] },
     family: { ...base, ...changes },
   }).columns[0].pathways.find((p) => p.id === 'CA-FAMILY')!;
   return p.checks.find((c) => c.id === `CA-R${id}`)!;
@@ -67,6 +69,7 @@ function filedFamily(
   dateOfBirth = '1990-01-01',
   application: Partial<typeof filed> = {},
   simulationDate = '2026-11-23',
+  members: FederalMember[] = [],
 ) {
   return evaluateCanadaFull({
     simulationDate,
@@ -74,6 +77,7 @@ function filedFamily(
     family: { ...base, filingDate: undefined, ...family },
     federal: {
       ...federal,
+      members,
       principal: {
         ...person,
         dateOfBirth,
@@ -133,6 +137,60 @@ test('R73 counts cohabitation up to the family application receipt', () => {
     const result = filedFamily(partner, undefined, { filedOn });
     expect(result.checks.find((c) => c.id === 'CA-R24')?.status).toBe('MET');
     expect(result.checks.find((c) => c.id === 'CA-R73')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  }
+});
+
+test('R74 and spousal sponsorship check a child who marries during processing even after disclosure', () => {
+  const member: FederalMember = {
+    ...person,
+    relationship: 'child',
+    dateOfBirth: '2005-01-01',
+    accompanying: true,
+    otherAdmissibility: 'clear',
+    exam: { disposition: 'exempt' },
+  };
+  for (const [simulationDate, unmarriedAndUnpartnered, expected] of [
+    ['2026-11-05', true, 'MET'],
+    ['2026-11-23', false, 'NOT_MET'],
+    ['2026-11-23', undefined, 'UNKNOWN'],
+  ] as const) {
+    const result = filedFamily(
+      { child: { ...base.child, unmarriedAndUnpartnered } },
+      undefined,
+      { changesReported: true },
+      simulationDate,
+      [member],
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R20')?.status).toBe('MET');
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
+    expect(result.status).toBe(expected);
+  }
+});
+
+test('R74 evaluates each accompanying sibling from their own answers', () => {
+  const child: FederalMember = {
+    ...person,
+    relationship: 'child',
+    dateOfBirth: '2005-01-01',
+    accompanying: true,
+    unmarriedAndUnpartnered: true,
+    otherAdmissibility: 'clear',
+    exam: { disposition: 'exempt' },
+  };
+  for (const [unmarriedAndUnpartnered, expected] of [
+    [true, 'MET'],
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const) {
+    const result = filedFamily(
+      { child: { ...base.child, unmarriedAndUnpartnered: true } },
+      undefined,
+      undefined,
+      undefined,
+      [child, { ...child, dateOfBirth: '2006-01-01', unmarriedAndUnpartnered }],
+    );
+    expect(result.checks.find((c) => c.id === 'CA-R74')?.status).toBe(expected);
     expect(result.status).toBe(expected);
   }
 });
