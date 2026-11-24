@@ -168,10 +168,15 @@ export function reportedAgeAtLeast(
   return undefined;
 }
 
-export function currentFamilyPetitioner(request: UsFullRequest) {
+export function currentFamilyPetitioner(request: UsFullRequest, on: IsoDate) {
   const family = request.family;
   const naturalized = family?.petitionerNaturalizedOn;
-  if (naturalized && naturalized <= request.simulationDate) return 'citizen';
+  if (naturalized) {
+    if (naturalized <= on) return 'citizen';
+    return family?.petitionerAtFiling === 'lpr' || family?.petitioner === 'lpr'
+      ? 'lpr'
+      : undefined;
+  }
   return (
     family?.petitioner ??
     (family?.petitionerAtFiling === 'citizen' ? 'citizen' : undefined)
@@ -183,12 +188,13 @@ export function immediateRelative(
   category: AdjustmentCategory,
   receipt: IsoDate,
   facts: ReturnType<typeof preapprovedFacts>,
+  on = receipt,
 ): Answer {
   if (category === undefined || category === 'ambiguous') return undefined;
   if (category !== 'family') return category === 'immediate-relative';
   const { family, admission } = request;
   if (!family?.relationship) return undefined;
-  const petitioner = currentFamilyPetitioner(request);
+  const petitioner = currentFamilyPetitioner(request, on);
   if (petitioner === 'lpr') return false;
   if (family.relationship === 'spouse')
     return petitioner === 'citizen' || undefined;
@@ -231,12 +237,16 @@ export function immediateRelative(
   const adultAtFiling = petitionReceipt
     ? ageAtLeast(petitionReceipt)
     : undefined;
+  // The age reported at simulation can establish an earlier lock when the
+  // petitioner was already a citizen and the candidate receipt is later.
+  const knownCitizenOn =
+    on < request.simulationDate ? on : request.simulationDate;
   if (atFiling === 'lpr') {
     // An adult at the original receipt was not initially classified as F2A.
     if (adultAtFiling === true) return false;
     if (naturalized) {
       if (
-        naturalized > request.simulationDate ||
+        naturalized > on ||
         (petitionReceipt && naturalized < petitionReceipt)
       )
         return undefined;
@@ -247,19 +257,18 @@ export function immediateRelative(
       if (typeof family.cspaAge === 'number') return family.cspaAge < limit;
       return adult === true ? false : undefined;
     }
-    return petitioner === 'citizen' &&
-      ageAtLeast(request.simulationDate) === false
+    return petitioner === 'citizen' && ageAtLeast(knownCitizenOn) === false
       ? true
       : undefined;
   }
   if (atFiling === undefined && petitioner === 'citizen') {
     if (adultAtFiling === true) return false;
-    if (ageAtLeast(request.simulationDate) === false) return true;
+    if (ageAtLeast(knownCitizenOn) === false) return true;
   }
   if (atFiling !== 'citizen') return undefined;
   if (adultAtFiling !== undefined) return !adultAtFiling;
   // Without a receipt date, a child still under the limit cannot have aged out at filing.
-  if (ageAtLeast(request.simulationDate) === false) return true;
+  if (ageAtLeast(knownCitizenOn) === false) return true;
   return typeof family.cspaAge === 'number'
     ? family.cspaAge < limit
     : undefined;

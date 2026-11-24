@@ -1,6 +1,7 @@
 import { unitedStates2026_11 } from '@uk-immigration/policy-data';
 import { addDays, addMonths, daysBetween } from '../dates';
 import { afterYears } from '../pilot';
+import type { IsoDate } from '../types';
 import {
   all,
   any,
@@ -42,7 +43,7 @@ export function jobsCheck(a?: UsInvestmentAnswers) {
   return all(count, hours, regional);
 }
 
-export function conditionChecks(request: UsFullRequest) {
+export function conditionChecks(request: UsFullRequest, decision: IsoDate) {
   const check = checksFor(request);
   if (request.conditional === 'investor') {
     const a = request.conditions?.investor;
@@ -67,9 +68,7 @@ export function conditionChecks(request: UsFullRequest) {
         ? afterYears(residentSince, legacy.conditionalYears.value)
         : undefined;
     const approvalRequirementDate =
-      capitalEvidence === true &&
-      anniversary &&
-      request.simulationDate < anniversary
+      capitalEvidence === true && anniversary && decision < anniversary
         ? anniversary
         : undefined;
     return [

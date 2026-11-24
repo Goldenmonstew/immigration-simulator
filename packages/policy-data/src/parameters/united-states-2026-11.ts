@@ -425,7 +425,7 @@ export const unitedStatesFullSources = {
     pm('SRC-306', 6, 'F', 2, '(B)'),
     pm('SRC-306', 6, 'F', 5, '(D)'),
   ],
-  approvedSelfPetition: [
+  selfPetitionIntent: [
     source(
       'SRC-309',
       'I-485 Instructions p10, evidence of intent for EB-1A and NIW',

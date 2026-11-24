@@ -451,8 +451,8 @@ const cases: CheckCase[] = [
   {
     id: 'C14-DISTRICT',
     met: { ...n, stateResidenceFrom: '2026-08-23' },
-    other: { ...n, stateResidenceFrom: '2026-08-24' },
-    otherStatus: 'NOT_MET',
+    other: { ...n, stateResidenceFrom: undefined },
+    otherStatus: 'UNKNOWN',
   },
   {
     id: 'C15-BONA-FIDE-MARRIAGE',
@@ -1312,6 +1312,7 @@ describe('residence documents and qualifying categories', () => {
       condition(
         pendingPetition({
           ...eb5,
+          admission: { ...eb5.admission, petitionFiledOn: '2026-11-23' },
           employment: {
             ...eb5.employment,
             investment: {
@@ -1973,6 +1974,7 @@ describe('review86-1 regressions', () => {
     };
     const unproven = pendingPetition({
       ...eb5,
+      admission: { ...eb5.admission, petitionFiledOn: '2026-11-02' },
       employment: { ...eb5.employment, investment: facts },
     });
     expect(condition(unproven, 'C31-INVESTMENT-PROJECT')).toMatchObject({
@@ -2601,6 +2603,10 @@ describe('review86-3 regressions', () => {
             ...request.admission,
             qualifyingBasis: 'pending',
             petitionStatus,
+            petitionFiledOn:
+              request === eb5 && petitionStatus === 'pending'
+                ? '2026-11-02'
+                : undefined,
           },
         });
         expect(
@@ -4232,10 +4238,12 @@ describe('review86-12 regressions', () => {
         status: 'UNKNOWN',
       });
       expect(path(input)).toMatchObject({
-        status: 'MET',
-        earliestDate: time.simulationDate,
+        status: input.employment ? 'UNKNOWN' : 'MET',
         approvalStatus: 'UNKNOWN',
       });
+      expect(path(input).earliestDate).toBe(
+        input.employment ? undefined : time.simulationDate,
+      );
       expect(path(input).approvalEarliestDate).toBeUndefined();
     }
     const approved: UsFullRequest = {
@@ -4243,9 +4251,10 @@ describe('review86-12 regressions', () => {
       admission: { ...withI140.admission, petitionStatus: 'approved' },
     };
     expect(path(approved)).toMatchObject({
-      approvalStatus: 'MET',
-      approvalEarliestDate: time.simulationDate,
+      status: 'UNKNOWN',
+      approvalStatus: 'UNKNOWN',
     });
+    expect(path(approved).approvalEarliestDate).toBeUndefined();
   });
 
   const trip = { departed: '2026-11-20', returned: '2026-12-01' } as const;
@@ -5558,14 +5567,32 @@ const adjustmentFixtures = [
       request.admission?.adjustmentBasis === 'immediate-relative'),
 );
 
-test.each(adjustmentFixtures)(
-  '$name has identical eligibility checks in its dedicated and inferred adjustment entry',
-  ({ request }) => {
+const adjustmentCategoryVariants = adjustmentFixtures.flatMap(
+  ({ name, request }) => [
+    { name, request, basis: undefined },
+    ...(request.pathway === 'US-EMPLOYMENT' && request.employment?.category
+      ? [
+          {
+            name: `${name} with the employment category omitted`,
+            request: {
+              ...request,
+              employment: { ...request.employment, category: undefined },
+            },
+            basis: 'employment' as const,
+          },
+        ]
+      : []),
+  ],
+);
+
+test.each(adjustmentCategoryVariants)(
+  '$name has identical eligibility checks in its dedicated and general adjustment entries',
+  ({ request, basis }) => {
     const dedicated =
       request.pathway === 'US-EMPLOYMENT' ? 'US-EMPLOYMENT' : 'US-FAMILY';
     const common = {
       ...request,
-      admission: { ...request.admission, adjustmentBasis: undefined },
+      admission: { ...request.admission, adjustmentBasis: basis },
     };
     const specialized = path({ ...common, pathway: dedicated });
     const inferred = path({ ...common, pathway: 'US-ADJUSTMENT' });
@@ -6522,4 +6549,240 @@ describe('review86-18 regressions', () => {
       });
     }
   });
+});
+
+describe('review86-19 regressions', () => {
+  const entries = ['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const;
+
+  test('checks non-early district residence at the candidate N-400 receipt', () => {
+    const input = { ...n, stateResidenceFrom: '2026-08-24' };
+    expect(condition(input, 'C14-DISTRICT')).toMatchObject({
+      status: 'MET',
+      filingStatus: 'MET',
+    });
+    expect(path(input)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-24',
+      approvalStatus: 'FUTURE',
+      approvalEarliestDate: '2026-11-24',
+    });
+  });
+
+  test('requires the receipt to identify the investment threshold for a pending EB-5 petition', () => {
+    const pending = pendingPetition(eb5);
+    expect(condition(pending, 'C31-INVESTMENT-AMOUNT')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-264'],
+    });
+    expect(
+      condition(
+        {
+          ...pending,
+          admission: { ...pending.admission, petitionFiledOn: '2026-11-02' },
+        },
+        'C31-INVESTMENT-AMOUNT',
+      ).status,
+    ).toBe('MET');
+  });
+
+  test('does not substitute present humanitarian presence for presence at an earlier decision', () => {
+    const input: UsFullRequest = {
+      ...h,
+      humanitarian: { ...human, presenceDays: 365 },
+      admission: {
+        ...h.admission,
+        i485FiledOn: '2026-10-01',
+        decisionOn: '2026-11-01',
+      },
+    };
+    expect(condition(input, 'C41-HUMANITARIAN-PRESENCE')).toMatchObject({
+      status: 'UNKNOWN',
+      filingStatus: 'NOT_APPLICABLE',
+    });
+    expect(path(input)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'UNKNOWN',
+    });
+    expect(path(input).approvalEarliestDate).toBeUndefined();
+  });
+
+  test.each(entries)(
+    'requires the employment subtype before checking initial Supplement J in %s',
+    (pathway) => {
+      const input: UsFullRequest = {
+        ...e,
+        pathway,
+        employment: {
+          ...e.employment,
+          category: undefined,
+          initialSupplementJIncluded: false,
+        },
+      };
+      expect(condition(input, 'EMPLOYMENT-CATEGORY')).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-277'],
+      });
+      expect(path(input)).toMatchObject({
+        status: 'UNKNOWN',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(path(input).earliestDate).toBeUndefined();
+      expect(path(input).approvalEarliestDate).toBeUndefined();
+      expect(
+        path(input).checks.some(
+          ({ id }) => id === 'US-I485-INITIAL-SUPPLEMENT-J',
+        ),
+      ).toBe(false);
+    },
+  );
+
+  test.each(entries)(
+    'uses the historical I-485 receipt for medical evidence in %s',
+    (pathway) => {
+      const worker = withEmployment(
+        {
+          category: 'eb3',
+          permCertifiedOn: '2024-09-01',
+          i140FiledOn: '2024-10-01',
+        },
+        'approved',
+      );
+      const input: UsFullRequest = {
+        ...worker,
+        pathway,
+        simulationDate: '2024-12-03',
+        admission: {
+          ...worker.admission,
+          i485FiledOn: '2024-11-29',
+          visaAtFilingByMonth: { '2024-11': 'available' },
+          medicalEvidence: 'pending',
+        },
+      };
+      expect(condition(input, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        status: 'MET',
+        filingStatus: 'MET',
+      });
+      expect(condition(input, 'C36-HEALTH')).toMatchObject({
+        status: 'UNKNOWN',
+        filingStatus: 'MET',
+        pendingDetails: ['PD-275'],
+      });
+      expect(path(input)).toMatchObject({
+        status: 'MET',
+        earliestDate: input.simulationDate,
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(path(input).approvalEarliestDate).toBeUndefined();
+      const postCutoff = {
+        ...input,
+        admission: { ...input.admission, i485FiledOn: '2024-12-02' },
+      };
+      expect(condition(postCutoff, 'C36-HEALTH').filingStatus).toBe('UNKNOWN');
+      expect(path(postCutoff).status).toBe('UNKNOWN');
+      expect(path(postCutoff).earliestDate).toBeUndefined();
+    },
+  );
+
+  test.each(entries)(
+    'applies the self-petitioner intent requirement while NIW is pending in %s',
+    (pathway) => {
+      const niw = withEmployment(
+        {
+          category: 'eb2-niw',
+          i140SelfPetition: true,
+          i140FiledOn: '2026-11-02',
+          degree: 'advanced',
+          niwProngs: {
+            nationalImportance: true,
+            wellPositioned: true,
+            waiverBeneficial: true,
+          },
+          niwDetermination: 'pending',
+        },
+        'pending',
+      );
+      for (const [continuesWorkInField, status, approvalStatus] of [
+        [false, 'NOT_MET', 'NOT_MET'],
+        [undefined, 'MET', 'UNKNOWN'],
+        [true, 'MET', 'UNKNOWN'],
+      ] as const) {
+        const input: UsFullRequest = {
+          ...niw,
+          pathway,
+          employment: { ...niw.employment, continuesWorkInField },
+          admission: { ...niw.admission, qualifyingBasis: 'pending' },
+        };
+        expect(condition(input, 'C30-SELF-PETITION-MERITS')).toMatchObject({
+          status: approvalStatus,
+          filingStatus: status,
+        });
+        expect(path(input)).toMatchObject({ status, approvalStatus });
+        expect(path(input).earliestDate).toBe(
+          continuesWorkInField === false ? undefined : input.simulationDate,
+        );
+        expect(path(input).approvalEarliestDate).toBeUndefined();
+      }
+    },
+  );
+
+  test.each(entries)(
+    'uses the adjudication date for job portability in %s',
+    (pathway) => {
+      const worker = withEmployment(
+        {
+          category: 'eb3',
+          i140FiledOn: '2026-05-27',
+          permCertifiedOn: '2026-05-01',
+          employmentOffer: false,
+          wageYears: undefined,
+          abilityToPayTotality: undefined,
+          officerStatementAccepted: undefined,
+          jobPortability: {
+            i485PendingSince: '2026-05-27',
+            originalOfferValidAtFiling: true,
+            newOffer: true,
+            sameOrSimilarOccupation: 'cleared',
+            supplementJFiledOn: '2026-11-23',
+          },
+        },
+        'approved',
+      );
+      for (const [decisionOn, supplementJFiledOn, approvalStatus] of [
+        ['2026-06-05', '2026-11-23', 'NOT_MET'],
+        ['2026-11-23', '2026-11-24', 'NOT_MET'],
+        ['2026-11-23', '2026-11-23', 'MET'],
+      ] as const) {
+        const input: UsFullRequest = {
+          ...worker,
+          pathway,
+          employment: {
+            ...worker.employment,
+            jobPortability: {
+              ...worker.employment!.jobPortability,
+              supplementJFiledOn,
+            },
+          },
+          admission: {
+            ...worker.admission,
+            decisionOn,
+            visaAtFilingByMonth: { '2026-05': 'available' },
+            visaAtDecisionByMonth: { '2026-06': 'available' },
+          },
+        };
+        expect(condition(input, 'C28-OFFER-PERM')).toMatchObject({
+          status: approvalStatus,
+          filingStatus: 'MET',
+        });
+        expect(condition(input, 'C33-VISA-AND-ENTRY').status).toBe('MET');
+        expect(path(input)).toMatchObject({
+          status: 'MET',
+          earliestDate: input.simulationDate,
+          approvalStatus,
+        });
+        expect(path(input).approvalEarliestDate).toBe(
+          approvalStatus === 'MET' ? decisionOn : undefined,
+        );
+      }
+    },
+  );
 });

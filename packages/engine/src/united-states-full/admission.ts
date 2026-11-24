@@ -39,21 +39,26 @@ function ordinaryWaiver(grounds: Answer[], waiver?: UsReview): Answer[] {
 
 function medicalEvidenceCheck(
   a: UsAdmissionAnswers | undefined,
-  date: string,
+  date: IsoDate | undefined,
   adjustment: boolean,
 ): Answer {
   const law = v.medical.value;
   const signed = adjustment ? a?.i693SignedOn : undefined;
-  const signedValid = signed
-    ? signed <= date &&
-      (signed >= law.previousSignatureCutoff ||
-        date <= afterYears(signed, law.previousValidityYears))
-    : true;
-  const linked =
-    adjustment && date >= law.applicationLinkedFrom
-      ? not(a?.i693LinkedToAnotherClosedCase)
-      : true;
-  return all(reviewed(a?.medicalEvidence), signedValid, linked);
+  const signedValid = !signed
+    ? true
+    : date
+      ? signed <= date &&
+        (signed >= law.previousSignatureCutoff ||
+          date <= afterYears(signed, law.previousValidityYears))
+      : undefined;
+  const unlinked = not(a?.i693LinkedToAnotherClosedCase);
+  const linkageValid =
+    !adjustment || (date && date < law.applicationLinkedFrom)
+      ? true
+      : date || unlinked === true
+        ? unlinked
+        : undefined;
+  return all(reviewed(a?.medicalEvidence), signedValid, linkageValid);
 }
 
 function criminalGrounds(
@@ -152,35 +157,26 @@ function petitionApprovalUnconfirmed(
 type AdmissionTiming = {
   receipt: IsoDate;
   decision?: IsoDate;
+  formalApplicationOn?: IsoDate;
   postmark?: IsoDate;
 };
 
 export function admissionChecks(
   request: UsFullRequest,
   scope: 'immigrant' | 'return' | 'humanitarian',
-  { receipt, decision, postmark }: AdmissionTiming,
+  { receipt, decision, formalApplicationOn, postmark }: AdmissionTiming,
   category?: AdjustmentCategory,
   facts?: ReturnType<typeof preapprovedFacts>,
 ) {
   const check = checksFor(request);
   const a = scope === 'return' ? request.travel?.admission : request.admission;
-  const date = request.simulationDate;
   const adjustment = scope === 'immigrant' && a?.process === 'adjustment';
   const adjustmentSources = adjustment ? s.adjustmentEligibility : [];
   const consular = a?.process === 'consular';
   const consularVisa = consular && scope === 'immigrant';
   const approvalOnly = consularVisa ? 'NOT_APPLICABLE' : undefined;
-  let applicationDate: IsoDate | undefined = receipt;
-  if (consularVisa) {
-    const { interviewOn, decisionOn } = a;
-    const beforeNvcOpening =
-      receipt > date && interviewOn && interviewOn <= receipt;
-    applicationDate =
-      !decisionOn && !beforeNvcOpening && interviewOn
-        ? interviewOn
-        : decision && (interviewOn ?? decision);
-  }
-  const approvalDate = decision ?? receipt;
+  const applicationDate = consularVisa ? formalApplicationOn : receipt;
+  const approvalDate = scope === 'return' ? receipt : decision;
   const publicChargeDate = adjustment ? (postmark ?? receipt) : receipt;
   const humanitarian = scope === 'humanitarian';
   const optionalMedicalForm =
@@ -338,7 +334,7 @@ export function admissionChecks(
       : presence;
   };
   const barAtFiling = adjustment ? presenceAt(receipt) : true;
-  const barAtDecision = presenceAt(consularVisa ? decision : approvalDate);
+  const barAtDecision = presenceAt(approvalDate);
   const immigrationResult = assessGround(
     immigrationGrounds(all(barAtFiling, barAtDecision)),
     true,
@@ -535,28 +531,35 @@ export function adjustmentChecks(
   facts: ReturnType<typeof preapprovedFacts>,
   filedI485On?: IsoDate,
 ) {
-  const { receipt, decision } = timing;
-  const filingReceipt = filedI485On ?? receipt;
+  const { receipt: filingReceipt, decision } = timing;
   const check = checksFor(request);
   const a = request.admission;
   const petition = a?.petitionStatus;
   const petitionApproved = underlyingPetitionApproved(a);
   const { employment } = request;
   const familyBasis = isFamilyCategory(category);
-  const immediate = immediateRelative(request, category, filingReceipt, facts);
   const availability = (value?: UsAdmissionAnswers['visaAtFiling']): Answer =>
     value === 'available' ? true : value === 'unavailable' ? false : undefined;
   const consular = a?.process === 'consular';
+  const immediateAtFiling = immediateRelative(
+    request,
+    category,
+    filingReceipt,
+    facts,
+  );
+  const immediateAtDecision = decision
+    ? immediateRelative(request, category, filingReceipt, facts, decision)
+    : undefined;
   const simulationMonth = request.simulationDate.slice(0, 7);
   const receiptMonth = filingReceipt.slice(0, 7);
   const decisionMonth = decision?.slice(0, 7);
   const visaAtFiling = consular
-    ? receipt > request.simulationDate || availability(a.visaAtFiling)
+    ? filingReceipt > request.simulationDate || availability(a.visaAtFiling)
     : a?.process === 'adjustment'
-      ? immediate === true
+      ? immediateAtFiling === true
         ? true
         : any(
-            immediate,
+            immediateAtFiling,
             availability(
               a.visaAtFilingByMonth?.[receiptMonth] ??
                 (receiptMonth === simulationMonth ? a.visaAtFiling : undefined),
@@ -565,10 +568,10 @@ export function adjustmentChecks(
       : undefined;
   const visaAtDecision = !decisionMonth
     ? undefined
-    : immediate === true
+    : immediateAtDecision === true
       ? true
       : any(
-          immediate,
+          immediateAtDecision,
           availability(
             a?.visaAtDecisionByMonth?.[decisionMonth] ??
               (decisionMonth === simulationMonth
@@ -635,32 +638,35 @@ export function adjustmentChecks(
   const presenceAtReceipt = request.trips
     ? !returnFromTrip(request.trips, filingReceipt)
     : filedI485On !== undefined || undefined;
-  const filing = inconsistentPetitionDate
-    ? undefined
-    : all(
-        filingBasis,
-        visaAtFiling,
-        consular
-          ? true
-          : a?.process === 'adjustment'
-            ? all(entryAtFiling, presenceAtReceipt)
-            : undefined,
-      );
+  const filing = all(
+    inconsistentPetitionDate ||
+      (filedI485On && petitionFiledOn && petitionFiledOn > filedI485On)
+      ? undefined
+      : true,
+    filingBasis,
+    visaAtFiling,
+    consular
+      ? true
+      : a?.process === 'adjustment'
+        ? all(entryAtFiling, presenceAtReceipt)
+        : undefined,
+  );
   const civilDocuments = a?.nvcCivilDocuments;
   return [
     check(
       'C33-VISA-AND-ENTRY',
       '移民类别、签证名额与入境查验',
       'Immigrant basis, visa availability and admission or parole',
-      inconsistentPetitionDate
-        ? undefined
-        : all(
-            filing,
-            petitionApproved || (category !== undefined && !requiresPetition)
-              ? qualifyingBasis
-              : undefined,
-            visaAtDecision,
-          ),
+      all(
+        filing,
+        decision && petitionFiledOn && petitionFiledOn > decision
+          ? undefined
+          : true,
+        petitionApproved || (category !== undefined && !requiresPetition)
+          ? qualifyingBasis
+          : undefined,
+        visaAtDecision,
+      ),
       [
         ...s.adjustment,
         ...(consular
@@ -727,7 +733,7 @@ export function adjustmentChecks(
               'C34-ADJUSTMENT-BARS',
               '境内调整禁令及 INA 245(k) 例外',
               'Adjustment bars and INA 245(k) exception',
-              adjustmentBar(a, category, immediate, employment),
+              adjustmentBar(a, category, immediateAtFiling, employment),
               s.adjustmentBars,
               'PD-274',
               [
@@ -755,17 +761,19 @@ export function adjustmentChecks(
 
 export function humanitarianChecks(
   request: UsFullRequest,
-  { receipt, decision = receipt }: AdmissionTiming,
+  { receipt, decision }: AdmissionTiming,
+  filedI485On?: IsoDate,
 ) {
   const check = checksFor(request);
   const a = request.humanitarian;
   const refugee = a?.status === 'refugee';
   const law = v.humanitarian.value;
-  const presence = atLeast(a?.presenceDays, law.presenceDays);
-  let approvalRequirementDate: IsoDate | undefined;
-  if (a?.presenceDays !== undefined && presence === false) {
+  const presenceDays = a?.presenceDays;
+  const presenceNow = atLeast(presenceDays, law.presenceDays);
+  let projectedPresenceOn: IsoDate | undefined;
+  if (presenceDays !== undefined && presenceNow === false) {
     let accrualFrom = addDays(request.simulationDate, 1);
-    let remaining = law.presenceDays - a.presenceDays;
+    let remaining = law.presenceDays - presenceDays;
     const trips = [...(request.trips ?? [])].sort((first, second) =>
       first.departed.localeCompare(second.departed),
     );
@@ -779,10 +787,29 @@ export function humanitarianChecks(
       remaining -= daysBeforeDeparture;
       accrualFrom = trip.returned;
     }
-    approvalRequirementDate = addDays(accrualFrom, remaining - 1);
+    projectedPresenceOn = addDays(accrualFrom, remaining - 1);
   }
+  const approvalRequirementDate = request.admission?.decisionOn
+    ? undefined
+    : projectedPresenceOn;
+  // The reported total is as of simulation. Each earlier day can reduce it by at most one.
+  const presence =
+    !decision || presenceDays === undefined
+      ? undefined
+      : decision < request.simulationDate
+        ? presenceNow === false
+          ? false
+          : atLeast(
+              presenceDays - daysBetween(decision, request.simulationDate),
+              law.presenceDays,
+            ) || undefined
+        : projectedPresenceOn
+          ? decision >= projectedPresenceOn
+          : presenceNow;
   const statusAtFiling = all(
-    request.trips && !returnFromTrip(request.trips, receipt),
+    request.trips
+      ? !returnFromTrip(request.trips, receipt)
+      : filedI485On !== undefined || undefined,
     a?.statusRetained,
     not(a?.alreadyLpr),
     refugee
@@ -794,7 +821,7 @@ export function humanitarianChecks(
   const admission = admissionChecks(request, 'humanitarian', {
     receipt,
     decision:
-      approvalRequirementDate && approvalRequirementDate > decision
+      approvalRequirementDate && decision && approvalRequirementDate > decision
         ? approvalRequirementDate
         : decision,
   });

@@ -36,13 +36,9 @@ export function familyChecks(
 ) {
   const check = checksFor(request);
   const a = request.family;
-  const date =
-    request.admission?.petitionFiledOn ??
-    (request.admission?.process === 'consular'
-      ? request.simulationDate
-      : receipt);
+  const date = request.admission?.petitionFiledOn ?? receipt;
   const law = v.familyAge.value;
-  const petitioner = currentFamilyPetitioner(request);
+  const petitioner = currentFamilyPetitioner(request, receipt);
   const citizen = petitioner === 'citizen';
   const history = facts.has('familyRelationshipHistory');
   const barsCovered = facts.has('familyPetitionBars');
@@ -88,8 +84,10 @@ export function familyChecks(
   let marriageBars: Answer = a?.relationship === undefined ? undefined : true;
   if (a?.relationship === 'spouse') {
     const prior = a.priorMarriageLprSince;
+    const petitioningAsCitizen =
+      currentFamilyPetitioner(request, date) === 'citizen';
     const priorMarriage =
-      citizen ||
+      petitioningAsCitizen ||
       prior === 'not-applicable' ||
       (prior !== undefined && afterYears(prior, law.priorMarriageYears) <= date)
         ? true
@@ -196,6 +194,7 @@ export function supportChecks(
   request: UsFullRequest,
   category: AdjustmentCategory,
   receipt: IsoDate,
+  formalApplicationOn: IsoDate,
 ) {
   const check = checksFor(request);
   const law = v.sponsor.value;
@@ -248,7 +247,8 @@ export function supportChecks(
   const usingExemption = a?.exemption !== undefined && a.exemption !== 'none';
   const family = isFamilyCategory(category) ? request.family : undefined;
   const sponsorStatus =
-    a?.sponsorStatus ?? (family ? currentFamilyPetitioner(request) : undefined);
+    a?.sponsorStatus ??
+    (family ? currentFamilyPetitioner(request, receipt) : undefined);
   const sponsor = all(
     reportedAgeAtLeast(
       request.simulationDate,
@@ -267,7 +267,7 @@ export function supportChecks(
       ? not(
           beneficiaryAtLeastAge(
             request,
-            receipt,
+            formalApplicationOn,
             beneficiaryAge,
             v.familyAge.value.child,
           ),
@@ -286,8 +286,8 @@ export function supportChecks(
   const household = a?.household;
   const povertyLaw = v.poverty.value;
   const applicable =
-    receipt >= povertyLaw.i864Effective &&
-    receipt.startsWith(String(povertyLaw.year));
+    formalApplicationOn >= povertyLaw.i864Effective &&
+    formalApplicationOn.startsWith(String(povertyLaw.year));
   const listedSize = povertyLaw.i864ListedHouseholdSize;
   const baseline = household?.size
     ? poverty({ ...household, size: Math.min(household.size, listedSize) })
@@ -309,7 +309,12 @@ export function supportChecks(
       benefit === 'spouse',
       all(
         child,
-        beneficiaryAtLeastAge(request, receipt, beneficiaryAge, law.age),
+        beneficiaryAtLeastAge(
+          request,
+          formalApplicationOn,
+          beneficiaryAge,
+          law.age,
+        ),
       ),
     ),
   );
@@ -429,16 +434,24 @@ function abilityToPay(request: UsFullRequest): Answer {
     },
   );
   const records = annual?.length
-    ? all(a?.wagePeriodComplete === true ? true : undefined, ...annual)
+    ? all(a?.wagePeriodComplete, ...annual)
     : undefined;
   return any(officer, records, reviewed(a?.abilityToPayTotality));
 }
 
 export function employmentChecks(
   request: UsFullRequest,
-  receipt: IsoDate,
-  facts: ReturnType<typeof preapprovedFacts>,
-  filedI485On?: IsoDate,
+  {
+    receipt,
+    decision,
+    facts,
+    filedI485On,
+  }: {
+    receipt: IsoDate;
+    decision?: IsoDate;
+    facts: ReturnType<typeof preapprovedFacts>;
+    filedI485On?: IsoDate;
+  },
 ) {
   const check = checksFor(request);
   const a = request.employment ?? {};
@@ -449,7 +462,7 @@ export function employmentChecks(
     admission?.petitionStatus === 'pending' || petitionApproved;
   const prospectivePetitionReceipt =
     admission?.process === 'adjustment'
-      ? (filedI485On ?? receipt)
+      ? receipt
       : request.fees?.channel === 'paper'
         ? nextUsBusinessDay(date)
         : date;
@@ -519,26 +532,31 @@ export function employmentChecks(
       );
     const portability =
       admission?.process === 'adjustment' ? a.jobPortability : undefined;
-    const pendingSince = portability?.i485PendingSince;
+    const pendingSince = filedI485On;
     const requestedOn = portability?.supplementJFiledOn;
     const pendingDays = v.portability.value.pendingDays;
     const port =
       portability &&
       all(
-        pendingSince && pendingSince <= date
-          ? daysBetween(pendingSince, date) >= pendingDays
+        pendingSince && decision
+          ? daysBetween(pendingSince, decision) >= pendingDays
           : undefined,
-        pendingSince && requestedOn && requestedOn <= date
-          ? daysBetween(pendingSince, requestedOn) >= pendingDays
+        pendingSince && requestedOn && decision
+          ? requestedOn <= decision &&
+              daysBetween(pendingSince, requestedOn) >= pendingDays
           : undefined,
         portability.originalOfferValidAtFiling,
         portability.newOffer,
         reviewed(portability.sameOrSimilarOccupation),
       );
-    const offerAtFiling = portability
-      ? (portability.originalOfferValidAtFiling ??
-        (a.employmentOffer === true || undefined))
-      : a.employmentOffer;
+    const offerAtFiling =
+      portability && filedI485On
+        ? (portability.originalOfferValidAtFiling ??
+          (a.employmentOffer === true || undefined))
+        : all(
+            a.employmentOffer,
+            portability?.originalOfferValidAtFiling !== false,
+          );
     const currentOffer = portability
       ? all(offerAtFiling, any(a.employmentOffer, port))
       : a.employmentOffer;
@@ -550,6 +568,12 @@ export function employmentChecks(
       admission.i485ApplicantRole !== 'derivative' &&
       !filedI485On &&
       petitionApproved;
+    const pay = abilityToPay(request);
+    const approvedEmployment = facts.has('employmentClassification');
+    const payAtDecision =
+      port === true ? carryForward(approvedEmployment, pay) : pay;
+    const payAtFiling =
+      portability && filedI485On ? carryForward(approvedEmployment, pay) : pay;
     return [
       ...based,
       check(
@@ -614,11 +638,11 @@ export function employmentChecks(
         'C29-ABILITY-TO-PAY',
         '雇主持续支付承诺工资',
         'Employer’s continuing ability to pay the proffered wage',
-        port === true && facts.has('employmentClassification')
-          ? true
-          : abilityToPay(request),
+        payAtDecision,
         portability ? [...s.pay, ...s.portability] : s.pay,
         'PD-277',
+        undefined,
+        payAtFiling !== payAtDecision ? checkStatus(payAtFiling) : undefined,
       ),
     ];
   }
@@ -652,20 +676,23 @@ export function employmentChecks(
                   : undefined,
             atLeast(a.exceptionalEvidenceCount, law.exceptionalEvidence),
           );
+    const adjustment = admission?.process === 'adjustment';
+    const intent = a.continuesWorkInField;
     const factsAtFiling =
       category === 'eb1a'
-        ? all(a.continuesWorkInField, a.benefitsUnitedStates)
+        ? all(intent, a.benefitsUnitedStates)
         : all(
             a.niwProngs?.nationalImportance,
             a.niwProngs?.wellPositioned,
             a.niwProngs?.waiverBeneficial,
+            intent !== false,
           );
     const determination =
       category === 'eb1a' ? a.extraordinaryFinalMerits : a.niwDetermination;
     const merits = all(
       carryForward(approvedMerits, factsAtFiling),
       carryForward(approvedMerits, determination),
-      approvedMerits ? a.continuesWorkInField : true,
+      approvedMerits ? intent : true,
     );
     return [
       ...based,
@@ -682,8 +709,8 @@ export function employmentChecks(
         'EB-1A 终局审查或 NIW 国家利益',
         'EB-1A final merits or NIW national interest',
         merits,
-        approvedMerits
-          ? [...s.selfPetition, ...s.approvedSelfPetition]
+        approvedMerits || adjustment
+          ? [...s.selfPetition, ...s.selfPetitionIntent]
           : s.selfPetition,
         'PD-277',
         approvedMerits
@@ -721,8 +748,9 @@ export function employmentChecks(
     );
     const petitionReceipt =
       admission?.petitionFiledOn ??
-      (petitionAlreadyFiled ? date : prospectivePetitionReceipt);
+      (petitionAlreadyFiled ? undefined : prospectivePetitionReceipt);
     const current =
+      petitionReceipt !== undefined &&
       (!admission?.petitionFiledOn || petitionReceipt <= date) &&
       petitionReceipt >= law.rulesFrom &&
       petitionReceipt < law.firstAdjustment;
@@ -830,6 +858,8 @@ export function employmentChecks(
       carryForward(approvedGold, giftAmount),
       carryForward(approvedGold, processingFunds),
     );
+    const transfer = reviewed(gold?.giftTransferred);
+    const transferAtDecision = approvedGold || transfer === false;
     return [
       ...based,
       check(
@@ -852,9 +882,7 @@ export function employmentChecks(
         'C32-GOLD-GIFT',
         'Gold Card 赠与及按人计处理费',
         'Gold Card gift and per-person processing fee',
-        approvedGold
-          ? all(reviewed(gold?.giftTransferred), giftAtFiling)
-          : giftAtFiling,
+        transferAtDecision ? all(transfer, giftAtFiling) : giftAtFiling,
         s.gold,
         'PD-276',
         approvedGold && gift === undefined
@@ -871,7 +899,7 @@ export function employmentChecks(
                 `按赠与方及人数，需赠与 USD ${gift}，另付每人 USD ${law.feePerPersonUsd} 处理费。`,
                 `The donor type and number of applicants require a gift of USD ${gift} and a processing fee of USD ${law.feePerPersonUsd} per person.`,
               ],
-        approvedGold ? checkStatus(giftAtFiling) : undefined,
+        transferAtDecision ? checkStatus(giftAtFiling) : undefined,
       ),
       check(
         'C32-GOLD-ALLOCATION',

@@ -352,17 +352,12 @@ function districtCheck(
         ? interview
           ? interview >= complete
           : undefined
-        : request.simulationDate >= complete;
-  const filingStatus =
-    early || (complete !== undefined && receipt >= complete)
-      ? 'MET'
-      : checkStatus(met);
+        : receipt >= complete;
+  const filingStatus = early ? 'MET' : checkStatus(met);
   const due =
     early && met && interview && interview > request.simulationDate
       ? interview
-      : met === false && filingStatus === 'MET' && !early
-        ? complete
-        : undefined;
+      : undefined;
   return {
     ...check(
       'C14-DISTRICT',
@@ -445,13 +440,12 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const i485 =
     (immigrantApplication && admission?.process === 'adjustment') ||
     request.pathway === 'US-HUMANITARIAN';
-  const recordedI485Receipt =
-    immigrantApplication && admission?.process === 'adjustment'
-      ? (admission.i485FiledOn ??
-        (category === 'employment'
-          ? request.employment?.jobPortability?.i485PendingSince
-          : undefined))
-      : undefined;
+  const recordedI485Receipt = i485
+    ? (admission?.i485FiledOn ??
+      (category === 'employment'
+        ? request.employment?.jobPortability?.i485PendingSince
+        : undefined))
+    : undefined;
   const filedI485On =
     recordedI485Receipt && recordedI485Receipt <= date
       ? recordedI485Receipt
@@ -499,6 +493,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       );
     }
   }
+  const filingReceipt = filedI485On ?? applicationReceipt;
   const interviewOn = admission?.interviewOn;
   const decisionOn = admission?.decisionOn;
   let decision: IsoDate | undefined = applicationReceipt;
@@ -513,18 +508,27 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
           (!nvcFilingDate || interviewOn > nvcFilingDate)))
         ? decisionOn
         : undefined;
-  } else if (
-    decisionOn &&
-    (filedI485On ? decisionOn >= filedI485On : decisionOn > applicationReceipt)
-  ) {
-    decision = decisionOn;
+  } else if (i485 && decisionOn) {
+    decision = decisionOn >= filingReceipt ? decisionOn : undefined;
   }
+  const beforeNvcOpening =
+    nvcFilingDate && interviewOn && interviewOn <= nvcFilingDate;
+  const formalApplicationOn = consularApplication
+    ? !decisionOn && !beforeNvcOpening && interviewOn
+      ? interviewOn
+      : decision && (interviewOn ?? decision)
+    : filingReceipt;
   const filingOn = request.fees?.filingOn;
   const postmark =
     i485 && filingCandidate > date && filingOn && filingOn < filingCandidate
       ? undefined
       : filingOn;
-  const admissionTiming = { receipt: applicationReceipt, decision, postmark };
+  const admissionTiming = {
+    receipt: filingReceipt,
+    decision,
+    formalApplicationOn,
+    postmark,
+  };
   let eligibility: FilingTiming = {
     status: 'MET',
     earliestDate: filingCandidate > date ? filingCandidate : undefined,
@@ -540,7 +544,9 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
             : (legacy?.status ?? 'UNKNOWN'),
         earliestDate: legacy?.earliestDate,
       };
-      requirements = naturalizationAt(eligibility.earliestDate ?? date);
+      const naturalizationCandidate = eligibility.earliestDate ?? date;
+      const naturalizationReceipt = receiptOn(naturalizationCandidate);
+      requirements = naturalizationAt(naturalizationCandidate);
       const years =
         request.pathway === 'US-SPOUSE'
           ? time.spouseYears
@@ -549,11 +555,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
         ? afterYears(request.permanentResident, years.value)
         : undefined;
       requirements.push(
-        districtCheck(
-          request,
-          receiptOn(eligibility.earliestDate ?? date),
-          anniversary,
-        ),
+        districtCheck(request, naturalizationReceipt, anniversary),
       );
       if (anniversary) {
         requirements.push({
@@ -561,7 +563,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
             'TIME-LPR-APPROVAL',
             '入籍核准所需完整居住年限',
             'Full residence period required for naturalization approval',
-            date >= anniversary,
+            naturalizationReceipt >= anniversary,
             [...years.sources, ...time.earlyFilingDays.sources],
             undefined,
             [
@@ -570,7 +572,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
             ],
             'NOT_APPLICABLE',
           ),
-          ...(date < anniversary
+          ...(naturalizationReceipt < anniversary
             ? { approvalRequirementDate: anniversary }
             : {}),
         });
@@ -581,7 +583,9 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       const conditionFiling = conditionsTiming(request, legacy, paper);
       eligibility = conditionFiling;
       requirements =
-        eligibility.status === 'NOT_APPLICABLE' ? [] : conditionChecks(request);
+        eligibility.status === 'NOT_APPLICABLE'
+          ? []
+          : conditionChecks(request, eligibility.earliestDate ?? date);
       const filingAnswer =
         eligibility.status === 'UNKNOWN'
           ? undefined
@@ -656,13 +660,22 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       const facts = preapprovedFacts(request, category);
       requirements = [
         ...(category === 'family'
-          ? familyChecks(request, applicationReceipt, facts)
+          ? familyChecks(request, filingReceipt, facts)
           : []),
-        ...(category === 'employment' &&
-        (request.pathway === 'US-EMPLOYMENT' || request.employment?.category)
-          ? employmentChecks(request, applicationReceipt, facts, filedI485On)
+        ...(category === 'employment'
+          ? employmentChecks(request, {
+              receipt: filingReceipt,
+              decision,
+              facts,
+              filedI485On,
+            })
           : []),
-        ...supportChecks(request, category, applicationReceipt),
+        ...supportChecks(
+          request,
+          category,
+          filingReceipt,
+          formalApplicationOn ?? filingReceipt,
+        ),
         ...adjustmentChecks(
           request,
           category,
@@ -674,7 +687,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       break;
     }
     case 'US-HUMANITARIAN':
-      requirements = humanitarianChecks(request, admissionTiming);
+      requirements = humanitarianChecks(request, admissionTiming, filedI485On);
       break;
     case 'US-MILITARY':
       requirements = [
@@ -720,7 +733,12 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
         : [filing ? (item.filingStatus ?? item.status) : item.status],
     );
     if (timing === 'NOT_MET' || statuses.includes('NOT_MET')) return 'NOT_MET';
-    if (timing === 'UNKNOWN' || statuses.includes('UNKNOWN')) return 'UNKNOWN';
+    if (
+      timing === 'UNKNOWN' ||
+      statuses.includes('UNKNOWN') ||
+      (!filing && i485 && !decision)
+    )
+      return 'UNKNOWN';
     return (filing ? receipt : approvalDate) > date ? 'FUTURE' : 'MET';
   };
   const status = combine(true);
@@ -732,7 +750,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       : feeChecks(
           request,
           category,
-          request.pathway === 'US-TRAVEL' ? date : receipt,
+          request.pathway === 'US-TRAVEL' ? date : (filedI485On ?? receipt),
           postmark,
         );
   const checks = [...timingChecks, ...requirements, ...notes];

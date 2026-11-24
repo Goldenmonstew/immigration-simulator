@@ -564,11 +564,13 @@ export function militaryChecks(request: UsFullRequest, date: IsoDate) {
         ? a.lprAtInterview
         : undefined;
   const certification =
-    a?.evidence && a.separatedOn
-      ? a.separatedOn === 'serving'
-        ? a.evidence === 'n426'
-        : a.evidence === 'dd214-or-ngb22'
-      : undefined;
+    a?.evidence === 'none'
+      ? false
+      : a?.evidence && a.separatedOn
+        ? a.separatedOn === 'serving'
+          ? a.evidence === 'n426'
+          : a.evidence === 'dd214-or-ngb22'
+        : undefined;
   const late = lateMilitaryFiling(request, date);
   return [
     check(

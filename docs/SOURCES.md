@@ -1178,6 +1178,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-i864instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-864instr.pdf>
 - I-864 Instructions p3 的 Other Applicants Not Required to Submit Form I-864 items 1–2 列出无适用亲属申请人／持股人、自行递交 I-140 及 I-526／I-526E 的不适用情形。pp8、14 的服役收入门槛只适用担保人请愿的配偶或未婚未满 21 岁子女（INA §101(b)(1)，8 U.S.C. §1183a(f)(3)）。p16 载资产补足倍数。
 
+- 8 CFR §213a.2(a)(1)(v)(A) 的通常收入规则使用正式提出移民签证或调整申请时适用的 Poverty Guidelines 及当年预计收入。另见 §213a.2(a)(1)(v)(B) 个案补证后重核收入的规则、§213a.2(c)(1) 的主担保人资格。 [8 CFR §213a.2(a)(1)(v)](https://www.ecfr.gov/current/title-8/section-213a.2#p-213a.2(a)(1)(v))
+
 ## SRC-304 HHS 贫困指引及 USCIS 地区表
 
 - `policy-sources/2026-01-15-us-fr-2026-00755-hhs-poverty.txt` → <https://www.federalregister.gov/documents/full_text/text/2026/01/15/2026-00755.txt>
