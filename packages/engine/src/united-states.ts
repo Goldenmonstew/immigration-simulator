@@ -88,7 +88,21 @@ function federalHoliday(d: IsoDate): boolean {
   });
 }
 
+/** First day on or after the requested date on which USCIS receives paper filings. */
+export function nextUsBusinessDay(d: IsoDate): IsoDate {
+  while (weekday(d) === 0 || weekday(d) === 6 || federalHoliday(d))
+    d = addDays(d, 1);
+  return d;
+}
+
 export function evaluateUnitedStates(req: UsRequest): UsResult {
+  return evaluateUnitedStatesTiming(req);
+}
+
+export function evaluateUnitedStatesTiming(
+  req: UsRequest,
+  earlyFilingReceipt?: (date: IsoDate) => IsoDate,
+): UsResult {
   const L = textFor(req);
   const sim = req.simulationDate;
   const lpr = req.permanentResident;
@@ -143,9 +157,10 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
   const statusOf = (earliest?: IsoDate): PilotStatus =>
     !earliest ? 'NOT_MET' : earliest === sim ? 'MET' : 'FUTURE';
   const adult = afterYears(req.dateOfBirth, v.minAge.value);
+  const stateResidenceFrom = req.stateResidenceFrom;
   const stateFrom =
-    req.stateResidenceFrom &&
-    addMonths(req.stateResidenceFrom, v.stateResidenceMonths.value);
+    stateResidenceFrom &&
+    addMonths(stateResidenceFrom, v.stateResidenceMonths.value);
   const projection = L(
     '最早日期假设模拟日之后一直在美国（已录入的未来出境除外）。',
     'Projected dates assume you stay in the United States after the simulation date, apart from trips you entered.',
@@ -176,13 +191,24 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       days.total(present, addYears(d, -years), addDays(d, -1));
     const absence = (d: IsoDate) =>
       longestAbsence(addYears(d, -years), addDays(d, -1));
+    const district = (d: IsoDate) => {
+      if (!earlyFilingReceipt || !stateResidenceFrom || !stateFrom)
+        return !stateFrom || d >= stateFrom;
+      const receipt = earlyFilingReceipt(d);
+      return (
+        receipt >= stateFrom ||
+        (receipt >= stateResidenceFrom &&
+          receipt < residence &&
+          stateFrom <= residence)
+      );
+    };
     // The Policy Manual states "more than 180 days" but its worked examples
     // count calendar months (PD-093): no rebuttal is needed only when neither
     // reading presumes a break; the months-only date is shown as a note.
     const ok = (rule: 'both' | 'months' | 'rebut') => (d: IsoDate) =>
       d >= earlyFrom &&
       d >= adult &&
-      (!stateFrom || d >= stateFrom) &&
+      district(d) &&
       count(d) >= need &&
       absence(d) < v.breakDays.value &&
       (rule === 'rebut' ||
@@ -323,8 +349,14 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       `Windows are counted back from the filing date, not including it, and only the part of an absence inside the window counts (PM 12 D.3 examples). Only days after you became a permanent resident count: when filing early, days before that in the window are left out (PD-092).`,
     ),
     L(
-      '"超过 6 个月"PM 正文写 180 天，示例按日历月计：两种读法都不推定中断才算无须反驳，按月计更早的日期另列；"满 1 年"按 365 天计（PD-093）。3 个月州居住按日历月计，提前递交时也要求递交前住满（PD-096）。',
-      '"More than 6 months" is 180 days in the PM text but calendar months in its examples: no rebuttal is needed only when neither reading presumes a break, and the earlier date by months is shown separately; "1 year" is 365 days (PD-093). The 3 months in your state are calendar months, and are required before filing even when filing early (PD-096).',
+      '"超过 6 个月"PM 正文写 180 天，示例按日历月计：两种读法都不推定中断才算无须反驳，按月计更早的日期另列；"满 1 年"按 365 天计（PD-093）。' +
+        (earlyFilingReceipt
+          ? '辖区居住按日历月计，符合提前递交条件时可按面谈前的居住核对（PD-096）。'
+          : '3 个月州居住按日历月计，提前递交时也要求递交前住满（PD-096）。'),
+      '"More than 6 months" is 180 days in the PM text but calendar months in its examples: no rebuttal is needed only when neither reading presumes a break, and the earlier date by months is shown separately; "1 year" is 365 days (PD-093).' +
+        (earlyFilingReceipt
+          ? ' District residence is measured in calendar months and may be assessed before the examination for eligible early filings (PD-096).'
+          : ' The 3 months in your state are calendar months, and are required before filing even when filing early (PD-096).'),
     ),
   ];
   const assumptions = [...naturalizationAssumptions, projection];
@@ -539,17 +571,11 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
       // USCIS takes paper filings only on business days; one due on a
       // Saturday, Sunday or federal holiday is on time the next business day
       // (PM 1 B.6(E); 5 U.S.C. 6103).
-      const businessDay = (d: IsoDate) =>
-        weekday(d) !== 0 && weekday(d) !== 6 && !federalHoliday(d);
-      const nextBusinessDay = (d: IsoDate) => {
-        while (!businessDay(d)) d = addDays(d, 1);
-        return d;
-      };
-      const paperUntil = nextBusinessDay(closes);
+      const paperUntil = nextUsBusinessDay(closes);
       // The I-751 can also be filed online, any day; the I-829 only on paper
       // (SRC-082).
       const paperOnly = form === 'I-829';
-      const first = paperOnly ? nextBusinessDay(opens) : opens;
+      const first = paperOnly ? nextUsBusinessDay(opens) : opens;
       const last = paperOnly ? paperUntil : closes;
       const earliest =
         sim > last
@@ -557,7 +583,7 @@ export function evaluateUnitedStates(req: UsRequest): UsResult {
           : sim <= first
             ? first
             : paperOnly
-              ? nextBusinessDay(sim)
+              ? nextUsBusinessDay(sim)
               : sim;
       const status: PilotStatus =
         earliest === sim

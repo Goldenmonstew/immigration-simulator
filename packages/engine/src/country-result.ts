@@ -13,7 +13,7 @@ import type {
 export interface CountryCheck extends Omit<RuleOutcome, 'status'> {
   status: 'MET' | 'NOT_MET' | 'UNKNOWN';
   kind?: 'requirement' | 'factor' | 'information';
-  applicable?: false;
+  applicable?: boolean;
   fee?: { currency: string; amount: number; possibleReducedAmount?: number };
 }
 

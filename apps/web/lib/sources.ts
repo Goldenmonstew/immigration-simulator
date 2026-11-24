@@ -541,4 +541,103 @@ export const sourceUrls: Record<string, string> = {
     'https://www.linz.govt.nz/sites/default/files/doc/guidance-investor-visa-holders-long-form-march2026-v3.pdf',
   'SRC-251': 'https://www.immigration.govt.nz/opsmanual/88409.htm',
   'SRC-252': 'https://www.immigration.govt.nz/opsmanual/91747.htm',
+  'SRC-350':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2007/20070100135.pdf',
+  'SRC-351':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2014/20140100024.pdf',
+  'SRC-352':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2014/20140202962.pdf',
+  'SRC-353':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2021/20210201652.pdf',
+  'SRC-354':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2021/20210203967.pdf',
+  'SRC-355':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2021/20210205125.pdf',
+  'SRC-356':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2024/20240201807.pdf',
+  'SRC-357':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2024/20240201974.pdf',
+  'SRC-358':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2024/20240202626.pdf',
+  'SRC-359':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2024/20240205223.pdf',
+  'SRC-360':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2026/20260202319.pdf',
+  'SRC-361':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2025/20250201476.pdf',
+  'SRC-362':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2025/20250100152.pdf',
+  'SRC-363':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/02/2026/20260201759.pdf',
+  'SRC-364':
+    'https://home-affairs.ec.europa.eu/policies/migration-and-asylum/eu-immigration-portal/eu-blue-card/eu-blue-card-greece_en',
+  'SRC-365':
+    'https://mitos.gov.gr/index.php/%CE%94%CE%94:%CE%94%CE%B9%CE%BF%CF%81%CE%B3%CE%AC%CE%BD%CF%89%CF%83%CE%B7_%CE%B5%CE%BE%CE%B5%CF%84%CE%AC%CF%83%CE%B5%CF%89%CE%BD_%CE%B5%CE%BB%CE%BB%CE%B7%CE%BD%CE%BF%CE%BC%CE%AC%CE%B8%CE%B5%CE%B9%CE%B1%CF%82_%CE%B3%CE%B9%CE%B1_%CF%80%CE%BF%CE%BB%CE%AF%CF%84%CE%B5%CF%82_%CF%84%CF%81%CE%AF%CF%84%CF%89%CE%BD_%CF%87%CF%89%CF%81%CF%8E%CE%BD,_%CF%80%CF%81%CE%BF%CE%BA%CE%B5%CE%B9%CE%BC%CE%AD%CE%BD%CE%BF%CF%85_%CE%BD%CE%B1_%CF%85%CF%80%CE%B1%CF%87%CE%B8%CE%BF%CF%8D%CE%BD_%CF%83%CF%84%CE%BF_%CE%BA%CE%B1%CE%B8%CE%B5%CF%83%CF%84%CF%8E%CF%82_%CF%84%CE%BF%CF%85_%CE%B5%CF%80%CE%AF_%CE%BC%CE%B1%CE%BA%CF%81%CF%8C%CE%BD_%CE%B4%CE%B9%CE%B1%CE%BC%CE%AD%CE%BD%CE%BF%CE%BD%CF%84%CE%BF%CF%82',
+  'SRC-366':
+    'https://mitos.gov.gr/index.php/%CE%94%CE%94:%CE%86%CE%B4%CE%B5%CE%B9%CE%B1_%CE%B4%CE%B9%CE%B1%CE%BC%CE%BF%CE%BD%CE%AE%CF%82_%CF%85%CF%88%CE%B7%CE%BB%CE%AE%CF%82_%CE%B5%CE%B9%CE%B4%CE%AF%CE%BA%CE%B5%CF%85%CF%83%CE%B7%CF%82_(%C2%AB%CE%95.1%C2%BB)_%CE%BA%CE%B1%CF%84%CF%8C%CF%80%CE%B9%CE%BD_%CE%AD%CE%B3%CE%BA%CF%81%CE%B9%CF%83%CE%B7%CF%82_%CE%B1%CE%B9%CF%84%CE%AE%CE%BC%CE%B1%CF%84%CE%BF%CF%82_%CF%84%CE%BF%CF%85_%CE%B5%CF%81%CE%B3%CE%BF%CE%B4%CF%8C%CF%84%CE%B7_%E2%80%93_%CE%91%CF%81%CF%87%CE%B9%CE%BA%CE%AE_%CF%87%CE%BF%CF%81%CE%AE%CE%B3%CE%B7%CF%83%CE%B7',
+  'SRC-367':
+    'https://mitos.gov.gr/index.php/%CE%94%CE%94:%CE%86%CE%B4%CE%B5%CE%B9%CE%B1_%CE%B4%CE%B9%CE%B1%CE%BC%CE%BF%CE%BD%CE%AE%CF%82_%CE%BA%CE%B1%CF%84%CF%8C%CF%80%CE%B9%CE%BD_%CE%AD%CE%B3%CE%BA%CF%81%CE%B9%CF%83%CE%B7%CF%82_%CE%BC%CE%B5%CF%84%CE%AC%CE%BA%CE%BB%CE%B7%CF%83%CE%B7%CF%82_%CE%B3%CE%B9%CE%B1_%CE%B5%CE%BE%CE%B1%CF%81%CF%84%CE%B7%CE%BC%CE%AD%CE%BD%CE%B7_%CE%B5%CF%81%CE%B3%CE%B1%CF%83%CE%AF%CE%B1_%E2%80%93_%CE%91%CF%81%CF%87%CE%B9%CE%BA%CE%AE_%CF%87%CE%BF%CF%81%CE%AE%CE%B3%CE%B7%CF%83%CE%B7_(%C2%AB%CE%95.4%C2%BB)',
+  'SRC-368':
+    'https://mitos.gov.gr/index.php/ΔΔ:Μόνιμη_άδεια_διαμονής_επενδυτή_(αλλαγή_χρήσης)_–_Αρχική_χορήγηση',
+  'SRC-369':
+    'https://mitos.gov.gr/index.php/%CE%94%CE%94:%CE%95%CE%BE%CE%B5%CF%84%CE%AC%CF%83%CE%B5%CE%B9%CF%82_%CE%B1%CF%80%CF%8C%CE%BA%CF%84%CE%B7%CF%83%CE%B7%CF%82_%CE%A0%CE%B9%CF%83%CF%84%CE%BF%CF%80%CE%BF%CE%B9%CE%B7%CF%84%CE%B9%CE%BA%CE%BF%CF%8D_%CE%95%CF%80%CE%AC%CF%81%CE%BA%CE%B5%CE%B9%CE%B1%CF%82_%CE%93%CE%BD%CF%8E%CF%83%CE%B5%CF%89%CE%BD_%CE%B3%CE%B9%CE%B1_%CE%A0%CE%BF%CE%BB%CE%B9%CF%84%CE%BF%CE%B3%CF%81%CE%AC%CF%86%CE%B7%CF%83%CE%B7',
+  'SRC-370':
+    'https://ia37rg02wpsa01.blob.core.windows.net/fek/01/2024/20240100207.pdf',
+  'SRC-371':
+    'https://migration.gov.gr/wp-content/uploads/2024/10/9%CE%95%CE%B3%CE%BA%CF%8D%CE%BA%CE%BB%CE%B9%CE%BF%CF%82-Golden-24.9.2024-FINAL.pdf',
+  'SRC-372':
+    'https://www.ypes.gr/wp-content/uploads/2026/09/eggr52779-20260924.pdf',
+  'SRC-373':
+    'https://www.hellenicparliament.gr/UserFiles/67715b2c-ec81-4f0c-ad6a-476a34d732bd/12574231.pdf',
+  'SRC-374':
+    'https://mitos.gov.gr/index.php/ΔΔ:Άδεια_διαμονής_κατόπιν_έγκρισης_μετάκλησης_για_εξαρτημένη_εργασία_–_Ανανέωση_(«Ε.4»)',
+  'SRC-375': 'https://api.et.gr/apiFEK/2/2025/6014/pdf',
+  'SRC-376':
+    'https://en.mitos.gov.gr/index.php/%CE%94%CE%94%3AResidence_permit_for_family_members_of_a_highly_qualified_residence_permit_holder_%28%E2%80%98E.1%E2%80%99%29_%E2%80%93_Initial_granting',
+  'SRC-377':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:C_202301392',
+  'SRC-378': 'https://api.et.gr/apiFEK/1/2021/81/pdf',
+  'SRC-379': 'https://api.et.gr/apiFEK/1/1983/25/pdf',
+  'SRC-290': 'https://uscode.house.gov/us/usc/t8/s1445/',
+  'SRC-291': 'https://uscode.house.gov/us/usc/t8/s1423/',
+  'SRC-292': 'https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-2',
+  'SRC-293': 'https://www.uscis.gov/policy-manual/volume-12-part-f-chapter-2',
+  'SRC-294': 'https://uscode.house.gov/us/usc/t8/s1424/',
+  'SRC-295': 'https://www.sss.gov/register/who-needs-to-register/',
+  'SRC-296': 'https://uscode.house.gov/us/usc/t8/s1448/',
+  'SRC-297':
+    'https://www.uscis.gov/sites/default/files/document/forms/i-751instr.pdf',
+  'SRC-298': 'https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-7',
+  'SRC-299': 'https://uscode.house.gov/us/usc/t8/s1304/',
+  'SRC-300':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=223',
+  'SRC-301': 'https://uscode.house.gov/us/usc/t8/s1227/',
+  'SRC-302': 'https://uscode.house.gov/us/usc/t8/s1151/',
+  'SRC-303': 'https://uscode.house.gov/us/usc/t8/s1183a/',
+  'SRC-304':
+    'https://www.federalregister.gov/documents/full_text/text/2026/01/15/2026-00755.txt',
+  'SRC-305':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-20.xml?part=656',
+  'SRC-306': 'https://www.uscis.gov/policy-manual/volume-6-part-f-chapter-2',
+  'SRC-307': 'https://www.uscis.gov/policy-manual/volume-6-part-g-chapter-2',
+  'SRC-308':
+    'https://www.federalregister.gov/documents/full_text/html/2025/09/24/2025-18602.html',
+  'SRC-309': 'https://uscode.house.gov/us/usc/t8/s1255/',
+  'SRC-310':
+    'https://www.uscis.gov/sites/default/files/document/policy-alerts/05.21.2026_Discretionary_Adjudication_of_Adjustment_of_Status_Applications_PM-602-0199.pdf',
+  'SRC-311': 'https://uscode.house.gov/us/usc/t8/s1182/',
+  'SRC-312':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-42.xml?part=34',
+  'SRC-313':
+    'https://www.federalregister.gov/documents/full_text/html/2026/07/20/2026-14539.html',
+  'SRC-314': 'https://uscode.house.gov/us/usc/t8/s1159/',
+  'SRC-315': 'https://uscode.house.gov/us/usc/t8/s1439/',
+  'SRC-316':
+    'https://www.uscis.gov/sites/default/files/document/forms/g-1055.pdf',
+  'SRC-317':
+    'https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-22.xml?section=22.1',
+  'SRC-318':
+    'https://www.federalregister.gov/documents/full_text/text/2026/09/30/2026-20016.txt',
+  'SRC-319':
+    'https://www.federalregister.gov/documents/full_text/html/2026/04/29/2026-08333.html',
 };
