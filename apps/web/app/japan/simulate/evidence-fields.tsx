@@ -43,12 +43,18 @@ function Question({
   const id = prefix + '-' + field.name;
   const answers = values as Record<string, unknown>;
   const value = answers[field.name];
+  if (field.name === 'reentryPermit' && answers.departure !== 'permit')
+    return null;
   const set = (next: unknown) => change(field.name, next);
   const label = t(`jp.field.${field.label}`).replace(
     '{date}',
     japanFull2026_11.values.longestPeriod.value.transitionOn,
   );
-  const hint = field.hint && t(`jp.form.${field.hint}`);
+  const hintKey =
+    field.name === 'departure' && value === undefined
+      ? 'departureEvidence'
+      : field.hint;
+  const hint = hintKey && t(`jp.form.${hintKey}`);
   const nested = (
     definitions: JapanField[],
     record: object,
@@ -62,6 +68,8 @@ function Question({
       errors={errors}
       change={(name, answer) => {
         let updated = updateAnswer(record, name, answer);
+        if (field.name === 'trips' && name === 'departure')
+          updated = updateAnswer(updated, 'reentryPermit', undefined);
         if (
           field.name === 'status' &&
           name === 'kind' &&

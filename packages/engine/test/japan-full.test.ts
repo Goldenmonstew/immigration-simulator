@@ -162,6 +162,7 @@ describe('permanent residence', () => {
     'residence and naturalisation retain renewal evidence at departure: %s',
     (renewalPending, expectedPr, expectedNat) => {
       const trip = {
+        departure: 'deemed' as const,
         departed: '2026-10-01',
         stayExpiry: '2026-10-15',
         returned: '2026-11-10',
@@ -202,6 +203,8 @@ describe('permanent residence', () => {
   });
 
   test.each([
+    [undefined, false, 'UNKNOWN', undefined, undefined],
+    ['permit', undefined, 'UNKNOWN', undefined, undefined],
     ['deemed', false, 'MET', '2027-04-05', '2027-04-03'],
     ['permit', true, 'MET', '2027-04-05', '2027-04-03'],
     ['permit', false, 'NOT_MET', undefined, '2036-11-10'],
@@ -223,8 +226,52 @@ describe('permanent residence', () => {
       expect(result.status).toBe(expected);
       expect(result.earliestDate).toBe(filing);
       expect(result.timeEarliestDate).toBe(time);
+      if (expected === 'UNKNOWN') {
+        const stay = condition(result, 'continuous-stay');
+        expect(stay.status).toBe('UNKNOWN');
+        expect(stay.sources).toContainEqual(
+          expect.objectContaining({ srcId: 'SRC-116' }),
+        );
+        expect(result.summary).toContain(
+          departure ? 'still valid on return' : 'departure record',
+        );
+        expect(result.summary).toContain('2026-11-10');
+        expect(result.summary).not.toContain('2027-04-05');
+      }
     },
   );
+
+  test('an unknown departure method cannot preserve a stay past its confirmed expiry', () => {
+    const result = pr(general, prEvidence, {
+      trips: [
+        {
+          departed: '2026-10-01',
+          returned: '2026-11-10',
+          stayExpiry: '2026-10-15',
+          renewalPending: false,
+        },
+      ],
+    });
+    expect(status(result, 'continuous-stay')).toBe('NOT_MET');
+    expect(result.timeEarliestDate).toBe('2036-11-10');
+  });
+
+  test('an unknown method on a trip before the current stay does not delay filing', () => {
+    const result = pr(general, prEvidence, {
+      trips: [{ departed: '2015-10-01', returned: '2015-11-10' }],
+    });
+    expect(result.status).toBe('MET');
+    expect(result.earliestDate).toBe('2027-04-01');
+  });
+
+  test('an unconfirmed departure cannot preserve the stay beyond every permit term', () => {
+    const result = pr(general, prEvidence, {
+      trips: [{ departed: '2018-10-01', returned: '2026-11-10' }],
+    });
+    expect(status(result, 'continuous-stay')).toBe('NOT_MET');
+    expect(result.timeEarliestDate).toBe('2036-11-10');
+    expect(result.summary).toContain('2025-10-01');
+  });
 
   test.each([undefined, true])(
     'rechecks lawful filing on the rescheduled day after expiry (original validity: %s)',
@@ -293,6 +340,7 @@ describe('permanent residence', () => {
             {
               departed: '2021-05-01',
               returned: '2021-12-01',
+              departure: 'permit',
               reentryPermit: true,
             },
           ],
@@ -1776,6 +1824,80 @@ describe('re-entry and travel documents', () => {
     ).toBe('MET');
   });
   test.each([
+    ['2031-10-02', undefined, 'MET'],
+    ['2031-11-10', undefined, 'UNKNOWN'],
+    ['2031-11-10', '2031-12-02', 'MET'],
+    ['2031-11-10', '2031-11-01', 'NOT_MET'],
+    ['2032-10-02', undefined, 'UNKNOWN'],
+    ['2032-10-03', undefined, 'NOT_MET'],
+  ] as const)(
+    'ordinary return on %s with approved expiry %s gives %s',
+    (returnOn, extendedUntil, expected) => {
+      const result = reentry(
+        {
+          ...ordinary,
+          returnOn,
+          permit: { ...ordinary.permit, extendedUntil },
+        },
+        { applicationDate: '2026-10-01' },
+      );
+      expect(status(result, 'return-continuity')).toBe(expected);
+      if (returnOn === '2031-11-10') expect(result.status).toBe(expected);
+      const detail = condition(result, 'return-continuity').explanation;
+      if (!extendedUntil) {
+        expect(detail).not.toContain('verifiable deadline is 2031-10-02');
+        if (expected === 'UNKNOWN') expect(detail).toContain('extended expiry');
+        if (expected === 'NOT_MET') expect(detail).toContain('2032-10-02');
+      }
+    },
+  );
+
+  test.each([
+    [false, '2032-10-03', 'NOT_MET'],
+    [true, '2032-10-03', 'UNKNOWN'],
+    [undefined, '2033-10-03', 'NOT_MET'],
+  ] as const)(
+    'the total ordinary extension limit applies with special resident status %s and return on %s',
+    (specialPermanentResident, returnOn, expected) => {
+      const result = reentry({
+        ...ordinary,
+        returnOn,
+        specialPermanentResident,
+        permit: { effectiveOn: '2026-10-02', extensionApproved: true },
+      });
+      expect(status(result, 'return-continuity')).toBe(expected);
+    },
+  );
+
+  test('the ordinary extension also ends within a year of a shorter permit expiry', () => {
+    const result = reentry({
+      ...ordinary,
+      returnOn: '2028-10-03',
+      permit: {
+        ...ordinary.permit,
+        expiresOn: '2027-10-02',
+        extendedUntil: undefined,
+      },
+    });
+    expect(status(result, 'return-continuity')).toBe('NOT_MET');
+    expect(condition(result, 'return-continuity').explanation).toContain(
+      '2028-10-02',
+    );
+  });
+
+  test('the stay can expire before an approved ordinary extension of unknown length', () => {
+    const result = reentry({
+      ...ordinary,
+      returnOn: '2031-11-10',
+      stayExpiresOn: '2031-11-09',
+      stayIndefinite: false,
+      timelyRenewalPending: false,
+      permit: { ...ordinary.permit, extendedUntil: undefined },
+    });
+    expect(status(result, 'return-continuity')).toBe('NOT_MET');
+  });
+
+  test.each([
     [undefined, 'UNKNOWN'],
     [false, 'NOT_MET'],
     [true, 'MET'],
@@ -2032,6 +2154,34 @@ describe('re-entry and travel documents', () => {
     expect(confirmed.travelDate?.date).toBe('2025-04-02');
     expect(status(confirmed, 'return-continuity')).toBe('MET');
   });
+
+  test.each([
+    ['2026-10-15', 'MET'],
+    ['2027-10-15', 'UNKNOWN'],
+    ['2027-10-16', 'NOT_MET'],
+  ] as const)(
+    'return on %s with unknown refugee document extended expiry gives %s',
+    (returnOn, expected) => {
+      const result = reentry({
+        route: 'refugee-travel-document',
+        permitVoided: false,
+        departureOn: '2026-10-01',
+        returnOn,
+        permit: {
+          effectiveOn: '2025-10-15',
+          expiresOn: '2026-10-15',
+          entryDeadlineNotSpecified: true,
+          extensionApproved: true,
+        },
+      });
+      expect(status(result, 'return-continuity')).toBe(expected);
+      expect(result.travelDate?.date).toBeUndefined();
+      if (expected === 'NOT_MET')
+        expect(condition(result, 'return-continuity').explanation).toContain(
+          '2027-10-15',
+        );
+    },
+  );
 });
 
 test('keeps all pilot time rows and output dates across the guideline switch', () => {

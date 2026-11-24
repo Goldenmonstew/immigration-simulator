@@ -85,7 +85,7 @@ export const tripFields = [
   date('departed', true),
   date('returned', true),
   choice('departure', ['none', 'deemed', 'permit']),
-  bool('reentryPermit', true),
+  bool('reentryPermit'),
   date('stayExpiry', false, 'stayExpiry', 'tripExpiry'),
   bool('renewalPending'),
 ];

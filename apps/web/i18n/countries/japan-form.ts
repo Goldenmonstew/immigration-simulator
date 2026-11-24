@@ -38,6 +38,10 @@ const messages = {
     '每次出境和返日各记为一段行程，可包含计划行程。出境方式选“无”表示原在留随出境结束，返日须以新身份上陆。没有行程可直接继续。',
     'Enter one record per trip, including planned travel. Choose “None” if leaving Japan ended your status and returning required a new landing permission. Continue directly if there are no trips.',
   ],
+  'jp.form.departureEvidence': [
+    '请核对出境记录，确认当时使用普通再入国许可、みなし再入国许可，还是未使用许可。如使用普通许可，还需核对返日当天是否仍然有效。这些证据会影响之前的在留能否计入。',
+    'Check your departure record to confirm whether you used an ordinary permit, deemed re-entry, or neither. If you used an ordinary permit, check whether it was still valid on return. These details can affect whether your earlier stay counts.',
+  ],
   'jp.form.talent': [
     '当前和历史积分证据须分别注明基准日。遇窗口休息日顺延，请核对顺延后递交日的证据。',
     'Date each current and historical record separately. If the counter is closed, check the evidence for the next filing day.',

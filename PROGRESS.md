@@ -505,3 +505,4 @@
 | 752 | 任务 101：增加中英文完整流程、分享、方案恢复、对比、手机宽度和来源检查。 | apps/e2e/tests/{japan,site,a11y}.spec.ts、docs/tasks/reports/101-jp-pages.md |
 | 753 | 任务 101 审核修正（review101-1）。日本问卷与对比按递交日核对证据，窗口顺延提示积分补录日期；独立保存出境方式与返日事实，区分续期未填和明确否，限制未来出境声明。再入国单独填表、按路径展示日期，空选错误关联整个路径组。英国和日本的结果缓存核对草稿内容，补充单元及多标签页回归。 | apps/web/{app,components,i18n,lib,test}/、packages/engine/{src,test}/、apps/e2e/tests/japan.spec.ts、docs/tasks/reports/101-jp-pages.md |
 | 754 | 任务 101 第二轮审核修正（review101-2）。永住与帰化共用出境方式和普通许可有效性，修正提前作出续期决定的再入国期限、旧帰化摘要和難民旅行証明書的返日期限。读取时写回已清理的提前声明，按路线将返日连续性关联到返日日期控件。补充问卷、引擎、存储及结果回归。 | packages/engine/{src,test}/、apps/web/{app/japan/simulate,components,i18n/countries,lib,test}/、docs/tasks/reports/101-jp-pages.md |
+| 755 | 任务 101 第三轮审核修正（review101-3）。一般永住按出境方式及返日许可效力判断在留起算日。普通再入国许可与難民旅行証明書在延期截止日未知时按法定上限判断返日。旧草稿及命名方案首次在出境后读取也须重新确认声明。 | packages/engine/{src,test}/、apps/web/{app/japan/simulate,i18n/countries,lib,test}/、docs/tasks/reports/101-jp-pages.md |

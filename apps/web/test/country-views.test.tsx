@@ -1,9 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
-import type {
-  CountryPathway,
-  JpFullReentryRequest,
-} from '@uk-immigration/engine';
+import type { CountryPathway } from '@uk-immigration/engine';
 import { esP31IndividualAPartnerArrivesTogether as partner } from '../../../packages/policy-data/fixtures/es-p31-individual-a-partner-arrives-together';
 import { ResultView } from '../components/result-view';
 import { PolicyPage } from '../components/policy-page';
@@ -11,6 +8,7 @@ import type { CountryPolicy, PolicyRuleSet } from '../lib/policy';
 import { WhatIfView } from '../components/whatif-lab';
 import { t } from '../i18n';
 import { japanModule } from '../lib/japan-module';
+import type { JapanDraft } from '../lib/japan-draft';
 import type { CountryModule } from '../lib/country-module';
 import { ukModule } from '../lib/uk-module';
 import {
@@ -165,6 +163,7 @@ test.each([
       residentCardOrCertificate: true,
       formalPermitRequired: false,
       declaredIntentAtDeparture: true,
+      declarationForDepartureOn: '2025-09-02',
       permitVoided: false,
     },
     kind: 'departure',
@@ -188,7 +187,7 @@ test.each([
     expected: '2025-10-01',
   },
 ] satisfies {
-  route: JpFullReentryRequest;
+  route: JapanDraft['reentry'][number];
   kind: 'departure' | 'returnDeadline';
   expected: string;
 }[])(

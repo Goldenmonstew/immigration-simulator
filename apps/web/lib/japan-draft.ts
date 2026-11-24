@@ -29,7 +29,7 @@ export interface JapanDraft
     routes: JpFullNaturalisationRoute[];
     evidence: JpNaturalisationEvidence;
   };
-  reentry: JpFullReentryRequest[];
+  reentry: (JpFullReentryRequest & { declarationForDepartureOn?: string })[];
 }
 
 export function createJapanDraft(): JapanDraft {
@@ -51,7 +51,7 @@ export function withJapanFilingDate(
   applicationDate: string | undefined,
   simulationDate = draft.simulationDate,
 ): JapanDraft {
-  const next = clearPlannedJapanDeclaration({
+  const next = clearUnconfirmedJapanDeclaration({
     ...draft,
     simulationDate,
     applicationDate,
@@ -141,21 +141,28 @@ export function canConfirmJapanDeparture(
   );
 }
 
-// Version-one local drafts may have recorded a declaration for a planned trip.
-export function clearPlannedJapanDeclaration(draft: JapanDraft): JapanDraft {
+// Older drafts stored a bare answer, which could have been entered before departure.
+export function clearUnconfirmedJapanDeclaration(
+  draft: JapanDraft,
+): JapanDraft {
   const deemed = Array.isArray(draft.reentry)
     ? draft.reentry.find((route) => route?.route === 'deemed')
     : undefined;
   if (
     deemed?.declaredIntentAtDeparture === undefined ||
-    canConfirmJapanDeparture(draft, deemed.departureOn)
+    (deemed.declarationForDepartureOn === deemed.departureOn &&
+      canConfirmJapanDeparture(draft, deemed.departureOn))
   )
     return draft;
   return {
     ...draft,
     reentry: draft.reentry.map((route) =>
       route === deemed
-        ? { ...deemed, declaredIntentAtDeparture: undefined }
+        ? {
+            ...deemed,
+            declaredIntentAtDeparture: undefined,
+            declarationForDepartureOn: undefined,
+          }
         : route,
     ),
   };
@@ -470,5 +477,5 @@ export function decodeJapanDraft(value: unknown): JapanDraft | undefined {
     )
   )
     return undefined;
-  return draft;
+  return clearUnconfirmedJapanDeclaration(draft);
 }

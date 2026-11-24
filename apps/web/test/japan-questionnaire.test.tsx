@@ -75,7 +75,9 @@ test('birth departure method and return within permit validity can be answered a
     decodeDraft(jp, encodeDraft(jp, { ...draft, completed: true }))?.trips,
   ).toEqual(draft.trips);
   answer('departure', '');
-  expect(draft.trips[0].reentryPermit).toBe(false);
+  expect(draft.trips[0]).not.toHaveProperty('reentryPermit');
+  form(draft);
+  expect(fields.has('jp-trips-0-reentryPermit')).toBe(false);
 });
 
 test('selecting To confirm removes a previous explicit negative renewal answer before evaluation', () => {
@@ -99,6 +101,7 @@ test('selecting To confirm removes a previous explicit negative renewal answer b
         departed: '2026-10-01',
         returned: '2026-11-10',
         stayExpiry: '2026-10-15',
+        departure: 'permit',
         reentryPermit: true,
         renewalPending: false,
       },
@@ -122,8 +125,8 @@ test('selecting To confirm removes a previous explicit negative renewal answer b
   expect(assessed.summary).toContain('confirm whether a timely renewal');
 });
 
-test('the general PR questionnaire sends the departure method and permit validity through to the stay calculation', () => {
-  let draft: JapanDraft = {
+function generalTripDraft(): JapanDraft {
+  return {
     ...jp.createDraft(),
     step: 1,
     simulationDate: '2027-04-03',
@@ -140,6 +143,10 @@ test('the general PR questionnaire sends the departure method and permit validit
     },
     trips: [{ departed: '2026-10-01', returned: '2026-11-10' }],
   };
+}
+
+test('the general PR questionnaire sends the departure method and permit validity through to the stay calculation', () => {
+  let draft = generalTripDraft();
   const answer = (field: string, value: string) => {
     form(draft, (patch) => {
       draft = { ...draft, ...patch };
@@ -147,11 +154,27 @@ test('the general PR questionnaire sends the departure method and permit validit
     fields.get('jp-trips-0-' + field)!({ target: { value } });
   };
   const assessed = () => jp.run(draft, 'en').columns[0].pathways[0];
-  answer('reentryPermit', 'no');
+  const missingMethod = form(draft);
+  expect(missingMethod).toContain('Check your departure record');
+  expect(missingMethod).toContain(
+    'aria-describedby="jp-trips-0-departure-hint"',
+  );
+  expect(fields.has('jp-trips-0-reentryPermit')).toBe(false);
+  expect(jp.validateStep(draft)).toEqual({});
+  const missing = assessed();
+  expect(missing.timeStatus).toBe('UNKNOWN');
+  expect(missing.earliestDate).toBeUndefined();
+  expect(missing.timeEarliestDate).toBeUndefined();
+  answer('departure', 'none');
+  expect(assessed().timeEarliestDate).toBe('2036-11-10');
   answer('departure', 'deemed');
   expect(assessed().timeStatus).toBe('MET');
+  expect(form(draft)).not.toContain('Check your departure record');
+  expect(fields.has('jp-trips-0-reentryPermit')).toBe(false);
   answer('departure', 'permit');
+  expect(assessed().timeStatus).toBe('UNKNOWN');
   expect(jp.validateStep(draft)).toEqual({});
+  answer('reentryPermit', 'no');
   expect(draft.trips[0]).toMatchObject({
     departure: 'permit',
     reentryPermit: false,
@@ -169,7 +192,41 @@ test('the general PR questionnaire sends the departure method and permit validit
   const prFields = [...fields.keys()];
   form(natOnly);
   expect([...fields.keys()]).toEqual(prFields);
+  answer('reentryPermit', 'yes');
+  expect(assessed().timeStatus).toBe('MET');
+  answer('departure', '');
+  expect(draft.trips[0]).not.toHaveProperty('reentryPermit');
+  expect(assessed().timeStatus).toBe('UNKNOWN');
+  const shared = decodeDraft(
+    jp,
+    encodeDraft(jp, { ...draft, completed: true }),
+  );
+  expect(shared?.trips).toEqual(draft.trips);
+  expect(jp.run(shared!, 'en').columns[0].pathways[0].timeStatus).toBe(
+    'UNKNOWN',
+  );
 });
+
+test.each([true, false])(
+  'a shared trip with no departure method and a stale permit answer (%s) still needs confirmation',
+  (previousAnswer) => {
+    const previous = generalTripDraft();
+    previous.trips[0].reentryPermit = previousAnswer;
+    previous.completed = true;
+    let draft = decodeDraft(jp, encodeDraft(jp, previous))!;
+    form(draft, (patch) => {
+      draft = { ...draft, ...patch };
+    });
+    expect(fields.has('jp-trips-0-reentryPermit')).toBe(false);
+    const result = jp.run(draft, 'en').columns[0].pathways[0];
+    expect(result.timeStatus).toBe('UNKNOWN');
+    expect(result.earliestDate).toBeUndefined();
+    fields.get('jp-trips-0-departure')!({ target: { value: 'permit' } });
+    expect(draft.trips[0]).not.toHaveProperty('reentryPermit');
+    form(draft);
+    expect(fields.has('jp-trips-0-reentryPermit')).toBe(true);
+  },
+);
 
 test.each([
   ['2026-11-24', '2027-04-26', '2027-04-19'],
@@ -212,36 +269,57 @@ test.each([
   },
 );
 
-test('an earlier filing for a separate route preserves a declaration made on an actual departure', () => {
-  vi.useFakeTimers();
-  vi.setSystemTime(new Date('2026-11-24T12:00:00Z'));
-  const draft: JapanDraft = {
-    ...jp.createDraft(),
-    step: 6,
-    completed: true,
-    stayStart: '2013-01-01',
-    permanentResidence: { routes: [{ route: 'child' }], evidence: {} },
-    reentry: [
-      {
-        route: 'deemed',
-        departureOn: '2026-11-24',
-        declaredIntentAtDeparture: true,
-      },
-    ],
-  };
-  const adjusted = jp.whatif.apply(draft, {
-    ...jp.whatif.initial(draft),
-    applicationDate: '2026-11-01',
-  });
-  expect(adjusted.reentry[0]).toHaveProperty('declaredIntentAtDeparture', true);
-  expect(jp.validateStep(adjusted)).toEqual({});
-  expect(decodeDraft(jp, encodeDraft(jp, adjusted))?.reentry).toEqual(
-    draft.reentry,
-  );
-  expect(form(adjusted)).toContain(
-    'id="jp-travel-deemed-declaredIntentAtDeparture"',
-  );
-});
+test.each([
+  ['yes', true],
+  ['no', false],
+] as const)(
+  'a %s answer confirmed for an actual departure survives sharing and changing a separate filing date',
+  (answer, expected) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-24T12:00:00Z'));
+    let draft: JapanDraft = {
+      ...jp.createDraft(),
+      step: 6,
+      completed: true,
+      stayStart: '2013-01-01',
+      permanentResidence: { routes: [{ route: 'child' }], evidence: {} },
+      reentry: [
+        {
+          route: 'deemed',
+          departureOn: '2026-11-24',
+        },
+      ],
+    };
+    const answerField = (field: string, value: string) => {
+      form(draft, (patch) => {
+        draft = { ...draft, ...patch };
+      });
+      fields.get('jp-travel-deemed-' + field)!({ target: { value } });
+    };
+    answerField('declaredIntentAtDeparture', answer);
+    const adjusted = jp.whatif.apply(draft, {
+      ...jp.whatif.initial(draft),
+      applicationDate: '2026-11-01',
+    });
+    expect(adjusted.reentry[0]).toMatchObject({
+      declaredIntentAtDeparture: expected,
+      declarationForDepartureOn: '2026-11-24',
+    });
+    expect(jp.restoreStoredDraft!(adjusted)).toEqual(adjusted);
+    expect(jp.validateStep(adjusted)).toEqual({});
+    expect(decodeDraft(jp, encodeDraft(jp, adjusted))?.reentry).toEqual(
+      draft.reentry,
+    );
+    expect(form(adjusted)).toContain(
+      'id="jp-travel-deemed-declaredIntentAtDeparture"',
+    );
+    answerField('departureOn', '2026-11-23');
+    expect(draft.reentry[0]).toEqual({
+      route: 'deemed',
+      departureOn: '2026-11-23',
+    });
+  },
+);
 
 test('a travel-only questionnaire goes straight to route details and restores older trip-history drafts there', () => {
   const draft: JapanDraft = {

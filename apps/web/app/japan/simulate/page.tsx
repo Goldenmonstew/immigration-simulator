@@ -93,15 +93,20 @@ function JapanStep({ draft, errors, update }: StepProps) {
                   routes[group].map((r) => {
                     if (r.route !== route.route) return r;
                     const next = updateAnswer(r, key, value);
-                    return r.route === 'deemed' &&
-                      key === 'departureOn' &&
-                      value !== r.departureOn
-                      ? updateAnswer(
-                          next,
-                          'declaredIntentAtDeparture',
-                          undefined,
-                        )
-                      : next;
+                    if (r.route !== 'deemed') return next;
+                    if (key === 'declaredIntentAtDeparture')
+                      return {
+                        ...next,
+                        declarationForDepartureOn:
+                          value === undefined ? undefined : r.departureOn,
+                      };
+                    if (key === 'departureOn' && value !== r.departureOn)
+                      return {
+                        ...next,
+                        declaredIntentAtDeparture: undefined,
+                        declarationForDepartureOn: undefined,
+                      };
+                    return next;
                   }),
                 )
               }

@@ -1,4 +1,7 @@
-import { japan2026_11 as jp } from '@uk-immigration/policy-data';
+import {
+  japan2026_11 as jp,
+  japanFull2026_11,
+} from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
 import {
   addDays,
@@ -60,6 +63,7 @@ export interface JpTrip {
   /**
    * How the traveller left: without re-entry permission, with deemed
    * re-entry or on an ordinary permit (SRC-116; for newborns FAQ Q28).
+   * A blank answer in the full questionnaire means the method is unknown.
    */
   departure?: 'none' | 'deemed' | 'permit';
 }
@@ -151,7 +155,7 @@ interface Need {
   state: Verdict;
   text: string;
   sources: SourceRef[];
-  renewalUnconfirmed?: boolean;
+  continuityUnconfirmed?: boolean;
 }
 
 /**
@@ -182,18 +186,39 @@ const latestStayLimit = (t: JpTrip) =>
     renewalPending: t.renewalPending ?? true,
   });
 
-export function jpTripLapses(t: JpTrip): boolean | undefined {
-  // SRC-116, 再入国許可: departing without re-entry permission ends the stay.
-  if (t.departure === 'none') return true;
-  if (t.departure === 'permit' && t.reentryPermit === false) return true;
+const missingPermission = (t: JpTrip, departure = t.departure) =>
+  !departure || (departure === 'permit' && t.reentryPermit === undefined);
+// The permit was already effective at departure. Even the special permanent
+// resident extension cannot outlast this bound (SRC-110 art. 26(5), SRC-442 art. 23(1)).
+const latestPossibleReentry = (t: JpTrip) =>
+  addYears(
+    t.departed,
+    japanFull2026_11.values.reentry.value.specialPermanentExtendedYears,
+  );
+
+export function jpTripLapses(
+  t: JpTrip,
+  departure = t.departure,
+): boolean | undefined {
+  // SRC-116, 再入国許可 paras 2–4 and 永住者の在留資格について p5.
+  if (departure === 'none') return true;
+  if (departure === 'permit' && t.reentryPermit === false) return true;
   if (
-    (t.departure === 'deemed' || !t.reentryPermit) &&
+    departure === 'deemed' &&
     t.returned > addYears(t.departed, v.deemedReentryYears.value)
   )
     return true;
-  if (!t.stayExpiry || t.returned <= t.stayExpiry) return false;
-  if (t.returned > latestStayLimit(t)!) return true;
-  return t.renewalPending === undefined ? undefined : false;
+  const stayLimit = latestStayLimit(t);
+  if (stayLimit && t.returned > stayLimit) return true;
+  if (missingPermission(t, departure))
+    return t.returned > latestPossibleReentry(t) ? true : undefined;
+  if (
+    t.stayExpiry &&
+    t.returned > t.stayExpiry &&
+    t.renewalPending === undefined
+  )
+    return undefined;
+  return false;
 }
 
 const metOf = (state: Verdict) =>
@@ -266,6 +291,14 @@ export const jpOfficeClosed = (d: IsoDate): Verdict => {
 };
 
 export function evaluateJapan(req: JpRequest): JpResult {
+  // The original time calculator asked only about a valid ordinary permit.
+  return evaluateJapanTimeline(req, true);
+}
+
+export function evaluateJapanTimeline(
+  req: JpRequest,
+  inferLegacyDeparture = false,
+): JpResult {
   const L = textFor(req);
   const sim = req.simulationDate;
   // To the anniversary, so a 29 February date reaches 1 March.
@@ -279,10 +312,13 @@ export function evaluateJapan(req: JpRequest): JpResult {
   // The status ends on a trip past the period of stay, or past the deemed
   // permit's year without a regular permit (art. 26-2(2)); the stay starts
   // again on return (PD-136).
-  const lapsed = req.trips.filter((t) => jpTripLapses(t) === true);
-  const uncertainRenewals = req.trips.filter(
-    (t) => jpTripLapses(t) === undefined,
-  );
+  const departureOf = (t: JpTrip) => {
+    if (t.departure || !inferLegacyDeparture) return t.departure;
+    return t.reentryPermit ? 'permit' : 'deemed';
+  };
+  const lapseOf = (t: JpTrip) => jpTripLapses(t, departureOf(t));
+  const lapsed = req.trips.filter((t) => lapseOf(t) === true);
+  const uncertainTrips = req.trips.filter((t) => lapseOf(t) === undefined);
   /** First day of the stay, counting the specified lapses before `d`. */
   const stayFrom = (d: IsoDate, trips = lapsed, start = req.stayStart) =>
     trips.reduce(
@@ -368,18 +404,53 @@ export function evaluateJapan(req: JpRequest): JpResult {
         ` The trip from ${t.departed} to ${t.returned} came back after ${limit} (${t.renewalPending ? `${v.renewalPendingMonths.value} months after your period of stay ended, with a renewal pending` : 'the end of your period of stay'}), so the status ended and the unbroken stay starts again on ${t.returned}.`,
       );
     }
+    if (missingPermission(t, departureOf(t)))
+      return L(
+        `${t.returned} 返日已超过从 ${t.departed} 出境算起最长可能的许可期限（${latestPossibleReentry(t)}），连续在留从返日重新起算。`,
+        ` The return on ${t.returned} was after ${latestPossibleReentry(t)}, the latest possible permit limit even counting from departure on ${t.departed}. The stay starts again on return.`,
+      );
     return L(
       `${t.departed} 至 ${t.returned} 的出境没有再入国许可、超过みなし再入国许可的 ${v.deemedReentryYears.value} 年期限，在留资格消灭，连续在留从 ${t.returned} 重新起算。`,
       ` The trip from ${t.departed} to ${t.returned} had no re-entry permit and went past the ${v.deemedReentryYears.value}-year deemed permit, so the status ended and the unbroken stay starts again on ${t.returned}.`,
     );
   });
-  for (const t of uncertainRenewals)
-    lapseNotes.push(
-      L(
-        `对于 ${t.departed} 出境、${t.returned} 返日的行程，请确认出境时是否有按期提出且仍待决定的更新或变更申请。能否接续之前的在留取决于这项证据。`,
-        ` For the trip from ${t.departed} to ${t.returned}, confirm whether a timely renewal or change application was pending at departure to determine whether the earlier stay counts.`,
-      ),
+  const continuitySources: SourceRef[] = [];
+  if (uncertainTrips.some((t) => missingPermission(t, departureOf(t))))
+    continuitySources.push(
+      {
+        srcId: 'SRC-116',
+        locator: '再入国許可 本文第2–4段',
+      },
+      ...v.deemedReentryYears.sources,
     );
+  const needsRenewalEvidence = (t: JpTrip) =>
+    t.renewalPending === undefined && t.stayExpiry && t.returned > t.stayExpiry;
+  if (uncertainTrips.some(needsRenewalEvidence))
+    continuitySources.push(...v.renewalPendingMonths.sources);
+  for (const t of uncertainTrips) {
+    const departure = departureOf(t);
+    if (!departure)
+      lapseNotes.push(
+        L(
+          `请核对 ${t.departed} 的出境记录，确认是未持许可、使用みなし再入国许可，还是持普通再入国许可出境。若持普通许可，还须核对 ${t.returned} 返日时许可是否有效。未持许可或许可失效时，连续在留从 ${t.returned} 重新起算。`,
+          ` Check the departure record for ${t.departed} to confirm whether you left without permission, with deemed re-entry or with an ordinary re-entry permit. For an ordinary permit, check whether it was valid on return on ${t.returned}. Without permission or after expiry, the stay starts again on ${t.returned}.`,
+        ),
+      );
+    else if (departure === 'permit' && t.reentryPermit === undefined)
+      lapseNotes.push(
+        L(
+          `请核对普通再入国许可在 ${t.returned} 返日时是否仍有效。若已失效，连续在留从该日重新起算。`,
+          ` Check whether the ordinary re-entry permit was still valid on return on ${t.returned}. If it had expired, the stay starts again on that date.`,
+        ),
+      );
+    if (needsRenewalEvidence(t))
+      lapseNotes.push(
+        L(
+          `对于 ${t.departed} 出境、${t.returned} 返日的行程，请确认出境时是否有按期提出且仍待决定的更新或变更申请。能否接续之前的在留取决于这项证据。`,
+          ` For the trip from ${t.departed} to ${t.returned}, confirm whether a timely renewal or change application was pending at departure to determine whether the earlier stay counts.`,
+        ),
+      );
+  }
   const projection = L(
     '最早日期假设模拟日之后一直在日本（已录入的未来出境除外），在留资格按时更新，婚姻等身份持续。',
     'Projected dates assume you stay in Japan after the simulation date (apart from trips you entered), renew your status on time and stay married where that counts.',
@@ -389,9 +460,14 @@ export function evaluateJapan(req: JpRequest): JpResult {
     'Years run to the anniversary: N years after the start date counts as met (from 29 February, 1 March). On the strict Civil Code reading, which leaves out the first day, it could be a day later; how the authorities count is not published. You apply in person in Japan, so a day spent wholly abroad is not an application date (PD-130).',
   );
   const reentry = L(
-    `未持再入国许可出境，或持普通许可出境但逾期返日的，在留从返日重新起算。使用みなし再入国许可的，须在出境日 ${v.deemedReentryYears.value} 年后的同一天或之前返回。未填出境方式时，按所填普通许可是否有效区分普通和みなし。两种许可都受出境时在留期限限制。出境时有待决的按期续期申请，按获准且在原期限届满后 ${v.renewalPendingMonths.value} 个月内返回估算。未填在留期限时，假设它没有先到期（PD-136）。`,
-    `If you left without re-entry permission or your ordinary permit expired before return, the stay starts again when you return. With deemed re-entry you must return by the same date ${v.deemedReentryYears.value} year after leaving. If the departure method is blank, the model uses the ordinary permit if marked valid and deemed re-entry otherwise. Both permits are limited by the period of stay held at departure. For a timely renewal pending at departure, the projection assumes approval and allows up to ${v.renewalPendingMonths.value} months after the original expiry. A blank period of stay is assumed not to have ended before return (PD-136).`,
-  );
+    `未持再入国许可出境，或持普通许可出境但逾期返日的，在留从返日重新起算。使用みなし再入国许可的，须在出境日 ${v.deemedReentryYears.value} 年后的同一天或之前返回。两种许可都受出境时在留期限限制。出境时有待决的按期续期申请，按获准且在原期限届满后 ${v.renewalPendingMonths.value} 个月内返回估算。未填在留期限时，假设它没有先到期（PD-136）。`,
+    `If you left without re-entry permission or your ordinary permit expired before return, the stay starts again when you return. With deemed re-entry you must return by the same date ${v.deemedReentryYears.value} year after leaving. Both permits are limited by the period of stay held at departure. For a timely renewal pending at departure, the projection assumes approval and allows up to ${v.renewalPendingMonths.value} months after the original expiry. A blank period of stay is assumed not to have ended before return (PD-136).`,
+  ) + (inferLegacyDeparture && req.trips.some((t) => !t.departure)
+    ? L(
+        '旧版时间计算中，未填出境方式的行程根据普通许可是否标为有效区分普通和みなし。',
+        ' For trips without a departure method, the original time calculator assumes an ordinary permit if marked valid and deemed re-entry otherwise.',
+      )
+    : '');
   const inJapan = (sources: SourceRef[]): PilotCheck[] =>
     abroad(sim)
       ? [
@@ -792,7 +868,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
     const needs = (d: IsoDate): Need[] => {
       const stay = stayFrom(d);
       const current = needsFrom(d, stay);
-      const ifLapsed = stayFrom(d, uncertainRenewals, stay);
+      const ifLapsed = stayFrom(d, uncertainTrips, stay);
       if (ifLapsed === stay) return current;
       const afterLapse = needsFrom(d, ifLapsed);
       return current.map((need, i) => {
@@ -802,12 +878,12 @@ export function evaluateJapan(req: JpRequest): JpResult {
         return {
           ...need,
           state: uncertain ? 'maybe' : need.state,
-          renewalUnconfirmed: uncertain,
+          continuityUnconfirmed: uncertain,
           text: L(
-            `若按期续期且在留得以接续，需${need.text}。若在留中断，需${other.text}。`,
-            `With continuity under a timely pending renewal, the requirement is ${need.text}. If the stay lapsed, the requirement is ${other.text}.`,
+            `若在留接续，需${need.text}。若在留中断，需${other.text}。`,
+            `If the stay continued, the requirement is ${need.text}. If it lapsed, the requirement is ${other.text}.`,
           ),
-          sources: [...need.sources, ...v.renewalPendingMonths.sources],
+          sources: [...need.sources, ...continuitySources],
         };
       });
     };
@@ -873,11 +949,6 @@ export function evaluateJapan(req: JpRequest): JpResult {
     /** Why the date `d` is uncertain. */
     const reason = (d: IsoDate) => {
       const conditions = needs(d);
-      if (conditions.some((n) => n.renewalUnconfirmed))
-        return L(
-          '能否计入出境前的在留，取决于出境时有无待决的按期续期或变更申请。',
-          ' and whether the stay before departure counts depends on whether a timely renewal or change application was pending.',
-        );
       if (conditions.some((n) => n.state === 'maybe'))
         return guideline(d) === 'new'
           ? L(
@@ -901,7 +972,10 @@ export function evaluateJapan(req: JpRequest): JpResult {
         ) + applies
       );
     };
-    const shown = possible ?? earliest;
+    const timingNeedsEvidence =
+      status === 'UNKNOWN' &&
+      needs(possible!).some((need) => need.continuityUnconfirmed);
+    const shown = timingNeedsEvidence ? undefined : possible ?? earliest;
     const newDate =
       shown && shown < switchDate
         ? firstDate((d) => verdict(d) === 'yes', switchDate)
@@ -977,23 +1051,28 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 `最早满足永住许可时间条件的日期是 ${earliest}。`,
                 `The earliest date that meets the time requirements for permanent residence is ${earliest}.`,
               ) + filingNote(earliest!, (x) => verdict(x) === 'yes', 'isa')
-            : status === 'UNKNOWN'
+            : timingNeedsEvidence
               ? L(
-                  `按年限计算的候选日期是 ${possible}，`,
-                  `Counting years alone, the candidate date is ${possible},`,
-                ) +
-                reason(possible!) +
-                (earliest
-                  ? L(
-                      `不受这一点影响的最早日期是 ${earliest}。`,
-                      ` The earliest date without this doubt is ${earliest}.`,
-                    )
-                  : '') +
-                filingNote(possible!, (x) => verdict(x) !== 'no', 'isa', true)
-              : L(
-                  '按现有记录，10 年内达不到永住许可的时间条件。',
-                  'With your record you will not meet the time requirements for permanent residence within 10 years.',
-                )) +
+                  '出境前的在留能否计入仍待确认，暂时无法确定最早日期。',
+                  'Confirm whether the stay before departure counts to establish the earliest date.',
+                )
+              : status === 'UNKNOWN'
+                ? L(
+                    `按年限计算的候选日期是 ${possible}，`,
+                    `Counting years alone, the candidate date is ${possible},`,
+                  ) +
+                  reason(possible!) +
+                  (earliest
+                    ? L(
+                        `不受这一点影响的最早日期是 ${earliest}。`,
+                        ` The earliest date without this doubt is ${earliest}.`,
+                      )
+                    : '') +
+                  filingNote(possible!, (x) => verdict(x) !== 'no', 'isa', true)
+                : L(
+                    '按现有记录，10 年内达不到永住许可的时间条件。',
+                    'With your record you will not meet the time requirements for permanent residence within 10 years.',
+                  )) +
         version +
         (pr.route === 'general' && pr.statusStart === 'none'
           ? L(
@@ -1224,11 +1303,7 @@ export function evaluateJapan(req: JpRequest): JpResult {
     ) {
       // SRC-111 art. 5(1)(i), SRC-117 Q9: the domicile must be continuous
       // and lawful. Check whether the same date still holds after a lapse.
-      const ifLapsed = stayFrom(
-        legalDate,
-        uncertainRenewals,
-        stayFrom(legalDate),
-      );
+      const ifLapsed = stayFrom(legalDate, uncertainTrips, stayFrom(legalDate));
       const timing =
         legalDate >= afterYears(ifLapsed, v.naturalisationYears.value)
           ? L(
@@ -1236,8 +1311,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
               `which by years alone is from ${legalDate}`,
             )
           : L(
-              '续期情况未明，法定住所年限的最早日期待确认',
-              'and the earliest date meeting the domicile requirement depends on confirmation of the renewal',
+              '在留连续性未明，法定住所年限的最早日期待确认',
+              'and the earliest date meeting the domicile requirement depends on confirmation of continuity',
             );
       lawOnly = L(
         `国籍法本身只要求住所 ${v.naturalisationYears.value} 年、年满 ${japanAge(legalDate)} 岁并达到本国法的成年年龄（按 ${ageOn(legalDate)} 岁计），${timing}；${practiceFrom} 起法务省在审查中原则要求在留 ${practiceYears} 年以上，例外个案判断（PD-137）。`,

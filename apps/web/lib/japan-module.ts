@@ -3,7 +3,7 @@ import { t } from '../i18n';
 import type { CountryModule } from './country-module';
 import {
   canConfirmJapanDeparture,
-  clearPlannedJapanDeclaration,
+  clearUnconfirmedJapanDeclaration,
   createJapanDraft,
   decodeJapanDraft,
   validateJapanStep,
@@ -13,24 +13,20 @@ import { japanPolicy } from './japan-policy';
 import { japanWhatIf, type JapanWhatIf } from './japan-whatif';
 
 function run(draft: JapanDraft, locale: Locale) {
-  const deemed = draft.reentry.find((route) => route.route === 'deemed');
-  const pending =
-    deemed && !canConfirmJapanDeparture(draft, deemed.departureOn);
-  const result = evaluateJapanFull({
-    ...clearPlannedJapanDeclaration(draft),
-    locale,
-  });
-  if (pending && deemed.departureOn) {
+  const confirmed = clearUnconfirmedJapanDeclaration(draft);
+  const result = evaluateJapanFull({ ...confirmed, locale });
+  const deemed = confirmed.reentry.find((route) => route.route === 'deemed');
+  if (deemed?.departureOn && deemed.declaredIntentAtDeparture === undefined) {
+    const hint = canConfirmJapanDeparture(confirmed, deemed.departureOn)
+      ? 'jp.result.confirmDeparture'
+      : 'jp.result.plannedDeparture';
     const pathway = result.columns[0].pathways.find(
       (item) => item.id === 'jp.reentry.deemed',
     );
     if (pathway)
       pathway.summary = [
         pathway.summary,
-        t('jp.result.plannedDeparture', locale).replace(
-          '{date}',
-          deemed.departureOn,
-        ),
+        t(hint, locale).replace('{date}', deemed.departureOn),
       ].join(' ');
   }
   return result;
@@ -40,7 +36,7 @@ export const japanModule: CountryModule<JapanDraft, JapanWhatIf> = {
   id: 'jp',
   version: 1,
   createDraft: createJapanDraft,
-  restoreStoredDraft: clearPlannedJapanDeclaration,
+  restoreStoredDraft: clearUnconfirmedJapanDeclaration,
   validateStep: validateJapanStep,
   decodeDraft: decodeJapanDraft,
   run,

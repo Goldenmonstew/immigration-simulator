@@ -604,6 +604,31 @@ describe('review70-2', () => {
     expect(known(false).summary).toContain('按年限最早 2031-11-10');
   });
 
+  test.each([
+    [undefined, 'UNKNOWN', undefined, 'UNKNOWN', undefined],
+    [false, 'FUTURE', '2036-11-10', 'FUTURE', '2036-11-10'],
+    [true, 'MET', '2027-04-03', 'UNKNOWN', undefined],
+  ] as const)(
+    'legacy evaluateJapan distinguishes omitted renewal evidence from %s',
+    (renewalPending, prStatus, prDate, natStatus, natDate) => {
+      const trip = {
+        departed: '2026-10-01',
+        returned: '2026-11-10',
+        stayExpiry: '2026-10-15',
+        ...(renewalPending === undefined ? {} : { renewalPending }),
+      };
+      const { pathways } = evaluateJapan({
+        ...base,
+        simulationDate: '2027-04-03',
+        trips: [trip],
+      });
+      expect(pathways.map((p) => [p.status, p.earliestDate])).toEqual([
+        [prStatus, prDate],
+        [natStatus, natDate],
+      ]);
+    },
+  );
+
   test('a spouse 10-year date with trips is only a candidate', () => {
     const p = nat({
       simulationDate: '2027-06-01',

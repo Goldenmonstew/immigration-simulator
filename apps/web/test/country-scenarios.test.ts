@@ -140,57 +140,80 @@ test.each([ukModule, japanModule])(
   },
 );
 
-test('reading legacy Japan drafts and saved plans before departure permanently clears premature declarations', () => {
-  vi.useFakeTimers();
-  vi.setSystemTime(new Date('2026-10-01T12:00:00Z'));
-  const original = {
-    ...japanModule.createDraft(),
-    completed: true,
-    step: 6,
-    simulationDate: '2026-10-10',
-    reentry: [
-      {
-        route: 'deemed' as const,
-        departureOn: '2026-10-02',
-        returnOn: '2026-10-10',
-        declaredIntentAtDeparture: true,
-      },
-    ],
-  };
-  const scenario = {
-    id: 'old',
-    name: 'saved',
-    savedAt: '2026-10-01',
-    draft: original,
-  };
-  const draftKey = 'jp-immigration-draft-v1';
-  const scenariosKey = 'jp-immigration-scenarios-v1';
-  const storage = new Map([
-    [draftKey, JSON.stringify(original)],
-    [scenariosKey, JSON.stringify([scenario])],
-  ]);
-  vi.stubGlobal('localStorage', {
-    getItem: (key: string) => storage.get(key) ?? null,
-    setItem: (key: string, value: string) => storage.set(key, value),
-  });
-  const local = draftStorage(japanModule).draft!;
-  expect(
-    decodeDraft(japanModule, encodeDraft(japanModule, original)),
-  ).toBeUndefined();
-  expect(local.reentry).toEqual([
-    { ...original.reentry[0], declaredIntentAtDeparture: undefined },
-  ]);
-  expect(decodeDraft(japanModule, encodeDraft(japanModule, local))).toEqual(
-    local,
-  );
-  const cleanedPlans = [{ ...scenario, draft: local }];
-  expect(readScenarios(japanModule).scenarios).toEqual(cleanedPlans);
-  expect(JSON.parse(storage.get(draftKey)!)).toEqual(local);
-  expect(JSON.parse(storage.get(scenariosKey)!)).toEqual(cleanedPlans);
+test.each([
+  ['2026-10-01', true],
+  ['2026-10-03', true],
+  ['2026-10-03', false],
+] as const)(
+  'first opening a legacy Japan draft or saved plan on %s clears its unverified declaration of %s',
+  (firstRead, declaredIntentAtDeparture) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(firstRead + 'T12:00:00Z'));
+    const original = {
+      ...japanModule.createDraft(),
+      completed: true,
+      step: 6,
+      simulationDate: '2026-10-10',
+      reentry: [
+        {
+          route: 'deemed' as const,
+          departureOn: '2026-10-02',
+          returnOn: '2026-10-10',
+          stayIndefinite: true,
+          lawfulStatus: true,
+          passportValid: true,
+          residentCardOrCertificate: true,
+          formalPermitRequired: false,
+          permitVoided: false,
+          declaredIntentAtDeparture,
+        },
+      ],
+    };
+    const scenario = {
+      id: 'old',
+      name: 'saved',
+      savedAt: '2026-10-01',
+      draft: original,
+    };
+    const draftKey = 'jp-immigration-draft-v1';
+    const scenariosKey = 'jp-immigration-scenarios-v1';
+    const storage = new Map([
+      [draftKey, JSON.stringify(original)],
+      [scenariosKey, JSON.stringify([scenario])],
+    ]);
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+    });
+    const local = draftStorage(japanModule).draft!;
+    const oldShare = decodeDraft(
+      japanModule,
+      encodeDraft(japanModule, original),
+    );
+    if (firstRead < original.reentry[0].departureOn)
+      expect(oldShare).toBeUndefined();
+    else expect(oldShare).toEqual(local);
+    expect(local.reentry).toEqual([
+      { ...original.reentry[0], declaredIntentAtDeparture: undefined },
+    ]);
+    expect(decodeDraft(japanModule, encodeDraft(japanModule, local))).toEqual(
+      local,
+    );
+    const cleanedPlans = [{ ...scenario, draft: local }];
+    expect(readScenarios(japanModule).scenarios).toEqual(cleanedPlans);
+    expect(JSON.parse(storage.get(draftKey)!)).toEqual(local);
+    expect(JSON.parse(storage.get(scenariosKey)!)).toEqual(cleanedPlans);
 
-  vi.setSystemTime(new Date('2026-10-03T12:00:00Z'));
-  expect(draftStorage(japanModule).draft).toEqual(local);
-  const plansAfterDeparture = readScenarios(japanModule).scenarios;
-  expect(plansAfterDeparture).toEqual(cleanedPlans);
-  expect(loadScenario(japanModule, plansAfterDeparture[0])).toEqual(local);
-});
+    vi.setSystemTime(new Date('2026-10-03T12:00:00Z'));
+    expect(draftStorage(japanModule).draft).toEqual(local);
+    const plansAfterDeparture = readScenarios(japanModule).scenarios;
+    expect(plansAfterDeparture).toEqual(cleanedPlans);
+    const loaded = loadScenario(japanModule, plansAfterDeparture[0]);
+    expect(loaded).toEqual(local);
+    for (const draft of [local, loaded]) {
+      const route = japanModule.run(draft, 'en').columns[0].pathways[0];
+      expect(route.status).toBe('UNKNOWN');
+      expect(route.summary).toContain('whether you declared your intention');
+    }
+  },
+);

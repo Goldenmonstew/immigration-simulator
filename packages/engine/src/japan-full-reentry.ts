@@ -96,7 +96,8 @@ export function assessJapanReentry(
   const travel = full.reentry.sources;
   const routeSources = {
     ordinary: [
-      ref('SRC-110', '第26条'),
+      ref('SRC-110', '第26条（境外延長は第5・6項）'),
+      ref('SRC-442', '第23条第1項'),
       ref('SRC-116', '再入国許可'),
       ref('SRC-461', '再入国許可申請「審査基準」「必要書類」'),
     ],
@@ -182,12 +183,21 @@ export function assessJapanReentry(
     departure
       ? addYears(departure, rr.specialPermanentDeemedYears)
       : undefined;
+  const permit = route.route === 'deemed' ? undefined : route.permit;
+  const missingExtensionEnd =
+    permit?.extensionApproved === true && !permit.extendedUntil;
+  // SRC-110 art. 26(5), art. 61-2-15(6) and SRC-461 section 4.
+  let extensionCeiling =
+    missingExtensionEnd && permit.expiresOn
+      ? addYears(permit.expiresOn, rr.extensionYears)
+      : undefined;
   let permitEnd: IsoDate | undefined;
   const returnWithinPermit = (extensionPending?: boolean) => {
     if (!returned || !departure || !permitEnd) return undefined;
     if (returned < departure) return false;
     if (returned <= permitEnd) return true;
     if (
+      missingExtensionEnd ||
       extensionPending ||
       (possibleSpecialDeemedLimit && returned <= possibleSpecialDeemedLimit)
     )
@@ -196,7 +206,12 @@ export function assessJapanReentry(
   };
   let fee: number | undefined;
   let travelDate: JpFullPathway['travelDate'];
-  let documentNotice: [string, string] | undefined;
+  let documentNotice: [string, string] | undefined = missingExtensionEnd
+    ? [
+        '延期已获批，返日期限待确认。请补录证件上记载的延期截止日。',
+        'The extension was approved. Enter the extended expiry date recorded on the document to confirm the return deadline.',
+      ]
+    : undefined;
   let missedEntryDeadline = false;
 
   if (route.route === 'ordinary') {
@@ -264,12 +279,25 @@ export function assessJapanReentry(
       filingDateIssueZh ? ['PD-370', 'PD-379'] : ['PD-379'],
     );
 
-    const permit = route.permit;
     const start = permit?.effectiveOn;
     const original = permit?.expiresOn;
     const extended =
       permit?.extensionApproved === true ? permit.extendedUntil : undefined;
-    const actualEnd = extended ?? original;
+    // An extension of unknown length still covers the original permit period.
+    const confirmedThrough = extended ?? original;
+    if (missingExtensionEnd && start) {
+      // SRC-110 art. 26(5); SRC-442 art. 23(1) substitutes the longer total
+      // limit. If special status is unknown, only the latest limit is certain.
+      const totalCeiling = addYears(
+        start,
+        route.specialPermanentResident === false
+          ? rr.ordinaryExtendedYears
+          : rr.specialPermanentExtendedYears,
+      );
+      extensionCeiling = extensionCeiling
+        ? earlier(extensionCeiling, totalCeiling)
+        : totalCeiling;
+    }
     const withinCeiling = (end: IsoDate, normal: number, special: number) => {
       if (!start) return undefined;
       if (end <= addYears(start, normal)) return true;
@@ -303,17 +331,17 @@ export function assessJapanReentry(
       start && departure && original
         ? start <= departure && departure <= original
         : undefined,
-      withinStay(actualEnd),
+      withinStay(confirmedThrough),
     );
-    permitEnd = actualEnd;
+    permitEnd = confirmedThrough;
     r(
       'ordinary-validity',
       '普通许可期限与延期',
       'Ordinary validity and extension',
       permitTermMet,
       [...routeSources, ...travel, ...old.renewalPendingMonths.sources],
-      `普通最长 ${rr.ordinaryYears} 年、特別永住者 ${rr.specialPermanentYears} 年。境外最长延长 ${rr.extensionYears} 年，合计分别不得超过 ${rr.ordinaryExtendedYears} 或 ${rr.specialPermanentExtendedYears} 年，且受在留期限限制。`,
-      `The normal maximum is ${rr.ordinaryYears} years, or ${rr.specialPermanentYears} for special permanent residents. An overseas extension is up to ${rr.extensionYears} year, with total limits of ${rr.ordinaryExtendedYears} and ${rr.specialPermanentExtendedYears} years respectively and the applicable stay limit.`,
+      `普通最长 ${rr.ordinaryYears} 年、特別永住者 ${rr.specialPermanentYears} 年。境外最长延长 ${rr.extensionYears} 年，合计分别不得超过 ${rr.ordinaryExtendedYears} 或 ${rr.specialPermanentExtendedYears} 年，且受在留期限限制。${documentNotice?.[0] ?? ''}`,
+      `The normal maximum is ${rr.ordinaryYears} years, or ${rr.specialPermanentYears} for special permanent residents. An overseas extension is up to ${rr.extensionYears} year, with total limits of ${rr.ordinaryExtendedYears} and ${rr.specialPermanentExtendedYears} years respectively and the applicable stay limit.${documentNotice ? ' ' + documentNotice[1] : ''}`,
       ['PD-136', 'PD-379'],
     );
     if (route.visits && date >= fees.historicalFrom) {
@@ -441,8 +469,11 @@ export function assessJapanReentry(
       start && departure ? departure >= start : undefined,
       expiry && departure ? departure <= expiry : undefined,
     );
+    const confirmedThrough = actualEnd ?? (validLimit ? expiry : undefined);
     permitEnd =
-      actualEnd && entryLimit ? earlier(actualEnd, entryLimit) : actualEnd;
+      confirmedThrough && entryLimit
+        ? earlier(confirmedThrough, entryLimit)
+        : confirmedThrough;
     if (route.permitVoided) {
       travelDate = null;
       documentNotice = [
@@ -454,11 +485,6 @@ export function assessJapanReentry(
         kind: 'returnDeadline',
         date: valid && extensionValid && validLimit ? permitEnd : undefined,
       };
-      if (p?.extensionApproved && !actualEnd)
-        documentNotice = [
-          '延期已获批，返日期限待确认。请补录证件上记载的延期截止日。',
-          'The extension was approved. Enter the extended expiry date recorded on the document to confirm the return deadline.',
-        ];
     }
     r(
       'refugee-document-validity',
@@ -506,8 +532,13 @@ export function assessJapanReentry(
     stay &&
     returned &&
     returned > stay;
+  const missedExtensionLimit =
+    extensionCeiling && returned && returned > extensionCeiling
+      ? extensionCeiling
+      : undefined;
   const validity = all(
     specialEvidenceMissing ? undefined : returnWithinPermit(extensionPending),
+    !missedExtensionLimit,
     !missedEntryDeadline,
     usesStay ? withinStay(returned) : true,
     awaitingRenewalDecision ? undefined : true,
@@ -520,6 +551,11 @@ export function assessJapanReentry(
     route.route === 'refugee-travel-document'
       ? travelDate?.date
       : limitedByStay(permitEnd);
+  if (missedExtensionLimit && !route.permitVoided && !missedEntryDeadline)
+    documentNotice = [
+      `返日晚于法定延期上限 ${missedExtensionLimit}。`,
+      `The return was after the statutory extension limit of ${missedExtensionLimit}.`,
+    ];
   const [deadlineZh, deadlineEn] =
     documentNotice ??
     (verifiedLimit

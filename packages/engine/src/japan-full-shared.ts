@@ -6,7 +6,7 @@ import type {
   CountryResult,
 } from './country-result';
 import { addDays } from './dates';
-import { evaluateJapan, jpOfficeClosed, jpTripLapses } from './japan';
+import { evaluateJapanTimeline, jpOfficeClosed, jpTripLapses } from './japan';
 import type { JpNaturalisationRequest, JpPrRequest, JpRequest } from './japan';
 import { afterYears } from './pilot';
 import type { PilotCheck, PilotPathway, PilotStatus } from './pilot';
@@ -196,7 +196,7 @@ export function pilotFor(
     pr: { route: 'child' },
     naturalisation: { route: 'general', dateOfBirth: req.dateOfBirth ?? date },
   } satisfies Pick<JpRequest, 'pr' | 'naturalisation'>;
-  const result = evaluateJapan({ ...input, ...defaults, ...selection });
+  const result = evaluateJapanTimeline({ ...input, ...defaults, ...selection });
   return result.pathways['pr' in selection ? 0 : 1];
 }
 
