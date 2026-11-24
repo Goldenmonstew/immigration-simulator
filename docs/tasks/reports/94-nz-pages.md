@@ -85,3 +85,56 @@
 2. 引擎里的三个旧兼容字段（绿名单与护理运输的 `currentVisa`、绿名单的 `filingFromOverseas`）问卷不再询问；若确认网页之外没有调用方，可在引擎侧删除。
 3. 全站的 `hub.intro`、`hub.privacy` 仍写着其他国家只检查时间、刷新即重置，与新西兰完整版不符，按 brief 留待十国完成后统一修改。
 4. `public/sw.js` 的缓存名与并行分支都会改，合并时请取一个新值。
+
+## 审核修正（review94-1）
+
+审核意见：Gemini 4 Neon 只读审核（问题 5 项、风险 5 项、建议 4 项）。每项先写回归测试（新文件 `apps/web/test/new-zealand-questionnaire.test.tsx`，12 项改前全部失败），再按类别修正。
+
+### 1. 做了什么
+
+| PROGRESS | commit | 对应审核编号 | 文件（网页文件相对 `apps/web/`） |
+|---|---|---|---|
+| 544 | `f1e24522 Fix: 新西兰问卷区分未答、清除隐藏答案并按路径只问实际读取的问题（review94-1）` | 问题 1、2、3；风险 4、5；建议 1（问卷部分）、建议 2 | `app/new-zealand/simulate/{nz-fields,page}.tsx`，`lib/new-zealand-{draft,fields}.ts`，`i18n/countries/new-zealand-form.ts`，`public/sw.js`，`test/{new-zealand,new-zealand-questionnaire,about-page}.test.tsx`，`apps/e2e/tests/new-zealand.spec.ts` |
+| 545 | `47d57d81 Fix: 新西兰对比页的时薪关联、OET 分数与返回日校验（review94-1）` | 问题 4(a)(b)(c)；建议 1（对比页部分） | `lib/new-zealand-whatif.ts`，`app/new-zealand/whatif/controls.tsx`，`i18n/countries/new-zealand.ts`，`test/new-zealand-questionnaire.test.tsx` |
+| 546 | `7481cca7 Fix: 新西兰结果标注办理提示并补齐政策页分支来源（review94-1）` | 风险 1（本国部分）、风险 2；建议 3 | `lib/new-zealand-{module,policy}.ts`，`test/new-zealand-questionnaire.test.tsx` |
+| 547 | `Docs: 任务 94 审核修正报告（review94-1）` | — | 本节 |
+
+逐条说明：
+
+- **问题 1**：`createNzDraft()` 的 `answers` 改为 `{}`，出境记录与其他名单一样初始为未答，第 2 步显示「确认没有」按钮而不是「已确认没有」。2020 年获签、其余条件满足但跳过出境记录时，旅行条件、永居、入籍三条路径均为 UNKNOWN 且无最早日期；点「确认没有」后永居、入籍仍在 2026-11-23 满足。
+- **问题 2**：改动或清除任一答案时，同一层被 `when` 隐藏的问题一并删除（`withoutHidden`，在 `NzFields` 里统一处理，覆盖主申英语、随行家属英语、父母/投资者/宗教的英语组，以及投资路径、运输类别等其他联合类型）。整组可留空的判断改为只看可见答案，旧草稿中残留的隐藏答案也不会再卡住。第 16 步顶层英语组前显示「这一组可以整组留空」提示（规则：路径非空且含必填项的分节）。
+- **问题 3**：数值列表新增 `none` 标记，只给 `includedFamilyDaysInTwoYears` 打开，提供与名单相同的「确认没有 / 改回未回答」切换并显示「已确认没有」。其余逐年数值（担保人逐年在境天数、伴侣逐年在新月数、BI 逐年在境天数）空列表在引擎里仍是 UNKNOWN，不提供该切换。审核给的场景：`[]` 时 PRV 为 MET，留空为 UNKNOWN。
+- **问题 4**：(a) `NZ-P4-2` 移出时薪旋钮，补入 `NZ-P4-4`、`NZ-P4-5`、`NZ-P6-2`（对比页「保证时薪」现关联 NZ-P4-3/4/5、NZ-P5-2、NZ-P5-3-JOB、NZ-P6-1/2）。(b) 原问卷为 OET 时旋钮初值为空，未动时结果显示「与当前情景相同」；填分数后按模拟日线下 IELTS 计算（OET 等级 C 时 NZ-C3 由 NOT_MET 变 MET），提示文案同步说明。(c) 有出境记录且未勾选「假设没有出境」时，最近返回日为空或无效报 `nz.error.date`，早于离境日才报 `nz.error.order`。
+- **风险 1（本国部分）**：国家模块给 13 项办理事项设 `kind: 'information'`（NZ-P1-FEE、NZ-P2-7、NZ-P3-7-FEE、NZ-P3-7-OATH、NZ-P4-FEE、NZ-P5-4、NZ-P6-3、NZ-P7-FEE、NZ-P8-5、NZ-P9-4、NZ-P9-HOME、NZ-P10-2、NZ-C6-LEVY），其余条件不设 `kind`；已持 PRV 返回 NOT_APPLICABLE 的路径设 `travelDate: null`，结果页不再显示「最早可申请日期：尚无法确定」。
+- **风险 2**：政策页的固定请求增加两组（同表永居的年幼子女，以及旧制 SMC 邀请 + 奶农品格例外 + 入境管制区递交），规则清单收入 NZ-P4-1 的 SRC-236 SR3.5.15 与 PD-226、NZ-C2 的 SRC-230 RV4.20.10 与 PD-221、NZ-FAMILY-FILING 的 SRC-230 R2.40.2(a), (b)(i)–(ii); RV1.10.10 与 SRC-252 R5.30.1(a)–(b)、NZ-P2-JOINT-DATE 的 PD-222。新请求放在最后，条件标题仍取原来的通用标题。条件、参数、来源数量不变（91 / 89 / 26）。
+- **风险 4**：后一步出现与前一步矛盾的答案时在后一步报错（只比较当前显示的步骤）：第 13 步宗教工作者「递交时在新西兰境内」与第 2 步「目前在新西兰境内」不一致；第 14 步「在新西兰境外递交」与这两项之一矛盾；第 14 步「法定递交限制」与第 4 步「驱逐责任」矛盾（liable 却选了其他限制，或 none 却选了 liable-for-deportation；suspended 不比较）。完成的草稿和分享链接同样经过这项检查。
+- **风险 5**：带 `required` 的数值列表（`irdIncomePerSponsor`）在校验时不能为空数组，完成的草稿与分享链接因此被拒。
+- **建议 1**：必填数值列表的 `<legend>` 加 ` *`；名单 `<fieldset>` 关联填写说明（`aria-describedby`）；数值组出错时标 `aria-invalid`；对比页数字旋钮遇到 `NaN` 视为未填。
+- **建议 2**：(1) 分节可按路径显示：只选入籍时不显示居民类签证递交（14 种签证、管制区、R5.125 等）、身份文件、征费、健康品格与体检警方证明、随行家属，只问申请费；入籍读取的「目前在新西兰境内」已在第 2 步问过。只选入籍共 6 步。(2) 主申第 16 步只问 `testSpecificallyRequested`，宗教家属英语背景、SMC 注册、ESOL 只在随行家属下问；商业投资者与宗教工作者的主申英语不再提供「已预付 ESOL」。(3) 文本框（职业代码）去掉首尾空格。
+- **建议 3**：回归测试见上；另加一项通用检查：审核点名的分支请求和常规草稿的结果里，每个条件的来源（SRC + 定位）与 PD 都在政策页同一条件下列出，且 SRC 在来源清单中。
+- `public/sw.js` 缓存名改为 `2026-11-24-nz2`，`about-page.test.tsx` 同步；e2e 入籍流程在第 6 步（申请费）后直接查看结果。
+
+### 2. 怎么验证的
+
+- 回归测试先行：`pnpm --filter web exec vitest run test/new-zealand-questionnaire.test.tsx` 在修正前 12 项全部失败（新草稿 `trips: []`、清除后残留隐藏答案、无「确认没有」入口、时薪映射、无矛盾提示等），修正后全部通过。每个 commit 前单跑 `test/new-zealand{,-questionnaire}.test.tsx` 及相关的 `about-page`、`whatif-focus`、`policy-page`、`country-views` 测试，并对改动文件跑 `eslint` 与 `tsc --noEmit`，均通过。
+- 三个 commit 之后，`export VITEST_MAX_WORKERS=2` 再运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整条命令退出码 0。全仓 8,234 项通过（error-report 2、policy-data 23、engine 6,006、game 1,348、web 855；web 比原报告多 12 项），1 项既有文案导出测试按默认开关跳过。日志只有 Node 的 localStorage 实验特性提示（既有）。
+- 构建产物：`apps/web/out/new-zealand{,/simulate,/result,/whatif,/policy}.html` 均已生成；`out/sw.js` 含 `2026-11-24-nz2`；政策页 HTML 有 10 条路径、91 个条件、26 项来源，并含 `SR3.5.15`、`RV4.20.10`、`R5.30.1` 定位。
+- e2e：`cd apps/e2e && E2E_PORT=4434 npx playwright test tests/new-zealand.spec.ts --project=desktop --reporter=line`，2 项通过（入籍问卷 6 步、结果 2027-06-12、保存、分享、对比改返回日得 2027-05-29、Axe 无 serious/critical；375 px 英文问卷与政策页）。跑完已删除 `apps/e2e/test-results`。e2e 的日期与状态先在单测中算出。
+- `prettier --check` 对改动文件通过。
+
+### 3. 没做或没验证的
+
+- **问题 5**（`PolicyPage` 在 `country.id` 缺省时输出空 `<h1>`）：属共用组件 `components/policy-page.tsx`，按 brief 未改，待任务 93 的共用修正合入后解决。
+- **风险 1 的共用部分**：共用 `ResultView` 把不在 `decidedBy` 的条件收进默认折叠、标题为「其他路径的规则」的区块，费用与获批后事项仍在那里；本国已设 `kind: 'information'`，分组与标题待任务 93 的结果页共用修正合入后解决。
+- **风险 3**：分享链接覆盖本机草稿、跳链把 `#s=` 改为 `#main` 属 `lib/page-result.ts`、`lib/share.ts` 与站点外壳，待任务 93 的共用修正合入后解决。
+- **建议 4**：全站 `hub.intro`、`hub.privacy` 文案按原 brief 留待十国完成后统一修改。
+- e2e 只跑了 `desktop` 项目（新西兰用例都在其中）；`mobile` 项目与截图基线未跑。
+- 没有改引擎、参数和其他国家页面；未在浏览器里人工走查新按钮与提示的视觉效果（由 Fable 做视觉验收）。
+
+### 4. 发现与建议（范围外，未实现）
+
+1. 只按已证实的范围精简了「只选入籍」。旅行条件与永居同样不读健康（品格除外）、体检警方证明与征费，初次入境与变更也不读居民类签证递交资格；若要继续精简，需逐项核对引擎读取后再分节。
+2. 跨步矛盾只核对主申。随行家属的 `prvApplication.travel.currentlyInNz`、`prvApplication.prv.deportationLiability` 与其 `residenceFiling` 之间也可能矛盾，引擎在 `residenceFilingChecks` 里按家属自己的答案处理，建议另议是否提示。
+3. 改动答案即清掉被隐藏的子问题，切回原选项（如投资路径 active ↔ business、运输 ↔ 护理）后需要重填；这是问题 2 要求的取舍。
+4. `NZ-P5-3`、`NZ-P6-WORK` 的月数在少数旧签证例外里也读当前时薪（`qualifyingPeriod` 的 `currentPay`），但主要按各段经历的最低时薪判断，未关联时薪旋钮。
+5. 主申英语去掉「已预付 ESOL」后，若本机草稿里曾选过该项，读取时整份草稿按格式不符被丢弃；本分支尚未发布，未做迁移。
