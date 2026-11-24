@@ -463,9 +463,12 @@ function ordinaryWindow(
     : current;
 }
 
-function freeMovementAt(req: EsFullRequest) {
-  const f = req.freeMovement ?? {},
-    d = req.simulationDate,
+function assessFreeMovement(
+  req: EsFullRequest,
+  f: EsFreeMovementFacts,
+  early?: CountryCheck,
+) {
+  const d = req.simulationDate,
     L = textFor(req);
   const rule = (
     id: string,
@@ -512,7 +515,6 @@ function freeMovementAt(req: EsFullRequest) {
   ];
   const info: CountryCheck[] = [];
   const already = f.acquiredOn && f.acquiredOn <= d ? f.acquiredOn : undefined;
-  const early = f.earlyBasis ? earlyCheck(req, f) : undefined;
   let earlyAcquiredOn: IsoDate | undefined;
   if (early?.status === 'MET') {
     if (f.earlyBasis === 'retirement' || f.earlyBasis === 'incapacity')
@@ -852,6 +854,49 @@ function freeMovementAt(req: EsFullRequest) {
   };
 }
 
+function freeMovementAt(req: EsFullRequest) {
+  const f = req.freeMovement ?? {};
+  const early = f.earlyBasis ? earlyCheck(req, f) : undefined;
+  if (
+    f.retainedEvent !== 'sponsor-death' ||
+    f.earlyBasis !== 'death-at-work' ||
+    f.person !== 'third-country-family' ||
+    early?.status !== 'MET'
+  )
+    return assessFreeMovement(req, f, early);
+
+  // SRC-330 art. 18 preserves the independent art. 17.4 route. Both routes
+  // must satisfy their respective family or personal-retention requirements.
+  const direct = assessFreeMovement(
+    req,
+    { ...f, retainedEvent: undefined },
+    early,
+  );
+  const retained = assessFreeMovement(req, { ...f, earlyBasis: undefined });
+  const useRetained =
+    retained.result.status === 'MET'
+      ? direct.result.status !== 'MET' ||
+        (retained.acquiredOn &&
+          direct.acquiredOn &&
+          retained.acquiredOn < direct.acquiredOn)
+      : retained.result.status === 'UNKNOWN' &&
+        direct.result.status === 'NOT_MET';
+  const chosen = useRetained ? retained : direct;
+  const alternative = useRetained
+    ? early
+    : retained.result.checks.find((c) => c.id === 'ES-U06');
+  if (alternative) {
+    chosen.result.checks.push(alternative);
+    chosen.result.pendingDetails = [
+      ...new Set([
+        ...(chosen.result.pendingDetails ?? []),
+        ...(alternative.pendingDetails ?? []),
+      ]),
+    ];
+  }
+  return chosen;
+}
+
 // Absences recorded for the same applicant also apply to early acquisition.
 // Keep the U reason when both questionnaires describe the same journey.
 function withRecordedTravel(req: EsFullRequest): EsFullRequest {
@@ -980,6 +1025,7 @@ function earlyResidence(
   end: IsoDate | undefined,
   years: number,
   strict: boolean,
+  confirmedEmploymentFrom?: IsoDate,
 ): Evidence {
   const { history, trips, continuityAccepted, noExecutedExpulsion } = evidence;
   if (!end || (!history && !residenceFrom))
@@ -989,9 +1035,16 @@ function earlyResidence(
     return strict ? anniversary < end : anniversary <= end;
   };
   if (residenceFrom && !longEnough(residenceFrom)) return false;
-  const historyStarts = history
+  const historyStarts = history?.length
     ? coveredStarts(history, end)
-    : [residenceFrom!];
+    : new Set([
+        residenceFrom && confirmedEmploymentFrom
+          ? confirmedEmploymentFrom
+          : end,
+      ]);
+  // The worker declaration covers employment. When the earlier residence basis
+  // was never answered, the arrival date is also a possible lawful start.
+  if (history === undefined && residenceFrom) historyStarts.add(residenceFrom);
   let starts = new Set(
     [...historyStarts].map((s) =>
       residenceFrom && s < residenceFrom ? residenceFrom : s,
@@ -1018,7 +1071,6 @@ function earlyResidence(
   }
   return all(
     durationMet(starts, longEnough),
-    history ? true : undefined,
     noExecutedExpulsion,
     continuityAccepted ?? (trips ? true : undefined),
   );
@@ -1047,27 +1099,13 @@ function earlyCheck(req: EsFullRequest, f: EsFreeMovementFacts): CountryCheck {
     t = v.earlyPermanent.value;
   const eventOccurred = end ? end <= d : undefined;
   const lived = (years: number, strict: boolean) => {
-    // The dated worker declaration can evidence residence in summary-only inputs.
-    // Where a detailed history is supplied it determines coverage instead.
-    const history =
-      !f.history?.length &&
-      f.residenceFrom &&
-      f.employmentFrom &&
-      f.qualifiedWorker
-        ? [
-            {
-              from: f.employmentFrom,
-              basis: 'employment' as const,
-              documented: true,
-            },
-          ]
-        : f.history;
     const residence = earlyResidence(
-      { ...f, history, trips: f.trips ?? req.trips },
+      { ...f, trips: f.trips ?? req.trips },
       f.residenceFrom,
       end,
       years,
       strict,
+      f.qualifiedWorker ? f.employmentFrom : undefined,
     );
     // Incomplete travel can establish a break, but cannot establish continuity.
     return all(

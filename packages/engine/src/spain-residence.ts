@@ -6,7 +6,7 @@ import { afterYears, HORIZON_YEARS, monthSpan } from './pilot';
 import { textFor } from './rule';
 import { evaluateSpain } from './spain';
 import type { EsPathway, EsTrip } from './spain';
-import type { EsFullRequest } from './spain-full';
+import type { EsFullInput, EsFullRequest } from './spain-full';
 import {
   all,
   any,
@@ -468,8 +468,12 @@ function schooling(req: EsFullRequest): Answer {
   );
 }
 
-function tripsWithFacts(req: EsFullRequest): EsResidenceTrip[] {
+export function tripsWithFacts(
+  req: Pick<EsFullInput, 'trips' | 'residence'>,
+): EsResidenceTrip[] {
   const details = req.residence?.tripDetails ?? [];
+  if (!req.trips?.length) return details;
+  if (!details.length) return req.trips;
   const trips = req.trips.map(
     (t) =>
       details.find(

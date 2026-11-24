@@ -5,7 +5,7 @@ import { evaluateSpain } from './spain';
 import type { EsRequest } from './spain';
 import { nationalityPath } from './spain-nationality';
 import type { EsNationalityFacts } from './spain-nationality';
-import { residencePath } from './spain-residence';
+import { residencePath, tripsWithFacts } from './spain-residence';
 import type { EsResidenceFacts } from './spain-residence';
 import { mobilityPath } from './spain-mobility';
 import type { EsMobilityFacts } from './spain-mobility';
@@ -60,16 +60,17 @@ export function evaluateSpainFull(input: EsFullInput): CountryResult {
         to: p.to,
         study: ['study', 'training', 'volunteering'].includes(p.kind),
       }));
-  const trips = input.trips ?? input.residence?.tripDetails;
+  const tripsRecorded =
+    input.trips !== undefined || input.residence?.tripDetails !== undefined;
   const req: EsFullRequest = {
     ...input,
     permits: permits ?? [],
-    trips: trips ?? [],
+    trips: tripsWithFacts(input),
     route: input.route ?? 'general',
     timeRecordsComplete:
       input.timeRecordsComplete !== false &&
       permits !== undefined &&
-      trips !== undefined &&
+      tripsRecorded &&
       (input.permits !== undefined ||
         !periods?.some(
           (p) => p.kind === 'unclassified' || p.kind === 'temporary-only',
@@ -97,7 +98,7 @@ export function evaluateSpainFull(input: EsFullInput): CountryResult {
             timeRecordsComplete:
               input.timeRecordsComplete !== false &&
               (input.permits !== undefined || !!input.residence?.periods) &&
-              (input.trips !== undefined || !!input.residence?.tripDetails),
+              tripsRecorded,
           },
           pilot!.pathways[0],
           target,
@@ -115,7 +116,7 @@ export function evaluateSpainFull(input: EsFullInput): CountryResult {
         p = freeMovementPath({
           ...req,
           timeRecordsComplete:
-            input.timeRecordsComplete !== false && trips !== undefined,
+            input.timeRecordsComplete !== false && tripsRecorded,
         });
         break;
     }

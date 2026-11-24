@@ -248,6 +248,28 @@ describe('Spanish nationality by residence', () => {
       row('N01', { diplomaticPosting }, { ...req, route: 'general' }).status,
     ).toBe('NOT_MET');
   });
+  test('N01 considers trips recorded in either travel history', () => {
+    const absence = { departed: '2025-01-01', returned: '2025-08-01' };
+    const outsideWindow = { departed: '2015-03-01', returned: '2015-03-15' };
+    for (const [trips, tripDetails] of [
+      [undefined, [absence]],
+      [[], [absence]],
+      [[outsideWindow], [absence]],
+      [[absence], [outsideWindow]],
+    ]) {
+      const p = evaluateSpainFull({
+        ...base,
+        trips,
+        residence: { tripDetails },
+        nationality: complete,
+        targets: ['N'],
+      }).columns[0].pathways[0];
+      expect(p.checks.find((c) => c.id === 'ES-N01')?.status).toBe('UNKNOWN');
+      expect(p.status).toBe('UNKNOWN');
+      expect(p.pathwayCompletionDate).toBeUndefined();
+      expect(p.earliestDate).toBeUndefined();
+    }
+  });
   test('N02 distinguishes recognised refugees and dates the Interior certificate', () => {
     const evidence: EsNationalityFacts = {
       refugeeStatus: 'recognised-in-spain',

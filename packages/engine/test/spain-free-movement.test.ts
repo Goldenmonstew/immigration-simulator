@@ -58,6 +58,28 @@ describe('permanent residence under EU free movement', () => {
       freeMovement: { ...worker, ...facts },
     }).columns[0].pathways[0];
 
+  function outcome(facts: EsFreeMovementFacts, simulationDate: string) {
+    const { status, pathwayCompletionDate, earliestDate } = fullPath(
+      facts,
+      simulationDate,
+    );
+    return [status, pathwayCompletionDate, earliestDate];
+  }
+
+  function expectDatedAcquisition(
+    facts: EsFreeMovementFacts,
+    eventDate: string,
+    eventStatus: 'MET' | 'UNKNOWN' | 'NOT_MET',
+  ) {
+    const date = eventStatus === 'MET' ? eventDate : undefined;
+    expect(outcome(facts, request.simulationDate)).toEqual([
+      eventStatus === 'MET' ? 'FUTURE' : eventStatus,
+      date,
+      date,
+    ]);
+    expect(outcome(facts, eventDate)).toEqual([eventStatus, date, date]);
+  }
+
   test.each<[string, EsFreeMovementFacts, string]>([
     [
       'continuous employment',
@@ -440,23 +462,91 @@ describe('permanent residence under EU free movement', () => {
       [false, 'NOT_MET'],
       [undefined, 'UNKNOWN'],
     ] as const) {
-      const p = fullPath({
+      const facts: EsFreeMovementFacts = {
         ...family,
         residenceFrom: '2026-11-01',
         jointResidenceFrom: '2026-11-01',
-        history: [],
+        history: undefined,
         trips: [],
         earlyBasis: 'worker-family',
         coResidentWithWorker: true,
         workerAcquiredEarly,
-      });
-      expect(p.status).toBe(status);
-      expect(p.pathwayCompletionDate).toBeUndefined();
-      expect(p.earliestDate).toBe(
-        status === 'MET' ? request.simulationDate : undefined,
-      );
+      };
+      for (const day of [request.simulationDate, '2026-12-01']) {
+        expect(outcome(facts, day)).toEqual([
+          status,
+          undefined,
+          status === 'MET' ? day : undefined,
+        ]);
+      }
     }
   });
+
+  test.each(['retirement', 'incapacity'] as const)(
+    '%s distinguishes an unanswered pre-employment basis from a break or documented family residence',
+    (earlyBasis) => {
+      const residenceFrom = '2023-01-01';
+      const employmentFrom = '2025-06-01';
+      const workStopped = '2026-12-01';
+      const facts: EsFreeMovementFacts = {
+        earlyBasis,
+        residenceFrom,
+        employmentFrom,
+        workStopped,
+        qualifiedWorker: true,
+        pensionEligibilityDecided: true,
+        permanentIncapacity: true,
+        occupationalSpanishBenefit: false,
+        spanishSpouseExemption: false,
+        history: undefined,
+      };
+      const employment = {
+        from: employmentFrom,
+        basis: 'employment' as const,
+        documented: true,
+      };
+      for (const [basis, status] of [
+        [undefined, 'UNKNOWN'],
+        ['other', 'NOT_MET'],
+        ['qualifying-family', 'MET'],
+      ] as const) {
+        const history = basis && [
+          { from: residenceFrom, to: '2025-05-31', basis, documented: true },
+          employment,
+        ];
+        expectDatedAcquisition({ ...facts, history }, workStopped, status);
+      }
+      // A confirmed worker can qualify on the employment period alone.
+      expectDatedAcquisition(
+        { ...facts, employmentFrom: residenceFrom },
+        workStopped,
+        'MET',
+      );
+      // A confirmed return can rule out even the earliest possible start.
+      const interrupted = {
+        ...facts,
+        trips: [
+          {
+            departed: '2024-01-01',
+            returned: '2025-01-02',
+            reason: 'ordinary' as const,
+          },
+        ],
+      };
+      expectDatedAcquisition(interrupted, workStopped, 'NOT_MET');
+      expectDatedAcquisition(
+        { ...facts, spanishSpouseExemption: true },
+        workStopped,
+        'MET',
+      );
+      if (earlyBasis === 'incapacity')
+        expectDatedAcquisition(
+          { ...facts, occupationalSpanishBenefit: true },
+          workStopped,
+          'MET',
+        );
+    },
+  );
 
   test.each(['retirement', 'incapacity'] as const)(
     '%s cannot project acquisition across the recorded interruption',
@@ -519,12 +609,45 @@ describe('permanent residence under EU free movement', () => {
       ] as const) {
         const p = fullPath({ ...facts, workStopped }, workStopped);
         expect(p.status).toBe(expected);
-        expect(p.earliestDate).toBe(
+        expect(p.pathwayCompletionDate).toBe(
           expected === 'MET' ? workStopped : undefined,
         );
+        expect(p.earliestDate).toBe(p.pathwayCompletionDate);
       }
     },
   );
+
+  test('cross-border work requires its own employment duration and a confirmed move to foreign work', () => {
+    const workStopped = '2026-12-01';
+    for (const [employmentFrom, on] of [
+      ['2023-12-01', 'MET'],
+      ['2025-06-01', 'NOT_MET'],
+      [undefined, 'UNKNOWN'],
+    ] as const) {
+      const facts: EsFreeMovementFacts = {
+        earlyBasis: 'cross-border',
+        residenceFrom: '2023-01-01',
+        history: undefined,
+        qualifiedWorker: true,
+        employmentFrom,
+        workStopped,
+        workingInAnotherMemberState: true,
+        retainedSpanishHome: true,
+        returnsAtLeastWeekly: true,
+      };
+      // The last day of Spanish work does not date the start of foreign work.
+      expect(outcome(facts, request.simulationDate)).toEqual([
+        'NOT_MET',
+        undefined,
+        undefined,
+      ]);
+      expect(outcome(facts, workStopped)).toEqual([
+        on,
+        undefined,
+        on === 'MET' ? workStopped : undefined,
+      ]);
+    }
+  });
 
   test('cross-border work counts from the last lawful return and requires work throughout the period', () => {
     const facts: EsFreeMovementFacts = {
@@ -637,34 +760,34 @@ describe('permanent residence under EU free movement', () => {
       ['2026-12-01', 'NOT_MET'],
       ['2027-10-01', 'MET'],
     ] as const) {
-      const p = fullPath({ ...facts, eventDate });
-      expect(p.status).toBe(expected === 'MET' ? 'FUTURE' : expected);
-      expect(p.pathwayCompletionDate).toBe(
-        expected === 'MET' ? eventDate : undefined,
-      );
-      expect(p.earliestDate).toBe(p.pathwayCompletionDate);
-      expect(fullPath({ ...facts, eventDate }, eventDate).status).toBe(
-        expected,
-      );
+      expectDatedAcquisition({ ...facts, eventDate }, eventDate, expected);
     }
     const eventDate = '2026-12-01';
-    const p = fullPath(
-      {
-        ...facts,
+    const missingWorkerHistory: EsFreeMovementFacts = {
+      ...facts,
+      eventDate,
+      residenceFrom: '2025-01-01',
+      history: [
+        {
+          from: '2025-01-01',
+          to: eventDate,
+          basis: 'qualifying-family',
+          documented: true,
+        },
+      ],
+      workerResidenceEvidence: undefined,
+    };
+    expectDatedAcquisition(missingWorkerHistory, eventDate, 'UNKNOWN');
+    for (const ground of [
+      { occupationalDeath: true },
+      { spouseLostSpanishNationalityThroughMarriage: true },
+    ]) {
+      expectDatedAcquisition(
+        { ...missingWorkerHistory, ...ground },
         eventDate,
-        history: worker.history,
-        residenceFrom: '2025-01-01',
-        workerResidenceEvidence: undefined,
-      },
-      eventDate,
-    );
-    expect(p.checks.find((c) => c.id === 'ES-U11')?.status).toBe('UNKNOWN');
-    expect(p.earliestDate).toBeUndefined();
-    const occupational = fullPath(
-      { ...facts, eventDate, occupationalDeath: true },
-      eventDate,
-    );
-    expect(occupational.earliestDate).toBe(eventDate);
+        'MET',
+      );
+    }
   });
 
   test('an unresolved break can affect the residence year of a later confirmed absence', () => {
@@ -1366,5 +1489,81 @@ describe('permanent residence under EU free movement', () => {
         },
       }).status,
     ).toBe('MET');
+  });
+
+  test('early acquisition on the worker’s death is independent of personal retention after that death', () => {
+    const eventDate = '2026-12-01';
+    const survivor: EsFreeMovementFacts = {
+      ...family,
+      earlyBasis: 'death-at-work',
+      eventDate,
+      coResidentWithWorker: true,
+      diedDuringWorkBeforePermanent: true,
+      workerResidenceFrom: '2023-12-01',
+      workerResidenceEvidence: {
+        history: [
+          { from: '2023-12-01', basis: 'employment', documented: true },
+        ],
+        trips: [],
+        noExecutedExpulsion: true,
+      },
+      residenceFrom: '2026-05-01',
+      jointResidenceFrom: '2026-05-01',
+      priorFamilyResidenceFrom: '2026-05-01',
+      history: [
+        {
+          from: '2026-05-01',
+          to: eventDate,
+          basis: 'qualifying-family',
+          documented: true,
+        },
+      ],
+      eventReported: true,
+    };
+    for (const retainedEvent of [undefined, 'sponsor-death'] as const)
+      expectDatedAcquisition({ ...survivor, retainedEvent }, eventDate, 'MET');
+    // Without early acquisition, ordinary acquisition still requires a retained right.
+    const ordinary: EsFreeMovementFacts = {
+      ...survivor,
+      retainedEvent: 'sponsor-death',
+      diedDuringWorkBeforePermanent: false,
+      residenceFrom: '2021-11-23',
+      history: worker.history,
+    };
+    for (const [retainedStatusAccepted, status] of [
+      [undefined, 'UNKNOWN'],
+      [true, 'MET'],
+    ] as const) {
+      const result = fullPath(
+        { ...ordinary, retainedStatusAccepted },
+        eventDate,
+      );
+      expect(result.decidedBy).toContain('ES-U06');
+      expect(result.status).toBe(status);
+      expect(result.earliestDate).toBe(
+        retainedStatusAccepted ? eventDate : undefined,
+      );
+    }
+    const unrelated = {
+      ...survivor,
+      retainedEvent: 'sponsor-death',
+      relationship: 'other',
+    } as const;
+    expect(fullPath(unrelated, eventDate).status).toBe('NOT_MET');
+    const retained = fullPath(
+      {
+        ...ordinary,
+        relationship: 'other',
+        diedDuringWorkBeforePermanent: true,
+        retainedStatusAccepted: true,
+      },
+      eventDate,
+    );
+    expect([
+      retained.status,
+      retained.pathwayCompletionDate,
+      retained.earliestDate,
+    ]).toEqual(['MET', '2026-11-23', eventDate]);
+    expect(retained.decidedBy).toContain('ES-U06');
   });
 });
