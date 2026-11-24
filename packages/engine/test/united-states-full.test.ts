@@ -332,7 +332,7 @@ const cases: CheckCase[] = [
   {
     id: 'C01-AGE',
     met: { ...n, dateOfBirth: '2008-11-23' },
-    other: { ...n, dateOfBirth: '2008-11-24' },
+    other: { ...n, dateOfBirth: '2008-11-24', permanentResident: undefined },
     otherStatus: 'NOT_MET',
   },
   {
@@ -695,16 +695,11 @@ const cases: CheckCase[] = [
   },
   {
     id: 'C34-ADJUSTMENT-BARS',
-    met: withAdmission({
-      adjustmentBasis: 'employment',
-      lawfulAdmissionFor245k: true,
-      qualifyingViolationsDays: 180,
-    }),
-    other: withAdmission({
-      adjustmentBasis: 'employment',
-      lawfulAdmissionFor245k: true,
-      qualifyingViolationsDays: 181,
-    }),
+    met: { ...e, admission: { ...e.admission, qualifyingViolationsDays: 180 } },
+    other: {
+      ...e,
+      admission: { ...e.admission, qualifyingViolationsDays: 181 },
+    },
     otherStatus: 'NOT_MET',
   },
   {
@@ -4220,7 +4215,11 @@ describe('review86-12 regressions', () => {
     };
     const withI140: UsFullRequest = {
       ...request,
-      employment: { i140FiledOn: '2026-07-01' },
+      employment: {
+        i140FiledOn: '2026-07-01',
+        relativePetitioner: false,
+        relativeOwnershipPct: 0,
+      },
     };
     for (const input of [request, withI140]) {
       expect(condition(input, 'C33-VISA-AND-ENTRY')).toMatchObject({
@@ -4242,19 +4241,6 @@ describe('review86-12 regressions', () => {
       approvalStatus: 'MET',
       approvalEarliestDate: time.simulationDate,
     });
-  });
-
-  test('an inferred family petition leaves an unspecified entry exception pending', () => {
-    const request = withAdmission({
-      adjustmentBasis: undefined,
-      legalEntry: 'without-inspection',
-    });
-    expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
-      filingStatus: 'UNKNOWN',
-      status: 'UNKNOWN',
-    });
-    expect(path(request).earliestDate).toBeUndefined();
-    expect(path(request).approvalEarliestDate).toBeUndefined();
   });
 
   const trip = { departed: '2026-11-20', returned: '2026-12-01' } as const;
@@ -4376,7 +4362,7 @@ describe('review86-12 regressions', () => {
   });
 
   test.each([undefined, 'approved'] as const)(
-    'C37 uses the VAWA consular approval evidence (petition status %s)',
+    'C37 and C40 use the VAWA consular approval evidence (petition status %s)',
     (petitionStatus) => {
       const request: UsFullRequest = {
         ...authorizedConsular,
@@ -4387,6 +4373,8 @@ describe('review86-12 regressions', () => {
           adjustmentBasis: 'vawa',
           petitionStatus,
           publicCharge: undefined,
+          unlawfulDeparture: { leftOn: '2025-03-01', qualifyingDays: 365 },
+          vawaUnlawfulPresenceException: 'cleared',
           decisionOn: '2026-12-10',
           visaAtDecisionByMonth: { '2026-12': 'available' },
         },
@@ -4396,6 +4384,10 @@ describe('review86-12 regressions', () => {
         status: 'MET',
       });
       expect(condition(request, 'C37-PUBLIC-CHARGE').applicable).toBe(false);
+      expect(condition(request, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+        filingStatus: 'NOT_APPLICABLE',
+        status: 'MET',
+      });
       expect(path(request)).toMatchObject({
         status: 'MET',
         earliestDate: time.simulationDate,
@@ -4404,6 +4396,256 @@ describe('review86-12 regressions', () => {
       });
     },
   );
+});
+
+describe('review86-13 regressions', () => {
+  test.each(['immediate-relative', undefined] as const)(
+    'requires inspected entry for a U.S. citizen spouse with basis %s',
+    (adjustmentBasis) => {
+      const request = withAdmission({
+        adjustmentBasis,
+        legalEntry: 'without-inspection',
+      });
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: 'NOT_MET',
+        status: 'NOT_MET',
+      });
+      expect(path(request)).toMatchObject({
+        status: 'NOT_MET',
+        approvalStatus: 'NOT_MET',
+      });
+      expect(path(request).earliestDate).toBeUndefined();
+      expect(path(request).approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test.each(['US-ADJUSTMENT', 'US-EMPLOYMENT'] as const)(
+    'uses the same I-864 and INA 245(k) rules for explicit and inferred employment in %s',
+    (pathway) => {
+      for (const adjustmentBasis of ['employment', undefined] as const) {
+        const request: UsFullRequest = {
+          ...e,
+          pathway,
+          admission: {
+            ...e.admission,
+            adjustmentBasis,
+            qualifyingViolationsDays: 30,
+          },
+        };
+        for (const id of [
+          'C25-SUPPORT-INCOME',
+          'C26-SPONSOR',
+          'C27-SUPPORT-EXEMPTION',
+          'C33-VISA-AND-ENTRY',
+          'C34-ADJUSTMENT-BARS',
+        ]) {
+          expect(
+            condition(request, id).status,
+            `${id} (${adjustmentBasis})`,
+          ).toBe('MET');
+        }
+        expect(path(request)).toMatchObject({
+          status: 'MET',
+          earliestDate: time.simulationDate,
+          approvalStatus: 'MET',
+          approvalEarliestDate: time.simulationDate,
+        });
+      }
+    },
+  );
+
+  test.each(['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const)(
+    'checks concurrent PERM against the in-country receipt in %s',
+    (pathway) => {
+      const request: UsFullRequest = {
+        ...e,
+        pathway,
+        employment,
+        admission: {
+          ...e.admission,
+          petitionStatus: 'filed-with-i485',
+          visaAtFilingByMonth: { '2026-12': 'available' },
+          visaAtDecisionByMonth: { '2026-12': 'available' },
+        },
+      };
+      expect(condition(request, 'C28-OFFER-PERM').status).toBe('MET');
+      expect(path(request).earliestDate).toBe(time.simulationDate);
+      const delayed: UsFullRequest = {
+        ...request,
+        trips: [{ departed: '2026-11-20', returned: '2026-12-01' }],
+      };
+      expect(condition(delayed, 'C28-OFFER-PERM').status).toBe('NOT_MET');
+      expect(path(delayed)).toMatchObject({
+        status: 'NOT_MET',
+        approvalStatus: 'NOT_MET',
+      });
+      expect(path(delayed).earliestDate).toBeUndefined();
+      expect(path(delayed).approvalEarliestDate).toBeUndefined();
+      const alreadyFiled: UsFullRequest = {
+        ...delayed,
+        employment: { ...employment, i140FiledOn: '2026-07-01' },
+        admission: { ...delayed.admission, petitionStatus: 'approved' },
+      };
+      expect(condition(alreadyFiled, 'C28-OFFER-PERM').status).toBe('MET');
+      expect(path(alreadyFiled)).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: '2026-12-01',
+        approvalStatus: 'FUTURE',
+        approvalEarliestDate: '2026-12-01',
+      });
+    },
+  );
+
+  test('rechecks age at the actual filing dates for I-130 and I-864', () => {
+    const request: UsFullRequest = {
+      ...f,
+      dateOfBirth: '2005-11-30',
+      family: {
+        ...family,
+        relationship: 'unmarried-child',
+        beneficiaryAge: 20,
+        childRelationship: 'biological',
+      },
+      support: {
+        ...support,
+        activeDuty: true,
+        household: { region: 'contiguous', size: 2, incomeUsd: 23000 },
+      },
+      admission: {
+        ...admission,
+        petitionStatus: 'filed-with-i485',
+        visaAtFiling: 'unavailable',
+        visaAtFilingByMonth: { '2026-12': 'unavailable' },
+      },
+    };
+    expect(condition(request, 'C33-VISA-AND-ENTRY').filingStatus).toBe('MET');
+    expect(condition(request, 'C25-SUPPORT-INCOME').status).toBe('MET');
+    expect(path(request).earliestDate).toBe(time.simulationDate);
+    const delayed: UsFullRequest = {
+      ...request,
+      trips: [{ departed: '2026-11-20', returned: '2026-12-01' }],
+    };
+    expect(condition(delayed, 'C33-VISA-AND-ENTRY').filingStatus).toBe(
+      'NOT_MET',
+    );
+    expect(condition(delayed, 'C25-SUPPORT-INCOME').status).toBe('NOT_MET');
+    expect(path(delayed).earliestDate).toBeUndefined();
+    const previouslyFiled: UsFullRequest = {
+      ...delayed,
+      admission: {
+        ...delayed.admission,
+        petitionStatus: 'approved',
+        petitionFiledOn: '2026-07-01',
+      },
+    };
+    expect(condition(previouslyFiled, 'C33-VISA-AND-ENTRY').filingStatus).toBe(
+      'MET',
+    );
+    expect(condition(previouslyFiled, 'C25-SUPPORT-INCOME').status).toBe(
+      'NOT_MET',
+    );
+  });
+
+  test('does not date filing when I-693 expires before the in-country receipt', () => {
+    const request: UsFullRequest = {
+      ...withAdmission({
+        adjustmentBasis: 'vawa',
+        i693SignedOn: '2023-10-31',
+        visaAtFilingByMonth: { '2025-11': 'available' },
+        visaAtDecisionByMonth: { '2025-11': 'available' },
+      }),
+      simulationDate: '2025-10-30',
+    };
+    expect(condition(request, 'C36-HEALTH').filingStatus).toBe('MET');
+    expect(path(request).earliestDate).toBe(request.simulationDate);
+    const delayed: UsFullRequest = {
+      ...request,
+      trips: [{ departed: '2025-10-29', returned: '2025-11-03' }],
+    };
+    expect(condition(delayed, 'C36-HEALTH')).toMatchObject({
+      filingStatus: 'NOT_MET',
+      status: 'NOT_MET',
+    });
+    expect(path(delayed).earliestDate).toBeUndefined();
+    expect(path(delayed).approvalEarliestDate).toBeUndefined();
+  });
+
+  test('rechecks I-485 child fees at the in-country receipt', () => {
+    const request: UsFullRequest = {
+      ...f,
+      dateOfBirth: '2012-11-30',
+      fees: { ...f.fees, applyingWithParent: true },
+    };
+    expect(condition(request, 'C44-I485').explanation).toContain('USD 950');
+    const delayed: UsFullRequest = {
+      ...request,
+      trips: [{ departed: '2026-11-20', returned: '2026-12-01' }],
+    };
+    expect(condition(delayed, 'C44-I485').explanation).toContain('USD 1440');
+    expect(path(delayed).earliestDate).toBe('2026-12-01');
+  });
+
+  test('keeps I-864 pending when a sponsor’s reported age cannot resolve the later receipt', () => {
+    const request: UsFullRequest = {
+      ...f,
+      support: { ...support, sponsorAge: 17 },
+    };
+    expect(condition(request, 'C26-SPONSOR').status).toBe('NOT_MET');
+    const delayed: UsFullRequest = {
+      ...request,
+      trips: [{ departed: '2026-11-20', returned: '2026-12-01' }],
+    };
+    expect(condition(delayed, 'C26-SPONSOR')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-276'],
+    });
+    expect(path(delayed).earliestDate).toBeUndefined();
+  });
+
+  test('rechecks the EB-5 threshold when a prospective joint receipt moves into the next schedule', () => {
+    const request: UsFullRequest = {
+      ...eb5,
+      simulationDate: '2026-12-31',
+      admission: {
+        ...eb5.admission,
+        petitionStatus: 'filed-with-i485',
+        visaAtFilingByMonth: { '2027-01': 'available' },
+        visaAtDecisionByMonth: { '2027-01': 'available' },
+      },
+    };
+    expect(condition(request, 'C31-INVESTMENT-AMOUNT').status).toBe('MET');
+    expect(path(request).earliestDate).toBe(request.simulationDate);
+    const delayed: UsFullRequest = {
+      ...request,
+      trips: [{ departed: '2026-12-29', returned: '2027-01-01' }],
+    };
+    expect(condition(delayed, 'C31-INVESTMENT-AMOUNT')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-264'],
+    });
+    expect(path(delayed).earliestDate).toBeUndefined();
+    const alreadyFiled: UsFullRequest = {
+      ...delayed,
+      admission: {
+        ...delayed.admission,
+        petitionStatus: 'approved',
+        petitionFiledOn: '2026-10-01',
+      },
+    };
+    expect(condition(alreadyFiled, 'C31-INVESTMENT-AMOUNT').status).toBe('MET');
+    expect(path(alreadyFiled).earliestDate).toBe('2027-01-04');
+  });
+
+  test('evaluates the N-400 minimum age on the future receipt date', () => {
+    const request = { ...n, dateOfBirth: '2008-11-24' } as const;
+    expect(condition(request, 'C01-AGE').status).toBe('MET');
+    expect(path(request)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-24',
+      approvalStatus: 'FUTURE',
+      approvalEarliestDate: '2026-11-24',
+    });
+  });
 });
 
 describe('filing and evidence exceptions', () => {

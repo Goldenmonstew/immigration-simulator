@@ -22,6 +22,8 @@ import { feeChecks } from './fees';
 import { familyChecks, employmentChecks, supportChecks } from './immigration';
 import { conditionChecks, travelChecks } from './maintenance';
 import { militaryChecks, naturalizationChecks } from './naturalization';
+import { adjustmentCategory, isFamilyCategory } from './petition';
+import type { AdjustmentCategory } from './petition';
 import type {
   UsFullCheck,
   UsFullPathway,
@@ -256,7 +258,10 @@ function conditionsTiming(
     : { status: 'UNKNOWN', special: online.special || paperTiming.special };
 }
 
-function onlineFilingAvailability(request: UsFullRequest) {
+function onlineFilingAvailability(
+  request: UsFullRequest,
+  basis: AdjustmentCategory,
+) {
   const category = request.fees?.onlineCategoryAvailable;
   const available = reviewed(category);
   const admission = request.admission;
@@ -276,24 +281,16 @@ function onlineFilingAvailability(request: UsFullRequest) {
       request.pathway === 'US-EMPLOYMENT' ||
       request.pathway === 'US-ADJUSTMENT')
   ) {
-    const basis = admission.adjustmentBasis;
     const concurrent = admission.petitionStatus === 'filed-with-i485';
     const employment = request.employment?.category;
     if (
       basis === 'sij' ||
       (basis === 'vawa' && concurrent) ||
-      (employment === 'eb5' &&
-        (request.pathway === 'US-EMPLOYMENT' || basis === 'employment'))
+      (employment === 'eb5' && basis === 'employment')
     )
       return false;
     // Concurrent I-130 packages need a representative to use USCIS online filing.
-    if (
-      concurrent &&
-      !request.fees?.channel &&
-      (request.pathway === 'US-FAMILY' ||
-        basis === 'immediate-relative' ||
-        basis === 'family-preference')
-    )
+    if (concurrent && !request.fees?.channel && isFamilyCategory(basis))
       return available === true;
     return available;
   }
@@ -391,6 +388,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const L = textFor(request);
   const check = checksFor(request);
   const date = request.simulationDate;
+  const category = adjustmentCategory(request);
   const immigrantApplication =
     request.pathway === 'US-FAMILY' ||
     request.pathway === 'US-EMPLOYMENT' ||
@@ -406,7 +404,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       request.conditional === 'investor');
   const channel = request.fees?.channel;
   const onlineAvailable = usesUscisReceipt
-    ? onlineFilingAvailability(request)
+    ? onlineFilingAvailability(request, category)
     : true;
   const paperDefault = !channel && onlineAvailable === false;
   const paper = usesUscisReceipt && (channel === 'paper' || paperDefault);
@@ -444,13 +442,15 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     (immigrantApplication && admission?.process === 'adjustment') ||
     request.pathway === 'US-HUMANITARIAN';
   let filingCandidate = nvcFilingDate ?? date;
-  let adjustmentReceipt = receiptOn(filingCandidate);
+  let applicationReceipt = receiptOn(filingCandidate);
   if (i485) {
-    let returnOn = returnFromTrip(request.trips, adjustmentReceipt);
+    let returnOn =
+      returnFromTrip(request.trips, applicationReceipt) ??
+      returnFromTrip(request.trips, filingCandidate);
     while (returnOn) {
       filingCandidate = returnOn;
-      adjustmentReceipt = receiptOn(filingCandidate);
-      returnOn = returnFromTrip(request.trips, adjustmentReceipt);
+      applicationReceipt = receiptOn(filingCandidate);
+      returnOn = returnFromTrip(request.trips, applicationReceipt);
     }
     if (filingCandidate > date || returnFromTrip(request.trips, date)) {
       timingChecks.push(
@@ -462,8 +462,8 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
           s.adjustmentFilingPresence,
           undefined,
           [
-            `须在返美后递交。按所填行程和递交渠道，最早可于 ${adjustmentReceipt} 在境内收件。`,
-            `File after returning to the United States. Based on the reported trips and filing method, the earliest in-country receipt is ${adjustmentReceipt}.`,
+            `须在返美后递交。按所填行程和递交渠道，最早可于 ${applicationReceipt} 在境内收件。`,
+            `File after returning to the United States. Based on the reported trips and filing method, the earliest in-country receipt is ${applicationReceipt}.`,
           ],
         ),
       );
@@ -486,21 +486,27 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   }
   const interviewOn = admission?.interviewOn;
   const decisionOn = admission?.decisionOn;
-  let decision: IsoDate | undefined = adjustmentReceipt;
+  let decision: IsoDate | undefined = applicationReceipt;
   if (consularApplication) {
     // A confirmed future opening still precedes NVC review and the interview.
     decision =
       decisionOn &&
-      decisionOn >= adjustmentReceipt &&
+      decisionOn >= applicationReceipt &&
       decisionOn !== nvcFilingDate &&
       (!interviewOn ||
         (interviewOn <= decisionOn &&
           (!nvcFilingDate || interviewOn > nvcFilingDate)))
         ? decisionOn
         : undefined;
-  } else if (decisionOn && decisionOn > adjustmentReceipt) {
+  } else if (decisionOn && decisionOn > applicationReceipt) {
     decision = decisionOn;
   }
+  const filingOn = request.fees?.filingOn;
+  const postmark =
+    i485 && filingCandidate > date && filingOn && filingOn < filingCandidate
+      ? undefined
+      : filingOn;
+  const admissionTiming = { receipt: applicationReceipt, decision, postmark };
   let eligibility: FilingTiming = {
     status: 'MET',
     earliestDate: filingCandidate > date ? filingCandidate : undefined,
@@ -619,43 +625,44 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       requirements = [
         ...travel.checks,
         ...(travel.seekingAdmission === true
-          ? admissionChecks(
-              {
-                ...request,
-                simulationDate: travel.returnedOn ?? request.simulationDate,
-              },
-              request.travel?.admission,
-              'return',
-            )
+          ? admissionChecks(request, 'return', {
+              receipt: travel.returnedOn ?? date,
+            })
           : []),
       ];
       break;
     }
     case 'US-FAMILY':
       requirements = [
-        ...familyChecks(request),
-        ...supportChecks(request),
-        ...adjustmentChecks(request, adjustmentReceipt, decision),
+        ...familyChecks(request, applicationReceipt),
+        ...supportChecks(request, category, applicationReceipt),
+        ...adjustmentChecks(request, category, admissionTiming),
       ];
       break;
     case 'US-EMPLOYMENT':
       requirements = [
-        ...employmentChecks(request),
-        ...supportChecks(request),
-        ...adjustmentChecks(request, adjustmentReceipt, decision),
+        ...employmentChecks(request, applicationReceipt),
+        ...supportChecks(request, category, applicationReceipt),
+        ...adjustmentChecks(request, category, admissionTiming),
       ];
       break;
     case 'US-ADJUSTMENT':
       requirements = [
-        ...adjustmentChecks(request, adjustmentReceipt, decision),
-        ...supportChecks(request),
+        ...adjustmentChecks(request, category, admissionTiming),
+        ...supportChecks(request, category, applicationReceipt),
+        ...(category === 'employment' && request.employment?.category
+          ? employmentChecks(request, applicationReceipt)
+          : []),
       ];
       break;
     case 'US-HUMANITARIAN':
-      requirements = humanitarianChecks(request, adjustmentReceipt);
+      requirements = humanitarianChecks(request, admissionTiming);
       break;
     case 'US-MILITARY':
-      requirements = [...militaryChecks(request), ...naturalizationAt(date)];
+      requirements = [
+        ...militaryChecks(request, applicationReceipt),
+        ...naturalizationAt(date),
+      ];
       break;
   }
   if (filingChannel) requirements.push(filingChannel);
@@ -683,15 +690,14 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       item.approvalRequirementDate && item.approvalRequirementDate > earliest
         ? item.approvalRequirementDate
         : earliest,
-    immigrantApplication ? (decision ?? receipt) : receipt,
+    immigrantApplication || i485 ? (decision ?? receipt) : receipt,
   );
   const combine = (filing: boolean): PilotStatus => {
     if (timing === 'NOT_APPLICABLE') return timing;
     const statuses = requirements.flatMap((item) =>
       item.applicable === false ||
       item.informational ||
-      (!filing && item.approvalRequirementDate) ||
-      (timing === 'FUTURE' && legacy && item.id === 'US-C01-AGE')
+      (!filing && item.approvalRequirementDate)
         ? []
         : [filing ? (item.filingStatus ?? item.status) : item.status],
     );
@@ -702,7 +708,15 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const status = combine(true);
   const approvalStatus =
     request.pathway === 'US-TRAVEL' ? undefined : combine(false);
-  const notes = status === 'NOT_APPLICABLE' ? [] : feeChecks(request);
+  const notes =
+    status === 'NOT_APPLICABLE'
+      ? []
+      : feeChecks(
+          request,
+          category,
+          request.pathway === 'US-TRAVEL' ? date : receipt,
+          postmark,
+        );
   const checks = [...timingChecks, ...requirements, ...notes];
   const pendingDetails = [
     ...new Set([

@@ -15,12 +15,18 @@ import {
   v,
 } from './check';
 import type { Answer } from './check';
-import { immediateRelative } from './immigration';
 import {
   multipleConvictionBar,
   partyCheck,
   pettyOffense,
 } from './naturalization';
+import {
+  immediateRelative,
+  isFamilyCategory,
+  isI140Category,
+  underlyingPetitionApproved,
+} from './petition';
+import type { AdjustmentCategory } from './petition';
 import type { UsAdmissionAnswers, UsFullRequest, UsReview } from './types';
 
 function waived(grounds: Answer[], decision: Answer): Answer[] {
@@ -115,28 +121,19 @@ function unlawfulPresence(
   return not(departure.voluntaryBeforeProceedings);
 }
 
-function underlyingPetitionApproved(
-  a: UsAdmissionAnswers | undefined,
-): boolean {
-  return (
-    a?.petitionStatus === 'approved' ||
-    (a?.process === 'consular' &&
-      a.visaAtFiling === 'available' &&
-      a.nvcDs260 === 'submitted')
-  );
-}
-
 function admissionExemptions(
   scope: 'immigrant' | 'return' | 'humanitarian',
-  a: UsAdmissionAnswers | undefined,
+  process: UsAdmissionAnswers['process'],
+  category: AdjustmentCategory,
+  petitionApproved: boolean,
 ) {
   if (scope === 'humanitarian') return v.humanitarianAdmissionExemptions;
-  if (scope !== 'immigrant' || !a || !underlyingPetitionApproved(a)) return;
-  if (a.adjustmentBasis === 'sij' && a.process === 'adjustment')
+  if (scope !== 'immigrant' || !petitionApproved) return;
+  if (category === 'sij' && process === 'adjustment')
     return v.sijAdmissionExemptions;
-  if (a.adjustmentBasis === 'vawa') {
-    if (a.process === 'adjustment') return v.vawaAdjustmentAdmissionExemptions;
-    if (a.process === 'consular') return v.vawaConsularAdmissionExemptions;
+  if (category === 'vawa') {
+    if (process === 'adjustment') return v.vawaAdjustmentAdmissionExemptions;
+    if (process === 'consular') return v.vawaConsularAdmissionExemptions;
   }
 }
 
@@ -155,14 +152,20 @@ function petitionApprovalUnconfirmed(
   );
 }
 
+type AdmissionTiming = {
+  receipt: IsoDate;
+  decision?: IsoDate;
+  postmark?: IsoDate;
+};
+
 export function admissionChecks(
   request: UsFullRequest,
-  a: UsAdmissionAnswers | undefined,
-  scope: 'immigrant' | 'return' | 'humanitarian' = 'immigrant',
-  receipt = request.simulationDate,
-  decision?: IsoDate,
+  scope: 'immigrant' | 'return' | 'humanitarian',
+  { receipt, decision, postmark }: AdmissionTiming,
+  category?: AdjustmentCategory,
 ) {
   const check = checksFor(request);
+  const a = scope === 'return' ? request.travel?.admission : request.admission;
   const date = request.simulationDate;
   const adjustment = scope === 'immigrant' && a?.process === 'adjustment';
   const adjustmentSources = adjustment ? s.adjustmentEligibility : [];
@@ -179,15 +182,22 @@ export function admissionChecks(
         ? interviewOn
         : decision && (interviewOn ?? decision);
   }
-  const approvalDate = adjustment ? (decision ?? receipt) : receipt;
-  const publicChargeDate = adjustment ? (request.fees?.filingOn ?? date) : date;
+  const approvalDate = decision ?? receipt;
+  const publicChargeDate = adjustment ? (postmark ?? receipt) : receipt;
   const humanitarian = scope === 'humanitarian';
   const optionalMedicalForm =
     humanitarian && request.humanitarian?.status === 'refugee';
-  const exemptions = admissionExemptions(scope, a);
+  const petitionApproved = underlyingPetitionApproved(a);
+  const exemptions = admissionExemptions(
+    scope,
+    a?.process,
+    category,
+    petitionApproved,
+  );
   const pendingSij =
     adjustment &&
-    a.adjustmentBasis === 'sij' &&
+    category === 'sij' &&
+    !petitionApproved &&
     petitionApprovalUnconfirmed(a.petitionStatus, a.petitionFiledOn);
   const exemptionSources =
     (pendingSij ? v.sijAdmissionExemptions : exemptions)?.sources ?? [];
@@ -327,9 +337,9 @@ export function admissionChecks(
   const presenceAt = (on: IsoDate | undefined) => {
     const presence = unlawfulPresence(a, on);
     return (adjustment || consularVisa) &&
-      a?.adjustmentBasis === 'vawa' &&
-      a.petitionStatus === 'approved'
-      ? any(presence, reviewed(a.vawaUnlawfulPresenceException))
+      category === 'vawa' &&
+      petitionApproved
+      ? any(presence, reviewed(a?.vawaUnlawfulPresenceException))
       : presence;
   };
   const barAtFiling = adjustment ? presenceAt(receipt) : true;
@@ -469,13 +479,20 @@ export function admissionChecks(
             ],
       adjustment
         ? checkStatus(all(...immigrationGrounds(barAtFiling)))
-        : (approvalOnly ?? immigrationResult.filingStatus),
+        : humanitarian
+          ? assessGround(immigrationGrounds(presenceAt(receipt)), true)
+              .filingStatus
+          : approvalOnly,
     ),
   ];
 }
 
-function adjustmentBar(a?: UsAdmissionAnswers, immediate?: Answer): Answer {
-  const basis = a?.adjustmentBasis;
+function adjustmentBar(
+  a: UsAdmissionAnswers | undefined,
+  category: AdjustmentCategory,
+  immediate: Answer,
+  employment: UsFullRequest['employment'],
+): Answer {
   const other =
     a?.otherAdjustmentBar === 'none'
       ? true
@@ -484,52 +501,42 @@ function adjustmentBar(a?: UsAdmissionAnswers, immediate?: Answer): Answer {
         : a?.otherAdjustmentBar === 'vwp'
           ? immediate
           : undefined;
-  const exempt = any(immediate, basis === 'vawa' || basis === 'sij');
+  const exempt = any(immediate, category === 'vawa' || category === 'sij');
   const violations = a?.qualifyingViolationsDays;
+  const kCategory =
+    category === 'employment'
+      ? employment?.category
+        ? isI140Category(employment.category) || employment.category === 'eb5'
+        : employment?.i140FiledOn
+          ? true
+          : undefined
+      : false;
   const k = all(
+    kCategory,
     a?.lawfulAdmissionFor245k,
     atMost(violations, v.adjustment.value.kDays),
   );
   const status = any(
     exempt,
     violations === undefined ? undefined : violations === 0,
-    basis === 'employment' ? k : basis === undefined ? undefined : false,
+    k,
   );
-  return basis === '245i' ? reviewed(a?.entryException) : all(other, status);
+  return category === '245i' ? reviewed(a?.entryException) : all(other, status);
 }
 
 export function adjustmentChecks(
   request: UsFullRequest,
-  receipt: IsoDate,
-  decision: IsoDate | undefined,
+  category: AdjustmentCategory,
+  timing: AdmissionTiming,
 ) {
+  const { receipt, decision } = timing;
   const check = checksFor(request);
   const a = request.admission;
-  const basis = a?.adjustmentBasis;
   const petition = a?.petitionStatus;
   const petitionApproved = underlyingPetitionApproved(a);
-  const { family, employment } = request;
-  const familyEvidence = Boolean(family?.petitioner || family?.relationship);
-  const employmentEvidence = Boolean(
-    employment?.category || employment?.i140FiledOn,
-  );
-  const inferFromFacts =
-    basis === undefined && request.pathway === 'US-ADJUSTMENT';
-  const usesFamilyClassification =
-    request.pathway === 'US-FAMILY' ||
-    (basis === 'family-preference' && family !== undefined) ||
-    (inferFromFacts && familyEvidence && !employmentEvidence);
-  const employmentBasis =
-    basis === 'employment' ||
-    (basis === undefined && request.pathway === 'US-EMPLOYMENT') ||
-    (inferFromFacts && employmentEvidence && !familyEvidence);
-  const immediate: Answer = usesFamilyClassification
-    ? immediateRelative(family)
-    : basis
-      ? basis === 'immediate-relative'
-      : employmentBasis
-        ? false
-        : undefined;
+  const { employment } = request;
+  const familyBasis = isFamilyCategory(category);
+  const immediate = immediateRelative(request, category, receipt);
   const availability = (value?: UsAdmissionAnswers['visaAtFiling']): Answer =>
     value === 'available' ? true : value === 'unavailable' ? false : undefined;
   const consular = a?.process === 'consular';
@@ -555,27 +562,24 @@ export function adjustmentChecks(
     : undefined;
   const sijFiling =
     a?.process === 'adjustment' &&
-    basis === 'sij' &&
+    category === 'sij' &&
     (petitionApproved ||
       petitionApprovalUnconfirmed(petition, a.petitionFiledOn));
   const entryAtFiling =
     sijFiling || a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
       ? true
       : a?.legalEntry === 'without-inspection'
-        ? basis === 'vawa'
+        ? category === 'vawa'
           ? true
-          : basis === 'sij' || basis === '245i'
+          : category === 'sij' || category === '245i'
             ? reviewed(a.entryException)
-            : basis === undefined && request.pathway === 'US-ADJUSTMENT'
+            : category === undefined || category === 'ambiguous'
               ? undefined
               : false
         : undefined;
-  const i140Category =
-    employment?.category === 'eb1a' ||
-    employment?.category === 'eb2-niw' ||
-    employment?.category === 'eb2-perm' ||
-    employment?.category === 'eb3';
-  const usesI140 = employmentBasis && (i140Category || !employment?.category);
+  const i140Category = isI140Category(employment?.category);
+  const usesI140 =
+    category === 'employment' && (i140Category || !employment?.category);
   const i140FiledOn = usesI140 ? employment?.i140FiledOn : undefined;
   const petitionFiledOn = i140FiledOn ?? a?.petitionFiledOn;
   const awaitingPetition = petitionApprovalUnconfirmed(
@@ -585,21 +589,17 @@ export function adjustmentChecks(
   const inconsistentPetitionDate =
     petitionFiledOn !== undefined && petitionFiledOn > request.simulationDate;
   const familyOrSpecialPetition =
-    usesFamilyClassification ||
-    basis === 'immediate-relative' ||
-    basis === 'family-preference' ||
-    basis === 'vawa' ||
-    basis === 'sij';
+    familyBasis || category === 'vawa' || category === 'sij';
   const requiresPetition =
     familyOrSpecialPetition ||
-    employmentBasis ||
+    category === 'employment' ||
     awaitingPetition ||
-    (inferFromFacts && (familyEvidence || employmentEvidence));
+    category === 'ambiguous';
   const ds260 = a?.nvcDs260;
   const concurrent =
     a?.process === 'adjustment' &&
     (familyOrSpecialPetition ||
-      (employmentBasis &&
+      (category === 'employment' &&
         (i140Category ||
           i140FiledOn !== undefined ||
           employment?.category === 'eb5')));
@@ -639,7 +639,7 @@ export function adjustmentChecks(
         ? undefined
         : all(
             filing,
-            petitionApproved || (basis !== undefined && !requiresPetition)
+            petitionApproved || (category !== undefined && !requiresPetition)
               ? qualifyingBasis
               : undefined,
             visaAtDecision,
@@ -653,7 +653,7 @@ export function adjustmentChecks(
               ...s.consularInterview,
             ]
           : s.adjustmentFilingPresence),
-        ...(usesFamilyClassification ? s.relationship : []),
+        ...(familyBasis ? s.relationship : []),
       ],
       'PD-272',
       inconsistentPetitionDate
@@ -709,7 +709,7 @@ export function adjustmentChecks(
             'C34-ADJUSTMENT-BARS',
             '境内调整禁令及 INA 245(k) 例外',
             'Adjustment bars and INA 245(k) exception',
-            adjustmentBar(a, immediate),
+            adjustmentBar(a, category, immediate, employment),
             s.adjustmentBars,
             'PD-274',
             [
@@ -728,11 +728,14 @@ export function adjustmentChecks(
             'NOT_APPLICABLE',
           ),
         ]),
-    ...admissionChecks(request, a, 'immigrant', receipt, decision),
+    ...admissionChecks(request, 'immigrant', timing, category),
   ];
 }
 
-export function humanitarianChecks(request: UsFullRequest, receipt: IsoDate) {
+export function humanitarianChecks(
+  request: UsFullRequest,
+  { receipt, decision = receipt }: AdmissionTiming,
+) {
   const check = checksFor(request);
   const a = request.humanitarian;
   const refugee = a?.status === 'refugee';
@@ -812,6 +815,12 @@ export function humanitarianChecks(request: UsFullRequest, receipt: IsoDate) {
       ],
       'NOT_APPLICABLE',
     ),
-    ...admissionChecks(request, request.admission, 'humanitarian', receipt),
+    ...admissionChecks(request, 'humanitarian', {
+      receipt,
+      decision:
+        approvalRequirementDate && approvalRequirementDate > decision
+          ? approvalRequirementDate
+          : decision,
+    }),
   ];
 }

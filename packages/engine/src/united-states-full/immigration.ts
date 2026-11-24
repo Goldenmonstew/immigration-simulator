@@ -1,5 +1,6 @@
 import { addDays } from '../dates';
 import { afterYears } from '../pilot';
+import type { IsoDate } from '../types';
 import { nextUsBusinessDay } from '../united-states';
 import {
   all,
@@ -16,30 +17,23 @@ import {
 } from './check';
 import type { Answer } from './check';
 import { jobsCheck } from './maintenance';
-import type {
-  UsEmploymentAnswers,
-  UsFamilyAnswers,
-  UsFullRequest,
-} from './types';
+import {
+  beneficiaryAtLeastAge,
+  isFamilyCategory,
+  reportedAgeAtLeast,
+  underlyingPetitionApproved,
+} from './petition';
+import type { AdjustmentCategory } from './petition';
+import type { UsEmploymentAnswers, UsFullRequest } from './types';
 
-export function immediateRelative(family?: UsFamilyAnswers): Answer {
-  if (!family?.petitioner || !family.relationship) return undefined;
-  if (family.petitioner !== 'citizen') return false;
-  if (family.relationship === 'spouse') return true;
-  if (family.relationship === 'parent')
-    return atLeast(family.petitionerAge, v.familyAge.value.adultSponsor);
-  if (family.relationship !== 'unmarried-child') return false;
-  const limit = v.familyAge.value.child;
-  if (family.cspaAge !== undefined) return family.cspaAge < limit;
-  return family.beneficiaryAge !== undefined && family.beneficiaryAge < limit
-    ? true
-    : undefined;
-}
-
-export function familyChecks(request: UsFullRequest) {
+export function familyChecks(request: UsFullRequest, receipt: IsoDate) {
   const check = checksFor(request);
   const a = request.family;
-  const date = request.simulationDate;
+  const date =
+    request.admission?.petitionFiledOn ??
+    (request.admission?.process === 'consular'
+      ? request.simulationDate
+      : receipt);
   const law = v.familyAge.value;
   const citizen = a?.petitioner === 'citizen';
   const relation =
@@ -48,7 +42,12 @@ export function familyChecks(request: UsFullRequest) {
       : a?.relationship === 'parent' || a?.relationship === 'sibling'
         ? all(
             a.petitioner ? citizen : undefined,
-            atLeast(a.petitionerAge, law.adultSponsor),
+            reportedAgeAtLeast(
+              request.simulationDate,
+              date,
+              a.petitionerAge,
+              law.adultSponsor,
+            ),
           )
         : a?.relationship
           ? a.petitioner !== undefined || undefined
@@ -124,14 +123,14 @@ export function familyChecks(request: UsFullRequest) {
   ];
 }
 
-export function i864Required(request: UsFullRequest): Answer {
+function i864Required(
+  request: UsFullRequest,
+  category: AdjustmentCategory,
+): Answer {
   if (request.pathway === 'US-HUMANITARIAN') return false;
-  if (request.pathway === 'US-FAMILY') return true;
+  if (isFamilyCategory(category)) return true;
   const job = request.employment;
-  if (
-    request.pathway === 'US-EMPLOYMENT' ||
-    request.admission?.adjustmentBasis === 'employment'
-  ) {
+  if (category === 'employment') {
     if (job?.relativePetitioner === true) return true;
     if (job?.relativeOwnershipPct !== undefined)
       return (
@@ -141,15 +140,15 @@ export function i864Required(request: UsFullRequest): Answer {
       );
     return undefined;
   }
-  const basis = request.admission?.adjustmentBasis;
-  if (basis === 'immediate-relative' || basis === 'family-preference')
-    return true;
-  if (basis === 'vawa' || basis === 'sij') return false;
+  if (category === 'vawa' || category === 'sij') return false;
   return request.support ? true : undefined;
 }
 
-export function supportExemption(request: UsFullRequest): Answer {
-  const required = i864Required(request);
+export function supportExemption(
+  request: UsFullRequest,
+  category: AdjustmentCategory,
+): Answer {
+  const required = i864Required(request, category);
   if (required === false) return true;
   const a = request.support;
   if (!a?.exemption) return undefined;
@@ -162,15 +161,19 @@ export function supportExemption(request: UsFullRequest): Answer {
   return reviewed(a.exemptionEvidence);
 }
 
-export function supportChecks(request: UsFullRequest) {
+export function supportChecks(
+  request: UsFullRequest,
+  category: AdjustmentCategory,
+  receipt: IsoDate,
+) {
   const check = checksFor(request);
   const a = request.support;
   const law = v.sponsor.value;
-  const exempt = supportExemption(request);
+  const exempt = supportExemption(request, category);
   const usingExemption = a?.exemption !== undefined && a.exemption !== 'none';
-  const required = i864Required(request);
+  const required = i864Required(request, category);
   const sponsor = all(
-    atLeast(a?.sponsorAge, law.age),
+    reportedAgeAtLeast(request.simulationDate, receipt, a?.sponsorAge, law.age),
     a?.sponsorStatus ? a.sponsorStatus !== 'other' : undefined,
     reviewed(a?.domiciledInUs),
     a?.affidavitSubmitted,
@@ -179,17 +182,23 @@ export function supportChecks(request: UsFullRequest) {
   const beneficiaryAge = request.family?.beneficiaryAge ?? a?.beneficiaryAge;
   const child =
     benefit === 'unmarried-child'
-      ? not(atLeast(beneficiaryAge, v.familyAge.value.child))
+      ? not(
+          beneficiaryAtLeastAge(
+            request,
+            receipt,
+            beneficiaryAge,
+            v.familyAge.value.child,
+          ),
+        )
       : benefit === undefined
         ? undefined
         : false;
   const active = all(a?.activeDuty, any(benefit === 'spouse', child));
   const household = a?.household;
-  const date = request.fees?.filingOn ?? request.simulationDate;
   const povertyLaw = v.poverty.value;
   const applicable =
-    date >= povertyLaw.i864Effective &&
-    date.startsWith(String(povertyLaw.year));
+    receipt >= povertyLaw.i864Effective &&
+    receipt.startsWith(String(povertyLaw.year));
   const multiplier = active ? law.activeDuty : law.regular;
   const listedSize = povertyLaw.i864ListedHouseholdSize;
   const baseline = household?.size
@@ -206,14 +215,16 @@ export function supportChecks(request: UsFullRequest) {
           Math.round(povertyLaw[household.region].additional * multiplier)
       : undefined;
   const income = a?.household?.incomeUsd;
-  const citizenAssets =
-    a?.sponsorStatus === 'citizen' &&
-    (benefit === 'spouse' ||
-      (child === true && atLeast(beneficiaryAge, law.age) === true));
-  const unresolvedChildAge =
-    a?.sponsorStatus === 'citizen' &&
-    benefit === 'unmarried-child' &&
-    beneficiaryAge === undefined;
+  const citizenAssets = all(
+    a?.sponsorStatus === 'citizen',
+    any(
+      benefit === 'spouse',
+      all(
+        child,
+        beneficiaryAtLeastAge(request, receipt, beneficiaryAge, law.age),
+      ),
+    ),
+  );
   const ratio = a?.orphanException
     ? law.orphanAssets
     : citizenAssets
@@ -225,7 +236,7 @@ export function supportChecks(request: UsFullRequest) {
         (a?.qualifyingAssetsUsd !== undefined
           ? a.qualifyingAssetsUsd >= (minimum - income) * ratio
             ? true
-            : unresolvedChildAge &&
+            : citizenAssets === undefined &&
                 a.qualifyingAssetsUsd >=
                   (minimum - income) * law.citizenFamilyAssets
               ? undefined
@@ -321,10 +332,20 @@ function abilityToPay(request: UsFullRequest): Answer {
   return any(officer, records, reviewed(a?.abilityToPayTotality));
 }
 
-export function employmentChecks(request: UsFullRequest) {
+export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
   const check = checksFor(request);
   const a = request.employment ?? {};
   const date = request.simulationDate;
+  const admission = request.admission;
+  const petitionApproved = underlyingPetitionApproved(admission);
+  const petitionAlreadyFiled =
+    admission?.petitionStatus === 'pending' || petitionApproved;
+  const prospectivePetitionReceipt =
+    admission?.process === 'adjustment'
+      ? receipt
+      : request.fees?.channel === 'paper'
+        ? nextUsBusinessDay(date)
+        : date;
   const category = a.category;
   const based = [
     check(
@@ -337,18 +358,10 @@ export function employmentChecks(request: UsFullRequest) {
     ),
   ];
   if (category === 'eb2-perm' || category === 'eb3') {
-    const petition = request.admission?.petitionStatus;
-    const priorI140 =
-      petition === 'pending' ||
-      petition === 'approved' ||
-      a.i140FiledOn !== undefined;
+    const priorI140 = petitionAlreadyFiled || a.i140FiledOn !== undefined;
     const inconsistentI140Date =
       a.i140FiledOn !== undefined && a.i140FiledOn > date;
-    const i140Date = priorI140
-      ? a.i140FiledOn
-      : request.fees?.channel === 'paper'
-        ? nextUsBusinessDay(date)
-        : date;
+    const i140Date = priorI140 ? a.i140FiledOn : prospectivePetitionReceipt;
     const valid =
       a.permCertifiedOn && i140Date && !inconsistentI140Date
         ? a.permCertifiedOn <= i140Date &&
@@ -388,7 +401,7 @@ export function employmentChecks(request: UsFullRequest) {
           'PERM 有效期按使用它的 I-140 收件日核对。拟递交 I-140 时使用预计收件日。',
           'Check PERM validity on the date USCIS received the I-140 using it. For a prospective I-140, use the expected receipt date.',
         ],
-        petition === 'approved' ? checkStatus(offer) : undefined,
+        petitionApproved ? checkStatus(offer) : undefined,
       ),
       check(
         'C29-ABILITY-TO-PAY',
@@ -483,7 +496,13 @@ export function employmentChecks(request: UsFullRequest) {
               }),
             ),
     );
-    const current = date >= law.rulesFrom && date < law.firstAdjustment;
+    const petitionReceipt =
+      admission?.petitionFiledOn ??
+      (petitionAlreadyFiled ? date : prospectivePetitionReceipt);
+    const current =
+      (!admission?.petitionFiledOn || petitionReceipt <= date) &&
+      petitionReceipt >= law.rulesFrom &&
+      petitionReceipt < law.firstAdjustment;
     const minimum =
       input?.project === 'standard'
         ? law.standardUsd

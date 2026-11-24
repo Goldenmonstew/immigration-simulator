@@ -1,14 +1,22 @@
 import { addDays } from '../dates';
 import { afterYears } from '../pilot';
+import type { IsoDate } from '../types';
 import { all, any, atMost, checksFor, poverty, reviewed, s, v } from './check';
 import type { Answer } from './check';
 import { supportExemption } from './immigration';
+import { isFamilyCategory } from './petition';
+import type { AdjustmentCategory } from './petition';
 import type { UsFullRequest } from './types';
 
-export function feeChecks(request: UsFullRequest) {
+export function feeChecks(
+  request: UsFullRequest,
+  category: AdjustmentCategory,
+  receipt: IsoDate,
+  filingOn?: IsoDate,
+) {
   const check = checksFor(request);
   const a = request.fees;
-  const date = a?.filingOn ?? request.simulationDate;
+  const date = filingOn ?? receipt;
   const channel = a?.channel;
   const law = v.fees.value;
   const consular = v.consularFees.value;
@@ -214,7 +222,7 @@ export function feeChecks(request: UsFullRequest) {
     case 'US-FAMILY': {
       reliefStatus = relief(false);
       checks.push(fee('I130', 'I-130', lookup(law.i130)));
-      const exempt = supportExemption(request);
+      const exempt = supportExemption(request, category);
       if (exempt !== true)
         checks.push(
           fee(
@@ -303,7 +311,7 @@ export function feeChecks(request: UsFullRequest) {
   if (immigration === 'adjustment' || request.pathway === 'US-HUMANITARIAN') {
     const child =
       request.dateOfBirth !== undefined &&
-      date < afterYears(request.dateOfBirth, law.i485ChildAge);
+      receipt < afterYears(request.dateOfBirth, law.i485ChildAge);
     const fees = !request.dateOfBirth
       ? undefined
       : child && a?.applyingWithParent
@@ -340,15 +348,13 @@ export function feeChecks(request: UsFullRequest) {
     if (a?.adjustmentSupplementA)
       checks.push(fee('I485A', 'I-485 Supplement A', law.supplementAUsd));
   } else if (immigration === 'consular') {
-    const amount =
-      request.pathway === 'US-FAMILY' || request.family?.relationship
-        ? consular.family
-        : request.pathway === 'US-EMPLOYMENT' ||
-            request.admission?.adjustmentBasis === 'employment'
-          ? consular.employment
-          : a?.consularFeeCategory
-            ? consular[a.consularFeeCategory]
-            : undefined;
+    const amount = isFamilyCategory(category)
+      ? consular.family
+      : category === 'employment'
+        ? consular.employment
+        : a?.consularFeeCategory
+          ? consular[a.consularFeeCategory]
+          : undefined;
     checks.push(fee('IMMIGRANT-VISA', 'DS-260 / IV', amount, s.consularFee));
     checks.push(
       fee(

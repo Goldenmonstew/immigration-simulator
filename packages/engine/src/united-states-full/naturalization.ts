@@ -144,11 +144,14 @@ function statutoryGmc(request: UsFullRequest): Answer {
   );
 }
 
-function selectiveService(request: UsFullRequest, gmcYears: number): Answer {
+function selectiveService(
+  request: UsFullRequest,
+  gmcYears: number,
+  date: IsoDate,
+): Answer {
   const answer = request.naturalization;
   const { startAge, endAge } = v.selective.value;
   const birth = request.dateOfBirth;
-  const date = request.simulationDate;
   if (
     answer?.selectiveService === 'registered' ||
     answer?.selectiveService === 'not-required'
@@ -169,7 +172,7 @@ export function naturalizationChecks(
 ) {
   const check = checksFor(request);
   const a = request.naturalization;
-  const date = request.simulationDate;
+  const date = receipt;
   const military = request.pathway === 'US-MILITARY';
   const hostilities = military && request.military?.basis === 'hostilities';
   const spouse = request.pathway === 'US-SPOUSE';
@@ -430,7 +433,7 @@ export function naturalizationChecks(
       'C10-SELECTIVE-SERVICE',
       'Selective Service 兵役登记',
       'Selective Service registration',
-      selectiveService(request, gmcYears),
+      selectiveService(request, gmcYears, receipt),
       s.selective,
       'PD-275',
       [
@@ -484,7 +487,8 @@ export function naturalizationChecks(
       s.district,
       'PD-274',
     ),
-    ...(!military || (!hostilities && lateMilitaryFiling(request) !== false)
+    ...(!military ||
+    (!hostilities && lateMilitaryFiling(request, receipt) !== false)
       ? [
           check(
             'C14-RESIDENCE-THROUGH-OATH',
@@ -501,21 +505,19 @@ export function naturalizationChecks(
   ];
 }
 
-export function lateMilitaryFiling(request: UsFullRequest): Answer {
+function lateMilitaryFiling(request: UsFullRequest, date: IsoDate): Answer {
   const separated = request.military?.separatedOn;
   return separated === 'serving'
     ? false
     : separated
-      ? request.simulationDate >
-        addMonths(separated, v.military.value.lateFilingMonths)
+      ? date > addMonths(separated, v.military.value.lateFilingMonths)
       : undefined;
 }
 
-export function militaryChecks(request: UsFullRequest) {
+export function militaryChecks(request: UsFullRequest, date: IsoDate) {
   const check = checksFor(request);
   const a = request.military;
   const law = v.military.value;
-  const date = request.simulationDate;
   const overlap = a?.service?.some(
     ({ from, to }) =>
       from <= date &&
@@ -548,6 +550,7 @@ export function militaryChecks(request: UsFullRequest) {
         ? a.evidence === 'n426'
         : a.evidence === 'dd214-or-ngb22'
       : undefined;
+  const late = lateMilitaryFiling(request, date);
   return [
     check(
       'C43-SERVICE',
@@ -583,7 +586,7 @@ export function militaryChecks(request: UsFullRequest) {
       'Residence rules when filing in service or after separation',
       a?.basis === 'hostilities'
         ? true
-        : a?.basis === 'peacetime' && lateMilitaryFiling(request) !== undefined
+        : a?.basis === 'peacetime' && late !== undefined
           ? true
           : undefined,
       s.military,
@@ -593,7 +596,7 @@ export function militaryChecks(request: UsFullRequest) {
         'Hostilities cases are exempt from continuous residence and physical presence. A late peacetime filing requires the ordinary residence assessment and credit for qualifying service.',
       ],
     ),
-    ...(a?.basis === 'peacetime' && lateMilitaryFiling(request) === true
+    ...(a?.basis === 'peacetime' && late === true
       ? [
           check(
             'C43-LATE-RESIDENCE',
