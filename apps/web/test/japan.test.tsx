@@ -4,6 +4,7 @@ import type { JpFullReentryRequest } from '@uk-immigration/engine';
 import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import JapanPage from '../app/japan/page';
 import JapanPolicyPage from '../app/japan/policy/page';
+import JapanSimulatePage from '../app/japan/simulate/page';
 import { JapanWhatIfControls } from '../app/japan/whatif/controls';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
@@ -591,15 +592,19 @@ test.each([
 );
 
 test.each([
-  ['no proposed filing date', ordinaryTrip, undefined, 'NOT_MET'],
-  ['filing before departure', ordinaryTrip, '2024-03-29', 'MET'],
+  ['2024-04-03', 'no proposed filing date', ordinaryTrip, undefined, 'NOT_MET'],
+  ['2024-04-03', 'filing before departure', ordinaryTrip, '2024-03-29', 'MET'],
+  ['2024-04-08', 'no proposed filing date', ordinaryTrip, undefined, 'NOT_MET'],
+  ['2024-04-08', 'filing before departure', ordinaryTrip, '2024-03-29', 'MET'],
   [
+    '2024-04-08',
     'extension declined at the stay limit',
     ordinaryTripAtStayLimit,
     '2024-03-29',
     'MET',
   ],
   [
+    '2024-04-08',
     'extension unanswered at the stay limit',
     {
       ...ordinaryTripAtStayLimit,
@@ -609,13 +614,13 @@ test.each([
     'MET',
   ],
 ] as const)(
-  'the completed ordinary trip keeps its deadline and continuity with %s',
-  (_label, route, applicationDate, filingStatus) => {
+  'the departed ordinary trip keeps its deadline and continuity on %s with %s',
+  (simulationDate, _label, route, applicationDate, filingStatus) => {
     const draft = decodeDraft(
       jp,
       encodeDraft(jp, {
         ...travelDraft(),
-        simulationDate: '2024-04-08',
+        simulationDate,
         applicationDate,
         reentry: [route],
       }),
@@ -626,10 +631,13 @@ test.each([
       <ResultView country={jp} result={result} draft={draft} />,
     );
     expect(path.status).toBe(filingStatus);
-    expect(
-      path.checks.find((row) => row.id === 'jp.reentry.ordinary-eligibility')
-        ?.status,
-    ).toBe(filingStatus);
+    const filing = path.checks.find(
+      (row) => row.id === 'jp.reentry.ordinary-eligibility',
+    )!;
+    expect(filing.status).toBe(filingStatus);
+    expect(html).toContain(
+      `data-status="${filingStatus === 'MET' ? 'PASS' : 'FAIL'}"><strong>${filing.title}</strong>`,
+    );
     for (const id of ['ordinary-validity', 'return-continuity']) {
       const row = path.checks.find((check) => check.id === 'jp.reentry.' + id)!;
       expect(row.status).toBe('MET');
@@ -642,6 +650,57 @@ test.each([
     expect(html).not.toMatch(
       /延期审批待确认|法定延期上限为 2026-04-01|出境时所需的再入国条件未满足/,
     );
+  },
+);
+
+test.each([
+  ['zh-CN', '本次出境前，这份单次许可是否已经用过？'],
+  [
+    'en',
+    'Had you already used this single-entry permit before this departure?',
+  ],
+] as const)(
+  'the single-entry question and shared return result agree in %s',
+  (locale, label) => {
+    for (const previouslyUsedSingleEntry of [false, true]) {
+      const draft = decodeDraft(
+        jp,
+        encodeDraft(jp, {
+          ...travelDraft(),
+          simulationDate: '2024-04-08',
+          reentry: [
+            { ...ordinaryTrip, visits: 'single', previouslyUsedSingleEntry },
+          ],
+        }),
+      )!;
+      const form = renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          {JapanSimulatePage().props.children({
+            draft,
+            errors: {},
+            update: () => {},
+          })}
+        </LocaleContext>,
+      );
+      expect(form).toContain(
+        `for="jp-travel-ordinary-previouslyUsedSingleEntry">${label}</label>`,
+      );
+      const result = jp.run(draft, locale);
+      const continuity = result.columns[0].pathways[0].checks.find(
+        (row) => row.id === 'jp.reentry.return-continuity',
+      )!;
+      expect(continuity.status).toBe(
+        previouslyUsedSingleEntry ? 'NOT_MET' : 'MET',
+      );
+      const html = renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          <ResultView country={jp} result={result} draft={draft} />
+        </LocaleContext>,
+      );
+      expect(html).toContain(
+        `data-status="${previouslyUsedSingleEntry ? 'FAIL' : 'PASS'}"><strong>${continuity.title}</strong>`,
+      );
+    }
   },
 );
 
@@ -907,48 +966,92 @@ test.each([
   },
 );
 
-test('changing the deemed return keeps the declaration for the original PR history', () => {
-  const baseline: JapanDraft = {
-    ...travelDraft(),
-    permanentResidence: {
-      routes: [
+test.each([
+  ['valid departure documents', deemedTrip, 'MET'],
+  ['invalid passport', { ...deemedTrip, passportValid: false }, 'NOT_MET'],
+  ['voided permission', { ...deemedTrip, permitVoided: true }, 'NOT_MET'],
+  [
+    'lost document without validity evidence',
+    { ...deemedTrip, travelDocumentLost: true },
+    'UNKNOWN',
+  ],
+  [
+    'missing residence card',
+    { ...deemedTrip, residentCardOrCertificate: false },
+    'NOT_MET',
+  ],
+  [
+    'unconfirmed passport',
+    { ...deemedTrip, passportValid: undefined },
+    'UNKNOWN',
+  ],
+  [
+    'no declaration',
+    { ...deemedTrip, declaredIntentAtDeparture: false },
+    'NOT_MET',
+  ],
+] as const)(
+  'shared PR and deemed results use the same trip evidence for %s',
+  (_label, route, expected) => {
+    const baseline: JapanDraft = {
+      ...travelDraft(),
+      permanentResidence: {
+        routes: [
+          {
+            route: 'general',
+            statusStart: '2014-04-01',
+            newStatusStart: '2014-04-01',
+          },
+        ],
+        evidence: {},
+      },
+      trips: [
         {
-          route: 'general',
-          statusStart: '2014-04-01',
-          newStatusStart: '2014-04-01',
+          departed: aprilTrip.departureOn,
+          returned: aprilTrip.returnOn,
+          departure: 'deemed',
         },
       ],
-      evidence: {},
-    },
-    trips: [
-      {
-        departed: aprilTrip.departureOn,
-        returned: aprilTrip.returnOn,
-        departure: 'deemed',
-      },
-    ],
-    reentry: [{ ...deemedTrip, declaredIntentAtDeparture: false }],
-  };
-  const knobs = {
-    ...jp.whatif.initial(baseline),
-    returns: { deemed: '2024-04-08' },
-  };
-  const compared = jp.whatif.apply(baseline, knobs);
-  expect(compared.reentry[0].returnOn).toBe(knobs.returns.deemed);
-  for (const scenario of [baseline, compared]) {
-    const draft = decodeDraft(jp, encodeDraft(jp, scenario))!;
-    const [pr, deemed] = jp.run(draft, 'zh-CN').columns[0].pathways;
-    expect(
-      pr.checks.find((row) => row.id === 'jp.pr.continuous-stay')?.status,
-    ).toBe('NOT_MET');
-    expect(pr.timeEarliestDate).toBe('2034-04-07');
-    expect(
-      deemed.checks.find((row) => row.id === 'jp.reentry.return-continuity')
-        ?.status,
-    ).toBe('NOT_MET');
-  }
-  expect(baseline.trips[0].departure).toBe('deemed');
-});
+      reentry: [route],
+    };
+    const knobs = {
+      ...jp.whatif.initial(baseline),
+      returns: { deemed: '2024-04-08' },
+    };
+    const compared = jp.whatif.apply(baseline, knobs);
+    expect(compared.reentry[0].returnOn).toBe(knobs.returns.deemed);
+    for (const scenario of [baseline, compared]) {
+      const draft = decodeDraft(jp, encodeDraft(jp, scenario))!;
+      const result = jp.run(draft, 'zh-CN');
+      const [pr, deemed] = result.columns[0].pathways;
+      expect(pr.timeEarliestDate).toBe(
+        expected === 'NOT_MET'
+          ? '2034-04-07'
+          : expected === 'MET'
+            ? draft.simulationDate
+            : undefined,
+      );
+      const html = renderToStaticMarkup(
+        <ResultView country={jp} result={result} draft={draft} />,
+      );
+      for (const row of [
+        pr.checks.find((item) => item.id === 'jp.pr.continuous-stay')!,
+        deemed.checks.find(
+          (item) => item.id === 'jp.reentry.return-continuity',
+        )!,
+      ]) {
+        expect(row.status).toBe(expected);
+        const group = { MET: 'PASS', NOT_MET: 'FAIL', UNKNOWN: 'UNKNOWN' }[
+          expected
+        ];
+        expect(html).toContain(
+          `data-status="${group}"><strong>${row.title}</strong>`,
+        );
+      }
+    }
+    expect(baseline.trips[0].departure).toBe('deemed');
+  },
+);
 
 test('each re-entry continuity gap links to the return date for its own route', () => {
   const draft = travelDraft();

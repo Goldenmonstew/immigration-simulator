@@ -985,8 +985,8 @@ const messages = {
     'Is an eligible status application being filed online at the same time?',
   ],
   'jp.field.previouslyUsedSingleEntry': [
-    '单次许可是否已使用？',
-    'Has the single-entry permit already been used?',
+    '本次出境前，这份单次许可是否已经用过？',
+    'Had you already used this single-entry permit before this departure?',
   ],
   'jp.field.consularExtension': [
     '是否通过领事机构延期？',

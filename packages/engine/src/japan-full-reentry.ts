@@ -88,6 +88,50 @@ export type JpFullReentryRequest = JpTravelDates &
 
 const earlier = (a: IsoDate, b: IsoDate) => (a < b ? a : b);
 
+const excluded = (value: boolean | undefined) =>
+  value === undefined ? undefined : !value;
+
+// SRC-110 art. 26-2(1), SRC-116: the declaration requires valid documents at departure.
+function deemedDepartureEligibility(
+  route: Extract<JpFullReentryRequest, { route: 'deemed' }>,
+) {
+  const durationAllowed =
+    route.specialPermanentResident === true || route.stayIndefinite === true
+      ? true
+      : route.originalStayMonths === undefined
+        ? undefined
+        : route.originalStayMonths > full.reentry.value.deemedExcludedMonths;
+  const temporaryAllows =
+    route.specialPermanentResident === true
+      ? true
+      : (excluded(route.temporaryVisitor) ??
+        (route.stayIndefinite === true ? true : undefined));
+  return all(
+    route.lawfulStatus,
+    durationAllowed,
+    temporaryAllows,
+    route.passportValid,
+    route.residentCardOrCertificate,
+    excluded(route.formalPermitRequired),
+    route.declaredIntentAtDeparture,
+  );
+}
+
+const lostDocumentEvidence = (route: JpTravelDates) =>
+  route.travelDocumentLost && route.expiryCertificateObtained !== true
+    ? undefined
+    : true;
+
+export function deemedTripPermission(
+  route: Extract<JpFullReentryRequest, { route: 'deemed' }>,
+) {
+  return all(
+    deemedDepartureEligibility(route),
+    excluded(route.permitVoided),
+    lostDocumentEvidence(route),
+  );
+}
+
 export function assessJapanReentry(
   req: JpFullContext,
   route: JpFullReentryRequest,
@@ -153,8 +197,6 @@ export function assessJapanReentry(
     checks.push(item);
     return item;
   };
-  const excluded = (value: boolean | undefined) =>
-    value === undefined ? undefined : !value;
   const departure = route.departureOn;
   const returned = route.returnOn;
   const stay = route.stayExpiresOn;
@@ -319,9 +361,9 @@ export function assessJapanReentry(
       route.channel === 'online' ? onlineEligible : true,
       departureDocuments,
     );
-    // SRC-116: a completed trip is assessed against the permit held at departure.
+    // SRC-116, 再入国許可 paras 2–5: once abroad, use the permit held at departure.
     eligibleAtDeparture =
-      returned && returned <= req.simulationDate
+      departure && departure <= req.simulationDate
         ? departureDocuments
         : filingEligibility;
     r(
@@ -478,26 +520,7 @@ export function assessJapanReentry(
       );
   } else if (route.route === 'deemed') {
     travelDate = { kind: 'departure', date: departure };
-    const durationAllowed =
-      route.specialPermanentResident === true || route.stayIndefinite === true
-        ? true
-        : route.originalStayMonths === undefined
-          ? undefined
-          : route.originalStayMonths > rr.deemedExcludedMonths;
-    const temporaryAllows =
-      route.specialPermanentResident === true
-        ? true
-        : (excluded(route.temporaryVisitor) ??
-          (route.stayIndefinite === true ? true : undefined));
-    eligibleAtDeparture = all(
-      route.lawfulStatus,
-      durationAllowed,
-      temporaryAllows,
-      route.passportValid,
-      route.residentCardOrCertificate,
-      excluded(route.formalPermitRequired),
-      route.declaredIntentAtDeparture,
-    );
+    eligibleAtDeparture = deemedDepartureEligibility(route);
     validAtDeparture = withinStay(departure);
     r(
       'deemed-eligibility',
@@ -638,9 +661,6 @@ export function assessJapanReentry(
           : fees.refugeeTravelBefore;
   }
 
-  const specialEvidenceMissing =
-    route.travelDocumentLost === true &&
-    route.expiryCertificateObtained !== true;
   const usesStay = route.route !== 'refugee-travel-document';
   const missedExtensionLimit =
     extensionCeiling && returned && returned > extensionCeiling
@@ -667,7 +687,7 @@ export function assessJapanReentry(
       ? true
       : extensionValid,
     returnWithinPermit(),
-    specialEvidenceMissing ? undefined : true,
+    lostDocumentEvidence(route),
     !missedExtensionLimit,
     withinEntryDeadline,
     usesStay ? withinStay(returned) : true,

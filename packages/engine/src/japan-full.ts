@@ -1,10 +1,10 @@
 import { japanFull2026_11 } from '@uk-immigration/policy-data';
-import type { JpTrip } from './japan';
+import { jpTripLapses, type JpTrip } from './japan';
 import { assessJapanNaturalisation } from './japan-full-naturalisation';
 import type { JpFullNaturalisationRequest } from './japan-full-naturalisation';
 import { assessJapanPr } from './japan-full-pr';
 import type { JpFullPrRequest } from './japan-full-pr';
-import { assessJapanReentry } from './japan-full-reentry';
+import { assessJapanReentry, deemedTripPermission } from './japan-full-reentry';
 import type { JpFullReentryRequest } from './japan-full-reentry';
 import { filingContext } from './japan-full-shared';
 import type { JpFullContext, JpFullResult } from './japan-full-shared';
@@ -24,12 +24,15 @@ const sameDeemedTrip = (
   trip.departed === route.departureOn &&
   trip.returned === route.returnOn;
 
-/** Share departure status (SRC-442 art. 23(2)) and declarations only for the same trip. */
+/** Reconcile departure status (SRC-442 art. 23(2)) and permit evidence for the same itinerary. */
 export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
   trips: JpTrip[],
   routes: T[],
 ) {
-  const matches = (trip: JpTrip, route: JpFullReentryRequest) =>
+  const matches = (
+    trip: JpTrip,
+    route: JpFullReentryRequest,
+  ): route is DeemedRoute =>
     sameDeemedTrip(trip, route) &&
     (trip.departure === 'deemed' || route.declaredIntentAtDeparture === true);
   const history = trips.map((trip) => {
@@ -52,24 +55,25 @@ export function resolveJapanDeemedTripStatuses<T extends JpFullReentryRequest>(
       ? { ...route, specialPermanentResident: trip.specialPermanentResident }
       : route;
   });
-  // SRC-110 art. 26-2(1), SRC-116: record the declaration while the original
-  // dates still match, including when a comparison will vary the return date.
+  // Resolve the evidence while the original itinerary still matches. A comparison
+  // can subsequently change the return date for the re-entry route alone.
   const resolvedTrips = history.map((trip) => {
-    const answers = new Set(
-      routes.map((route) =>
-        sameDeemedTrip(trip, route) ? route.declaredIntentAtDeparture : undefined,
-      ),
-    );
-    answers.delete(undefined);
-    // A negative deemed declaration does not invalidate a separate ordinary permit.
+    const matched = reentry.filter((route) => sameDeemedTrip(trip, route));
     if (
-      !answers.size ||
-      (answers.size === 1 && answers.has(false) && trip.departure !== 'deemed')
+      !matched.length ||
+      (trip.departure !== 'deemed' &&
+        !matched.some((route) => route.declaredIntentAtDeparture === true))
     )
       return trip;
-    const departure: JpTrip['departure'] =
-      answers.size > 1 ? undefined : answers.has(true) ? 'deemed' : 'none';
-    return { ...trip, departure };
+    const answers = new Set(matched.map(deemedTripPermission));
+    const eligible = answers.size === 1 ? [...answers][0] : undefined;
+    // A failed deemed departure does not invalidate an independently reported ordinary permit.
+    if (trip.departure === 'permit' && eligible !== true) return trip;
+    if (eligible === false) return { ...trip, departure: 'none' as const };
+    // Even with valid documents the history may already prove the return was late.
+    if (eligible === true || jpTripLapses(trip, 'deemed') === true)
+      return { ...trip, departure: 'deemed' as const };
+    return { ...trip, departure: undefined };
   });
   return { trips: resolvedTrips, reentry };
 }

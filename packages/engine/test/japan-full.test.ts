@@ -324,6 +324,12 @@ describe('permanent residence', () => {
             departureOn: departed,
             returnOn,
             declaredIntentAtDeparture,
+            stayIndefinite: true,
+            lawfulStatus: true,
+            passportValid: true,
+            residentCardOrCertificate: true,
+            formalPermitRequired: false,
+            permitVoided: false,
           },
         ],
       });
