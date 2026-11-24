@@ -171,7 +171,7 @@ test('path columns keep their checks, pending details and country-specific links
     expect(html).toContain(text);
   for (const url of [
     '/canada/whatif?focus=score',
-    '/canada/about',
+    '/canada/policy',
     'https://example.org/check',
   ])
     expect(html).toContain(`href="${url}"`);

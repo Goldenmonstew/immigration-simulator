@@ -107,7 +107,9 @@ export function GapSummary<D extends CountryDraft, K>({
                         {p.openParen}
                         {t(
                           rule.pendingDetails?.length
-                            ? 'gap.pending'
+                            ? rule.kind
+                              ? 'pilot.pending'
+                              : 'gap.pending'
                             : 'gap.input',
                         )}
                         {p.closeParen}

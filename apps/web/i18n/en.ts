@@ -274,6 +274,14 @@ export const en: Record<keyof typeof zhCN, string> = {
   'site.allCountries': 'All countries',
   'site.policy': 'Policy',
   'site.chinese': 'Chinese',
+  'policyPage.pathways': 'Assessment pathways',
+  'country.timeConditions': 'Time requirements',
+  'country.timeDate': 'Date based on time requirements alone',
+  'country.check.requirement': 'Requirement',
+  'country.check.factor': 'Assessment factor',
+  'country.check.information': 'Procedural information',
+  'country.fee': 'Fee',
+  'country.reducedFee': 'Possible reduced fee',
   'policyPage.title': 'Policy basis',
   'policyPage.notDisplayed': 'Not shown on the results page',
   'policyPage.ruleSets': 'Rule sets',
@@ -349,10 +357,6 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Naturalisation · Permanent residence · EU long-term · Golden visa',
   'hub.pt.desc':
     'Check residence periods for naturalisation under the 2026 nationality law, permanent residence and EU long-term resident status, plus minimum stays and renewal timing for a golden visa (ARI).',
-  'hub.jp.code': 'JP',
-  'hub.jp.paths': 'Permanent residence · Naturalisation',
-  'hub.jp.desc':
-    'Check periods of stay for permanent residence (including Highly Skilled Professional and spouse routes and the April 2027 guideline revision) and naturalisation. See whether a trip exceeds your re-entry permit period.',
   'hub.de.code': 'DE',
   'hub.de.paths': 'Settlement permit · EU long-term · Naturalisation',
   'hub.de.desc':

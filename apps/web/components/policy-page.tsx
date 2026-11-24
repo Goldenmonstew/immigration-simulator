@@ -1,10 +1,14 @@
 'use client';
 
-import type { ParameterSet, SourceRef } from '@uk-immigration/policy-data';
+import type { SourceRef } from '@uk-immigration/policy-data';
 import { RuleSetStatus } from './policy-status';
 import { useTranslation } from '../i18n/locale';
 import { punct } from '../i18n/punctuation';
-import { ruleSetTitle, type CountryPolicy } from '../lib/policy';
+import {
+  ruleSetTitle,
+  type CountryPolicy,
+  type PolicyParameterValue,
+} from '../lib/policy';
 import site from '../app/site.module.css';
 import styles from '../app/uk/policy/policy.module.css';
 
@@ -12,7 +16,7 @@ function Sources({
   sources,
   urls,
 }: {
-  sources: SourceRef[];
+  sources: readonly SourceRef[];
   urls: CountryPolicy['sourceUrls'];
 }) {
   const { locale } = useTranslation();
@@ -30,11 +34,7 @@ function Sources({
   );
 }
 
-function ParameterValue({
-  value,
-}: {
-  value: ParameterSet['values'][string]['value'];
-}) {
+function ParameterValue({ value }: { value: PolicyParameterValue }) {
   const { t, locale } = useTranslation();
   if (typeof value === 'number') return value.toLocaleString(locale);
   if (typeof value === 'string')
@@ -43,20 +43,47 @@ function ParameterValue({
     ) : (
       value
     );
-  if (Array.isArray(value)) return value.join(punct(locale).list);
+  if (Array.isArray(value)) {
+    return value.every((item) => typeof item !== 'object') ? (
+      value.join(punct(locale).list)
+    ) : (
+      <ul>
+        {value.map((item, index) => (
+          <li key={index}>
+            <ParameterValue value={item} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
   if ('required' in value && 'window' in value)
     return t('policyPage.bestYears')
       .replace('{required}', String(value.required))
       .replace('{window}', String(value.window));
-  if (!('cefrLevel' in value && 'applicationsFrom' in value))
-    return Object.entries(value)
-      .map(([key, entry]) => `${key} ${entry}`)
-      .join(punct(locale).list);
+  if (!('cefrLevel' in value && 'applicationsFrom' in value)) {
+    const entries = Object.entries(value);
+    if (entries.every(([, entry]) => typeof entry !== 'object'))
+      return entries
+        .map(([name, entry]) => `${name} ${entry}`)
+        .join(punct(locale).list);
+    return (
+      <dl>
+        {entries.map(([name, entry]) => (
+          <div key={name}>
+            <dt>{name}</dt>
+            <dd>
+              <ParameterValue value={entry} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  }
   return (
     <>
-      {value.cefrLevel} · {t('policyPage.applicationsFrom')}{' '}
+      {String(value.cefrLevel)} · {t('policyPage.applicationsFrom')}{' '}
       <time dateTime={String(value.applicationsFrom)}>
-        {value.applicationsFrom}
+        {String(value.applicationsFrom)}
       </time>
     </>
   );
@@ -68,6 +95,7 @@ export function PolicyPage({
   country: { policy: CountryPolicy };
 }) {
   const {
+    pathways,
     ruleSets,
     displayedRuleSets,
     parameters,
@@ -112,6 +140,18 @@ export function PolicyPage({
           ))}
         </div>
       </section>
+      {pathways && (
+        <section className={site.section} aria-labelledby="pathways-heading">
+          <h2 id="pathways-heading">{t('policyPage.pathways')}</h2>
+          <ul>
+            {pathways.map((path) => (
+              <li key={path.id} data-pathway={path.id}>
+                {path.title[locale]}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <section className={site.section} aria-labelledby="parameters-heading">
         <h2 id="parameters-heading">{t('policyPage.parameters')}</h2>
         {ruleSets.map((ruleSet) => (
@@ -186,7 +226,7 @@ export function PolicyPage({
                   <Sources urls={sourceUrls} sources={meta.sources} />
                   {!!meta.pendingDetails?.length && (
                     <p className={site.muted}>
-                      {t('result.pendingDetails')}
+                      {t(pathways ? 'pilot.pending' : 'result.pendingDetails')}
                       {p.colon}
                       {meta.pendingDetails.join(p.list)}
                     </p>

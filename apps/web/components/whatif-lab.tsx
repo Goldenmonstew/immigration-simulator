@@ -73,6 +73,15 @@ function Comparison({
             before?.earliestDate ?? t('result.undetermined'),
             after?.earliestDate ?? t('result.undetermined'),
           ],
+          ...(before?.timeEarliestDate || after?.timeEarliestDate
+            ? [
+                [
+                  t('country.timeDate'),
+                  before?.timeEarliestDate ?? '—',
+                  after?.timeEarliestDate ?? '—',
+                ],
+              ]
+            : []),
           // A6#7: a conditional completion is not an earliest date.
           ...(before?.pathwayCompletionDate || after?.pathwayCompletionDate
             ? [
@@ -243,7 +252,15 @@ function WhatIfLab<D extends CountryDraft, K>({
             </Link>
           </div>
         </section>
-        <div className={styles.comparisons} aria-live="polite">
+        <div
+          className={styles.comparisons}
+          style={
+            country.policy.displayedRuleSets.length === 1
+              ? { gridTemplateColumns: 'minmax(0, 1fr)' }
+              : undefined
+          }
+          aria-live="polite"
+        >
           {!after ? (
             <p role="status">{t('form.fixErrors')}</p>
           ) : (

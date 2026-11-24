@@ -495,3 +495,9 @@
 | 745 | 修正任务 91 第三轮审核问题（review91-3）。普通再入国窗口渠道按共用日历顺延，并按候选日复核出境期限。补窗口、在线渠道和日历待确认回归，更新 SRC-461、PD-370 及两项审核风险。 | packages/engine/src/japan-full-{shared,reentry}.ts、packages/engine/test/japan-full.test.ts、docs/{SOURCES,pending-details,tasks/reports/91-jp-rules}.md |
 | 746 | 修正任务 91 第四轮审核问题（review91-4）。普通再入国留空渠道时根据在线资格选用递交日历，资格未知或候选日与出境日相同时留空最早递交日。核对永住和归化窗口入口，补回归并更新 PD-370。 | packages/engine/src/japan-full-reentry.ts、packages/engine/test/japan-full.test.ts、docs/{pending-details,tasks/reports/91-jp-rules}.md |
 | 747 | 修正任务 91 第五轮审核问题（review91-5）。普通再入国留空渠道和在线资格时，原候选日窗口已知开放且早于出境日即可保留当天。补周一回归并收窄 PD-370。 | packages/engine/src/japan-full-reentry.ts、packages/engine/test/japan-full.test.ts、docs/{pending-details,tasks/reports/91-jp-rules}.md |
+
+## 2026-11-24
+
+| # | 改动描述 | 涉及文件 |
+|---|---|---|
+| 750 | 任务 101：共用分步问卷的进度、按步校验、草稿恢复及结果跳转；政策来源从各国实际引用生成，修正英国来源清单。通用结果与对比支持独立时间节点、费用、条件类型和豁免。 | apps/web/components/{questionnaire-shell,policy-page,result-page,result-view,gap-summary,whatif-lab}.tsx、apps/web/lib/{policy,uk-module,gap-summary,whatif,site-countries}.ts、双语公共标签与相关测试、packages/engine/src/country-result.ts |

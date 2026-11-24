@@ -13,7 +13,7 @@ import {
 import { ukWhatIf } from '../app/uk/whatif/controls';
 import type { TranslationKey } from '../i18n';
 import type { CountryModule } from './country-module';
-import { ruleSetTitle } from './policy';
+import { ruleSetTitle, withPolicySources } from './policy';
 import {
   createDraft,
   currentEpisode,
@@ -23,7 +23,6 @@ import {
   validateStep,
   type Draft,
 } from './questionnaire';
-import { sourceUrls } from './sources';
 import { decodeUkDraft } from './uk-draft';
 import { allRuleSets, displayedRuleSets } from './uk-policy';
 import type { WhatIf } from './uk-whatif';
@@ -69,7 +68,7 @@ export const ukModule: CountryModule<Draft, WhatIf> = {
     linkLabel: 'result.adviceLink',
   },
   whatif: ukWhatIf,
-  policy: {
+  policy: withPolicySources({
     ruleSets: allRuleSets,
     displayedRuleSets,
     parameters: PARAMETERS,
@@ -80,6 +79,5 @@ export const ukModule: CountryModule<Draft, WhatIf> = {
       ]),
     ),
     changelog: policyChangelog,
-    sourceUrls,
-  },
+  }),
 };

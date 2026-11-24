@@ -40,9 +40,6 @@ test('policy page enumerates the exported rule sets, parameters, rules, changelo
   expect(html.match(/data-policy-change=/g)).toHaveLength(
     policyChangelog.length,
   );
-  expect(html.match(/data-source=/g)).toHaveLength(
-    Object.keys(sourceUrls).length,
-  );
   for (const ruleSet of Object.values(RULE_SETS)) {
     for (const { meta } of RULES[ruleSet.id]) {
       expect(html).toContain(`data-rule="${meta.id}"`);
@@ -125,6 +122,8 @@ test('every displayed metadata source and route-group source has a registered cl
     ...Object.values(ROUTE_GROUP_SOURCES).flat(),
   ];
   const html = render();
+  const listed = [...html.matchAll(/data-source="([^"]+)"/g)].map((m) => m[1]);
+  expect(listed.sort()).toEqual([...new Set(refs.map((r) => r.srcId))].sort());
   for (const ref of refs) {
     expect(sourceUrls[ref.srcId], ref.srcId).toMatch(/^https:\/\//);
     expect(html).toContain(`href="${sourceUrls[ref.srcId]}"`);

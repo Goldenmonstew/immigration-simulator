@@ -43,7 +43,11 @@ export function ResultPage<D extends CountryDraft, K>({
       if (hash.has('s')) {
         const incoming = decodeDraft(country, hash.get('s')!);
         try {
-          if (incoming) {
+          if (
+            incoming &&
+            (incoming.completed ||
+              country.decodeDraft({ ...incoming, completed: true }))
+          ) {
             const nextResult = country.run(incoming, locale);
             draftStorage(country, incoming);
             rememberResult(country, nextResult, locale);

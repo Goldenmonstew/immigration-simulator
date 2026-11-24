@@ -50,9 +50,11 @@ export function diffPathways(before?: CountryPathway, after?: CountryPathway) {
   const becameUnmet: CountryPathway['checks'] = [];
   const stillUnmet: CountryPathway['checks'] = [];
   for (const check of after?.checks ?? []) {
+    if (check.applicable === false) continue;
     const previous = before?.checks.find((item) => item.id === check.id);
     if (check.status === 'MET') {
-      if (previous?.status !== 'MET') becameMet.push(check);
+      if (previous?.status !== 'MET' || previous.applicable === false)
+        becameMet.push(check);
     } else if (
       !previous ||
       previous.status === 'MET' ||

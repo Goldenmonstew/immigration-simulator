@@ -6,6 +6,7 @@ export function gapRules(assessment: CountryPathway) {
   return assessment.checks.filter(
     (rule) =>
       (!assessment.decidedBy || assessment.decidedBy.includes(rule.id)) &&
+      (!rule.kind || rule.kind === 'requirement') &&
       (rule.status === 'NOT_MET' || rule.status === 'UNKNOWN'),
   );
 }

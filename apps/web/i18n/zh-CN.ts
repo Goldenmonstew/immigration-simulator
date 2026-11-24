@@ -249,6 +249,14 @@ export const zhCN = {
   'site.allCountries': '所有国家',
   'site.policy': '政策依据',
   'site.chinese': '中文',
+  'policyPage.pathways': '评估路径',
+  'country.timeConditions': '时间条件',
+  'country.timeDate': '仅按时间条件推算的日期',
+  'country.check.requirement': '申请条件',
+  'country.check.factor': '审查因素',
+  'country.check.information': '办理提示',
+  'country.fee': '费用',
+  'country.reducedFee': '可能适用的减额费用',
   'policyPage.title': '政策依据',
   'policyPage.notDisplayed': '结果页未显示',
   'policyPage.ruleSets': '规则集',
@@ -323,10 +331,6 @@ export const zhCN = {
   'hub.pt.paths': '入籍 · 永久居留 · 欧盟长居 · 黄金签证',
   'hub.pt.desc':
     '核对 2026 年国籍法下入籍所需的居住年限、永久居留与欧盟长期居民所需的居住时间，以及黄金签证的最低停留时间和续期时段。',
-  'hub.jp.code': 'JP',
-  'hub.jp.paths': '永住许可 · 帰化（入籍）',
-  'hub.jp.desc':
-    '核对永住许可（含高度人才与配偶路线及 2027 年 4 月改版指南）和帰化所需的在留时间，并计算出境是否超过再入国许可期限。',
   'hub.de.code': 'DE',
   'hub.de.paths': '定居许可 · 欧盟长期居留 · 入籍',
   'hub.de.desc':
