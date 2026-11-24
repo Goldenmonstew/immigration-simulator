@@ -48,6 +48,9 @@ function Comparison({
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const diff = diffPathways(before, after);
+  const beforeDate = pathwayDate(before);
+  const afterDate = pathwayDate(after);
+  const primaryDate = afterDate ?? beforeDate;
   const years = (assessment?: CountryPathway) =>
     assessment?.pathwayYears === undefined
       ? t('result.undetermined')
@@ -69,11 +72,19 @@ function Comparison({
           (before && isDecisionOutcome(before.status))
             ? [[t('result.pathway'), years(before), years(after)]]
             : []),
-          [
-            t(pathwayDate(after ?? before).label),
-            pathwayDate(before).date ?? t('result.undetermined'),
-            pathwayDate(after).date ?? t('result.undetermined'),
-          ],
+          ...(primaryDate
+            ? [
+                [
+                  t(primaryDate.label),
+                  beforeDate
+                    ? (beforeDate.date ?? t('result.undetermined'))
+                    : '—',
+                  afterDate
+                    ? (afterDate.date ?? t('result.undetermined'))
+                    : '—',
+                ],
+              ]
+            : []),
           ...(before?.timeEarliestDate || after?.timeEarliestDate
             ? [
                 [
@@ -194,7 +205,7 @@ function WhatIfLab<D extends CountryDraft, K>({
         const check = assessment.checks.find(
           (rule) =>
             rule.status !== 'MET' &&
-            controls.focusForRule(rule.id) === target.focus,
+            controls.focusForRule(rule.id, assessment.id) === target.focus,
         );
         if (check)
           return controls.initial(draft, {

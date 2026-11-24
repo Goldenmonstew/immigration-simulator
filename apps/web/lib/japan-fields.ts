@@ -84,10 +84,10 @@ export const basicFields = (hasResidenceRoute: boolean) => [
 export const tripFields = [
   date('departed', true),
   date('returned', true),
+  choice('departure', ['none', 'deemed', 'permit']),
   bool('reentryPermit', true),
   date('stayExpiry', false, 'stayExpiry', 'tripExpiry'),
   bool('renewalPending'),
-  choice('departure', ['none', 'deemed', 'permit']),
 ];
 export const tripList = {
   name: 'trips',

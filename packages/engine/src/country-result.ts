@@ -31,8 +31,8 @@ export interface CountryPathway extends Omit<
   /** Timing alone can be known even when other requirements remain open. */
   timeStatus?: PilotStatus;
   timeEarliestDate?: IsoDate;
-  /** Travel pathways report this milestone in place of a filing date. */
-  travelDate?: { kind: 'departure' | 'returnDeadline'; date?: IsoDate };
+  /** Travel milestone in place of a filing date, or null if none applies. */
+  travelDate?: { kind: 'departure' | 'returnDeadline'; date?: IsoDate } | null;
 }
 
 export interface CountryColumn {

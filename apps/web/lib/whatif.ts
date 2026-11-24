@@ -17,7 +17,7 @@ export interface WhatIfControlsProps<D, K> {
 
 export interface CountryWhatIf<D, K> {
   focusControls: Record<string, string>;
-  focusForRule: (id: string) => string | undefined;
+  focusForRule: (id: string, pathwayId: string) => string | undefined;
   initial: (draft: D, target?: WhatIfTarget) => K;
   apply: (draft: D, knobs: K) => D;
   validate: (afterDraft: D, knobs: K) => Record<string, TranslationKey>;

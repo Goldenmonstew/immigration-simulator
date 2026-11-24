@@ -586,6 +586,24 @@ describe('review70-2', () => {
     expect(returningOn('2027-06-21').earliestDate).toBe('2037-06-21');
   });
 
+  test('the statutory domicile date in the summary depends on continuity at renewal', () => {
+    const trip = {
+      departed: '2026-10-01',
+      returned: '2026-11-10',
+      stayExpiry: '2026-10-15',
+    };
+    const request = { simulationDate: '2026-11-24', stayStart: '2020-01-01' };
+    const unknown = nat({ ...request, trips: [trip] });
+    expect(unknown.status).toBe('UNKNOWN');
+    expect(unknown.earliestDate).toBeUndefined();
+    expect(unknown.summary).not.toContain('按年限最早 2026-11-24');
+    expect(unknown.summary).toContain('法定住所年限的最早日期待确认');
+    const known = (renewalPending: boolean) =>
+      nat({ ...request, trips: [{ ...trip, renewalPending }] });
+    expect(known(true).summary).toContain('按年限最早 2026-11-24');
+    expect(known(false).summary).toContain('按年限最早 2031-11-10');
+  });
+
   test('a spouse 10-year date with trips is only a candidate', () => {
     const p = nat({
       simulationDate: '2027-06-01',

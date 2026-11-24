@@ -54,14 +54,21 @@ const focusByCondition: Record<string, keyof typeof japanFocusControls> = {
   'jp.nat.interview-and-assessment': 'interview',
   'jp.nat.livelihood': 'livelihood',
   'jp.reentry.ordinary-eligibility': 'date',
-  'jp.reentry.ordinary-validity': 'ordinary',
   'jp.reentry.deemed-validity': 'deemed',
-  'jp.reentry.refugee-document-validity': 'refugee-travel-document',
+};
+
+const returnFocusByPath: Record<string, ReentryRoute> = {
+  'jp.reentry.ordinary': 'ordinary',
+  'jp.reentry.deemed': 'deemed',
+  'jp.reentry.refugee-travel-document': 'refugee-travel-document',
 };
 
 export const japanWhatIf: CountryWhatIf<JapanDraft, JapanWhatIf> = {
   focusControls: japanFocusControls,
-  focusForRule: (id) => focusByCondition[id],
+  focusForRule: (id, pathwayId) =>
+    id === 'jp.reentry.return-continuity'
+      ? returnFocusByPath[pathwayId]
+      : focusByCondition[id],
   initial(draft) {
     const pr = draft.permanentResidence.evidence;
     const nat = draft.naturalisation.evidence;

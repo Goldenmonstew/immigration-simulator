@@ -122,6 +122,55 @@ test('selecting To confirm removes a previous explicit negative renewal answer b
   expect(assessed.summary).toContain('confirm whether a timely renewal');
 });
 
+test('the general PR questionnaire sends the departure method and permit validity through to the stay calculation', () => {
+  let draft: JapanDraft = {
+    ...jp.createDraft(),
+    step: 1,
+    simulationDate: '2027-04-03',
+    stayStart: '2015-04-01',
+    permanentResidence: {
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2016-04-01',
+          newStatusStart: '2016-04-01',
+        },
+      ],
+      evidence: {},
+    },
+    trips: [{ departed: '2026-10-01', returned: '2026-11-10' }],
+  };
+  const answer = (field: string, value: string) => {
+    form(draft, (patch) => {
+      draft = { ...draft, ...patch };
+    });
+    fields.get('jp-trips-0-' + field)!({ target: { value } });
+  };
+  const assessed = () => jp.run(draft, 'en').columns[0].pathways[0];
+  answer('reentryPermit', 'no');
+  answer('departure', 'deemed');
+  expect(assessed().timeStatus).toBe('MET');
+  answer('departure', 'permit');
+  expect(jp.validateStep(draft)).toEqual({});
+  expect(draft.trips[0]).toMatchObject({
+    departure: 'permit',
+    reentryPermit: false,
+  });
+  const expired = assessed();
+  expect(expired.status).toBe('NOT_MET');
+  expect(expired.earliestDate).toBeUndefined();
+  expect(expired.timeEarliestDate).toBe('2036-11-10');
+  const natOnly = {
+    ...draft,
+    permanentResidence: { routes: [], evidence: {} },
+    naturalisation: { routes: [{ route: 'general' as const }], evidence: {} },
+  };
+  form(draft);
+  const prFields = [...fields.keys()];
+  form(natOnly);
+  expect([...fields.keys()]).toEqual(prFields);
+});
+
 test.each([
   ['2026-11-24', '2027-04-26', '2027-04-19'],
   ['2027-04-26', '2027-04-18', '2027-04-19'],

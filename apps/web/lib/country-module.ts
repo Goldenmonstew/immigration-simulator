@@ -20,6 +20,7 @@ export interface CountryModule<D extends CountryDraft, K> {
   id: CountryId;
   version: number;
   createDraft(): D;
+  // Return a new draft when a local correction needs to be persisted.
   restoreStoredDraft?(draft: D): D;
   validateStep(draft: D): Record<string, TranslationKey>;
   decodeDraft(value: unknown): D | undefined;
@@ -67,10 +68,11 @@ export function pathwayTitle(
 }
 
 export function pathwayDate(pathway?: CountryPathway) {
-  return pathway?.travelDate
+  if (!pathway || pathway.travelDate === null) return undefined;
+  return pathway.travelDate
     ? {
         label: `country.${pathway.travelDate.kind}` as const,
         date: pathway.travelDate.date,
       }
-    : { label: 'result.earliest' as const, date: pathway?.earliestDate };
+    : { label: 'result.earliest' as const, date: pathway.earliestDate };
 }

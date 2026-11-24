@@ -89,7 +89,7 @@ export function GapSummary<D extends CountryDraft, K>({
             )}
             {rules.map((rule, index) => {
               const focus = canWhatIf
-                ? country.whatif.focusForRule(rule.id)
+                ? country.whatif.focusForRule(rule.id, assessment.id)
                 : undefined;
               return (
                 <li

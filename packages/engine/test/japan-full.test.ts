@@ -201,6 +201,31 @@ describe('permanent residence', () => {
     });
   });
 
+  test.each([
+    ['deemed', false, 'MET', '2027-04-05', '2027-04-03'],
+    ['permit', true, 'MET', '2027-04-05', '2027-04-03'],
+    ['permit', false, 'NOT_MET', undefined, '2036-11-10'],
+    ['none', false, 'NOT_MET', undefined, '2036-11-10'],
+  ] as const)(
+    'checks general PR for a %s departure with valid ordinary permit = %s',
+    (departure, reentryPermit, expected, filing, time) => {
+      const result = pr(general, prEvidence, {
+        simulationDate: '2027-04-03',
+        trips: [
+          {
+            departure,
+            reentryPermit,
+            departed: '2026-10-01',
+            returned: '2026-11-10',
+          },
+        ],
+      });
+      expect(result.status).toBe(expected);
+      expect(result.earliestDate).toBe(filing);
+      expect(result.timeEarliestDate).toBe(time);
+    },
+  );
+
   test.each([undefined, true])(
     'rechecks lawful filing on the rescheduled day after expiry (original validity: %s)',
     (valid) => {
@@ -1778,6 +1803,35 @@ describe('re-entry and travel documents', () => {
     },
   );
 
+  test.each([true, undefined])(
+    'a decision before expiry preserves the original stay limit with renewal %s',
+    (timelyRenewalPending) => {
+      const trip = {
+        departureOn: '2026-10-01',
+        returnOn: '2026-10-10',
+        stayExpiresOn: '2026-10-15',
+        renewalDecisionOn: '2026-10-08',
+        timelyRenewalPending,
+      };
+      const permit = { effectiveOn: '2026-09-25', expiresOn: '2026-10-15' };
+      const ordinaryResult = reentry({ ...ordinary, ...trip, permit });
+      expect(status(ordinaryResult, 'ordinary-validity')).toBe('MET');
+      expect(status(ordinaryResult, 'return-continuity')).toBe('MET');
+      const deemedResult = reentry({ ...deemed, ...trip });
+      expect(status(deemedResult, 'deemed-validity')).toBe('MET');
+      expect(condition(deemedResult, 'deemed-validity').explanation).toContain(
+        '2026-10-15',
+      );
+      expect(status(deemedResult, 'return-continuity')).toBe('MET');
+      const afterExpiry = reentry({
+        ...deemed,
+        ...trip,
+        returnOn: '2026-10-16',
+      });
+      expect(status(afterExpiry, 'return-continuity')).toBe('NOT_MET');
+    },
+  );
+
   test('unknown renewal preserves definite permit and special-period limits', () => {
     const trip = {
       departureOn: '2026-10-01',
@@ -1943,6 +1997,40 @@ describe('re-entry and travel documents', () => {
         'consular-extension-fee',
       ),
     ).toBe('UNKNOWN');
+  });
+
+  test('a refugee document extension remains subject to a separate entry deadline', () => {
+    const route = {
+      route: 'refugee-travel-document',
+      refugeeRecognition: true,
+      hasJapaneseTravelDocument: true,
+      permitVoided: false,
+      departureOn: '2025-03-01',
+      returnOn: '2025-04-02',
+      permit: {
+        effectiveOn: '2024-04-01',
+        expiresOn: '2025-04-01',
+        extensionApproved: true,
+      },
+    } as const;
+    const missed = reentry({
+      ...route,
+      permit: { ...route.permit, entryDeadline: '2025-03-31' },
+    });
+    expect(status(missed, 'return-continuity')).toBe('NOT_MET');
+    expect(condition(missed, 'return-continuity').explanation).toContain(
+      '2025-03-31',
+    );
+    const confirmed = reentry({
+      ...route,
+      permit: {
+        ...route.permit,
+        extendedUntil: '2025-04-02',
+        entryDeadlineNotSpecified: true,
+      },
+    });
+    expect(confirmed.travelDate?.date).toBe('2025-04-02');
+    expect(status(confirmed, 'return-continuity')).toBe('MET');
   });
 });
 

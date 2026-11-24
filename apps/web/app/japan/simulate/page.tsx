@@ -247,16 +247,7 @@ function JapanStep({ draft, errors, update }: StepProps) {
         <>
           <p>{t('jp.form.history')}</p>
           <EvidenceFields
-            fields={[
-              pr.routes.some((route) => route.route === 'child-birth')
-                ? tripList
-                : {
-                    ...tripList,
-                    fields: tripList.fields.filter(
-                      (field) => field.name !== 'departure',
-                    ),
-                  },
-            ]}
+            fields={[tripList]}
             values={draft}
             prefix="jp"
             errors={errors}

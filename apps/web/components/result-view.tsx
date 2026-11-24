@@ -370,7 +370,7 @@ function PathwayAssessment<D extends CountryDraft, K>({
               </time>
             </dd>
           </div>
-        ) : (
+        ) : primaryDate ? (
           <div>
             <dt>{t(primaryDate.label)}</dt>
             <dd>
@@ -381,7 +381,7 @@ function PathwayAssessment<D extends CountryDraft, K>({
               )}
             </dd>
           </div>
-        )}
+        ) : null}
         {assessment.publicFundsReassessmentDate && (
           <div>
             <dt>{t('result.reassessment')}</dt>

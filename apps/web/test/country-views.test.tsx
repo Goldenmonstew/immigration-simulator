@@ -254,6 +254,75 @@ test('a refugee document with an unconfirmed entry limit has no confirmed return
   ).not.toContain('2027-04-01');
 });
 
+test.each([
+  {
+    permitVoided: true,
+    returnOn: '2025-03-30',
+    extensionApproved: false,
+    status: 'NOT_MET',
+    detail: '已失效',
+  },
+  {
+    permitVoided: false,
+    returnOn: '2025-04-02',
+    extensionApproved: true,
+    status: 'UNKNOWN',
+    detail: '返日期限待确认',
+  },
+])(
+  'refugee travel results and details agree when the document is $status',
+  ({ permitVoided, returnOn, extensionApproved, status, detail }) => {
+    const travelDraft = {
+      ...japanModule.createDraft(),
+      simulationDate: '2025-11-01',
+      stayStart: '2020-01-01',
+      completed: true,
+      reentry: [
+        {
+          route: 'refugee-travel-document' as const,
+          departureOn: '2025-03-01',
+          returnOn,
+          permitVoided,
+          refugeeRecognition: true,
+          hasJapaneseTravelDocument: true,
+          permit: {
+            effectiveOn: '2024-04-01',
+            expiresOn: '2025-04-01',
+            entryDeadlineNotSpecified: true,
+            extensionApproved,
+          },
+        },
+      ],
+    };
+    const result = japanModule.run(travelDraft, 'zh-CN');
+    const pathway = result.columns[0].pathways[0];
+    expect(pathway.status).toBe(status);
+    for (const id of ['refugee-document-validity', 'return-continuity']) {
+      const check = pathway.checks.find((row) => row.id === `jp.reentry.${id}`);
+      expect(check?.status).toBe(status);
+      expect(check?.explanation).toContain(detail);
+      expect(check?.explanation).not.toContain('2025-04-01');
+    }
+    const deadlineLabel = `<dt>${t('country.returnDeadline')}</dt>`;
+    const resultHtml = renderToStaticMarkup(
+      <ResultView country={japanModule} result={result} draft={travelDraft} />,
+    );
+    const whatifHtml = renderToStaticMarkup(
+      <WhatIfView country={japanModule} draft={travelDraft} />,
+    );
+    for (const html of [resultHtml, whatifHtml]) {
+      expect(html).not.toContain(`<dt>${t('result.earliest')}</dt>`);
+      if (permitVoided) {
+        expect(html).not.toContain(deadlineLabel);
+      } else {
+        expect(html.split(deadlineLabel)[1].split('</dd>')[0]).toContain(
+          t('result.undetermined'),
+        );
+      }
+    }
+  },
+);
+
 test('path columns keep their checks, pending details and country-specific links', () => {
   const result = country.run(draft, 'en');
   const beta = result.columns[0].pathways[1];

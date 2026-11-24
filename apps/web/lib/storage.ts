@@ -41,6 +41,7 @@ export function draftStorage<D extends CountryDraft>(
       if (parsed?.version === country.version) {
         draft = country.restoreStoredDraft?.(parsed) ?? parsed;
         memoryDrafts.set(key, draft);
+        if (draft !== parsed) localStorage.setItem(key, JSON.stringify(draft));
       }
     }
     return { draft, available: true };
@@ -86,7 +87,8 @@ export function readScenarios<D extends CountryDraft>(
   available: boolean;
 } {
   try {
-    const saved = localStorage.getItem(storageKey(country, 'scenarios'));
+    const key = storageKey(country, 'scenarios');
+    const saved = localStorage.getItem(key);
     const scenarios = saved ? JSON.parse(saved) : [];
     if (
       !Array.isArray(scenarios) ||
@@ -100,6 +102,17 @@ export function readScenarios<D extends CountryDraft>(
       )
     )
       return { scenarios: [], available: false };
+    if (country.restoreStoredDraft) {
+      let changed = false;
+      for (const scenario of scenarios) {
+        const draft = country.restoreStoredDraft(scenario.draft);
+        if (draft !== scenario.draft) {
+          scenario.draft = draft;
+          changed = true;
+        }
+      }
+      if (changed) localStorage.setItem(key, JSON.stringify(scenarios));
+    }
     return { scenarios, available: true };
   } catch {
     return { scenarios: [], available: false };

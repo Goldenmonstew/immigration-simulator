@@ -6,6 +6,7 @@ import JapanPage from '../app/japan/page';
 import { JapanWhatIfControls } from '../app/japan/whatif/controls';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
+import { GapSummary } from '../components/gap-summary';
 import { ResultView } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
 import type { JapanDraft } from '../lib/japan-draft';
@@ -480,6 +481,55 @@ test('language, household evidence and travel knobs update only the comparison',
   expect(compared.trips).toEqual([]);
   expect(compared.reentry[0].returnOn).toBe('2027-04-20');
   expect(draft).toEqual(original);
+});
+
+test('each re-entry continuity gap links to the return date for its own route', () => {
+  const draft = travelDraft();
+  draft.reentry = [
+    { ...ordinary, returnOn: '2028-04-10' },
+    {
+      route: 'deemed',
+      departureOn: '2027-04-12',
+      returnOn: '2028-04-13',
+      stayIndefinite: true,
+      specialPermanentResident: false,
+    },
+    {
+      route: 'refugee-travel-document',
+      departureOn: '2027-04-12',
+      returnOn: '2028-04-10',
+      permit: {
+        effectiveOn: '2027-04-05',
+        expiresOn: '2028-04-05',
+        entryDeadlineNotSpecified: true,
+      },
+    },
+  ];
+  const paths = jp.run(draft, 'en').columns[0].pathways;
+  for (const { route } of draft.reentry) {
+    const assessment = paths.find((path) => path.id === 'jp.reentry.' + route)!;
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+        <GapSummary country={jp} assessment={assessment} canWhatIf />
+      </LocaleContext>,
+    );
+    const links = html.match(/<a\b[^>]*>/g) ?? [];
+    expect(
+      links.find((link) => link.includes('Return and continuity of status')),
+    ).toContain('href="/japan/whatif?focus=' + route + '"');
+  }
+  expect(
+    jp.whatif.focusForRule(
+      'jp.reentry.ordinary-validity',
+      'jp.reentry.ordinary',
+    ),
+  ).toBeUndefined();
+  expect(
+    jp.whatif.focusForRule(
+      'jp.reentry.refugee-document-validity',
+      'jp.reentry.refugee-travel-document',
+    ),
+  ).toBeUndefined();
 });
 
 test('Japan policy lists every cited source exactly once and includes pathway-specific rules', () => {

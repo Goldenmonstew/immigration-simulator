@@ -35,8 +35,8 @@ const messages = {
     'Leave blank to use the simulation date. If the filing date changes, confirm presence in Japan, lawful status and any applicable highly skilled evidence for the new date.',
   ],
   'jp.form.history': [
-    '添加每次离境和返日的日期，包括需要纳入计算的计划行程。没有出境记录可直接继续。',
-    'Add the departure and return dates of each trip, including planned travel you want to count. Continue directly if there are no trips.',
+    '每次出境和返日各记为一段行程，可包含计划行程。出境方式选“无”表示原在留随出境结束，返日须以新身份上陆。没有行程可直接继续。',
+    'Enter one record per trip, including planned travel. Choose “None” if leaving Japan ended your status and returning required a new landing permission. Continue directly if there are no trips.',
   ],
   'jp.form.talent': [
     '当前和历史积分证据须分别注明基准日。遇窗口休息日顺延，请核对顺延后递交日的证据。',
@@ -213,7 +213,10 @@ const messages = {
   'jp.field.trips': ['出境记录', 'Trips abroad'],
   'jp.field.departed': ['离开日本的日期', 'Date you left Japan'],
   'jp.field.returned': ['回到日本的日期', 'Date you returned to Japan'],
-  'jp.field.departure': ['孩子的出境方式', 'How the child leaves Japan'],
+  'jp.field.departure': [
+    '出境时使用的再入国许可',
+    'Re-entry permit used when leaving Japan',
+  ],
   'jp.field.stayExpiry': [
     '出境时的在留期限',
     'Period of stay expiry at departure',

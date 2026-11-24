@@ -53,8 +53,12 @@ const natTaxSources = [
   ref('SRC-459', '納税・社会保険料'),
 ];
 const reentryRefugeeDocumentSources = [
-  ref('SRC-110', '第61条の2の15'),
-  ref('SRC-461', '難民旅行証明書の交付・返納'),
+  ref('SRC-110', '第61条の2の15第1・3–9項'),
+  ref(
+    'SRC-461',
+    '難民旅行証明書 第3・4節（有効期間・延長）',
+    'https://www.moj.go.jp/isa/refugee/procedures/ryokou_00001.html#midashi03',
+  ),
 ];
 
 export const japanRules = [
@@ -493,8 +497,7 @@ export const japanRules = [
       ref('SRC-440', '第29条の4、別表第2「永住者」'),
       ref('SRC-442', '第23条第2項'),
       ref('SRC-116', 'Q57–61・みなし再入国許可'),
-      ref('SRC-110', '第61条の2の15'),
-      ref('SRC-461', '難民旅行証明書の交付・返納'),
+      ...reentryRefugeeDocumentSources,
     ],
     ['PD-136', 'PD-379'],
   ),

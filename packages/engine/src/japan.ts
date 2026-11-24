@@ -43,8 +43,8 @@ export interface JpTrip {
   returned: IsoDate;
   /**
    * Left on a regular re-entry permit (再入国許可) and came back while it was
-   * valid. When departure is explicitly 'permit', false means the ordinary
-   * permit had expired by return. Otherwise the time model assumes deemed re-entry.
+   * valid. With an explicit ordinary departure, false means the permit
+   * had expired by return. Older records may only have this flag.
    */
   reentryPermit?: boolean;
   /**
@@ -58,8 +58,8 @@ export interface JpTrip {
    */
   renewalPending?: boolean;
   /**
-   * Birth route: how the newborn left — without a permit, on a deemed
-   * permit, or on a re-entry permit (FAQ Q28); absent = not said.
+   * How the traveller left: without re-entry permission, with deemed
+   * re-entry or on an ordinary permit (SRC-116; for newborns FAQ Q28).
    */
   departure?: 'none' | 'deemed' | 'permit';
 }
@@ -155,17 +155,24 @@ interface Need {
 }
 
 /**
- * Last day on the period of stay held when leaving: with a renewal pending,
- * the status lasts until the decision or 2 months after expiry (art. 20(6)),
- * and a re-entry must come back by then (FAQ Q61; the decision is taken as
- * granted). Undefined when no period of stay was entered.
+ * SRC-110 art. 20(6), SRC-116 Q61: only an application still pending at
+ * expiry extends the original stay until the decision or the special-period
+ * cap, whichever comes first.
  */
-export const jpStayLimit = (
+export function jpStayLimit(
   t: Pick<JpTrip, 'stayExpiry' | 'renewalPending'>,
-): IsoDate | undefined =>
-  t.stayExpiry && t.renewalPending
-    ? addMonths(t.stayExpiry, v.renewalPendingMonths.value)
-    : t.stayExpiry;
+  decisionOn?: IsoDate,
+): IsoDate | undefined {
+  const { stayExpiry, renewalPending } = t;
+  if (
+    !stayExpiry ||
+    !renewalPending ||
+    (decisionOn && decisionOn <= stayExpiry)
+  )
+    return stayExpiry;
+  const specialEnd = addMonths(stayExpiry, v.renewalPendingMonths.value);
+  return decisionOn && decisionOn < specialEnd ? decisionOn : specialEnd;
+}
 
 // SRC-110 art. 20(6), SRC-116 Q61: a return inside the special period
 // can preserve the stay only if a timely application was pending.
@@ -176,10 +183,11 @@ const latestStayLimit = (t: JpTrip) =>
   });
 
 export function jpTripLapses(t: JpTrip): boolean | undefined {
-  // SRC-116, ordinary re-entry: return within the permit's validity.
+  // SRC-116, 再入国許可: departing without re-entry permission ends the stay.
+  if (t.departure === 'none') return true;
   if (t.departure === 'permit' && t.reentryPermit === false) return true;
   if (
-    !t.reentryPermit &&
+    (t.departure === 'deemed' || !t.reentryPermit) &&
     t.returned > addYears(t.departed, v.deemedReentryYears.value)
   )
     return true;
@@ -338,6 +346,11 @@ export function evaluateJapan(req: JpRequest): JpResult {
           ? 'MET'
           : 'FUTURE';
   const lapseNotes = lapsed.map((t) => {
+    if (t.departure === 'none')
+      return L(
+        `${t.departed} 未持再入国许可出境，连续在留从返日的 ${t.returned} 重新起算。`,
+        ` You left without re-entry permission on ${t.departed}. The unbroken stay starts again on return on ${t.returned}.`,
+      );
     if (t.departure === 'permit' && t.reentryPermit === false)
       return L(
         `${t.departed} 持普通再入国许可出境，但 ${t.returned} 返日时许可已过期，连续在留从 ${t.returned} 重新起算。`,
@@ -376,8 +389,8 @@ export function evaluateJapan(req: JpRequest): JpResult {
     'Years run to the anniversary: N years after the start date counts as met (from 29 February, 1 March). On the strict Civil Code reading, which leaves out the first day, it could be a day later; how the authorities count is not published. You apply in person in Japan, so a day spent wholly abroad is not an application date (PD-130).',
   );
   const reentry = L(
-    `已说明持普通许可出境但逾期返日的，在留从返日重新起算。其他未勾选普通许可的行程按みなし再入国许可：须在出国日 ${v.deemedReentryYears.value} 年后的同一天之前返回；填了出境时的在留期限的，返回日也不能晚于该期限（勾选的同样；出境时更新申请中的，为期限届满后 ${v.renewalPendingMonths.value} 个月，假设结果为许可）。超过即在留资格消灭、连续在留从返回日重新起算；没填在留期限的假设它没有先到期，勾选的按在许可有效期内返回计（PD-136）。`,
-    `If you left on an ordinary permit that expired before return, the stay starts again on return. Other trips without "re-entry permit" ticked use the deemed permit: you must be back by the same date ${v.deemedReentryYears.value} year after leaving; if you entered the period of stay you held when leaving, you must also be back by its last day (ticked or not; with a renewal pending when you left, ${v.renewalPendingMonths.value} months after it, assuming the renewal is granted). Otherwise the status ends and the unbroken stay starts again when you return. Without a period of stay entered, it is taken not to have ended first, and a ticked trip is taken as returning while the permit was valid (PD-136).`,
+    `未持再入国许可出境，或持普通许可出境但逾期返日的，在留从返日重新起算。使用みなし再入国许可的，须在出境日 ${v.deemedReentryYears.value} 年后的同一天或之前返回。未填出境方式时，按所填普通许可是否有效区分普通和みなし。两种许可都受出境时在留期限限制。出境时有待决的按期续期申请，按获准且在原期限届满后 ${v.renewalPendingMonths.value} 个月内返回估算。未填在留期限时，假设它没有先到期（PD-136）。`,
+    `If you left without re-entry permission or your ordinary permit expired before return, the stay starts again when you return. With deemed re-entry you must return by the same date ${v.deemedReentryYears.value} year after leaving. If the departure method is blank, the model uses the ordinary permit if marked valid and deemed re-entry otherwise. Both permits are limited by the period of stay held at departure. For a timely renewal pending at departure, the projection assumes approval and allows up to ${v.renewalPendingMonths.value} months after the original expiry. A blank period of stay is assumed not to have ended before return (PD-136).`,
   );
   const inJapan = (sources: SourceRef[]): PilotCheck[] =>
     abroad(sim)
@@ -1203,15 +1216,34 @@ export function evaluateJapan(req: JpRequest): JpResult {
                 '按现有记录，10 年内达不到帰化的时间条件。',
                 'With your record you will not meet the time requirements for naturalisation within 10 years.',
               );
-    const lawOnly =
+    let lawOnly = '';
+    if (
       nat.route === 'general' &&
       legalDate &&
       (!possible || legalDate < possible)
-        ? L(
-            `国籍法本身只要求住所 ${v.naturalisationYears.value} 年、年满 ${japanAge(legalDate)} 岁并达到本国法的成年年龄（按 ${ageOn(legalDate)} 岁计），按年限最早 ${legalDate}；${practiceFrom} 起法务省在审查中原则要求在留 ${practiceYears} 年以上，例外个案判断（PD-137）。`,
-            ` The Nationality Act itself asks only for ${v.naturalisationYears.value} years of domicile, age ${japanAge(legalDate)} and adulthood under your home country's law (taken as ${ageOn(legalDate)}), which by years alone is from ${legalDate}; from ${practiceFrom} the Ministry of Justice in principle requires ${practiceYears} years of stay in its review, with exceptions decided case by case (PD-137).`,
-          )
-        : '';
+    ) {
+      // SRC-111 art. 5(1)(i), SRC-117 Q9: the domicile must be continuous
+      // and lawful. Check whether the same date still holds after a lapse.
+      const ifLapsed = stayFrom(
+        legalDate,
+        uncertainRenewals,
+        stayFrom(legalDate),
+      );
+      const timing =
+        legalDate >= afterYears(ifLapsed, v.naturalisationYears.value)
+          ? L(
+              `按年限最早 ${legalDate}`,
+              `which by years alone is from ${legalDate}`,
+            )
+          : L(
+              '续期情况未明，法定住所年限的最早日期待确认',
+              'and the earliest date meeting the domicile requirement depends on confirmation of the renewal',
+            );
+      lawOnly = L(
+        `国籍法本身只要求住所 ${v.naturalisationYears.value} 年、年满 ${japanAge(legalDate)} 岁并达到本国法的成年年龄（按 ${ageOn(legalDate)} 岁计），${timing}；${practiceFrom} 起法务省在审查中原则要求在留 ${practiceYears} 年以上，例外个案判断（PD-137）。`,
+        ` The Nationality Act itself asks only for ${v.naturalisationYears.value} years of domicile, age ${japanAge(legalDate)} and adulthood under your home country's law (taken as ${ageOn(legalDate)}), ${timing}; from ${practiceFrom} the Ministry of Justice in principle requires ${practiceYears} years of stay in its review, with exceptions decided case by case (PD-137).`,
+      );
+    }
     /** A period reached on the simulation date, unless trips cloud it. */
     const continuous = (ok: boolean, n: number) =>
       !ok ? false : tripsBefore(at, n).length ? undefined : true;

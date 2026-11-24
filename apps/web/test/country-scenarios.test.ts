@@ -38,7 +38,10 @@ const other = {
   },
 };
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
+});
 
 test('only the UK module opens an unwrapped version-one UK share', () => {
   const draft = ukModule.createDraft();
@@ -137,12 +140,14 @@ test.each([ukModule, japanModule])(
   },
 );
 
-test('a legacy local Japan plan keeps the trip but drops a premature declaration before resharing', () => {
+test('reading legacy Japan drafts and saved plans before departure permanently clears premature declarations', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-10-01T12:00:00Z'));
   const original = {
     ...japanModule.createDraft(),
     completed: true,
     step: 6,
-    simulationDate: '2026-10-01',
+    simulationDate: '2026-10-10',
     reentry: [
       {
         route: 'deemed' as const,
@@ -152,9 +157,21 @@ test('a legacy local Japan plan keeps the trip but drops a premature declaration
       },
     ],
   };
+  const scenario = {
+    id: 'old',
+    name: 'saved',
+    savedAt: '2026-10-01',
+    draft: original,
+  };
+  const draftKey = 'jp-immigration-draft-v1';
+  const scenariosKey = 'jp-immigration-scenarios-v1';
+  const storage = new Map([
+    [draftKey, JSON.stringify(original)],
+    [scenariosKey, JSON.stringify([scenario])],
+  ]);
   vi.stubGlobal('localStorage', {
-    getItem: () => JSON.stringify(original),
-    setItem: () => {},
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => storage.set(key, value),
   });
   const local = draftStorage(japanModule).draft!;
   expect(
@@ -166,13 +183,14 @@ test('a legacy local Japan plan keeps the trip but drops a premature declaration
   expect(decodeDraft(japanModule, encodeDraft(japanModule, local))).toEqual(
     local,
   );
-  expect(
-    loadScenario(japanModule, {
-      id: 'old',
-      name: 'saved',
-      savedAt: '2026-10-01',
-      draft: original,
-    }),
-  ).toEqual(local);
-  expect(original.reentry[0].declaredIntentAtDeparture).toBe(true);
+  const cleanedPlans = [{ ...scenario, draft: local }];
+  expect(readScenarios(japanModule).scenarios).toEqual(cleanedPlans);
+  expect(JSON.parse(storage.get(draftKey)!)).toEqual(local);
+  expect(JSON.parse(storage.get(scenariosKey)!)).toEqual(cleanedPlans);
+
+  vi.setSystemTime(new Date('2026-10-03T12:00:00Z'));
+  expect(draftStorage(japanModule).draft).toEqual(local);
+  const plansAfterDeparture = readScenarios(japanModule).scenarios;
+  expect(plansAfterDeparture).toEqual(cleanedPlans);
+  expect(loadScenario(japanModule, plansAfterDeparture[0])).toEqual(local);
 });
