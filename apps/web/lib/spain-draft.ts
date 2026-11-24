@@ -11,6 +11,7 @@ import {
   type EsRecoveryFacts,
   type EsResidenceFacts,
 } from '@uk-immigration/engine';
+import { spainFull2026_11 } from '@uk-immigration/policy-data';
 import type { TranslationKey } from '../i18n';
 import type { CountryDraft, DraftReadMode } from './country-module';
 import { today, validDate } from './questionnaire';
@@ -198,6 +199,9 @@ function checkFields(
             order(`${id}-to`, value.from, value.to);
             order(`${id}-returned`, value.departed, value.returned);
             order(`${id}-validTo`, value.validFrom, value.validTo);
+            order(`${id}-validThrough`, value.issued, value.validThrough);
+            order(`${id}-cureDeadline`, value.noticeDate, value.cureDeadline);
+            order(`${id}-moveDate`, value.firstCardFrom, value.moveDate);
           }
         } else {
           errors[id] = 'es.form.required';
@@ -286,6 +290,12 @@ function checkStep(draft: SpainDraft, step: number, submitting: boolean) {
           draft.nationality.guardianshipFrom,
           draft.nationality.guardianshipTo,
         );
+        const correct = draft.nationality.ccse?.correct;
+        if (
+          typeof correct === 'number' &&
+          correct > spainFull2026_11.values.nationalityCcseQuestions.value
+        )
+          errors['es-nat-ccse-correct'] ??= 'es.form.ccseCorrectError';
       }
       break;
     case 3:
@@ -366,11 +376,9 @@ function migrateLegacySpainForm(
     !Array.isArray(value.trips)
   )
     return undefined;
-  const route =
-    typeof value.route === 'string' &&
-    ES_NATIONALITY_ROUTES.includes(value.route as EsNationalityRoute)
-      ? (value.route as EsNationalityRoute)
-      : 'general';
+  if (!ES_NATIONALITY_ROUTES.includes(value.route as EsNationalityRoute))
+    return undefined;
+  const route = value.route as EsNationalityRoute;
   const married =
     typeof value.marriedOn === 'string' && validDate(value.marriedOn)
       ? value.marriedOn
@@ -449,7 +457,12 @@ export function decodeSpainDraft(
     longTermCard: (value.longTermCard as EsLongTermCardFacts) ?? {},
     freeMovement: (value.freeMovement as EsFreeMovementFacts) ?? {},
   };
-  if (titles.some((_, i) => Object.keys(checkStep(draft, i, false)).length > 0))
+  // Answers kept for a deselected route are checked again if it is reselected.
+  if (
+    spainSteps(draft).some(
+      ({ step }) => Object.keys(checkStep(draft, step, false)).length > 0,
+    )
+  )
     return undefined;
   const restored = restoreStoredSpainDraft(draft, !!mode);
   if (!spainSteps(restored).some(({ step }) => step === restored.step))

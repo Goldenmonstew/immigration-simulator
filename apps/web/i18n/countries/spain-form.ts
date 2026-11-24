@@ -53,6 +53,10 @@ const messages = {
     '请填写有效的非负数。',
     'Enter a valid non-negative number.',
   ],
+  'es.form.ccseCorrectError': [
+    '答对题数不能超过 CCSE 的总题数。',
+    'Correct answers cannot exceed the number of CCSE questions.',
+  ],
   'es.form.integerError': [
     '请填写有效的非负整数。',
     'Enter a valid non-negative whole number.',

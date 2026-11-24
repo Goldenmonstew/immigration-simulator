@@ -164,3 +164,64 @@ test('schooling dates without a confirmed child list are assessed as unconfirmed
   const shared = readPageResult(es, 'en', encodeDraft(es, draft));
   expect(shared.result?.columns[0].pathways[0].id).toBe('ES-LONG-TERM');
 });
+
+test('answers left in a deselected route do not discard the saved draft', () => {
+  const draft: SpainDraft = {
+    ...history(),
+    targets: ['L'],
+    nationality: { birthDate: '1990-13-45', ccse: { correct: 30 } },
+    freeMovement: { history: [{ from: 'soon' } as never] },
+  };
+  expect(es.decodeDraft(draft)).toEqual(draft);
+  // The routes still selected keep their format check.
+  expect(es.decodeDraft({ ...draft, targets: ['L', 'N'] })).toBeUndefined();
+});
+
+test('CCSE scores and paired dates are checked before results', () => {
+  const draft: SpainDraft = {
+    ...history(),
+    step: 2,
+    nationality: {
+      ccse: { correct: 26, issued: '2026-06-01', validThrough: '2026-05-01' },
+    },
+  };
+  expect(es.validateStep(draft)).toEqual({
+    'es-nat-ccse-correct': 'es.form.ccseCorrectError',
+    'es-nat-ccse-validThrough': 'es.error.order',
+  });
+  expect(
+    es.validateStep({
+      ...draft,
+      nationality: { ccse: { correct: 25, issued: '2026-06-01' } },
+    }),
+  ).toEqual({});
+  expect(
+    es.validateStep({
+      ...draft,
+      step: 3,
+      targets: ['E', 'L'],
+      residence: {
+        schooling: {
+          children: [],
+          noticeDate: '2026-10-01',
+          cureDeadline: '2026-09-01',
+        },
+        blueMobility: { firstCardFrom: '2024-01-01', moveDate: '2023-06-01' },
+      },
+    }),
+  ).toEqual({
+    'es-res-schooling-cureDeadline': 'es.error.order',
+    'es-res-blueMobility-moveDate': 'es.error.order',
+  });
+});
+
+test('a legacy form with an unknown citizenship category is not imported as general', () => {
+  const legacy = {
+    simulationDate: '2026-11-21',
+    permits: [],
+    trips: [],
+    route: 'made-up',
+  };
+  expect(es.decodeDraft(legacy)).toBeUndefined();
+  expect(es.decodeDraft({ ...legacy, route: 'ibero' })?.route).toBe('ibero');
+});
