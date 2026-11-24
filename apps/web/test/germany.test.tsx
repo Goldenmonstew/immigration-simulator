@@ -846,3 +846,21 @@ test('each route and group shows its own field and option wording (review100-1 #
   expect(r18).toContain('<h2>');
   expect(r18).not.toContain('跨欧盟居留与离欧区间明细');
 });
+
+test('the policy page shows the full-time work exception in months (review100-1 #3)', () => {
+  for (const [locale, text] of [
+    ['zh-CN', 'requiredMonths 20、windowMonths 24'],
+    ['en', 'requiredMonths 20, windowMonths 24'],
+  ] as const) {
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <GermanyPolicyPage />
+      </LocaleContext>,
+    );
+    const row = html.match(
+      /<tr data-parameter="citizenshipFullTime">(.*?)<\/tr>/,
+    )?.[1];
+    expect(row).toContain(text);
+    expect(row).not.toMatch(/年|years/);
+  }
+});

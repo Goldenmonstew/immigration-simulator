@@ -10,6 +10,21 @@ function title(key: TranslationKey) {
 
 const full = germanyFull2026_11;
 const v = full.values;
+const fullTime = v.citizenshipFullTime;
+// The shared table reads {required, window} as years; StAG counts months here.
+const displayed = {
+  ...full,
+  values: {
+    ...v,
+    citizenshipFullTime: {
+      ...fullTime,
+      value: {
+        requiredMonths: fullTime.value.required,
+        windowMonths: fullTime.value.window,
+      },
+    },
+  },
+};
 const set: PolicyRuleSet = {
   id: full.ruleSetId,
   title: title('de.policy.title'),
@@ -32,7 +47,7 @@ export const germanyPolicy = withPolicySources({
     id: `DE-${route}`,
     title: title(`de.route.${route}` as TranslationKey),
   })),
-  parameters: { [set.id]: full },
+  parameters: { [set.id]: displayed },
   rules: { [set.id]: germanyRules },
   changelog: [
     {
