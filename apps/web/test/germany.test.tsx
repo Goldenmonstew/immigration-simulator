@@ -985,6 +985,9 @@ test('What-if validates facts against the new date and each knob changes only it
   expect(
     condition(de.run(draft, 'zh-CN'), 'DE-R07', 'DE-C49')?.status,
   ).not.toBe('MET');
+  expect(
+    condition(compare({ natLivelihood: true }), 'DE-R07', 'DE-C49')?.status,
+  ).toBe('MET');
   const natural = compare({ natLivelihood: true, natGerman: 'B1' });
   expect(condition(natural, 'DE-R07', 'DE-C49')?.status).toBe('MET');
   expect(condition(natural, 'DE-R07', 'DE-C50')?.status).toBe('MET');

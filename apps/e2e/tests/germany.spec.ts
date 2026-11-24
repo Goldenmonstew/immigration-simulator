@@ -226,6 +226,19 @@ test('Germany questionnaire, result, what-if comparison, share link, and saved s
 
   await page.locator('#de-whatif-date').fill('2027-06-01');
   await expect(assessment(page, zhCN)).toContainText('2027-05-23→2027-06-01');
+
+  // Knobs follow the chosen routes; citizenship livelihood has its own knob.
+  await expect(page.locator('#de-whatif-salary')).toHaveCount(0);
+  await page.locator('#de-whatif-nat-livelihood').selectOption('true');
+  await expect(
+    assessment(page, zhCN).locator('li', { hasText: 'DE-C49' }).first(),
+  ).toContainText(zhCN['result.PASS']);
+
+  // A date before the first entry is reported on the date control.
+  await page.locator('#de-whatif-date').fill('2022-01-01');
+  await expect(page.locator('#date-error')).toHaveText(
+    zhCN['de.whatif.factAfterDate'],
+  );
 });
 
 test('English mobile layout and Germany policy sources', async ({ page }) => {
@@ -234,6 +247,42 @@ test('English mobile layout and Germany policy sources', async ({ page }) => {
   const header = page.getByRole('banner');
   await header.getByRole('button', { name: 'English', exact: true }).click();
   await expect(page.locator('h1')).toHaveText(en['de.title']);
+  await noHorizontalScroll(page);
+
+  // Nested records and open sections stay within a phone-width column.
+  await page.goto(path('simulate'));
+  const form = questionnaire(page);
+  await page.locator('#de-route-R01').check();
+  await page.locator('#de-firstEntry').fill('2022-05-23');
+  await form.locator('button[type="submit"]').click();
+  const add = (scope: typeof form, field: keyof typeof en) =>
+    scope
+      .getByRole('button', {
+        name: `${en['de.form.add']} · ${en[field]}`,
+        exact: true,
+      })
+      .last();
+  await add(form, 'de.field.titles').click();
+  await add(
+    form.getByRole('group', {
+      name: `${en['de.field.titles']} 1`,
+      exact: true,
+    }),
+    'de.field.trips',
+  ).click();
+  await add(form, 'de.field.outsideArea').click();
+  await expect(
+    page.locator('#de-titles-0-trips-0-outsideArea-0-from'),
+  ).toBeVisible();
+  await noHorizontalScroll(page);
+  await page.locator('#de-titles-0-kind').selectOption('skilled');
+  await page.locator('#de-titles-0-trips-0-departed').fill('2024-01-01');
+  await page
+    .locator('#de-titles-0-trips-0-outsideArea-0-from')
+    .fill('2024-01-01');
+  await form.locator('button[type="submit"]').click();
+  for (const summary of await form.locator('details > summary').all())
+    await summary.click();
   await noHorizontalScroll(page);
 
   await page.goto(path('policy'));
