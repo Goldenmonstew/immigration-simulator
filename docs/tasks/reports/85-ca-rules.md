@@ -405,3 +405,43 @@ R26 另覆盖所有七条初次 PR 路径及 PNP 的两种模式，包括总括�
 ### 4. 发现与建议
 
 审核风险第 2 项已记录。FSW 获邀时恰好 67 分，在递交前仅因生日降到 66 分时，R36 仍可能显示 `NOT_MET`。计分依据为 SRC-267a “Selection factors” 和 SRC-261b，IRPR ss.76(1)(a)(iv)、81。符合公共政策其他条件时，获授权官员可决定给予年龄豁免。本轮保留 R36 原判定。[IRCC 年龄豁免公共政策 “Conditions”](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)
+
+## 第七轮审核修正（review85-7）
+
+### 1. 做了什么
+
+建议提交 `Fix: 统一七条加拿大初次 PR 路径的警证效期与索证信判定（review85-7）`。对应 PROGRESS 第 569 条。
+
+FSW、CEC、FST、PNP（含 Base 与 Enhanced）、魁省技术移民、AIP 和家庭担保的 R26 共用 `policeDocuments`。PNP 未填模式时也按 Base 和 Enhanced 分别核对，两种模式结论一致即可判定，有分歧则为 `UNKNOWN`（PD-245）。以本路径实际联邦收件日核对现居国警证的六个日历月签发窗口和证上有效末日。迪拜警方规定警证自签发起有效三个月，证上末日缺失时按该期限判断；恰逢满三个月当天能否使用，官方说明没有界定，输出 `UNKNOWN`，登记在 PD-245。原居国警证只要在最后一段合资格停留结束后签发，即使在递交前已过期仍可使用。依据 SRC-266g、277c 的现居国及原居国小节、SRC-266k 的服务说明首段末句。[IRCC 警证有效期](https://www.canada.ca/en/immigration-refugees-citizenship/services/application/medical-police/police-certificates/when.html) · [迪拜警方证书说明](https://sps.dubaipolice.gov.ae/wps/wcm/connect/DubaiPolice_en/DubaiPolice/Our-Services/Good-Conduct-Certificate?presentationtemplate=DubaiPolice_Design_2_0/details)
+
+按国家或地区指引需要索证信时，每份警证分别记录本次申请的办理阶段。随申请上传说明后等待 IRCC 发信、获信后等待补件，均为 `UNKNOWN`（PD-245）。香港警方按索证信将警证直送 IRCC，IRCC 确认已收到本申请的该份警证即可满足这一材料要求，申请人可以没有签发日。其他尚未办结的索证及本次 PR 生物识别仍独立核对。依据 SRC-266g、277c 的 “If you need a request letter” 及 SRC-266j 香港指引的 “Police certificates and IRCC requirements” 第 1–3 项。[IRCC 香港警证指引](https://www.canada.ca/en/immigration-refugees-citizenship/services/application/medical-police/police-certificates/how/hong-kong.html)
+
+### 2. 怎么验证的
+
+两组回归均从 `evaluateCanadaFull` 进入。成年 FSW 申请人的其余实质条件齐全，总括清单留空，2026-10-20 收件，模拟日为 2026-11-23。表中每行分别断言 R26 和 FSW 整条路径。
+
+| 输入 | R26 | FSW |
+|---|---|---|
+| 现居迪拜，2026-07-01 签发，收件时已超过签发机关的三个月效期 | `NOT_MET` | `NOT_MET` |
+| 同一份警证，2026-06-30 已结束最后一段合资格停留，迪拜为原居地 | `MET` | `MET` |
+| 现居香港，已随申请上传说明，IRCC 尚未发索证信 | `UNKNOWN` | `UNKNOWN` |
+| 已收到索证信，IRCC 仍在等警证 | `UNKNOWN` | `UNKNOWN` |
+| 香港警方直送，IRCC 于 2026-11-20 确认收件，本人没有签发日 | `MET` | `MET` |
+
+先在 `de9764c` 运行上述五例，三例失败。修正后五例均通过。FSW 另测递交后才到期、递交时恰满三个月且缺证上末日、证上末日恰为收件日。七条路径的共用测试另核证上末日前后、原居国已过期警证、等信、本路径回执、其他路径回执及未来回执。SRC-266j/k 两份新增官方快照的 SHA-256 均与登记值一致。
+
+加拿大定向命令 `pnpm --filter @uk-immigration/engine test test/canada --reporter=dot` 通过 8 个文件的 204 项测试，含原时间引擎和 PNP 模式缺失回归。
+
+最终代码执行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码为 0。全仓 5,429 项测试通过，1 项既有测试跳过，生成 27 个静态页面。`git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+未提交、推送、部署或运行浏览器 E2E。原时间引擎 `evaluateCanada`、原测试及加拿大页面调用点与 `de9764c` 一致。新增参数仅在完整版使用。
+
+### 4. 发现与建议
+
+后续页面可按每份警证收集签发机关、证上有效末日、按国家指引随本申请上传说明或收到索证信的阶段，以及 IRCC 确认收到该份警证的日期。
+
+## 风险
+
+FSW 申请人获邀时恰好 67 分，若仅因递交前生日降到 66 分，R36 仍可能输出 `NOT_MET`。选拔分及年龄分依据 SRC-267a “Selection factors” 和 SRC-261b，IRPR ss.76(1)(a)(iv)、81。IRCC 公共政策 “Conditions” 允许获授权官员在其他条件满足时给予豁免，本轮仅记录这项风险。[IRCC 获邀后年龄豁免政策](https://www.canada.ca/en/immigration-refugees-citizenship/corporate/mandate/policies-operational-instructions-agreements/age-based-requirements.html)

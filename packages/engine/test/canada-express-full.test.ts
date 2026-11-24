@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import { evaluateCanadaFull } from '../src';
 import type { ExpressAnswers, WorkPeriod } from '../src/canada-full/express';
+import type {
+  DocumentAnswers,
+  PoliceStay,
+} from '../src/canada-full/federal-documents';
 import { federal, filed, person } from './canada-federal-fixture';
 
 const simulationDate = '2026-11-23';
@@ -92,6 +96,7 @@ function filedFsw(
   changes: Partial<ExpressAnswers>,
   examOn = '2026-11-04',
   filedOn: string | null = '2026-11-20',
+  documents: DocumentAnswers = {},
 ) {
   const dateOfBirth = '1992-01-01';
   return evaluateCanadaFull({
@@ -102,6 +107,7 @@ function filedFsw(
       ...federal,
       principal: {
         ...person,
+        ...documents,
         dateOfBirth,
         exam: { examOn, panelExamComplete: true, inCanada: false },
       },
@@ -112,7 +118,73 @@ function filedFsw(
   }).columns[0].pathways.find((p) => p.id === 'CA-EE-FSW')!;
 }
 
+function fswPolice(stay: PoliceStay, outstandingPoliceRequest = false) {
+  const date = '2026-10-01';
+  return filedFsw(
+    {
+      invitation: { date, program: 'CA-EE-FSW' },
+      round: { ...complete.round!, date },
+      workHistory: [{ ...job, from: '2022-01-01', to: '2023-12-31' }],
+    },
+    '2026-10-10',
+    '2026-10-20',
+    {
+      foreignStays: [stay],
+      outstandingPoliceRequest,
+      definitiveChecklistSatisfied: undefined,
+    },
+  );
+}
+
 describe('Express Entry application, ranking and evidence', () => {
+  test.each([
+    [true, '2026-07-01', undefined, 'NOT_MET'],
+    [false, '2026-07-01', undefined, 'MET'],
+    [true, '2026-07-21', undefined, 'MET'],
+    [true, '2026-07-20', undefined, 'UNKNOWN'],
+    [true, '2026-07-20', '2026-10-20', 'MET'],
+  ] as const)(
+    'R26 and FSW for Dubai: current country %s, issued %s, expiry %s',
+    (currentCountry, certificateIssued, certificateExpires, expected) => {
+      const path = fswPolice({
+        issuer: 'dubai-police',
+        from: '2024-01-01',
+        until: currentCountry ? undefined : '2026-06-30',
+        currentCountry,
+        certificateIssued,
+        certificateExpires,
+      });
+      expect(path.checks.find((c) => c.id === 'CA-R26')?.status).toBe(expected);
+      expect(path.status).toBe(expected);
+    },
+  );
+
+  test.each([
+    ['explanation-uploaded', false, undefined, 'UNKNOWN'],
+    ['letter-received', true, undefined, 'UNKNOWN'],
+    ['letter-received', false, '2026-11-20', 'MET'],
+  ] as const)(
+    'R26 and FSW for Hong Kong: %s, open request %s, IRCC receipt %s',
+    (stage, open, receipt, expected) => {
+      const path = fswPolice(
+        {
+          issuer: 'hong-kong-police',
+          from: '2024-01-01',
+          currentCountry: true,
+          missing: true,
+          requestLetterStages: { 'CA-EE-FSW': stage },
+          supplementReceipts: { 'CA-EE-FSW': receipt },
+        },
+        open,
+      );
+      const rule = path.checks.find((c) => c.id === 'CA-R26')!;
+      expect(rule.status).toBe(expected);
+      expect(path.status).toBe(expected);
+      if (expected === 'UNKNOWN')
+        expect(rule.pendingDetails).toContain('PD-245');
+    },
+  );
+
   test('R24 checks the overseas panel exam against the ITA and filing dates', () => {
     for (const [examOn, status] of [
       ['2026-10-01', 'UNKNOWN'],

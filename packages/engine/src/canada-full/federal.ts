@@ -475,8 +475,8 @@ export function federalChecks(ctx: Context, id: InitialPrRoute): Item[] {
         ),
       ),
       L(
-        '按本路径联邦收件日核对每人的现居国警证效期、原居国警证是否覆盖相应停留，以及本次 PR 生物识别。AIP 可先递交申请。IRCC 要求补件时，按每份警证的签发日和补件回执确认办理进度。',
-        'Use this application’s federal receipt date to check each person’s current-country certificate and coverage of previous stays. Check PR biometrics separately. AIP permits initial filing without all certificates. For a requested supplement, check its issue date and IRCC’s receipt for that certificate.',
+        `本路径联邦收件时，现居国警证须在此前 ${ca.values.federalPolice.value.currentCertificateMonths} 个月内签发，且符合签发机关注明的效期。原居国警证可在到期后使用，须覆盖最后一次符合条件的停留。需要 IRCC 索证信时，随申请上传说明，等候发信及补件；香港警方直送的警证以 IRCC 对该份警证的收件回执确认。AIP 可先递交申请。另核本次 PR 生物识别。`,
+        `At federal receipt for this application, a current-country certificate must have been issued within the previous ${ca.values.federalPolice.value.currentCertificateMonths} months and must meet the issuer’s validity limit. An expired former-country certificate can qualify if it covers the last qualifying stay. Where IRCC requires a request letter, upload the explanation with the application and await the letter and certificate. For Hong Kong, confirm IRCC received the certificate from the police. AIP permits initial filing without all certificates. Check PR biometrics separately.`,
       ),
       [
         ref('SRC-261', 'IRPA ss.10.01, 16; IRPR Part 1, Division 2.1'),

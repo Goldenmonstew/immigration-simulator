@@ -391,6 +391,7 @@ describe('initial PR federal checks', () => {
     ['CA-EE-FST', undefined],
     ['CA-PNP', 'enhanced'],
     ['CA-PNP', 'base'],
+    ['CA-PNP', undefined],
     ['CA-QC-PSTQ', undefined],
     ['CA-AIP', undefined],
     ['CA-FAMILY', undefined],
@@ -430,6 +431,26 @@ describe('initial PR federal checks', () => {
     expect(
       assess([{ ...current, certificateIssued: '2026-04-20' }, confirmed]),
     ).toBe('MET');
+    const certificate = {
+      certificateIssued: '2026-07-01',
+      certificateExpires: '2026-10-19',
+    };
+    expect(assess([{ ...current, ...certificate }])).toBe('NOT_MET');
+    expect(
+      assess([{ ...current, ...certificate }], undefined, '2026-10-19'),
+    ).toBe('MET');
+    expect(assess([{ ...past, ...certificate }])).toBe('MET');
+    const request = {
+      ...current,
+      missing: true,
+      requestLetterStages: { [id]: 'explanation-uploaded' as const },
+    };
+    expect(assess([request], { definitiveChecklistSatisfied: true })).toBe(
+      'UNKNOWN',
+    );
+    expect(
+      assess([{ ...request, supplementReceipts: { [id]: '2026-11-01' } }]),
+    ).toBe('MET');
     const stale = { ...current, certificateIssued: '2026-04-19' };
     expect(
       assess([stale, confirmed], { definitiveChecklistSatisfied: true }),
@@ -450,7 +471,19 @@ describe('initial PR federal checks', () => {
       'UNKNOWN',
     );
     expect(assess([confirmed], undefined, '2026-12-01')).toBe('UNKNOWN');
+    if (id === 'CA-PNP')
+      expect(assess([{ ...current, from: '2026-10-01', missing: true }])).toBe(
+        mode === 'base' ? 'NOT_MET' : mode === 'enhanced' ? 'MET' : 'UNKNOWN',
+      );
     const otherRoute = id === 'CA-AIP' ? 'CA-FAMILY' : 'CA-AIP';
+    expect(
+      assess([
+        { ...request, supplementReceipts: { [otherRoute]: '2026-11-01' } },
+      ]),
+    ).toBe('UNKNOWN');
+    expect(
+      assess([{ ...request, supplementReceipts: { [id]: '2026-11-24' } }]),
+    ).toBe('UNKNOWN');
     expect(
       assess([
         { ...confirmed, supplementReceipts: { [otherRoute]: '2026-10-23' } },

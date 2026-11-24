@@ -85,6 +85,7 @@ export const canadaFull2026_11 = {
         lookbackYearsEE: 10,
         stayMonths: 6,
         currentCertificateMonths: 6,
+        dubaiCertificateMonths: 3,
         biometricsMinAge: 14,
         biometricsMaxAge: 79,
       },
@@ -92,12 +93,17 @@ export const canadaFull2026_11 = {
         {
           srcId: 'SRC-277',
           locator:
-            'Police certificates for Express Entry: Who needs police certificates, When the certificate must be issued',
+            'Police certificates for Express Entry: Who needs police certificates, If you need a request letter, When the certificate must be issued (current country / any other country)',
         },
         {
           srcId: 'SRC-266',
           locator:
             'Biometrics: Who needs to give their biometrics, Exemptions; When to get a police certificate, How long your police certificate is valid / If you need a request letter; IMM 0199 and IMM 5690, p.3 item 11',
+        },
+        {
+          srcId: 'SRC-266',
+          locator:
+            'Hong Kong SAR, Police certificates and IRCC requirements, bullets 1–3 (266j); Dubai Police, Police Clearance Certificate, service description, last sentence (266k)',
         },
         { srcId: 'SRC-274', locator: 'Guide 5289, Police certificates' },
         {

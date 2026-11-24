@@ -104,7 +104,15 @@ export interface PoliceStay {
   /** Exclusive end, or still resident there on the filing date. */
   until?: string;
   currentCountry: boolean;
+  /** Issuers with specific published validity or direct-delivery instructions. */
+  issuer?: 'dubai-police' | 'hong-kong-police';
   certificateIssued?: string;
+  /** Last valid date printed on the certificate, if specified. */
+  certificateExpires?: string;
+  /** Use only where the issuing country's IRCC instructions require a request letter. */
+  requestLetterStages?: Partial<
+    Record<InitialPrRoute, 'explanation-uploaded' | 'letter-received'>
+  >;
   /** IRCC's receipt date for this requested certificate, by federal application. */
   supplementReceipts?: Partial<Record<InitialPrRoute, string>>;
   /** Explicit absence of a required document vs a missing answer. */
@@ -133,7 +141,7 @@ export function policeDocuments(
   procedure: PrProcedure,
   filing: string | undefined,
   asOf: string,
-) {
+): boolean | undefined {
   const {
     definitiveChecklistSatisfied,
     outstandingPoliceRequest,
@@ -146,8 +154,28 @@ export function policeDocuments(
   if (checklist === false) return false;
   if (dob && filing && fullYears(dob, filing) < police.minAge)
     return requestsCleared;
-  if (!filing || !dob || !foreignStays || procedure === 'unknown')
-    return checklist;
+  if (!filing && foreignStays?.length) return undefined;
+  if (!filing || !dob || !foreignStays) return checklist;
+  if (procedure === 'unknown') {
+    // A PNP application without a recorded mode can still have a definite result.
+    const base = policeDocuments(
+      answers,
+      dob,
+      route,
+      'checklist',
+      filing,
+      asOf,
+    );
+    const enhanced = policeDocuments(
+      answers,
+      dob,
+      route,
+      'express',
+      filing,
+      asOf,
+    );
+    return base === enhanced ? base : undefined;
+  }
   const adult = addYears(dob, police.minAge);
   const windowStart =
     procedure === 'express' ? addYears(filing, -police.lookbackYearsEE) : adult;
@@ -157,40 +185,60 @@ export function policeDocuments(
       if (stay.exemptionGranted) return true;
       const { certificateIssued } = stay;
       const supplementReceivedOn = stay.supplementReceipts?.[route];
+      const requestLetterStage = stay.requestLetterStages?.[route];
       const start = [adult, windowStart, stay.from].sort().at(-1)!;
       const end = stay.until && stay.until < filing ? stay.until : filing;
       // IMM 0199 and IMM 5690 separately require the country of current residence.
       if (
         !supplementReceivedOn &&
+        !requestLetterStage &&
         !(procedure === 'checklist' && stay.currentCountry) &&
         addMonths(start, police.stayMonths) > end
       )
         return true;
-      if (!certificateIssued || (stay.missing && !supplementReceivedOn)) {
-        if (
-          outstandingPoliceRequest ||
-          supplementReceivedOn ||
-          (procedure === 'atlantic' && stay.missing)
-        )
-          return undefined;
-        return stay.missing ? false : checklist;
-      }
-      if (certificateIssued > asOf) return undefined;
       if (supplementReceivedOn) {
         if (
           supplementReceivedOn < filing ||
-          supplementReceivedOn < certificateIssued ||
+          (certificateIssued && supplementReceivedOn < certificateIssued) ||
           supplementReceivedOn > asOf
         )
           return undefined;
-      } else if (certificateIssued > filing) {
-        return undefined;
+        // IRCC may receive the requested certificate directly from the issuer.
+        if (!certificateIssued)
+          return requestLetterStage || stay.issuer === 'hong-kong-police'
+            ? true
+            : undefined;
+      } else {
+        if (
+          requestLetterStage ||
+          (certificateIssued && certificateIssued > filing)
+        )
+          return undefined;
+        if (!certificateIssued || stay.missing) {
+          if (
+            outstandingPoliceRequest ||
+            (procedure === 'atlantic' && stay.missing)
+          )
+            return undefined;
+          return stay.missing ? false : checklist;
+        }
       }
       // 'until' is the first day no longer staying in that country.
-      return stay.currentCountry
-        ? certificateIssued >=
-            addMonths(filing, -police.currentCertificateMonths)
-        : certificateIssued >= end;
+      if (!stay.currentCountry) return certificateIssued >= end;
+      if (
+        certificateIssued < addMonths(filing, -police.currentCertificateMonths)
+      )
+        return false;
+      if (stay.certificateExpires) return filing <= stay.certificateExpires;
+      if (stay.issuer === 'dubai-police') {
+        const anniversary = addMonths(
+          certificateIssued,
+          police.dubaiCertificateMonths,
+        );
+        // The issuer specifies a duration, without defining the last valid day (PD-245).
+        return filing === anniversary ? undefined : filing < anniversary;
+      }
+      return true;
     }),
   );
 }
