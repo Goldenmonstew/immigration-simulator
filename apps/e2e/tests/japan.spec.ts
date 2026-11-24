@@ -33,7 +33,7 @@ async function begin(page: Page, dict: Dict) {
   if (dict === en)
     await page
       .getByRole('banner')
-      .getByRole('button', { name: 'English', exact: true })
+      .getByRole('button', { name: 'English (EN)', exact: true })
       .click();
   await main
     .getByRole('link', { name: dict['home.start'], exact: true })
@@ -143,6 +143,14 @@ test('English mobile questionnaire compares filing dates and shows Japanese poli
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await begin(page, en);
+  const header = page.getByRole('banner');
+  for (const [short, full] of [
+    ['ZH', 'Chinese'],
+    ['EN', 'English'],
+  ]) {
+    const button = header.getByRole('button', { name: `${full} (${short})` });
+    await expect(button).toHaveText(short, { useInnerText: true });
+  }
   await page.locator('#jp-route-travel-ordinary').check();
   await noHorizontalScroll(page);
   const next = questionnaire(page).getByRole('button', {

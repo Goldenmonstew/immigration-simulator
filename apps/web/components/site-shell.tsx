@@ -97,7 +97,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
               type="button"
               lang="zh-CN"
               aria-pressed={locale === 'zh-CN'}
-              aria-label={t('site.chinese')}
+              aria-label={`${t('site.chinese')} (${t('site.chineseShort')})`}
               onClick={() => setLocale('zh-CN')}
             >
               <span className={styles.fullLabel}>{t('site.chinese')}</span>
@@ -109,7 +109,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
               type="button"
               lang="en"
               aria-pressed={locale === 'en'}
-              aria-label="English"
+              aria-label="English (EN)"
               onClick={() => setLocale('en')}
             >
               <span className={styles.fullLabel}>English</span>
