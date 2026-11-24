@@ -39,8 +39,8 @@ const messages = {
     'Enter one record per trip, including planned travel. Choose “None” if leaving Japan ended your status and returning required a new landing permission. Continue directly if there are no trips.',
   ],
   'jp.form.departureEvidence': [
-    '请核对出境记录，确认当时使用普通再入国许可、みなし再入国许可，还是未使用许可。如使用普通许可，还需核对返日当天是否仍然有效。这些证据会影响之前的在留能否计入。',
-    'Check your departure record to confirm whether you used an ordinary permit, deemed re-entry, or neither. If you used an ordinary permit, check whether it was still valid on return. These details can affect whether your earlier stay counts.',
+    '请核对出境记录，确认使用的再入国许可或難民旅行証明書。如持普通许可，需核对返日当天是否仍有效。如持難民旅行証明書，可在同趟行程的旅行证件路径填写证件期限及入境期限。',
+    'Check your departure record for the re-entry permission or refugee travel document used. For an ordinary permit, check its validity on return. For a refugee travel document, enter its validity and any separate entry deadline on the travel document route for the same trip.',
   ],
   'jp.form.talent': [
     '当前和历史积分证据须分别注明基准日。遇窗口休息日顺延，请核对顺延后递交日的证据。',
@@ -222,8 +222,8 @@ const messages = {
   'jp.field.departed': ['离开日本的日期', 'Date you left Japan'],
   'jp.field.returned': ['回到日本的日期', 'Date you returned to Japan'],
   'jp.field.departure': [
-    '出境时使用的再入国许可',
-    'Re-entry permit used when leaving Japan',
+    '出境方式（再入国许可或旅行证件）',
+    'Departure method (re-entry permission or travel document)',
   ],
   'jp.field.stayExpiry': [
     '出境时的在留期限',
@@ -1039,6 +1039,10 @@ const messages = {
   'jp.option.none': ['无', 'None'],
   'jp.option.deemed': ['みなし再入国許可', 'Deemed re-entry'],
   'jp.option.permit': ['普通再入国許可', 'Ordinary re-entry permit'],
+  'jp.option.refugee-travel-document': [
+    '日本签发的難民旅行証明書',
+    'Japanese refugee travel document',
+  ],
   'jp.option.recognised': ['以正式认定证明', 'Official recognition'],
   'jp.option.retrospective': [
     '按基准日回溯核算',

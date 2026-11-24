@@ -57,6 +57,94 @@ async function begin(page: Page, dict: Dict) {
   await page.locator('#jp-simulationDate').fill('2027-04-03');
 }
 
+test('an old named plan stays incomplete on load and reload, then shares after correcting the renewal', async ({
+  page,
+  context,
+  browser,
+}) => {
+  await page.goto(path('result'));
+  await page.evaluate(() => {
+    localStorage.setItem(
+      'jp-immigration-scenarios-v1',
+      JSON.stringify([
+        {
+          id: 'old-renewal',
+          name: '旧续期方案',
+          savedAt: '2026-11-24',
+          draft: {
+            version: 1,
+            step: 0,
+            completed: true,
+            simulationDate: '2026-11-24',
+            stayStart: '',
+            trips: [],
+            permanentResidence: { routes: [], evidence: {} },
+            naturalisation: { routes: [], evidence: {} },
+            reentry: [
+              {
+                route: 'ordinary',
+                departureOn: '2024-04-01',
+                returnOn: '2024-04-07',
+                stayExpiresOn: '2024-04-03',
+                timelyRenewalPending: true,
+                renewalDecisionOn: '2024-03-29',
+              },
+            ],
+          },
+        },
+      ]),
+    );
+  });
+  await page.reload();
+  const load = page.getByRole('link', {
+    name: zhCN['scenarios.load'] + ' 旧续期方案',
+    exact: true,
+  });
+  const share = page.getByRole('button', {
+    name: zhCN['share.copy'],
+    exact: true,
+  });
+  const stored = (tab: Page) =>
+    tab.evaluate(() =>
+      JSON.parse(localStorage.getItem('jp-immigration-draft-v1') ?? 'null'),
+    );
+  await load.click();
+  await expect
+    .poll(() => stored(page))
+    .toMatchObject({ completed: false, step: 6 });
+  await expect(share).toHaveCount(0);
+  await page.reload();
+  await expect(load).toBeVisible();
+  await expect(share).toHaveCount(0);
+  expect(await stored(page)).toMatchObject({ completed: false, step: 6 });
+
+  await page.goto(path('simulate'));
+  await page
+    .locator('#jp-travel-ordinary-renewalDecisionOn')
+    .fill('2024-04-05');
+  await questionnaire(page)
+    .getByRole('button', { name: zhCN['form.results'], exact: true })
+    .click();
+  await expect(share).toBeVisible();
+  const corrected = await stored(page);
+  expect(corrected).toMatchObject({
+    completed: true,
+    reentry: [{ renewalDecisionOn: '2024-04-05' }],
+  });
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const link = await copyResult(page);
+  const receiver = await browser.newPage();
+  try {
+    await receiver.goto(link);
+    await expect(
+      receiver.getByText(zhCN['share.loaded'], { exact: true }),
+    ).toBeVisible();
+    expect(await stored(receiver)).toEqual(corrected);
+  } finally {
+    await receiver.close();
+  }
+});
+
 test('a Japanese questionnaire restores its step, shares its pending assessment and focuses the chosen condition', async ({
   page,
   context,

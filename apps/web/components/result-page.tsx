@@ -41,7 +41,7 @@ export function ResultPage<D extends CountryDraft, K>({
       const hash = new URLSearchParams(window.location.hash.slice(1));
       const previewId = new URLSearchParams(window.location.search).get('mock');
       if (hash.has('s')) {
-        const incoming = decodeDraft(country, hash.get('s')!);
+        const incoming = decodeDraft(country, hash.get('s')!, true);
         try {
           if (
             incoming &&

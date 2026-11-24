@@ -119,7 +119,11 @@ test.each([ukModule, japanModule])(
       getItem: (key: string) => storage.get(key) ?? null,
       setItem: (key: string, value: string) => storage.set(key, value),
     });
-    const first = { ...country.createDraft(), completed: true };
+    const first = {
+      ...country.createDraft(),
+      ...(country.id === 'jp' ? { reentry: [{ route: 'ordinary' }] } : {}),
+      completed: true,
+    };
     const second =
       country.id === 'jp'
         ? { ...first, reentry: [{ route: 'deemed' }] }

@@ -1,4 +1,8 @@
-import { evaluateJapanFull, type Locale } from '@uk-immigration/engine';
+import {
+  evaluateJapanFull,
+  japanTripOccurrences,
+  type Locale,
+} from '@uk-immigration/engine';
 import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import { t } from '../i18n';
 import type { CountryModule } from './country-module';
@@ -45,7 +49,14 @@ function run(draft: JapanDraft, locale: Locale) {
         ),
       },
     };
-  const result = evaluateJapanFull({ ...confirmed, locale });
+  const deemed = confirmed.reentry.find((route) => route.route === 'deemed');
+  const itineraries = japanTripOccurrences(
+    confirmed,
+    deemed?.departureOn
+      ? { route: deemed, departed: canConfirmJapanDeparture(confirmed, deemed) }
+      : undefined,
+  );
+  const result = evaluateJapanFull({ ...confirmed, locale }, itineraries);
   const formatter = new Intl.NumberFormat(locale);
   for (const pathway of result.columns[0].pathways)
     for (const check of pathway.checks)
@@ -54,9 +65,14 @@ function run(draft: JapanDraft, locale: Locale) {
         check.explanation,
         formatter,
       );
-  const deemed = confirmed.reentry.find((route) => route.route === 'deemed');
-  if (deemed?.departureOn && deemed.declaredIntentAtDeparture === undefined) {
-    const hint = canConfirmJapanDeparture(confirmed, deemed)
+  const deemedJourney = itineraries.reentry.find(
+    (route) => route.route === 'deemed',
+  );
+  if (
+    deemedJourney?.departureOn &&
+    deemedJourney.declaredIntentAtDeparture === undefined
+  ) {
+    const hint = deemedJourney.occurrence.departed
       ? 'jp.result.confirmDeparture'
       : 'jp.result.plannedDeparture';
     const pathway = result.columns[0].pathways.find(
@@ -65,7 +81,7 @@ function run(draft: JapanDraft, locale: Locale) {
     if (pathway)
       pathway.summary = [
         pathway.summary,
-        t(hint, locale).replace('{date}', deemed.departureOn),
+        t(hint, locale).replace('{date}', deemedJourney.departureOn),
       ].join(' ');
   }
   return result;

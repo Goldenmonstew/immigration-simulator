@@ -23,9 +23,9 @@ export interface CountryModule<D extends CountryDraft, K> {
   // Project an editable draft onto the answers used for assessment and sharing.
   activeAnswers?(draft: D): D;
   // Return a new draft when a local correction needs to be persisted.
-  restoreStoredDraft?(draft: D): D;
+  restoreStoredDraft?(draft: D, forResult?: boolean): D;
   validateStep(draft: D): Record<string, TranslationKey>;
-  decodeDraft(value: unknown): D | undefined;
+  decodeDraft(value: unknown, forResult?: boolean): D | undefined;
   run(draft: D, locale: Locale): CountryResult;
   whatif: CountryWhatIf<D, K>;
   policy: CountryPolicy;

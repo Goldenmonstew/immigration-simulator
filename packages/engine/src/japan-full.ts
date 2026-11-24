@@ -12,9 +12,10 @@ import type {
 import { filingContext } from './japan-full-shared';
 import type { JpFullContext, JpFullResult } from './japan-full-shared';
 import {
+  japanDepartureByRoute,
   japanTripAnswerFields,
+  japanTripOccurrences,
   sameJapanTrip,
-  shareJapanTripAnswers,
 } from './japan-trip-answers';
 
 export interface JpFullRequest extends JpFullContext {
@@ -106,17 +107,19 @@ function tripConflicts(trip: JpTrip, routes: JpFullReentryRequest[]) {
 }
 
 /** Match raw answers before applying a comparison's alternative return date. */
-export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
+export function evaluateJapanFull(
+  req: JpFullRequest,
+  itineraries = japanTripOccurrences(req),
+): JpFullResult {
   const { L } = filingContext(req);
-  const shared = shareJapanTripAnswers(req.trips, req.reentry ?? []);
   const travel = new Map<
     JpFullReentryRequest,
     ReturnType<typeof assessJapanReentry>['pathway']
   >();
   const conflictNotices: string[] = [];
-  const trips = shared.trips.map((original) => {
+  const trips = itineraries.trips.map((original) => {
     const trip: JpTrip = { ...original, assessedReturn: undefined };
-    const matches = shared.reentry.filter((route) =>
+    const matches = itineraries.reentry.filter((route) =>
       sameJapanTrip(trip, route),
     );
     const conflicts = tripConflicts(trip, matches);
@@ -128,17 +131,14 @@ export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
       trip.departure ??
       (deemed?.declaredIntentAtDeparture ? 'deemed' : undefined);
     // Selecting a route for assessment alone does not establish how the traveller left.
-    const used =
-      method === 'permit'
-        ? matches.find((route) => route.route === 'ordinary')
-        : method === 'deemed'
-          ? deemed
-          : undefined;
+    const used = matches.find(
+      (route) => japanDepartureByRoute[route.route] === method,
+    );
     trip.departure = method;
     if (used) {
       const evidence = assessJapanReentry(
         req,
-        { ...used, returnOn: trip.returned },
+        { ...used, returnOn: trip.returned, occurrence: original.occurrence },
         { conflicts, departure: method, permitOnReturn: trip.reentryPermit },
       );
       if (
@@ -212,7 +212,7 @@ export function evaluateJapanFull(req: JpFullRequest): JpFullResult {
                   .join(' ');
             return assessment;
           }) ?? []),
-          ...shared.reentry.map(
+          ...itineraries.reentry.map(
             (route) =>
               travel.get(route) ?? assessJapanReentry(req, route).pathway,
           ),

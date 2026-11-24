@@ -1,3 +1,4 @@
+import { japanDepartureByRoute } from '@uk-immigration/engine';
 import type {
   JpFullNaturalisationRoute,
   JpFullPrRoute,
@@ -90,7 +91,7 @@ export const tripFields = [
   date('departed', true),
   date('returned', true),
   actualDate('newLandingOn'),
-  choice('departure', ['none', 'deemed', 'permit']),
+  choice('departure', ['none', ...Object.values(japanDepartureByRoute)]),
   bool('reentryPermit'),
   {
     ...bool('specialPermanentResident'),

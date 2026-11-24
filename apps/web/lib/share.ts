@@ -27,6 +27,7 @@ export function encodeDraft<D extends CountryDraft>(
 export function decodeDraft<D extends CountryDraft>(
   country: ShareModule<D>,
   encoded: string,
+  forResult = false,
 ): D | undefined {
   try {
     if (!/^[A-Za-z0-9_-]+$/.test(encoded)) return undefined;
@@ -41,7 +42,7 @@ export function decodeDraft<D extends CountryDraft>(
     if ('country' in value || 'v' in value) {
       if (value.country !== country.id || value.v !== country.version)
         return undefined;
-      const draft = country.decodeDraft(value.draft);
+      const draft = country.decodeDraft(value.draft, forResult);
       return draft && (country.activeAnswers?.(draft) ?? draft);
     }
     // Before country envelopes, only UK questionnaires produced share links.

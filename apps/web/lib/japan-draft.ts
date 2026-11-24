@@ -1,6 +1,7 @@
 import {
   japanTripReturnOn,
   jpStayLimit,
+  sameJapanTrip,
   shareJapanTripAnswers,
   type JpFullRequest,
   type JpFullNaturalisationRoute,
@@ -213,32 +214,34 @@ export function japanSteps(draft: JapanDraft) {
 export function activeJapanAnswers(draft: JapanDraft): JapanDraft {
   const visible = japanSteps(draft).map(({ step }) => step);
   const history = visible.includes(1);
-  const deemed = draft.reentry.some((route) => route.route === 'deemed');
+  const trips = history ? draft.trips : [];
+  const deemed = draft.reentry.find((route) => route.route === 'deemed');
   return {
     ...draft,
     stayStart: history ? draft.stayStart : '',
-    trips: history
-      ? draft.trips.map((trip) => {
-          if (deemed || trip.reentryStayExpiry === undefined) return trip;
-          const active = { ...trip };
-          delete active.reentryStayExpiry;
-          return active;
-        })
-      : [],
+    trips: trips.map((trip) => {
+      if (
+        trip.reentryStayExpiry === undefined ||
+        (deemed && sameJapanTrip(trip, deemed))
+      )
+        return trip;
+      const active = { ...trip };
+      delete active.reentryStayExpiry;
+      return active;
+    }),
     permanentResidence: visible.includes(2)
       ? draft.permanentResidence
       : { routes: [], evidence: {} },
     naturalisation: visible.includes(5)
       ? draft.naturalisation
       : { routes: [], evidence: {} },
-    reentry: history
-      ? draft.reentry
-      : draft.reentry.map((route) => {
-          const active = { ...route };
-          delete active.comparisonHistoryReturnOn;
-          if (active.route === 'deemed') delete active.historyStayExpiry;
-          return active;
-        }),
+    reentry: draft.reentry.map((route) => {
+      if (trips.some((trip) => sameJapanTrip(trip, route))) return route;
+      const active = { ...route };
+      delete active.comparisonHistoryReturnOn;
+      if (active.route === 'deemed') delete active.historyStayExpiry;
+      return active;
+    }),
   };
 }
 
@@ -591,12 +594,29 @@ export function invalidJapanFactStep(draft: JapanDraft) {
   }
 }
 
-export function restoreStoredJapanDraft(draft: JapanDraft): JapanDraft {
-  const confirmed = clearUnconfirmedJapanDeclaration(draft);
-  const invalid = confirmed.completed && invalidJapanFactStep(confirmed);
-  return invalid
-    ? { ...confirmed, completed: false, step: invalid.step }
-    : confirmed;
+export function restoreStoredJapanDraft(
+  draft: JapanDraft,
+  forResult = false,
+): JapanDraft {
+  let confirmed = clearUnconfirmedJapanDeclaration(draft);
+  // Older travel-only drafts could be saved on the shared trip-history step.
+  if (
+    confirmed.step === 1 &&
+    confirmed.reentry.length &&
+    !hasJapanResidenceRoute(confirmed)
+  )
+    confirmed = { ...confirmed, step: 6 };
+  // An unsubmitted questionnaire stays editable. A saved or shared result must
+  // satisfy the same visible steps as a new submission, including old answers.
+  if (!forResult && !confirmed.completed) return confirmed;
+  const invalid = japanSteps(confirmed).find(
+    ({ step }) => Object.keys(checkStep(confirmed, step, true)).length,
+  );
+  const completed = !invalid;
+  const step = invalid?.step ?? confirmed.step;
+  return confirmed.completed === completed && confirmed.step === step
+    ? confirmed
+    : { ...confirmed, completed, step };
 }
 
 function validRoutes(value: unknown, definitions: object) {
@@ -615,7 +635,10 @@ function validRoutes(value: unknown, definitions: object) {
   });
 }
 
-export function decodeJapanDraft(value: unknown): JapanDraft | undefined {
+export function decodeJapanDraft(
+  value: unknown,
+  forResult = false,
+): JapanDraft | undefined {
   if (
     !isRecord(value) ||
     value.version !== 1 ||
@@ -638,15 +661,6 @@ export function decodeJapanDraft(value: unknown): JapanDraft | undefined {
   )
     return undefined;
   let draft = value as unknown as JapanDraft;
-  // Older travel-only drafts could be saved on the shared trip-history step.
-  if (
-    draft.step === 1 &&
-    draft.reentry.length &&
-    !hasJapanResidenceRoute(draft)
-  )
-    draft = { ...draft, step: 6 };
-  if (!japanSteps(draft).some(({ step }) => step === draft.step))
-    return undefined;
   // Same-day shares created before the departure question need fresh confirmation.
   const deemed = draft.reentry.find((route) => route.route === 'deemed');
   if (
@@ -658,12 +672,9 @@ export function decodeJapanDraft(value: unknown): JapanDraft | undefined {
   // Validate containers before checking date relationships across their rows.
   if (titles.some((_, i) => Object.keys(checkStep(draft, i, false)).length))
     return undefined;
-  if (
-    draft.completed &&
-    japanSteps(draft).some(
-      ({ step }) => Object.keys(checkStep(draft, step, true)).length,
-    )
-  )
-    return undefined;
-  return clearUnconfirmedJapanDeclaration(draft);
+  const restored = restoreStoredJapanDraft(draft, forResult);
+  return ((forResult || draft.completed) && !restored.completed) ||
+    !japanSteps(restored).some(({ step }) => step === restored.step)
+    ? undefined
+    : restored;
 }

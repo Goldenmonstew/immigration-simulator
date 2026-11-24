@@ -17,9 +17,10 @@ export function ShareLink<D extends CountryDraft, K>({
   draft: D;
 }) {
   const { t } = useTranslation();
-  const encoded = encodeDraft(country, draft);
   const [copied, setCopied] = useState<string>();
   const [manual, setManual] = useState<{ encoded: string; url: string }>();
+  if (country.id === 'jp' && !draft.completed) return null;
+  const encoded = encodeDraft(country, draft);
   const copy = async () => {
     const url = `${window.location.origin}${asset(countryPath(country.id, 'result'))}#s=${encoded}`;
     setCopied(undefined);

@@ -28,7 +28,11 @@ import type {
   JpFullPathway,
 } from './japan-full-shared';
 import type { IsoDate } from './types';
-import type { japanTripAnswerFields } from './japan-trip-answers';
+import {
+  japanDepartureByRoute,
+  type japanTripAnswerFields,
+  type JpTripOccurrence,
+} from './japan-trip-answers';
 
 interface JpTravelDates {
   departureOn?: IsoDate;
@@ -142,7 +146,7 @@ export interface JpTripConflict {
 
 export function assessJapanReentry(
   req: JpFullContext,
-  route: JpFullReentryRequest,
+  route: JpFullReentryRequest & { occurrence: JpTripOccurrence },
   history: {
     conflicts?: JpTripConflict[];
     permitOnReturn?: boolean;
@@ -226,8 +230,8 @@ export function assessJapanReentry(
   };
   const departure = route.departureOn;
   const returned = route.returnOn ?? route.newLandingOn;
-  const plannedDeparture = departure && departure > req.simulationDate;
-  const plannedReturn = returned && returned > req.simulationDate;
+  const plannedDeparture = !route.occurrence.departed;
+  const plannedReturn = !route.occurrence.returned;
   const stay = route.stayExpiresOn;
   const expiryConflict =
     route.route === 'deemed'
@@ -397,7 +401,7 @@ export function assessJapanReentry(
     );
     // SRC-116, 再入国許可 paras 2–5: once abroad, use the permit held at departure.
     eligibleAtDeparture =
-      departure && departure <= req.simulationDate
+      route.occurrence.departed
         ? departureDocuments
         : filingEligibility;
     r(
@@ -730,9 +734,7 @@ export function assessJapanReentry(
   // holding a valid document cannot establish return under a different route.
   const usedRoute =
     history.departure === undefined ||
-    (route.route === 'ordinary'
-      ? history.departure === 'permit'
-      : route.route === 'deemed' && history.departure === 'deemed');
+    history.departure === japanDepartureByRoute[route.route];
   const validity = all(
     usedRoute,
     previousStatus,
@@ -786,7 +788,7 @@ export function assessJapanReentry(
   const landingNotice = !route.newLandingOn
     ? ''
     : previousStatus === false
-      ? L(...jpNewLandingNote(route.newLandingOn, req.simulationDate))
+      ? L(...jpNewLandingNote(route.newLandingOn, route.occurrence.returned))
       : L(
           `请核对重新上陆日 ${route.newLandingOn} 与本次返日日期，以确定适用的返日身份。`,
           ` Check the new landing date ${route.newLandingOn} against this return date to confirm the status for this return.`,

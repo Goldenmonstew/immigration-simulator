@@ -983,6 +983,48 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test('legacy comparison expiries follow the original itinerary on both sides of a share', () => {
+  const draft = generalPrTravelDraft(
+    { stayExpiry: '2024-04-10', reentryStayExpiry: '2024-04-08' },
+    {
+      ...deemedTrip,
+      stayExpiresOn: '2024-04-10',
+      historyStayExpiry: '2024-04-08',
+      returnOn: '2024-04-09',
+      comparisonHistoryReturnOn: aprilTrip.returnOn,
+    },
+  );
+  const shared = () => decodeDraft(jp, encodeDraft(jp, draft))!;
+  const assessed = () => jp.run(shared(), 'en').columns[0].pathways;
+  expect(assessed()[0].timeStatus).toBe('UNKNOWN');
+  expect(shared().trips[0].reentryStayExpiry).toBe('2024-04-08');
+  expect(shared().reentry[0]).toHaveProperty('historyStayExpiry', '2024-04-08');
+
+  draft.reentry[0].departureOn = '2024-04-02';
+  let saved = shared();
+  expect(saved.trips[0]).not.toHaveProperty('reentryStayExpiry');
+  expect(saved.reentry[0]).not.toHaveProperty('historyStayExpiry');
+  expect(saved.reentry[0]).not.toHaveProperty('comparisonHistoryReturnOn');
+  expect(assessed()[0]).toMatchObject({
+    timeStatus: 'MET',
+    earliestDate: '2027-04-05',
+  });
+
+  // A different return also makes it a different trip, even with the same departure.
+  draft.reentry[0] = {
+    ...draft.reentry[0],
+    departureOn: aprilTrip.departureOn,
+    comparisonHistoryReturnOn: undefined,
+  };
+  saved = shared();
+  expect(saved.trips[0]).not.toHaveProperty('reentryStayExpiry');
+  expect(saved.reentry[0]).not.toHaveProperty('historyStayExpiry');
+  expect(assessed()[0]).toMatchObject({
+    timeStatus: 'MET',
+    earliestDate: '2027-04-05',
+  });
+});
+
 const specialPeriodTrip = {
   ...deemedTrip,
   stayExpiresOn: '2024-04-03',

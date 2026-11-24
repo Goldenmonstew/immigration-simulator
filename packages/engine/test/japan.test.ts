@@ -1047,11 +1047,7 @@ describe('task 74: trips after birth', () => {
   const born = (
     bornOn: string,
     simulationDate: string,
-    trip: {
-      departed: string;
-      returned: string;
-      departure?: 'none' | 'deemed' | 'permit';
-    },
+    trip: JpRequest['trips'][number],
   ) =>
     pr({
       simulationDate,
@@ -1081,6 +1077,17 @@ describe('task 74: trips after birth', () => {
         returned: '2027-02-01',
       }).status,
     ).toBe('MET');
+  });
+
+  test('the newborn filing exception is unconfirmed for a refugee travel document', () => {
+    const result = born('2026-11-10', '2026-11-24', {
+      departed: '2026-11-27',
+      returned: '2026-12-01',
+      departure: 'refugee-travel-document',
+    });
+    expect(result.status).toBe('UNKNOWN');
+    expect(result.summary).toContain('難民旅行証明書');
+    expect(result.pendingDetails).toContain('PD-160');
   });
 
   // Born 2026-11-10: 30 days end on 2026-12-10.

@@ -1,12 +1,14 @@
-import { isValidElement } from 'react';
+import { Children, isValidElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
 import { prEvidence } from '../../../packages/engine/test/japan-pr-fixture';
 import JapanSimulatePage from '../app/japan/simulate/page';
+import { ShareLink } from '../components/share-link';
 import { LocaleContext } from '../i18n/locale';
 import { japanSteps, type JapanDraft } from '../lib/japan-draft';
 import { japanModule as jp } from '../lib/japan-module';
 import { decodeDraft, encodeDraft } from '../lib/share';
+import { draftStorage, loadScenario, readScenarios } from '../lib/storage';
 
 const fields = new Map<
   string,
@@ -28,6 +30,7 @@ vi.mock('../app/simulate/field', async (original) => {
 });
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllGlobals();
 });
 
 function form(
@@ -145,6 +148,51 @@ function generalTripDraft(): JapanDraft {
     trips: [{ departed: '2026-10-01', returned: '2026-11-10' }],
   };
 }
+
+test('refugee PR and the travel document use the recorded method and evidence for the same return', () => {
+  let draft = generalTripDraft();
+  draft.completed = true;
+  draft.permanentResidence = {
+    routes: [{ route: 'refugee', statusStart: '2017-04-01' }],
+    evidence: { ...prEvidence, protectionRecognition: 'refugee' },
+  };
+  const trip = draft.trips[0];
+  const document = {
+    route: 'refugee-travel-document',
+    departureOn: trip.departed,
+    returnOn: trip.returned,
+    refugeeRecognition: true,
+    hasJapaneseTravelDocument: true,
+    permitVoided: false,
+    permit: {
+      effectiveOn: '2026-04-01',
+      expiresOn: '2027-04-01',
+      entryDeadlineNotSpecified: true,
+      extensionApproved: false,
+    },
+  } as const;
+  draft.reentry = [document];
+  const markup = form(draft, (patch) => {
+    draft = { ...draft, ...patch };
+  });
+  expect(markup).toContain(
+    '<option value="refugee-travel-document">Japanese refugee travel document</option>',
+  );
+  fields.get('jp-trips-0-departure')!({ target: { value: document.route } });
+  const restored = decodeDraft(jp, encodeDraft(jp, draft))!;
+  expect(restored.trips[0].departure).toBe(document.route);
+  function continuity(answers: JapanDraft) {
+    return jp.run(answers, 'en').columns[0].pathways.map((path) =>
+      path.checks.find((c) =>
+        ['jp.pr.continuous-stay', 'jp.reentry.return-continuity'].includes(c.id),
+      )?.status,
+    );
+  }
+  expect(continuity(restored)).toEqual(['MET', 'MET']);
+  const voided = { ...restored, reentry: [{ ...document, permitVoided: true }] };
+  expect(continuity(voided)).toEqual(['NOT_MET', 'NOT_MET']);
+  expect(continuity({ ...restored, reentry: [] })).toEqual(['UNKNOWN']);
+});
 
 test.each([
   ['2024-04-05', 'NOT_MET', '2034-04-07', undefined],
@@ -311,6 +359,92 @@ test.each(['ordinary', 'deemed', 'refugee-travel-document'] as const)(
     expect(decodeDraft(jp, encodeDraft(jp, draft))).toEqual(draft);
   },
 );
+
+test('loading, refreshing and sharing an old named plan agree about a renewal pending at departure', async () => {
+  const plan = {
+    id: 'legacy',
+    name: 'Renewal',
+    savedAt: '2026-11-24',
+    draft: {
+      ...jp.createDraft(),
+      completed: true,
+      simulationDate: '2026-11-24',
+      reentry: [
+        {
+          route: 'ordinary' as const,
+          departureOn: '2024-04-01',
+          returnOn: '2024-04-07',
+          stayExpiresOn: '2024-04-03',
+          timelyRenewalPending: true,
+          renewalDecisionOn: '2024-03-29',
+        },
+      ],
+    },
+  };
+  const planKey = 'jp-immigration-scenarios-v1';
+  const draftKey = 'jp-immigration-draft-v1';
+  const storage = new Map([[planKey, JSON.stringify([plan])]]);
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => storage.set(key, value),
+  });
+  const readAndLoad = () => {
+    const saved = readScenarios(jp).scenarios[0];
+    expect(JSON.parse(storage.get(planKey)!)[0].draft).toEqual(saved.draft);
+    const loaded = loadScenario(jp, saved);
+    expect(loaded).toEqual(saved.draft);
+    expect(JSON.parse(storage.get(draftKey)!)).toEqual(loaded);
+    const refreshed = draftStorage(jp).draft!;
+    expect(refreshed).toEqual(loaded);
+    expect(JSON.parse(storage.get(draftKey)!)).toEqual(loaded);
+    return refreshed;
+  };
+  const invalid = readAndLoad();
+  expect(invalid).toMatchObject({ completed: false, step: 6 });
+  expect(renderToStaticMarkup(<ShareLink country={jp} draft={invalid} />)).toBe(
+    '',
+  );
+  expect(decodeDraft(jp, encodeDraft(jp, invalid), true)).toBeUndefined();
+
+  // An old comparison can also carry a stale incomplete flag after a valid edit.
+  plan.draft.completed = false;
+  plan.draft.reentry[0].renewalDecisionOn = '2024-04-05';
+  storage.set(planKey, JSON.stringify([plan]));
+  const corrected = readAndLoad();
+  expect(corrected.completed).toBe(true);
+  const writeText = vi
+    .fn<(url: string) => Promise<void>>()
+    .mockResolvedValue(undefined);
+  vi.stubGlobal('window', { location: { origin: 'https://example.test' } });
+  vi.stubGlobal('navigator', { clipboard: { writeText } });
+  let copy: (() => Promise<void>) | undefined;
+  function findCopy(node: ReactNode) {
+    Children.forEach(node, (child) => {
+      if (
+        !isValidElement<{
+          children?: ReactNode;
+          onClick?: () => Promise<void>;
+        }>(child)
+      )
+        return;
+      if (child.type === 'button') copy = child.props.onClick;
+      else findCopy(child.props.children);
+    });
+  }
+  function Probe() {
+    const share = ShareLink({ country: jp, draft: corrected });
+    findCopy(share);
+    return share;
+  }
+  renderToStaticMarkup(<Probe />);
+  expect(copy).toBeDefined();
+  await copy!();
+  const url = new URL(writeText.mock.calls[0][0]);
+  expect(url.pathname).toMatch(/\/japan\/result$/);
+  const encoded = new URLSearchParams(url.hash.slice(1)).get('s')!;
+  expect(decodeDraft(jp, encoded, true)).toEqual(corrected);
+  expect(decodeDraft(jp, encodeDraft(jp, plan.draft), true)).toEqual(corrected);
+});
 
 test.each([true, false])(
   'matching history and re-entry answers expose a renewal chronology error (decision in history: %s)',
@@ -1041,6 +1175,133 @@ test.each([
       declaredIntentAtDeparture: expected,
       declarationForDepartureOn: '2026-11-23',
     });
+  },
+);
+
+test('a recorded return without a departure date uses historical departure wording', () => {
+  const draft: JapanDraft = {
+    ...jp.createDraft(),
+    simulationDate: '2026-11-24',
+    reentry: [{ route: 'deemed', returnOn: '2026-11-23' }],
+  };
+  const [travel] = jp.run(draft, 'en').columns[0].pathways;
+  expect(
+    travel.checks.find(({ id }) => id === 'jp.reentry.deemed-validity')?.explanation,
+  ).toContain('were a special permanent resident at departure');
+});
+
+test('a same-day departure answer controls the shared PR summary and re-entry details', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-11-24T12:00:00Z'));
+  const departure = '2026-11-24';
+  const returned = '2026-11-25';
+  let draft: JapanDraft = {
+    ...generalTripDraft(),
+    completed: true,
+    step: 6,
+    simulationDate: departure,
+    trips: [{ departed: departure, returned, departure: 'deemed' }],
+    reentry: [{ route: 'deemed', departureOn: departure, returnOn: returned }],
+  };
+  for (const alreadyDeparted of ['no', 'yes']) {
+    form(draft, (patch) => {
+      draft = { ...draft, ...patch };
+    });
+    fields.get('jp-travel-deemed-alreadyDeparted')!({
+      target: { value: alreadyDeparted },
+    });
+    expect(jp.validateStep(draft)).toEqual({});
+    const restored = decodeDraft(jp, encodeDraft(jp, draft))!;
+    const sameDayReturn = {
+      ...restored,
+      trips: restored.trips.map((trip) => ({ ...trip, returned: departure })),
+      reentry: restored.reentry.map((route) => ({
+        ...route,
+        returnOn: departure,
+      })),
+    };
+    expect(
+      jp.run(sameDayReturn, 'en').columns[0].pathways[0].summary,
+    ).toContain(
+      alreadyDeparted === 'no'
+        ? 'You plan to return on 2026-11-24'
+        : 'You returned on 2026-11-24',
+    );
+    for (const locale of ['en', 'zh-CN'] as const) {
+      const [pr, travel] = jp.run(restored, locale).columns[0].pathways;
+      const planned = alreadyDeparted === 'no';
+      expect(pr.summary).toContain(
+        locale === 'en'
+          ? planned
+            ? 'You plan to leave under deemed re-entry'
+            : 'You left under deemed re-entry'
+          : planned
+            ? '计划于 2026-11-24 使用みなし再入国许可出境'
+            : '于 2026-11-24 使用みなし再入国许可出境',
+      );
+      expect(pr.summary).toContain(
+        locale === 'en'
+          ? 'You plan to return on 2026-11-25'
+          : '计划于 2026-11-25 返日',
+      );
+      expect(travel.summary).toContain(
+        locale === 'en'
+          ? planned
+            ? 'Planned departure on 2026-11-24'
+            : 'when you departed on 2026-11-24'
+          : planned
+            ? '拟于 2026-11-24 出境'
+            : '于 2026-11-24 实际出境时',
+      );
+      const detail = travel.checks.find(
+        ({ id }) => id === 'jp.reentry.deemed-validity',
+      )!.explanation;
+      expect(detail).toContain(
+        locale === 'en'
+          ? planned
+            ? 'will be a special permanent resident'
+            : 'were a special permanent resident'
+          : planned
+            ? '核对计划出境时的身份'
+            : '核对出境时的身份',
+      );
+    }
+  }
+});
+
+test.each([
+  ['2026-09-30', 'old-guideline-absences'],
+  ['2027-04-02', 'total-absence'],
+])(
+  'absence counts through %s identify a trip that has not yet happened',
+  (simulationDate, rule) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-10T12:00:00Z'));
+    const departed = '2026-08-10';
+    const returned = '2026-08-12';
+    const draft: JapanDraft = {
+      ...generalTripDraft(),
+      simulationDate,
+      dateOfBirth: '1990-01-01',
+      stayStart: '2010-04-01',
+      naturalisation: { routes: [{ route: 'general' }], evidence: {} },
+      trips: [{ departed, returned, departure: 'permit', reentryPermit: true }],
+      reentry: [
+        {
+          route: 'deemed',
+          departureOn: departed,
+          alreadyDeparted: false,
+          returnOn: returned,
+        },
+      ],
+    };
+    const [pr, nat] = jp.run(draft, 'en').columns[0].pathways;
+    expect(
+      pr.checks.find(({ id }) => id === 'jp.pr.' + rule)?.explanation,
+    ).toContain('Projected through ' + simulationDate);
+    if (rule === 'old-guideline-absences')
+      expect(pr.summary).toContain('would have 1 trip abroad');
+    expect(nat.summary).toContain('would have 1 trip abroad');
   },
 );
 

@@ -32,22 +32,28 @@ export function draftStorage<D extends CountryDraft>(
     memoryDrafts.set(key, next);
     memoryResults.delete(key);
   }
+  let available = true;
   try {
     if (next) {
       localStorage.setItem(key, JSON.stringify(next));
-    } else {
-      const saved = localStorage.getItem(key);
-      const parsed: D | undefined = saved ? JSON.parse(saved) : undefined;
-      if (parsed?.version === country.version) {
-        draft = country.restoreStoredDraft?.(parsed) ?? parsed;
-        memoryDrafts.set(key, draft);
-        if (draft !== parsed) localStorage.setItem(key, JSON.stringify(draft));
-      }
+      return { draft, available };
     }
-    return { draft, available: true };
+    const saved = localStorage.getItem(key);
+    const parsed: D | undefined = saved ? JSON.parse(saved) : undefined;
+    if (parsed?.version === country.version) {
+      draft = country.restoreStoredDraft?.(parsed) ?? parsed;
+      memoryDrafts.set(key, draft);
+      if (draft !== parsed) localStorage.setItem(key, JSON.stringify(draft));
+      return { draft, available };
+    }
   } catch {
-    return { draft, available: false };
+    available = false;
   }
+  if (!next && draft && country.restoreStoredDraft) {
+    draft = country.restoreStoredDraft(draft);
+    memoryDrafts.set(key, draft);
+  }
+  return { draft, available };
 }
 
 export function rememberResult(
@@ -105,7 +111,7 @@ export function readScenarios<D extends CountryDraft>(
     if (country.restoreStoredDraft) {
       let changed = false;
       for (const scenario of scenarios) {
-        const draft = country.restoreStoredDraft(scenario.draft);
+        const draft = country.restoreStoredDraft(scenario.draft, true);
         if (draft !== scenario.draft) {
           scenario.draft = draft;
           changed = true;
@@ -169,9 +175,10 @@ export function loadScenario<D extends CountryDraft>(
   scenario: SavedScenario<D>,
 ): D {
   // What-if share links can contain drafts marked incomplete after an edit.
-  const restored =
-    country.restoreStoredDraft?.(scenario.draft) ?? scenario.draft;
-  const next = { ...restored, completed: true };
+  const next = country.restoreStoredDraft?.(scenario.draft, true) ?? {
+    ...scenario.draft,
+    completed: true,
+  };
   draftStorage(country, next);
   return next;
 }
