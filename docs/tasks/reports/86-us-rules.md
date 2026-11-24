@@ -186,3 +186,29 @@ PROGRESS 595 对应建议提交 `Fix: 修正美国递交渠道、同时递交与
 ### 4. 发现与建议
 
 后续问卷分别采集选定的 I-485 网申方式及适用性、基础请愿案状态、实际收件月、预计裁决月和适用的 Final Action Dates。近期搬入新辖区的提前入籍申请应采集辖区起住日及已知面谈日。基础请愿待决或缺裁决资料时可展示已确认的递交日期。
+
+## 第四轮审核修正（review86-4）
+
+### 1. 做了什么
+
+PROGRESS 596 对应建议提交 `Fix: 修正美国领馆递件、公共负担豁免及 I-140 时点（review86-4）`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+- **C33 领馆递件。** 即时亲属也须确认 NVC 递件授权。未填授权为 `UNKNOWN`，明确未授权且无已确认开放日为 `NOT_MET`，均无递交日期。通过可选的 `nvcFilingOpensOn` 提供已确认的未来开放日时，可返回 `FUTURE` 和该日期。受排期限制的签证仍单独使用裁决月的 Final Action Dates。依据为 SRC-309 国务院 National Visa Center 和 Visa Bulletin 的 Dates for Filing，缺资料登记 PD-272。
+- **C36、C39 领馆面谈与核准。** NVC 发出面谈通知后安排体检，领馆裁决前进行安全审查。审查复现中待体检时，递交保留 `MET` 和 `2026-11-23`，核准为 `UNKNOWN` 且无日期。待安全审查采用同样的阶段划分。照片和民事文件正本供面谈查验，现有模型未单独采集。适用的 I-864 与 NVC 所需民事文件仍属递件材料。依据为 SRC-309 Submit Documents 和 Civil Documents、SRC-311 9 FAM 504.8-3、SRC-312 Appointment 及 Prepare for the Interview，待定沿用 PD-275。
+- **C37 公共负担。** 已获批的境内 VAWA／SIJ 依据及领馆 VAWA 依据自动判为 `applicable: false`，不产生待定项。难民／庇护路径和已确认的 `publicChargeExempt` 同样标记为不适用。SRC-313 已列出 Form I-485 p18 Part 9 Item 56 的全部豁免类别，并登记 FAM 中的适用例外。其他类别继续以本案已核实的 `publicChargeExempt` 输入评估。
+- **I-140 收件时点。** C33 在待决、获批或未填请愿状态时均核对已填的实际收件日是否晚于模拟日。时点矛盾时为 `UNKNOWN`，省略两阶段日期。C28 的 PERM 有效期也等待正确收件日。沿用 PD-272、PD-277。
+
+### 2. 怎么验证的
+
+- 设置 `VITEST_MAX_WORKERS=2` 后，`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。全仓 5,412 项测试通过，1 项既有用例跳过。静态构建生成 27 个页面，包含 `/united-states`。
+- `VITEST_MAX_WORKERS=2 pnpm --filter @uk-immigration/engine exec vitest run test/united-states-full.test.ts test/united-states.test.ts` 共 178 项通过。新增回归分别断言递交与核准状态和日期，并保留上一轮的同时递交、跨月排期、网申、境内 I-693、贩运禁令与 N-400 辖区规则的测试。
+- `git diff --check` 通过。核对旧 `evaluateUnitedStates`、旧专项测试及网页文件无本轮差异，核对新增两份官方来源快照的 SHA-256。
+
+### 3. 没做或没验证的
+
+- 改动留在 `fable/86-us-rules` 工作树，由 Fable 提交。本轮范围为引擎、政策出处与测试，未跑浏览器 e2e。
+- 国务院 National Visa Center 和 Appointment 两页已在线核对并登记官方链接，命令行下载返回 403。随工作树保存了 I-485 表格及 9 FAM 504.8 两份可下载的快照。
+
+### 4. 发现与建议
+
+后续问卷可将 NVC 递件通知、文件齐备通知（DQ）与面谈通知分别采集。`visaAtFiling` 表示第一个时点。DQ 由 NVC 在审核已递交资料后确认，依据为 SRC-309 Submit Documents 的 Documentarily Complete 段。

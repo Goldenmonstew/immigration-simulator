@@ -338,13 +338,15 @@ export function employmentChecks(request: UsFullRequest) {
   ];
   if (category === 'eb2-perm' || category === 'eb3') {
     const priorI140 = a.i140Status !== undefined || a.i140FiledOn !== undefined;
+    const inconsistentI140Date =
+      a.i140FiledOn !== undefined && a.i140FiledOn > date;
     const i140Date = priorI140
       ? a.i140FiledOn
       : request.fees?.channel === 'paper'
         ? nextUsBusinessDay(date)
         : date;
     const valid =
-      a.permCertifiedOn && i140Date
+      a.permCertifiedOn && i140Date && !inconsistentI140Date
         ? a.permCertifiedOn <= i140Date &&
           i140Date <= addDays(a.permCertifiedOn, v.perm.value.validDays)
         : undefined;

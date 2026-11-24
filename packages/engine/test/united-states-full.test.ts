@@ -2689,6 +2689,171 @@ describe('review86-3 regressions', () => {
   );
 });
 
+describe('review86-4 regressions', () => {
+  const consular: UsFullRequest = {
+    ...f,
+    admission: {
+      ...admission,
+      process: 'consular',
+      petitionStatus: 'approved',
+    },
+  };
+
+  test.each([
+    ['unavailable', 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+    ['future-bulletin', 'UNKNOWN'],
+  ] as const)(
+    'uses NVC authorization for an immediate relative (%s)',
+    (visaAtFiling, status) => {
+      const request: UsFullRequest = {
+        ...consular,
+        admission: { ...consular.admission, visaAtFiling },
+      };
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: status,
+        status,
+      });
+      const result = path(request);
+      expect(result).toMatchObject({ status, approvalStatus: status });
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test('uses a confirmed future NVC opening independently of the adjudication chart', () => {
+    const opensOn = '2026-12-01';
+    const request: UsFullRequest = {
+      ...e,
+      admission: {
+        ...e.admission,
+        process: 'consular',
+        petitionStatus: 'approved',
+        visaAtFiling: 'unavailable',
+        nvcFilingOpensOn: opensOn,
+      },
+    };
+    const awaitingChart = path(request);
+    expect(awaitingChart).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: opensOn,
+      approvalStatus: 'UNKNOWN',
+    });
+    expect(awaitingChart.approvalEarliestDate).toBeUndefined();
+    expect(
+      path({
+        ...request,
+        admission: {
+          ...request.admission,
+          visaAtDecisionByMonth: { '2026-12': 'available' },
+        },
+      }),
+    ).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: opensOn,
+      approvalStatus: 'FUTURE',
+      approvalEarliestDate: opensOn,
+    });
+  });
+
+  test.each([
+    ['C36-HEALTH', { medicalEvidence: 'pending' }],
+    ['C36-HEALTH', { medicalEvidence: undefined, vaccines: undefined }],
+    ['C37-PUBLIC-CHARGE', { publicCharge: 'pending' }],
+    ['C39-SECURITY', { securityGround: 'pending' }],
+  ] satisfies [string, Partial<UsAdmissionAnswers>][])(
+    'keeps interview evidence in the approval stage (%s, %#)',
+    (id, overrides) => {
+      const request: UsFullRequest = {
+        ...consular,
+        admission: { ...consular.admission, ...overrides },
+      };
+      expect(condition(request, id)).toMatchObject({
+        filingStatus: 'NOT_APPLICABLE',
+        status: 'UNKNOWN',
+      });
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test('still requires applicable I-864 evidence for NVC filing', () => {
+    const result = path({
+      ...consular,
+      support: { ...support, affidavitSubmitted: false },
+    });
+    expect(result).toMatchObject({
+      status: 'NOT_MET',
+      approvalStatus: 'NOT_MET',
+    });
+    expect(result.earliestDate).toBeUndefined();
+    expect(result.approvalEarliestDate).toBeUndefined();
+  });
+
+  test.each(['vawa', 'sij'] as const)(
+    'exempts an approved %s adjustment basis from public charge',
+    (adjustmentBasis) => {
+      const request: UsFullRequest = {
+        ...p7,
+        family: undefined,
+        support: undefined,
+        admission: {
+          ...admission,
+          adjustmentBasis,
+          petitionStatus: 'approved',
+          publicCharge: undefined,
+        },
+      };
+      const publicCharge = condition(request, 'C37-PUBLIC-CHARGE');
+      expect(publicCharge).toMatchObject({
+        applicable: false,
+        filingStatus: 'NOT_APPLICABLE',
+      });
+      expect(publicCharge.pendingDetails).toBeUndefined();
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: 'MET',
+        earliestDate: time.simulationDate,
+        approvalStatus: 'MET',
+        approvalEarliestDate: time.simulationDate,
+        pendingDetails: [],
+      });
+    },
+  );
+
+  test.each(['pending', 'approved', undefined] as const)(
+    'treats an I-140 receipt after the simulation date as inconsistent (%s)',
+    (i140Status) => {
+      const request = withEmployment({
+        permCertifiedOn: '2026-06-01',
+        i140FiledOn: '2026-11-24',
+        i140Status,
+      });
+      expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+        filingStatus: 'UNKNOWN',
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-272'],
+      });
+      expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
+        status: 'UNKNOWN',
+        pendingDetails: ['PD-277'],
+      });
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: 'UNKNOWN',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+});
+
 describe('filing and evidence exceptions', () => {
   test('I-751 on Monday after a Sunday filing cutoff depends on the channel', () => {
     const caseInput = { ...conditions, permanentResident: '2024-11-23' };

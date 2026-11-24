@@ -122,10 +122,17 @@ export function admissionChecks(
   const date = request.simulationDate;
   const adjustment = a?.process === 'adjustment';
   const consular = a?.process === 'consular';
+  const consularInterview = consular && scope === 'immigrant';
   const humanitarian = scope === 'humanitarian';
   const optionalMedicalForm =
     humanitarian && request.humanitarian?.status === 'refugee';
-  const publicExempt = humanitarian || a?.publicChargeExempt === true;
+  const approvedExemptBasis =
+    scope === 'immigrant' &&
+    a?.petitionStatus === 'approved' &&
+    ((a.adjustmentBasis === 'vawa' && (adjustment || consular)) ||
+      (a.adjustmentBasis === 'sij' && adjustment));
+  const publicExempt =
+    humanitarian || approvedExemptBasis || a?.publicChargeExempt === true;
   const publicResult = publicExempt ? true : reviewed(a?.publicCharge);
   const noFraud = not(a?.immigrationFraud);
   const falseClaim =
@@ -193,47 +200,57 @@ export function admissionChecks(
       '健康、移民体检与疫苗',
       'Health, immigrant medical exam and vaccination',
       medical.answer,
-      s.health,
+      consularInterview ? [...s.health, ...s.consularHealth] : s.health,
       'PD-275',
-      [
-        '核对 Class A 传染病、伴有有害行为的疾病、药物滥用、适龄疫苗及当前有效的体检材料。新冠疫苗已从清单移除。',
-        'Check Class A infectious diseases, disorders with harmful behavior, drug abuse, age-appropriate vaccination and currently valid medical evidence. COVID-19 vaccination was removed from the list.',
-      ],
-      medical.filingStatus,
-    ),
-    check(
-      'C37-PUBLIC-CHARGE',
-      '公共负担资格或法定豁免',
-      'Public charge assessment or statutory exemption',
-      publicResult,
-      s.publicCharge,
-      consular ? 'PD-273' : 'PD-261',
-      publicExempt
+      consularInterview
         ? [
-            '该类别免公共负担审查。',
-            'This category is exempt from public charge review.',
+            '收到面谈通知后安排指定医生体检。健康结论、疫苗及体检材料在签证核准前核对。',
+            'Arrange the panel physician exam after receiving the interview notice. Health findings, vaccination and the exam report are checked before visa issuance.',
           ]
-        : consular
-          ? [
-              '领馆采用国务院 FAM 口径。需由领馆个案判断现金维持补助和长期机构护理等因素。',
-              'The consulate applies State Department FAM guidance and assesses factors including cash support and long-term institutional care.',
-            ]
-          : date < v.publicCharge.value.effective
-            ? [
-                '按原政策综合评估，重点核对现金维持补助和政府出资长期机构护理。',
-                'The prior policy weighs the overall circumstances, including cash income maintenance and publicly funded long-term institutional care.',
-              ]
-            : a?.benefits === 'post-change-means-tested'
-              ? [
-                  '生效日后申领、获批或领取的资检福利可纳入 DHS 的全貌审查，结果取决于个案。',
-                  'DHS may consider means-tested benefits applied for, approved or received since the effective date. The outcome depends on the whole case.',
-                ]
-              : [
-                  'DHS 综合评估年龄、健康、家庭、财务和技能。生效日前的福利按旧口径核对。',
-                  'DHS weighs age, health, family, finances and skills. Pre-effective-date benefits are assessed using the prior standards.',
-                ],
-      scope === 'return' ? undefined : 'NOT_APPLICABLE',
+        : [
+            '核对 Class A 传染病、伴有有害行为的疾病、药物滥用、适龄疫苗及当前有效的体检材料。新冠疫苗已从清单移除。',
+            'Check Class A infectious diseases, disorders with harmful behavior, drug abuse, age-appropriate vaccination and currently valid medical evidence. COVID-19 vaccination was removed from the list.',
+          ],
+      consularInterview ? 'NOT_APPLICABLE' : medical.filingStatus,
     ),
+    {
+      ...check(
+        'C37-PUBLIC-CHARGE',
+        '公共负担资格或法定豁免',
+        'Public charge assessment or statutory exemption',
+        publicResult,
+        adjustment
+          ? [...s.publicCharge, ...s.publicChargeExemptions]
+          : s.publicCharge,
+        consular ? 'PD-273' : 'PD-261',
+        publicExempt
+          ? [
+              '该类别免公共负担审查。',
+              'This category is exempt from public charge review.',
+            ]
+          : consular
+            ? [
+                '领馆采用国务院 FAM 口径。需由领馆个案判断现金维持补助和长期机构护理等因素。',
+                'The consulate applies State Department FAM guidance and assesses factors including cash support and long-term institutional care.',
+              ]
+            : date < v.publicCharge.value.effective
+              ? [
+                  '按原政策综合评估，重点核对现金维持补助和政府出资长期机构护理。',
+                  'The prior policy weighs the overall circumstances, including cash income maintenance and publicly funded long-term institutional care.',
+                ]
+              : a?.benefits === 'post-change-means-tested'
+                ? [
+                    '生效日后申领、获批或领取的资检福利可纳入 DHS 的全貌审查，结果取决于个案。',
+                    'DHS may consider means-tested benefits applied for, approved or received since the effective date. The outcome depends on the whole case.',
+                  ]
+                : [
+                    'DHS 综合评估年龄、健康、家庭、财务和技能。生效日前的福利按旧口径核对。',
+                    'DHS weighs age, health, family, finances and skills. Pre-effective-date benefits are assessed using the prior standards.',
+                  ],
+        scope === 'return' && !publicExempt ? undefined : 'NOT_APPLICABLE',
+      ),
+      ...(publicExempt ? { applicable: false } : {}),
+    },
     check(
       'C38-CRIMINAL-INADMISSIBILITY',
       '犯罪、毒品、贩运及洗钱事由',
@@ -252,10 +269,10 @@ export function admissionChecks(
       '国家安全、出口管制及极权党籍',
       'National security, export controls and totalitarian-party membership',
       securityResult.answer,
-      s.security,
+      consularInterview ? [...s.security, ...s.consularSecurity] : s.security,
       'PD-275',
       undefined,
-      securityResult.filingStatus,
+      consularInterview ? 'NOT_APPLICABLE' : securityResult.filingStatus,
     ),
     check(
       'C40-IMMIGRATION-HISTORY',
@@ -329,7 +346,9 @@ export function adjustmentChecks(
   const decisionChart =
     a?.visaAtDecisionByMonth?.[decisionMonth] ??
     (decisionMonth === simulationMonth ? a?.visaAtDecision : undefined);
-  const visaAtFiling = any(immediate, availability(filingChart));
+  const visaAtFiling = consular
+    ? receipt > request.simulationDate || availability(filingChart)
+    : any(immediate, availability(filingChart));
   const visaAtDecision = any(immediate, availability(decisionChart));
   const entry =
     a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
@@ -352,10 +371,11 @@ export function adjustmentChecks(
     employment?.category === 'eb2-niw' ||
     employment?.category === 'eb2-perm' ||
     employment?.category === 'eb3';
-  const i140Status =
-    employmentBasis && (i140Category || !employment?.category)
-      ? employment?.i140Status
-      : undefined;
+  const usesI140 = employmentBasis && (i140Category || !employment?.category);
+  const i140Status = usesI140 ? employment?.i140Status : undefined;
+  const i140FiledOn = usesI140 ? employment?.i140FiledOn : undefined;
+  const inconsistentI140Date =
+    i140FiledOn !== undefined && i140FiledOn > request.simulationDate;
   const petition = a?.petitionStatus ?? i140Status;
   const awaitingPetition =
     petition === 'pending' || petition === 'filed-with-i485';
@@ -376,37 +396,42 @@ export function adjustmentChecks(
         : undefined;
   const qualifyingBasis = reviewed(a?.qualifyingBasis);
   const filingBasis = awaitingPetition
-    ? all(
-        concurrent,
-        a?.qualifyingBasis === 'pending' ? true : qualifyingBasis,
-        i140Status === 'pending' && employment?.i140FiledOn
-          ? employment.i140FiledOn <= receipt
-          : true,
-      )
+    ? all(concurrent, a?.qualifyingBasis === 'pending' ? true : qualifyingBasis)
     : qualifyingBasis;
-  const filing = all(
-    filingBasis,
-    visaAtFiling,
-    consular ? true : a?.process === 'adjustment' ? entry : undefined,
-  );
+  const filing = inconsistentI140Date
+    ? undefined
+    : all(
+        filingBasis,
+        visaAtFiling,
+        consular ? true : a?.process === 'adjustment' ? entry : undefined,
+      );
   return [
     check(
       'C33-VISA-AND-ENTRY',
       '移民类别、签证名额与入境查验',
       'Immigrant basis, visa availability and admission or parole',
-      all(
-        filing,
-        awaitingPetition ? undefined : qualifyingBasis,
-        visaAtDecision,
-      ),
-      usesFamilyClassification
-        ? [...s.adjustment, ...s.relationship]
-        : s.adjustment,
-      'PD-272',
+      inconsistentI140Date
+        ? undefined
+        : all(
+            filing,
+            awaitingPetition ? undefined : qualifyingBasis,
+            visaAtDecision,
+          ),
       [
-        `境内按 USCIS 收件月份（${receiptMonth}）指定表确认能否递交，领馆材料按 NVC 通知提交。允许同时递交的案件仍须等基础请愿案获批。受排期限制的案件按裁决月份（${decisionMonth}）的 Final Action Dates 确认名额。未满龄或 CSPA 锁龄的美国公民未婚子女可能属于即时亲属。`,
-        `Use the USCIS chart designated for the receipt month (${receiptMonth}), or NVC authorization to submit consular documents. Where concurrent filing is allowed, approval still depends on approval of the underlying petition. For numerically limited cases, use the Final Action Dates for the decision month (${decisionMonth}). An unmarried child of a U.S. citizen may qualify as an immediate relative based on age or CSPA protection.`,
+        ...s.adjustment,
+        ...(consular ? s.consularFiling : []),
+        ...(usesFamilyClassification ? s.relationship : []),
       ],
+      'PD-272',
+      inconsistentI140Date
+        ? [
+            '已填的 I-140 实际收件日晚于模拟日。请核对收件日和请愿状态。',
+            'The reported I-140 receipt is after the simulation date. Verify the receipt date and petition status.',
+          ]
+        : [
+            `境内按 USCIS 收件月份（${receiptMonth}）指定表确认能否递交，领馆材料按 NVC 通知提交。允许同时递交的案件仍须等基础请愿案获批。受排期限制的案件按裁决月份（${decisionMonth}）的 Final Action Dates 确认名额。未满龄或 CSPA 锁龄的美国公民未婚子女可能属于即时亲属。`,
+            `Use the USCIS chart designated for the receipt month (${receiptMonth}), or NVC authorization to submit consular documents. Where concurrent filing is allowed, approval still depends on approval of the underlying petition. For numerically limited cases, use the Final Action Dates for the decision month (${decisionMonth}). An unmarried child of a U.S. citizen may qualify as an immediate relative based on age or CSPA protection.`,
+          ],
       checkStatus(filing),
     ),
     ...(consular

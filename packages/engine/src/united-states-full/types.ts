@@ -20,6 +20,8 @@ export type UsFullPathwayId =
   | 'US-MILITARY';
 
 export interface UsFullCheck extends CountryCheck {
+  /** False when the requirement does not apply to either stage. */
+  applicable?: boolean;
   /** When omitted, use status for filing as well as approval. */
   filingStatus?: CountryCheck['status'] | 'NOT_APPLICABLE';
   /** Date a currently unmet approval timing requirement can be satisfied. */
@@ -278,7 +280,7 @@ export interface UsEmploymentAnswers {
   employmentOffer?: boolean;
   perm?: 'certified' | 'schedule-a' | 'pending' | 'none';
   permCertifiedOn?: IsoDate;
-  /** Actual receipt date of the I-140 using this PERM. */
+  /** Actual receipt date of the underlying I-140, on or before the simulation date. */
   i140FiledOn?: IsoDate;
   /** Set for an existing petition, including when its exact receipt date is unavailable. */
   i140Status?: 'pending' | 'approved';
@@ -353,6 +355,8 @@ export interface UsAdmissionAnswers {
   process?: 'adjustment' | 'consular';
   /** USCIS filing chart for the simulation month, or NVC authorization to submit consular documents. */
   visaAtFiling?: UsVisaAvailability;
+  /** Confirmed future opening date for NVC submission, when not yet authorized. */
+  nvcFilingOpensOn?: IsoDate;
   /** USCIS filing chart by YYYY-MM; required for a receipt in a different month. */
   visaAtFilingByMonth?: Partial<Record<string, UsVisaAvailability>>;
   /** Final Action Dates status as of the simulation date. */
@@ -384,6 +388,7 @@ export interface UsAdmissionAnswers {
   i693SignedOn?: IsoDate;
   i693LinkedToAnotherClosedCase?: boolean;
   healthWaiver?: UsReview;
+  /** Confirmed exemption for the current application or admission, including any conditions at adjudication. */
   publicChargeExempt?: boolean;
   publicCharge?: UsReview;
   benefits?:

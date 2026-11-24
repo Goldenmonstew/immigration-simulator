@@ -402,13 +402,31 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const legacy = legacyPathway(request, receiptOn);
   const timingChecks = timeChecks(request, legacy);
   const filingChannel = onlineFilingCheck(request, paperOnly);
-  const adjustmentReceipt = receiptOn(date);
+  const immigrantApplication =
+    request.pathway === 'US-FAMILY' ||
+    request.pathway === 'US-EMPLOYMENT' ||
+    request.pathway === 'US-ADJUSTMENT';
+  const admission = request.admission;
+  const nvcOpening = admission?.nvcFilingOpensOn;
+  const nvcFilingDate =
+    immigrantApplication &&
+    admission?.process === 'consular' &&
+    (admission.visaAtFiling === 'unavailable' ||
+      admission.visaAtFiling === 'future-bulletin') &&
+    nvcOpening &&
+    nvcOpening > date
+      ? nvcOpening
+      : undefined;
+  const adjustmentReceipt = receiptOn(nvcFilingDate ?? date);
   const decisionOn = request.admission?.decisionOn;
   const decision =
     decisionOn && decisionOn > adjustmentReceipt
       ? decisionOn
       : adjustmentReceipt;
-  let eligibility: FilingTiming = { status: 'MET' };
+  let eligibility: FilingTiming = {
+    status: 'MET',
+    earliestDate: nvcFilingDate,
+  };
   let requirements: UsFullCheck[];
   switch (request.pathway) {
     case 'US-NATURALIZATION':
@@ -588,15 +606,12 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       item.approvalRequirementDate && item.approvalRequirementDate > earliest
         ? item.approvalRequirementDate
         : earliest,
-    request.pathway === 'US-FAMILY' ||
-      request.pathway === 'US-EMPLOYMENT' ||
-      request.pathway === 'US-ADJUSTMENT'
-      ? decision
-      : receipt,
+    immigrantApplication ? decision : receipt,
   );
   const combine = (filing: boolean): PilotStatus => {
     if (timing === 'NOT_APPLICABLE') return timing;
     const statuses = requirements.flatMap((item) =>
+      item.applicable === false ||
       item.informational ||
       (!filing && item.approvalRequirementDate) ||
       (timing === 'FUTURE' && legacy && item.id === 'US-C01-AGE')
@@ -615,7 +630,9 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const pendingDetails = [
     ...new Set([
       ...(legacy?.pendingDetails ?? []),
-      ...checks.flatMap((item) => item.pendingDetails ?? []),
+      ...checks.flatMap((item) =>
+        item.applicable === false ? [] : (item.pendingDetails ?? []),
+      ),
     ]),
   ];
   const earliestDate =

@@ -409,6 +409,13 @@ export const unitedStatesFullSources = {
       'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf',
     ),
   ],
+  consularFiling: [
+    source(
+      'SRC-309',
+      'DOS National Visa Center, What happens after USCIS sends my petition to the NVC?',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/national-visa-center.html',
+    ),
+  ],
   adjustmentBars: [
     usc('SRC-309', '1255', '(c), (d), (k), (n)'),
     source('SRC-309', '8 CFR 245.1(b)(4)–(6), (10)'),
@@ -427,13 +434,27 @@ export const unitedStatesFullSources = {
       'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf',
     ),
   ],
+  consularHealth: [
+    source(
+      'SRC-312',
+      'DOS Appointment, Medical Examination',
+      'https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process/step-10-prepare-for-the-interview/appointment.html',
+    ),
+  ],
   publicCharge: [
     usc('SRC-311', '1182', '(a)(4)'),
     source('SRC-313', '91 FR 45324; applicability dates and public benefits'),
     source(
       'SRC-313',
-      '9 FAM 302.8-2(B)',
+      '9 FAM 302.8-2(B), including (6) for exemptions',
       'https://fam.state.gov/FAM/09FAM/09FAM030208.html',
+    ),
+  ],
+  publicChargeExemptions: [
+    source(
+      'SRC-313',
+      'Form I-485 p18, Part 9 Item 56',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-485.pdf',
     ),
   ],
   criminal: [
@@ -445,6 +466,13 @@ export const unitedStatesFullSources = {
     ),
   ],
   security: [usc('SRC-311', '1182', '(a)(3)')],
+  consularSecurity: [
+    source(
+      'SRC-311',
+      '9 FAM 504.8-3, Clearing Immigrant Visa Applicants',
+      'https://fam.state.gov/FAM/09FAM/09FAM050408.html',
+    ),
+  ],
   immigrationBars: [usc('SRC-311', '1182', '(a)(6), (a)(9), (i)')],
   humanitarian: [
     usc('SRC-314', '1159', '(a)–(b)'),
