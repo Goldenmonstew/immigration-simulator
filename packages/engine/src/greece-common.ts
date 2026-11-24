@@ -393,7 +393,10 @@ export function commonChecks(
     checks.push(characterCheck(req, c));
   if (
     initialEntry &&
-    (entry === 'national-visa' || entry === 'outside' || entry === undefined)
+    (reunion ||
+      entry === 'national-visa' ||
+      entry === 'outside' ||
+      entry === undefined)
   ) {
     const deferred =
       req.deferredInitialEvidence?.includes('public-hospital-certificate') &&
@@ -408,7 +411,13 @@ export function commonChecks(
           : req.publicHealth === 'entry-refused'
             ? false
             : undefined,
-        [grSource('F16', 'arts. 8(d), 10(9), 176(11)')],
+        [
+          grSource('F16', 'arts. 8(d), 10(9), 176(11)'),
+          ...(reunion ? [grSource('F16', 'art. 88(1)(α)–(β)')] : []),
+          ...(reunion && req.familyTcn?.sponsor === 'blue-card'
+            ? [grSource('F60', 'procedure 517141, condition 5')]
+            : []),
+        ],
         deferred
           ? `首次递件后 ${p.initialEvidenceMonths.value} 个月内补交公立医院证明。`
           : '需确认首次入境的公共卫生结论。可能的风险须由主管机关认定。',

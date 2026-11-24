@@ -69,6 +69,8 @@ interface FamilyAnswers {
   sponsorPermitLeadsToPermanentResidence?: boolean;
   /** Whether the sponsor currently holds qualifying residence for Ο.1. */
   sponsorPermitValid?: boolean;
+  /** Evidence for a pending renewal of the qualifying permit. A valid art. 11(10) certificate preserves its rights. */
+  sponsorRenewal?: 'pending' | 'valid-certificate';
   /** The complete initial family and sponsor's Blue Card applications are filed together. */
   jointBlueCardApplication?: boolean;
   /** Personal net income excludes social assistance and other household members' income. */
@@ -525,18 +527,34 @@ function workChecks(req: GrFullRequest, { check }: GrContext): CountryCheck[] {
   return checks;
 }
 
-function familySponsor(f: FamilyAnswers, today: IsoDate): Filing {
-  if (f.sponsor === 'refugee') return undefined;
-  if (f.sponsor === 'excluded') return false;
-  const validPermit =
+function sponsorPermitForFiling(f: FamilyAnswers): Answer {
+  if (
+    f.stage === 'initial' &&
+    f.sponsor === 'blue-card' &&
+    f.jointBlueCardApplication
+  )
+    return true;
+  if (f.sponsorPermitValid || f.sponsorRenewal === 'valid-certificate')
+    return true;
+  if (f.sponsorRenewal === 'pending') return undefined;
+  return (
     f.sponsorPermitValid ??
-    (f.sponsorPermitDurationYears === 0 ? false : undefined);
-  if (f.stage === 'renewal') return all(f.sponsor && true, validPermit);
-  if (!f.sponsor) return undefined;
-  if (f.sponsor === 'blue-card')
-    return f.jointBlueCardApplication === true || validPermit;
-  if (f.sponsor !== 'ordinary') return true;
-  if (f.formedLegallyInGreece) return validPermit;
+    (f.sponsorPermitDurationYears === 0 ? false : undefined)
+  );
+}
+
+function familySponsor(f: FamilyAnswers, today: IsoDate): Filing {
+  const validPermit = sponsorPermitForFiling(f);
+  if (f.sponsor === 'excluded') return false;
+  if (f.sponsor === 'refugee')
+    return f.stage === 'initial' ? all(validPermit, undefined) : undefined;
+  if (!f.sponsor) return all(validPermit, undefined);
+  if (
+    f.stage === 'renewal' ||
+    f.sponsor !== 'ordinary' ||
+    f.formedLegallyInGreece
+  )
+    return validPermit;
   return allDue(
     validPermit,
     residenceDue(
@@ -711,7 +729,7 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
 
 function familyChecks(
   req: GrFullRequest,
-  { check }: GrContext,
+  { check, L }: GrContext,
 ): CountryCheck[] {
   const f = req.familyTcn ?? {};
   const age = ageOn(req.birthDate, req.simulationDate);
@@ -734,26 +752,45 @@ function familyChecks(
   const sponsorRefs = [
     grSource(
       'F16',
-      'arts. 42(2)–(4), 56(5), 83(1)–(2), 84(1), 87(1), 88(1)(ε), 92, 112(1)',
+      'arts. 11(10), 42(2)–(4), 56(5), 60(2), 83(1)–(2), 84(1), 87(1), 88(1)(ε), 92, 95(2), 112(1)',
     ),
-    grSource('F36', 'arts. 20, 29'),
+    grSource('F36', 'arts. 20, 29 (art. 95(2), p. 466)'),
     grSource('F21', 'art. 23(I), (II)'),
   ];
   if (!isAutonomous && f.sponsor === 'refugee') {
     return [
       check(
         'FT-01',
-        '国际保护家属团聚程序',
-        'Family reunification under international protection',
-        undefined,
+        'Ο.1 担保资格与国际保护专门程序',
+        'Ο.1 sponsorship and the protection-specific procedure',
+        familySponsor(f, req.simulationDate),
         sponsorRefs,
-        '已获难民身份的担保人须核对国际保护专门团聚程序、申请时间与材料豁免。',
-        'For a recognised refugee sponsor, verify the protection-specific procedure, application timing and document exemptions.',
+        'Ο.1 单独首签须核对担保人的合资格居留。难民身份涉及的专门团聚程序、申请时间与材料豁免须另行核实。',
+        'A separate initial Ο.1 filing requires qualifying sponsor residence. Verify the protection-specific procedure, timing and document exemptions for a recognised refugee.',
         ['PD-319'],
       ),
     ];
   }
   if (!isAutonomous) {
+    let sponsorNote = L(
+      '核对担保人的当前许可。许可到期后，有效的续期申请证明可证明担保人仍享有相应的居留权利。',
+      'Check the sponsor’s current permit. After expiry, a valid renewal filing certificate confirms that the sponsor retains the corresponding residence rights.',
+    );
+    if (!initial)
+      sponsorNote += L(
+        '担保人居留已终止时，家属可另按 Ο.2 核对自主居留权。',
+        ' If the sponsor’s residence has ended, assess any independent right under Ο.2 separately.',
+      );
+    else if (f.sponsor === 'blue-card')
+      sponsorNote += L(
+        '蓝卡和家属的完整首签申请可同步递交、同时决定。',
+        ' Complete initial Blue Card and family applications may be filed and decided together.',
+      );
+    else if (f.sponsor === 'ordinary' && !f.formedLegallyInGreece)
+      sponsorNote += L(
+        `普通担保人须合法居住满 ${p.familySponsor.value.years} 年，原许可期限至少 ${p.familySponsor.value.permitYears} 年且可通往永久居留。可填写连续居住起始日计算递件日期。`,
+        ` An ordinary sponsor needs ${p.familySponsor.value.years} years of lawful residence and a permit issued for at least ${p.familySponsor.value.permitYears} years with a prospect of permanent residence. Supply the residence start date to calculate a future filing date.`,
+      );
     checks.push(
       check(
         'FT-01',
@@ -761,16 +798,8 @@ function familyChecks(
         'Sponsor permit and prior residence',
         familySponsor(f, req.simulationDate),
         sponsorRefs,
-        initial
-          ? f.sponsor === 'blue-card'
-            ? '家属在担保人获批蓝卡后单独递件，须确认蓝卡仍有效。两份完整申请同步递交时可同时审理、决定。'
-            : `普通担保人须合法居住满 ${p.familySponsor.value.years} 年，现持许可仍有效，且签发期限至少 ${p.familySponsor.value.permitYears} 年、可通往永久居留。未满年限时填写连续居住起始日，以计算可递件日期。确认随行类别或在希合法组建家庭的专门程序。`
-          : '请确认担保人现仍持有合资格的居留身份。担保人居留已终止时，家属可另按 Ο.2 的条件核对自主居留权。',
-        initial
-          ? f.sponsor === 'blue-card'
-            ? 'If the family files separately after the sponsor has received a Blue Card, confirm the card is still valid. Complete applications filed together are decided together.'
-            : `An ordinary sponsor needs ${p.familySponsor.value.years} years of lawful residence and a currently valid permit issued for at least ${p.familySponsor.value.permitYears} years with a prospect of permanent residence. Supply the residence start date to calculate a future filing date. Identify any simultaneous-family or domestic family-formation procedure.`
-          : 'Confirm that the sponsor still holds qualifying residence. If that residence has ended, assess any independent right under Ο.2 separately.',
+        sponsorNote,
+        sponsorNote,
       ),
     );
     if (!initial) {

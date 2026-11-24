@@ -546,6 +546,53 @@ test.each([
 );
 
 test.each([
+  ['investor', 'MET', 'UNKNOWN'],
+  ['intra-corporate', 'MET', 'UNKNOWN'],
+  ['special-employment', 'MET', 'UNKNOWN'],
+  ['researcher', 'MET', 'UNKNOWN'],
+  ['refugee', 'UNKNOWN', 'UNKNOWN'],
+  ['excluded', 'NOT_MET', 'NOT_MET'],
+] as const)(
+  'Ο.1 separate initial filing checks the current %s sponsor permit',
+  (sponsor, validStatus, missingStatus) => {
+    for (const [sponsorPermitValid, expected] of [
+      [true, validStatus],
+      [false, 'NOT_MET'],
+      [undefined, missingStatus],
+    ] as const) {
+      const result = route('GR-FAMILY-TCN', {
+        familyTcn: { ...reunion, sponsor, sponsorPermitValid },
+      });
+      expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
+        expected,
+      );
+      expect(result.status).toBe(expected);
+    }
+  },
+);
+
+test.each([
+  ['pending', 'UNKNOWN'],
+  ['valid-certificate', 'MET'],
+] as const)(
+  'Ο.1 separate investor filing with an expired card and %s renewal evidence',
+  (sponsorRenewal, expected) => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: {
+        ...reunion,
+        sponsor: 'investor',
+        sponsorPermitValid: false,
+        sponsorRenewal,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
+      expected,
+    );
+    expect(result.status).toBe(expected);
+  },
+);
+
+test.each([
   [undefined, false, 'NOT_MET'],
   [false, false, 'NOT_MET'],
   [false, true, 'MET'],
@@ -597,6 +644,59 @@ test.each([
       'MET',
     );
     expect(result.status).toBe(status);
+  },
+);
+
+test.each([
+  ['national-visa', 'MET', 'UNKNOWN'],
+  ['short-stay', 'MET', 'UNKNOWN'],
+  ['permit', 'MET', 'UNKNOWN'],
+  ['receipt', 'UNKNOWN', 'UNKNOWN'],
+  ['restricted-permit', 'UNKNOWN', 'UNKNOWN'],
+  ['outside', 'UNKNOWN', 'UNKNOWN'],
+  [undefined, 'UNKNOWN', 'UNKNOWN'],
+  ['unlawful', 'NOT_MET', 'NOT_MET'],
+] as const)(
+  'Ο.1 %s entry screens health and public order independently of lawful entry',
+  (entry, entryStatus, pathWithHealthRisk) => {
+    const request = {
+      entry,
+      familyTcn: { ...reunion, sponsor: 'blue-card' as const },
+    };
+    const risk = route('GR-FAMILY-TCN', {
+      ...request,
+      publicHealth: 'possible-risk',
+    });
+    expect(risk.checks.find((item) => item.id === 'C-02')?.status).toBe(
+      entryStatus,
+    );
+    expect(risk.checks.find((item) => item.id === 'C-03')?.status).toBe('MET');
+    expect(risk.checks.find((item) => item.id === 'C-04')).toMatchObject({
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-302'],
+    });
+    expect(risk.status).toBe(pathWithHealthRisk);
+
+    const refusal = route('GR-FAMILY-TCN', {
+      ...request,
+      publicHealth: 'entry-refused',
+    });
+    expect(refusal.checks.find((item) => item.id === 'C-04')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(refusal.status).toBe('NOT_MET');
+
+    const adverse = route('GR-FAMILY-TCN', {
+      ...request,
+      publicOrder: 'adverse',
+    });
+    expect(adverse.checks.find((item) => item.id === 'C-03')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(adverse.checks.find((item) => item.id === 'C-04')?.status).toBe(
+      'MET',
+    );
+    expect(adverse.status).toBe('NOT_MET');
   },
 );
 
