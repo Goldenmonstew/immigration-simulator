@@ -1,7 +1,9 @@
 import { usFormEn, usFormZh } from './united-states-form';
+import { usGameEn, usGameZh } from './united-states-game';
 
 export const zhCN = {
   ...usFormZh,
+  ...usGameZh,
   'us.name': '美国',
   'hub.us.code': 'US',
   'hub.us.paths': '入籍 · 绿卡维持与返美 · 亲属、职业与人道移民',
@@ -66,6 +68,7 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   ...usFormEn,
+  ...usGameEn,
   'us.name': 'United States',
   'hub.us.code': 'US',
   'hub.us.paths':

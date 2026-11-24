@@ -1,5 +1,6 @@
 import { jpGameArt } from '@uk-immigration/game/jp/presentation';
 import { ukGameArt } from '@uk-immigration/game/uk/presentation';
+import { usGameArt } from '@uk-immigration/game/us/presentation';
 import { asset } from './asset';
 import type { siteCountries } from './site-countries';
 
@@ -8,6 +9,7 @@ type CountryId = (typeof siteCountries)[number]['id'];
 export const gameArt = {
   uk: ukGameArt,
   jp: jpGameArt,
+  us: usGameArt,
 } satisfies Partial<Record<CountryId, { root: string }>>;
 
 export type GameCountryId = keyof typeof gameArt;
