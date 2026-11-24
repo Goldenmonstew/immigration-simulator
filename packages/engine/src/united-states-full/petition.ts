@@ -60,6 +60,18 @@ export function carryForward(
   return typeof answer === 'string' ? reviewed(answer) : answer;
 }
 
+export function originalEmploymentAtFiling(
+  transfer: UsAdmissionAnswers['i485BasisTransfer'],
+) {
+  const original = transfer?.originalPetition;
+  if (original?.adjustmentBasis !== 'employment') return undefined;
+  const confirmed = original.qualifyingBasisAtFiling === 'cleared';
+  return {
+    offer: carryForward(confirmed, original.employmentOfferAtFiling),
+    pay: carryForward(confirmed, original.abilityToPayAtFiling),
+  };
+}
+
 type ApprovalFact =
   | (typeof approvalFacts.employment)[EmploymentCategory][number]
   | (typeof approvalFacts)[Exclude<

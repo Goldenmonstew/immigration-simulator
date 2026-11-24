@@ -21,9 +21,11 @@ import {
   pettyOffense,
 } from './naturalization';
 import {
+  carryForward,
   immediateRelative,
   isFamilyCategory,
   isI140Category,
+  originalEmploymentAtFiling,
   underlyingPetitionApproved,
 } from './petition';
 import type { AdjustmentCategory, preapprovedFacts } from './petition';
@@ -40,10 +42,9 @@ function ordinaryWaiver(grounds: Answer[], waiver?: UsReview): Answer[] {
 function medicalEvidenceCheck(
   a: UsAdmissionAnswers['i693AtFiling'],
   date: IsoDate | undefined,
-  adjustment: boolean,
 ): Answer {
   const law = v.medical.value;
-  const signed = adjustment ? a?.i693SignedOn : undefined;
+  const signed = a?.i693SignedOn;
   const signedValid = !signed
     ? true
     : date
@@ -53,12 +54,40 @@ function medicalEvidenceCheck(
       : undefined;
   const unlinked = not(a?.i693LinkedToAnotherClosedCase);
   const linkageValid =
-    !adjustment || (date && date < law.applicationLinkedFrom)
+    date && date < law.applicationLinkedFrom
       ? true
       : date || unlinked === true
         ? unlinked
         : undefined;
   return all(reviewed(a?.medicalEvidence), signedValid, linkageValid);
+}
+
+function i693Checks(
+  a: UsAdmissionAnswers | undefined,
+  receipt: IsoDate,
+  decision: IsoDate | undefined,
+  filedI485On: IsoDate | undefined,
+) {
+  const requiredAtFiling = receipt >= v.medical.value.requiredWithI485From;
+  const original = a?.i693AtFiling;
+  const signedOn = a?.i693SignedOn;
+  const lateSignature = filedI485On && signedOn && signedOn > receipt;
+  const filing = requiredAtFiling
+    ? medicalEvidenceCheck(original ?? (lateSignature ? undefined : a), receipt)
+    : true;
+  const legacyAtDecision =
+    lateSignature && decision && signedOn > decision ? undefined : a;
+  const atDecision =
+    a?.i693AtDecision ??
+    (legacyAtDecision?.medicalEvidence !== undefined ||
+    legacyAtDecision?.i693SignedOn
+      ? legacyAtDecision
+      : (original ?? legacyAtDecision));
+  return {
+    requiredAtFiling,
+    filing,
+    decision: medicalEvidenceCheck(atDecision, decision),
+  };
 }
 
 function criminalGrounds(
@@ -186,8 +215,7 @@ export function admissionChecks(
   const approvalDate = scope === 'return' ? receipt : decision;
   const publicChargeDate = adjustment ? (postmark ?? receipt) : receipt;
   const humanitarian = scope === 'humanitarian';
-  const optionalMedicalForm =
-    humanitarian && request.humanitarian?.status === 'refugee';
+  const refugee = humanitarian && request.humanitarian?.status === 'refugee';
   const exemptions = admissionExemptions(scope, a?.process, facts);
   const pendingSij =
     adjustment &&
@@ -284,52 +312,21 @@ export function admissionChecks(
         ? false
         : undefined;
   const health = [reviewed(a?.classAHealth), reviewed(a?.vaccines)];
-  const healthGrounds = optionalMedicalForm
+  const healthGrounds = refugee
     ? health
     : ordinaryWaiver(health, a?.healthWaiver);
-  const medicalLaw = v.medical.value;
-  const hasI485MedicalStages = adjustment || humanitarian;
-  const medicalWithApplication =
-    hasI485MedicalStages && receipt >= medicalLaw.requiredWithI485From;
-  const checkI693Validity =
-    adjustment || (humanitarian && !optionalMedicalForm);
-  const originalMedical = a?.i693AtFiling;
-  const signedOn = a?.i693SignedOn;
-  const lateLegacySignature =
-    filedI485On &&
-    checkI693Validity &&
-    signedOn &&
-    signedOn > receipt
-      ? signedOn
+  const i693 =
+    adjustment || humanitarian
+      ? i693Checks(a, receipt, approvalDate, filedI485On)
       : undefined;
-  const medicalAtFiling = medicalWithApplication
-    ? medicalEvidenceCheck(
-        originalMedical ?? (lateLegacySignature ? undefined : a),
-        receipt,
-        checkI693Validity,
-      )
-    : true;
-  const legacyAtDecision =
-    lateLegacySignature && approvalDate && lateLegacySignature > approvalDate
-      ? undefined
-      : a;
-  const decisionMedical = hasI485MedicalStages
-    ? (a?.i693AtDecision ??
-      (legacyAtDecision?.medicalEvidence !== undefined ||
-      legacyAtDecision?.i693SignedOn
-        ? legacyAtDecision
-        : (originalMedical ?? legacyAtDecision)))
-    : a;
+  const medicalAtFiling = i693 ? i693.filing : true;
   const medical = assessGround(
     healthGrounds,
-    all(
-      medicalAtFiling,
-      medicalEvidenceCheck(decisionMedical, approvalDate, checkI693Validity),
-    ),
+    all(medicalAtFiling, i693 ? i693.decision : reviewed(a?.medicalEvidence)),
     medicalAtFiling,
   );
   const medicalFilingStatus =
-    hasI485MedicalStages && !medicalWithApplication
+    i693 && !i693.requiredAtFiling
       ? 'MET'
       : adjustment
         ? checkStatus(all(medicalAtFiling, ...healthGrounds))
@@ -379,15 +376,15 @@ export function admissionChecks(
       medical.answer,
       consularVisa
         ? [...s.health, ...s.consularHealth]
-        : [...s.health, ...adjustmentSources],
+        : [...s.health, ...(i693 ? s.i693Scope : []), ...adjustmentSources],
       'PD-275',
       consularVisa
         ? [
             '收到面谈通知后安排指定医生体检。健康结论、疫苗及体检材料在签证核准前核对。',
             'Arrange the panel physician exam after receiving the interview notice. Health findings, vaccination and the exam report are checked before visa issuance.',
           ]
-        : adjustment || humanitarian
-          ? medicalWithApplication
+        : i693
+          ? i693.requiredAtFiling
             ? [
                 '所需 I-693 或部分疫苗记录须随 I-485 递交，并在核准时复核健康结论和材料有效性。',
                 'Submit any required I-693 or partial vaccination record with Form I-485. Health findings and validity are rechecked at approval.',
@@ -570,6 +567,7 @@ export function adjustmentChecks(
   const transfer =
     a?.process === 'adjustment' ? a.i485BasisTransfer : undefined;
   const original = transfer?.originalPetition;
+  const originalEmployment = originalEmploymentAtFiling(transfer);
   const petition = a?.petitionStatus;
   const petitionApproved = underlyingPetitionApproved(a);
   const { employment } = request;
@@ -690,6 +688,8 @@ export function adjustmentChecks(
           ? true
           : undefined,
         reviewed(original?.qualifyingBasisAtFiling),
+        originalEmployment ? originalEmployment.offer : true,
+        originalEmployment ? originalEmployment.pay : true,
         original?.adjustmentBasis === 'immediate-relative'
           ? true
           : availability(original?.visaAtFiling),
@@ -740,6 +740,17 @@ export function adjustmentChecks(
         visaAtDecision,
       );
   const civilDocuments = a?.nvcCivilDocuments;
+  const originalBars = original?.adjustmentBasis
+    ? carryForward(
+        original.qualifyingBasisAtFiling === 'cleared',
+        adjustmentBar(
+          { ...a, entryException: original.entryException },
+          original.adjustmentBasis,
+          original.adjustmentBasis === 'immediate-relative',
+          undefined,
+        ),
+      )
+    : undefined;
   return [
     check(
       'C33-VISA-AND-ENTRY',
@@ -825,6 +836,7 @@ export function adjustmentChecks(
                 `职业类须核对递交时的合法非移民身份或适用例外。合资格职业类按最近一次合法入境后的违规累计最多 ${v.adjustment.value.kDays} 天。假释返美不重置。其他禁令须分别检查。`,
                 `For employment-based adjustment, check lawful nonimmigrant status at filing or an applicable exception. Eligible applicants may have up to ${v.adjustment.value.kDays} violation days since the last lawful admission. Parole does not reset the count. Check independent bars separately.`,
               ],
+              transfer ? checkStatus(originalBars) : undefined,
             ),
             check(
               'C35-DISCRETION',

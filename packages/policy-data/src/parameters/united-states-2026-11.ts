@@ -459,6 +459,7 @@ export const unitedStatesFullSources = {
     ),
   ],
   adjustmentTransfer: [pm('SRC-309', 7, 'A', 8, '(A), (C), (E)')],
+  transferPortability: [pm('SRC-309', 7, 'A', 8, '(D)')],
   adjustmentFilingPresence: [
     source(
       'SRC-309',
@@ -555,6 +556,13 @@ export const unitedStatesFullSources = {
       'SRC-309',
       'I-485 Instructions p11, Item 9',
       'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf',
+    ),
+  ],
+  i693Scope: [
+    source(
+      'SRC-312',
+      'I-693 Instructions pp7–8, FAQ Items 1–5',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-693instr.pdf',
     ),
   ],
   consularHealth: [

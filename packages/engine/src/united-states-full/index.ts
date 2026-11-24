@@ -403,7 +403,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     request.pathway === 'US-HUMANITARIAN';
   const recordedI485Receipt = i485
     ? (admission?.i485FiledOn ??
-      (category === 'employment'
+      (category === 'employment' && !admission?.i485BasisTransfer
         ? request.employment?.jobPortability?.i485PendingSince
         : undefined))
     : undefined;

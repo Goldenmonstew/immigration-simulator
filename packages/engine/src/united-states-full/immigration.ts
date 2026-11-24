@@ -22,19 +22,41 @@ import {
   carryForward,
   currentFamilyPetitioner,
   isFamilyCategory,
+  originalEmploymentAtFiling,
   reportedAgeAtLeast,
   underlyingPetitionApproved,
 } from './petition';
 import type { AdjustmentCategory } from './petition';
 import type { preapprovedFacts } from './petition';
-import type { UsEmploymentAnswers, UsFullRequest } from './types';
+import type { UsEmploymentAnswers, UsFullCheck, UsFullRequest } from './types';
+
+function petitionChecksFor(
+  request: UsFullRequest,
+  originalFilingStatus: UsFullCheck['filingStatus'] = 'NOT_APPLICABLE',
+): ReturnType<typeof checksFor> {
+  const check = checksFor(request);
+  const a = request.admission;
+  if (a?.process !== 'adjustment' || !a.i485BasisTransfer) return check;
+  // The original basis is assessed in C33. Evidence for a replacement is approval-only.
+  return (id, zh, en, answer, sources, pending, detail) =>
+    check(
+      id,
+      zh,
+      en,
+      answer,
+      [...sources, ...s.adjustmentTransfer],
+      pending,
+      detail,
+      originalFilingStatus,
+    );
+}
 
 export function familyChecks(
   request: UsFullRequest,
   receipt: IsoDate,
   facts: ReturnType<typeof preapprovedFacts>,
 ) {
-  const check = checksFor(request);
+  const check = petitionChecksFor(request);
   const a = request.family;
   const date = request.admission?.petitionFiledOn ?? receipt;
   const law = v.familyAge.value;
@@ -196,7 +218,7 @@ export function supportChecks(
   receipt: IsoDate,
   formalApplicationOn: IsoDate,
 ) {
-  const check = checksFor(request);
+  const check = petitionChecksFor(request);
   const law = v.sponsor.value;
   const required = i864Required(request, category);
   const skip = ['无需提交 I-864。', 'Form I-864 is not required.'] satisfies [
@@ -457,10 +479,14 @@ export function employmentChecks(
     filedI485On?: IsoDate;
   },
 ) {
-  const check = checksFor(request);
+  const check = petitionChecksFor(request);
   const a = request.employment ?? {};
   const date = request.simulationDate;
   const admission = request.admission;
+  const transfer =
+    admission?.process === 'adjustment'
+      ? admission.i485BasisTransfer
+      : undefined;
   const petitionApproved = underlyingPetitionApproved(admission);
   const petitionAlreadyFiled =
     admission?.petitionStatus === 'pending' || petitionApproved;
@@ -536,7 +562,10 @@ export function employmentChecks(
       );
     const portability =
       admission?.process === 'adjustment' ? a.jobPortability : undefined;
-    const pendingSince = filedI485On;
+    const portabilitySources = portability
+      ? [...s.portability, ...(transfer ? s.transferPortability : [])]
+      : [];
+    const pendingSince = transfer ? portability?.i485PendingSince : filedI485On;
     const requestedOn = portability?.supplementJFiledOn;
     const pendingDays = v.portability.value.pendingDays;
     const port =
@@ -554,7 +583,7 @@ export function employmentChecks(
         reviewed(portability.sameOrSimilarOccupation),
       );
     const offerAtFiling =
-      portability && filedI485On
+      portability && (filedI485On || transfer)
         ? portability.originalOfferValidAtFiling
         : all(
             a.employmentOffer,
@@ -570,6 +599,7 @@ export function employmentChecks(
       admission?.process === 'adjustment' &&
       admission.i485ApplicantRole !== 'derivative' &&
       !filedI485On &&
+      !transfer &&
       petitionApproved;
     const pay = abilityToPay(request);
     const approvedEmployment = facts.has('employmentClassification');
@@ -577,9 +607,18 @@ export function employmentChecks(
       port === true ? carryForward(approvedEmployment, pay) : pay;
     const payAtFiling =
       portability && filedI485On ? carryForward(approvedEmployment, pay) : pay;
+    const original = originalEmploymentAtFiling(transfer);
+    const offerCheck = petitionChecksFor(
+      request,
+      original ? checkStatus(original.offer) : 'NOT_APPLICABLE',
+    );
+    const payCheck = petitionChecksFor(
+      request,
+      original ? checkStatus(original.pay) : 'NOT_APPLICABLE',
+    );
     return [
       ...based,
-      check(
+      offerCheck(
         'C28-OFFER-PERM',
         needsPerm ? '永久全职工作、职业资格及 PERM' : '永久职位与职业资格',
         needsPerm
@@ -591,30 +630,35 @@ export function employmentChecks(
           ...(facts.has('employmentClassification')
             ? s.approvedEmployment
             : []),
-          ...(portability ? s.portability : []),
+          ...portabilitySources,
         ],
         'PD-277',
-        portability
+        transfer
           ? [
-              `原邀约须在 I-485 递交时有效。待决满 ${pendingDays} 天后，可为真实的同类或相似职位提交 Supplement J。`,
-              `The original offer must have been valid at I-485 filing. Submit Supplement J for a bona fide offer in the same or a similar occupation after ${pendingDays} days pending.`,
+              '原递交按原请愿的邀约核对。核准按替换请愿的邀约、职业资格及适用的劳工认证核对。',
+              'Use the original petition’s offer for filing. For approval, check the replacement petition’s offer, classification and any applicable labor certification.',
             ]
-          : facts.has('employmentClassification')
+          : portability
             ? [
-                '本案请愿获批已确认当时的分类条件和适用的劳工认证。请核实工作邀约仍有效。',
-                'The approved petition establishes classification and any applicable labor certification requirements at filing. Confirm that the job offer is still valid.',
+                `原邀约须在 I-485 递交时有效。待决满 ${pendingDays} 天后，可为真实的同类或相似职位提交 Supplement J。`,
+                `The original offer must have been valid at I-485 filing. Submit Supplement J for a bona fide offer in the same or a similar occupation after ${pendingDays} days pending.`,
               ]
-            : !needsPerm
-              ? undefined
-              : a.perm === 'schedule-a'
-                ? [
-                    `Schedule A 在 I-140 收件前 ${v.perm.value.minDays}–${v.perm.value.maxDays} 天通知有管辖权的工会代表；无代表时在该窗口内连续张贴至少 ${v.perm.value.noticeWorkdays} 个工作日。另核对雇主承担费用。`,
-                    `For Schedule A, notify the applicable bargaining representative ${v.perm.value.minDays}–${v.perm.value.maxDays} days before I-140 receipt. Where there is no representative, post for at least ${v.perm.value.noticeWorkdays} consecutive business days within that window. Verify employer-paid costs separately.`,
-                  ]
-                : [
-                    '按 ETA-9089 收件日核对招聘与通知。PERM 有效期按实际或预计的 I-140 收件日核对。',
-                    'Check recruitment and notice against ETA-9089 receipt. Check PERM validity against actual or expected I-140 receipt.',
-                  ],
+            : facts.has('employmentClassification')
+              ? [
+                  '本案请愿获批已确认当时的分类条件和适用的劳工认证。请核实工作邀约仍有效。',
+                  'The approved petition establishes classification and any applicable labor certification requirements at filing. Confirm that the job offer is still valid.',
+                ]
+              : !needsPerm
+                ? undefined
+                : a.perm === 'schedule-a'
+                  ? [
+                      `Schedule A 在 I-140 收件前 ${v.perm.value.minDays}–${v.perm.value.maxDays} 天通知有管辖权的工会代表；无代表时在该窗口内连续张贴至少 ${v.perm.value.noticeWorkdays} 个工作日。另核对雇主承担费用。`,
+                      `For Schedule A, notify the applicable bargaining representative ${v.perm.value.minDays}–${v.perm.value.maxDays} days before I-140 receipt. Where there is no representative, post for at least ${v.perm.value.noticeWorkdays} consecutive business days within that window. Verify employer-paid costs separately.`,
+                    ]
+                  : [
+                      '按 ETA-9089 收件日核对招聘与通知。PERM 有效期按实际或预计的 I-140 收件日核对。',
+                      'Check recruitment and notice against ETA-9089 receipt. Check PERM validity against actual or expected I-140 receipt.',
+                    ],
         portability
           ? checkStatus(all(offerAtFiling, classification, perm, petitionDates))
           : petitionApproved
@@ -637,12 +681,12 @@ export function employmentChecks(
             ),
           ]
         : []),
-      check(
+      payCheck(
         'C29-ABILITY-TO-PAY',
         '雇主持续支付承诺工资',
         'Employer’s continuing ability to pay the proffered wage',
         payAtDecision,
-        portability ? [...s.pay, ...s.portability] : s.pay,
+        [...s.pay, ...portabilitySources],
         'PD-277',
         undefined,
         payAtFiling !== payAtDecision ? checkStatus(payAtFiling) : undefined,

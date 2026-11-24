@@ -857,3 +857,63 @@ PROGRESS 612。建议提交为 `Fix: 修正美国已收件案件的规划门禁�
 ### 4. 发现与建议
 
 - 申请转换的个案在 USCIS 准予之前，供引擎确认的是原递交结果。转换是否满足资格连续、申请待决与转换请求时名额等条件，以 USCIS 个案确认和 SRC-309 为依据。需要独立评估请求成功可能性时，应另提供这些事实。
+
+## 第二十一轮审核修正（review86-21）
+
+### 1. 做了什么
+
+PROGRESS 613。建议提交为 `Fix: 统一美国 I-693 两阶段核对并拆分换基请愿证据（review86-21）`，附 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+- C36 的完整与部分 I-693 共用收件、裁决两阶段核对。首次随件使用原收件日及原件。已收件后才签署的旧格式输入可用于裁决，单凭这份材料无法确认首次随件。裁决所用补件独立核对签署日和个案绑定。仅凭所属类别无法确认所需部分或报告有效性时，按相应阶段输出 `UNKNOWN`，见 PD-275。
+- 换基案件在 C33 核对原 I-485 收件、原请愿及原收件月排期。C28 和 C29 可分别接收 `originalPetition.employmentOfferAtFiling` 和 `originalPetition.abilityToPayAtFiling`。缺分项时可沿用明确确认的原请愿资格和支持证据汇总。分项的明确否定或待确认结论优先。替换请愿的证据用于核准，换基尚待确认时 C33 的核准结论为 `UNKNOWN`。见 SRC-309，7 USCIS-PM A.8(A)、(C)、(E)，PD-272、PD-277。
+
+#### 调整身份所需的 I-693 范围
+
+| 类别 | 适用材料 | SRC 定位 |
+| --- | --- | --- |
+| 即时亲属与亲属优先 | 通常为完整体检和疫苗记录。已做合格境外体检的 K 类另见下行。 | SRC-309，I-485 Instructions p11 Item 9；SRC-312，I-693 Instructions p7 FAQ Item 1。 |
+| 职业调整，包括雇主担保、EB-1A、NIW 和 EB-5 | 通常为完整体检和疫苗记录。 | SRC-309，I-485 Instructions p11 Item 9；SRC-312，I-693 Instructions p7 FAQ Item 1。 |
+| 难民 | 适用境外体检且无 Class A 发现时，交部分 I-693（Parts 1–5、7、10）。境外曾有 Class A 时须重做完整体检。 | SRC-312，I-693 Instructions p7 FAQ Item 2；SRC-314，7 USCIS-PM L.3(B)。 |
+| 庇护 | 通常为完整体检和疫苗记录。符合境外体检、无 Class A、及时递交条件的庇护衍生申请人交部分 I-693（Parts 1–5、7、10）。 | SRC-312，I-693 Instructions pp7–8 FAQ Items 1、4；SRC-314，7 USCIS-PM M.3(B)。 |
+| VAWA、SIJ、INA §245(i) 及其他境内调整 | 一般提交完整体检和疫苗记录。适用的个案例外按表单说明核对。 | SRC-309，I-485 Instructions p11 Item 9；SRC-312，I-693 Instructions p7 FAQ Item 1。 |
+| 符合境外体检复用条件的 K 类 | 符合条件时可沿用境外体检及妥善归档的 DS-3025。缺合格疫苗记录时补部分 I-693（Parts 1–5、7、10）。 | SRC-312，I-693 Instructions pp7–8 FAQ Item 3。 |
+| 符合条件的 Operation Allies Welcome 入境者 | 档案含符合时限的境外体检、未发现 Class A 且无入境后新发 Class A 的证据时，可适用免重做 I-693 的说明。 | SRC-312，I-693 Instructions p8 FAQ Item 5。 |
+
+各类实际需交的完整表或部分表均适用 SRC-309，I-485 Instructions p11 Item 9，以及 SRC-312，Form I-693 页首生效说明和 PA-2025-08 pp1–2。`medicalEvidence` 接收对该案所需材料的确认。
+
+#### 换基时按请愿取值的检查
+
+| 检查 | 两阶段处理及依据 |
+| --- | --- |
+| C23–24 亲属关系与请愿禁令 | 核准用替换 I-130 的关系和请愿证据。原依据及支持证据在 C33 核对。SRC-302，8 U.S.C. §1154(a)–(c)、(g) 和 8 CFR §204.2(a)(1)；SRC-309，7 USCIS-PM A.8(C)、(E)。 |
+| C25–27 I-864 | 适用性、请愿担保人及财务证据取对应依据。替换担保材料用于核准，原担保材料归入 C33 原依据确认。SRC-303，8 CFR §213a.2(a)(1)、(c)(1)，I-864 Instructions p3；SRC-309，7 USCIS-PM A.8(C)。 |
+| C28 邀约、职业资格及 PERM 工资 | 原递交用原邀约和原请愿资格认定。职业分类、认证、招聘及 prevailing/proffered wage 按各自请愿的职位核对。替换 I-140 的职业转换用该基础适用的待决起日，缺起日则替代途径为 `UNKNOWN`。SRC-305，20 CFR §§656.10(c)(1)、656.15(b)、656.24(b)(3)；SRC-309，8 CFR §245.25(a)、7 USCIS-PM A.8(C)–(E)。 |
+| C29 支付能力 | 原递交核对原雇主对原承诺工资的支付能力。核准用替换雇主及其承诺工资、年度记录和适用替代证据。SRC-302，8 CFR §204.5(g)(2)；SRC-305，6 USCIS-PM E.4(A)–(B)、(D)(5)。 |
+| C30–32、职业请愿的婚姻欺诈禁令与首次 Supplement J | 自申、投资和其他请愿的证据依所属请愿核对。首次 Supplement J 对应原 I-485，替换依据及职业转换所需的证据在核准阶段核对。已建模的 Gold Card 走领馆流程。SRC-302，8 U.S.C. §1154(c)；SRC-306–308；SRC-309，7 USCIS-PM A.8(C)–(E)、I-485 Instructions p10 Item 8。 |
+| C33–34 名额、入境和调整禁令 | 首次递交用原查验入境、分类、适用禁令及排期。核准按替换基础核对。SRC-309，8 U.S.C. §1255(a)、(c)、(k)、7 USCIS-PM A.6、A.8。 |
+| C37、C40 分类相关的准入豁免 | C37 在核准阶段核对。C40 核对申请人的移民史。跨 VAWA／SIJ 换基所涉豁免应分别确认原案与替换案的适用资格，属于独立的准入证据。SRC-309，8 U.S.C. §1255(h)(2)，SRC-311，8 U.S.C. §1182(a)。 |
+
+### 2. 怎么验证的
+
+- 从 `fb62c5b` 运行美国 Engine 的 652 项和 Web 的 8 项既有专测，均通过。使用同一份输入在基线归档及本轮工作树回放美国专项套件和第 1–20 轮审核复现。旧 `evaluateUnitedStates` 的 43 次完整输出逐字段一致。完整版 2,494 次调用的路径递交和核准状态及日期全部一致。2,462 次检查结论、适用性和待确认项一致。32 次差异全属换基用例，仅改变 C25–29、C34 与职业请愿禁令的阶段标记或其关联待确认条目。比较检查时排除说明文字和来源数组。
+- 本轮新增 19 项 Engine 回归。从同一批新增断言捕获 53 次调用，分别用 `fb62c5b` 和本轮引擎回放。14 次状态和日期一致，39 次差异均属于下表的 I-693 或换基证据问题及其边界。
+- 设置 `VITEST_MAX_WORKERS=2` 后，`pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。全仓 5,905 项测试通过，1 项既有测试跳过。构建生成 27 个静态页面，已核对美国导出页。`git diff --check` 通过。
+- `pnpm --filter e2e exec playwright test united-states.spec.ts --project=desktop --workers=1` 用临时 Chromium 单进程配置，对 `fb62c5b` 归档构建和本轮静态构建各通过 1 项。
+
+| 第二十一轮复现 | `fb62c5b` 路径递交／核准 | 本轮路径递交／核准 |
+| --- | --- | --- |
+| 难民仅填原收件后签署的部分 I-693 | `MET`／`MET` | `UNKNOWN`／`UNKNOWN` |
+| 难民首次随件有效，裁决补件绑定另一个已结案个案 | `MET`／`MET` | `MET`／`NOT_MET` |
+| 难民首次随件、裁决补件各自有效 | `MET`／`MET` | `MET`／`MET` |
+| 换基待确认，原邀约有效，替换邀约失效 | `NOT_MET`／`NOT_MET` | `MET`／`NOT_MET`。C33 仍为 `MET`／`UNKNOWN` |
+| 换基待确认，替换职位工资或替换雇主支付能力未达标 | `NOT_MET`／`NOT_MET` | `MET`／`NOT_MET` |
+
+### 3. 没做或没验证的
+
+- 工作树交 Fable 提交。本轮验证覆盖本地及静态构建。
+- 跨 VAWA／SIJ 换基时，C40 分类豁免的分阶段证据仍待单独核对。
+
+### 4. 发现与建议
+
+- 换基后，调用方分别从原案收件记录和替换请愿材料填值。当 SRC-309 的职业转换待决期间需要重计时，`admission.i485FiledOn` 保留原 I-485 收件日，`employment.jobPortability.i485PendingSince` 记录替换基础适用的起日。
+- 医疗材料范围取决于原体检、疫苗记录和个案例外。引擎用 `medicalEvidence` 接收所需材料的个案确认，特殊境外体检复用或免表资格由案卷确定。见 PD-275。

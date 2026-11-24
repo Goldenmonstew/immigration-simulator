@@ -7193,3 +7193,295 @@ describe('review86-20 regressions', () => {
     ).toBe('UNKNOWN');
   });
 });
+
+describe('review86-21 regressions', () => {
+  const originalMedical = {
+    medicalEvidence: 'cleared',
+    i693SignedOn: '2026-07-31',
+    i693LinkedToAnotherClosedCase: false,
+  } as const;
+  const supplementalMedical = {
+    ...originalMedical,
+    i693SignedOn: '2026-11-16',
+  } as const;
+  const medicalReceipt = {
+    ...admission,
+    i485FiledOn: '2026-08-03',
+    decisionOn: '2026-11-23',
+  } as const;
+
+  test.each([
+    ['late signature only', supplementalMedical, 'UNKNOWN', 'UNKNOWN'],
+    [
+      'same case at both stages',
+      { ...supplementalMedical, i693AtFiling: originalMedical },
+      'MET',
+      'MET',
+    ],
+    [
+      'replacement tied to a different closed case',
+      {
+        i693AtFiling: originalMedical,
+        i693AtDecision: {
+          ...supplementalMedical,
+          i693LinkedToAnotherClosedCase: true,
+        },
+      },
+      'MET',
+      'NOT_MET',
+    ],
+    [
+      'original tied to a different closed case',
+      {
+        i693AtFiling: {
+          ...originalMedical,
+          i693LinkedToAnotherClosedCase: true,
+        },
+        i693AtDecision: supplementalMedical,
+      },
+      'NOT_MET',
+      'NOT_MET',
+    ],
+    [
+      'unknown linkage at adjudication',
+      {
+        i693AtFiling: originalMedical,
+        i693AtDecision: {
+          ...supplementalMedical,
+          i693LinkedToAnotherClosedCase: undefined,
+        },
+      },
+      'MET',
+      'UNKNOWN',
+    ],
+  ] as const)(
+    'checks partial refugee I-693 evidence by stage (%s)',
+    (_, medical, filing, approval) => {
+      const request = { ...h, admission: { ...medicalReceipt, ...medical } };
+      expect(condition(request, 'C36-HEALTH')).toMatchObject({
+        filingStatus: filing,
+        status: approval,
+      });
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: filing,
+        approvalStatus: approval,
+      });
+      expect(result.earliestDate).toBe(
+        filing === 'MET' ? time.simulationDate : undefined,
+      );
+      expect(result.approvalEarliestDate).toBe(
+        approval === 'MET' ? medicalReceipt.decisionOn : undefined,
+      );
+      if (approval === 'UNKNOWN')
+        expect(result.pendingDetails).toContain('PD-275');
+    },
+  );
+
+  test.each([
+    ['family', f],
+    ['employment', e],
+    ['asylee', { ...h, humanitarian: { ...human, status: 'asylee' } }],
+    ['VAWA', withAdmission({ adjustmentBasis: 'vawa' })],
+    ['SIJ', withAdmission({ adjustmentBasis: 'sij' })],
+    ['other adjustment', withAdmission({ adjustmentBasis: '245i' })],
+  ] as const)('uses the same I-693 stage checks for %s', (_, base) => {
+    const request = {
+      ...base,
+      admission: {
+        ...medicalReceipt,
+        ...base.admission,
+        ...supplementalMedical,
+      },
+    };
+    expect(condition(request, 'C36-HEALTH')).toMatchObject({
+      filingStatus: 'UNKNOWN',
+      status: 'UNKNOWN',
+    });
+    expect(
+      condition(
+        {
+          ...request,
+          admission: { ...request.admission, i693AtFiling: originalMedical },
+        },
+        'C36-HEALTH',
+      ),
+    ).toMatchObject({ filingStatus: 'MET', status: 'MET' });
+  });
+
+  const originalPetition = {
+    adjustmentBasis: 'employment',
+    filedOn: '2026-05-01',
+    qualifyingBasisAtFiling: 'cleared',
+    visaAtFiling: 'available',
+  } as const;
+  const replacement = {
+    ...e,
+    admission: {
+      ...e.admission,
+      i485FiledOn: '2026-05-27',
+      decisionOn: '2026-11-23',
+      i485BasisTransfer: { originalPetition },
+    },
+  } satisfies UsFullRequest;
+
+  test.each(['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const)(
+    'uses only replacement evidence for approval in %s',
+    (pathway) => {
+      for (const [adverseEvidence, check] of [
+        [{ employmentOffer: false }, 'C28-OFFER-PERM'],
+        [{ prevailingWageUsd: 60001 }, 'C28-OFFER-PERM'],
+        [
+          {
+            wageYears: [
+              { paidUsd: 50000, netIncomeUsd: 9999, netCurrentAssetsUsd: 0 },
+            ],
+          },
+          'C29-ABILITY-TO-PAY',
+        ],
+      ] as const) {
+        const request = {
+          ...replacement,
+          pathway,
+          employment: {
+            ...employment,
+            i140FiledOn: '2026-07-01',
+            ...adverseEvidence,
+            wageYears:
+              'wageYears' in adverseEvidence
+                ? [...adverseEvidence.wageYears]
+                : employment.wageYears,
+          },
+        };
+        expect(condition(request, check)).toMatchObject({
+          filingStatus: 'MET',
+          status: 'NOT_MET',
+        });
+        expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+          filingStatus: 'MET',
+          status: 'UNKNOWN',
+        });
+        const result = path(request);
+        expect(result).toMatchObject({
+          status: 'MET',
+          earliestDate: time.simulationDate,
+          approvalStatus: 'NOT_MET',
+        });
+        expect(result.approvalEarliestDate).toBeUndefined();
+      }
+    },
+  );
+
+  test.each([
+    [{ employmentOfferAtFiling: false }, 'C28-OFFER-PERM', 'NOT_MET'],
+    [{ abilityToPayAtFiling: 'pending' }, 'C29-ABILITY-TO-PAY', 'UNKNOWN'],
+    [{ abilityToPayAtFiling: 'barred' }, 'C29-ABILITY-TO-PAY', 'NOT_MET'],
+  ] as const)(
+    'uses a specific original finding ahead of the aggregate (%s)',
+    (finding, check, filing) => {
+      const request = {
+        ...replacement,
+        admission: {
+          ...replacement.admission,
+          i485BasisTransfer: {
+            approvedOn: '2026-08-03',
+            originalPetition: { ...originalPetition, ...finding },
+          },
+        },
+      };
+      expect(condition(request, check)).toMatchObject({
+        filingStatus: filing,
+        status: 'MET',
+      });
+      expect(path(request)).toMatchObject({
+        status: filing,
+        approvalStatus: filing,
+      });
+    },
+  );
+
+  test('the replacement family petitioner and sponsor do not alter the original filing', () => {
+    const request = {
+      ...f,
+      family: { ...family, relationshipValid: 'barred' },
+      support: { ...support, affidavitSubmitted: false },
+      admission: {
+        ...replacement.admission,
+        adjustmentBasis: 'immediate-relative',
+      },
+    } satisfies UsFullRequest;
+    for (const check of ['C23-RELATIONSHIP', 'C26-SPONSOR']) {
+      expect(condition(request, check)).toMatchObject({
+        filingStatus: 'NOT_APPLICABLE',
+        status: 'NOT_MET',
+      });
+    }
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'NOT_MET',
+    });
+  });
+
+  test('judges adjustment bars at filing under the original classification', () => {
+    const request = {
+      ...replacement,
+      admission: {
+        ...replacement.admission,
+        otherAdjustmentBar: 'vwp',
+        i485BasisTransfer: {
+          originalPetition: {
+            ...originalPetition,
+            adjustmentBasis: 'immediate-relative',
+          },
+        },
+      },
+    } satisfies UsFullRequest;
+    expect(condition(request, 'C34-ADJUSTMENT-BARS')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'NOT_MET',
+    });
+    expect(path(request)).toMatchObject({
+      status: 'MET',
+      approvalStatus: 'NOT_MET',
+    });
+  });
+
+  test('does not count original I-485 pendency toward portability on a replacement I-140', () => {
+    const request = {
+      ...replacement,
+      employment: {
+        ...replacement.employment,
+        employmentOffer: false,
+        jobPortability: {
+          originalOfferValidAtFiling: true,
+          newOffer: true,
+          sameOrSimilarOccupation: 'cleared',
+          supplementJFiledOn: '2026-11-23',
+        },
+      },
+      admission: {
+        ...replacement.admission,
+        i485BasisTransfer: { originalPetition, approvedOn: '2026-08-03' },
+      },
+    } satisfies UsFullRequest;
+    expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'UNKNOWN',
+    });
+    expect(
+      condition(
+        {
+          ...request,
+          employment: {
+            ...request.employment,
+            jobPortability: {
+              ...request.employment.jobPortability,
+              i485PendingSince: '2026-07-02',
+            },
+          },
+        },
+        'C28-OFFER-PERM',
+      ),
+    ).toMatchObject({ filingStatus: 'MET', status: 'NOT_MET' });
+  });
+});

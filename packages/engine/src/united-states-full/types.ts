@@ -297,9 +297,9 @@ export interface UsEmploymentAnswers {
   /** Whether the required, signed Supplement J accompanies the initial I-485. */
   initialSupplementJIncluded?: boolean;
   jobPortability?: {
-    /** Actual receipt date of the properly filed I-485 still pending on this I-140 basis. */
+    /** Start of I-485 pendency for portability on this I-140 basis, using the transfer request receipt when a restart applies. */
     i485PendingSince?: IsoDate;
-    /** The petitioned offer was valid and the beneficiary intended to accept it when filing I-485. */
+    /** The petitioned offer was valid when filing on this basis, and the beneficiary intended to accept it. */
     originalOfferValidAtFiling?: boolean;
     /** A bona fide permanent, full-time offer that the beneficiary and employer intend to carry out. */
     newOffer?: boolean;
@@ -438,8 +438,12 @@ export interface UsAdmissionAnswers {
     originalPetition?: {
       filedOn?: IsoDate;
       adjustmentBasis?: UsAdmissionAnswers['adjustmentBasis'];
-      /** Eligibility under the original petition at I-485 receipt, including any required petition approval. */
+      /** Original basis and supporting evidence at I-485 receipt, including any required petition approval. */
       qualifyingBasisAtFiling?: UsReview;
+      /** Valid offer and intent to accept the job under the original petition at I-485 receipt, when required. */
+      employmentOfferAtFiling?: boolean;
+      /** Original employer's ability to pay its own proffered wage through I-485 receipt, when required. */
+      abilityToPayAtFiling?: UsReview;
       /** Availability under the original petition on the chart designated for the I-485 receipt month. */
       visaAtFiling?: UsVisaAvailability;
       entryException?: UsReview;
@@ -464,6 +468,7 @@ export interface UsAdmissionAnswers {
   discretion?: UsReview;
   classAHealth?: UsReview;
   vaccines?: UsReview;
+  /** Case finding on the required medical report, including a partial I-693 when sufficient. */
   medicalEvidence?: UsReview;
   i693SignedOn?: IsoDate;
   i693LinkedToAnotherClosedCase?: boolean;
