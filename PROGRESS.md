@@ -588,6 +588,10 @@
 | 673 | 任务 88 第二十一轮审核修正（review88-21）。希腊家属卡及 Μ.1 按资格窗口优先核算逐次行程。Ν、Μ.3 仅在中断后重算居留周年，补同段汇总、短途返希及汇总覆盖期间的公开入口回归，并与 45f9526 逐输入对照。 | packages/engine/src/greece-{property-family,settlement}.ts、packages/engine/test/greece-{property-family,settlement}.test.ts、docs/tasks/reports/88-gr-rules.md |
 | 674 | 任务 88 第二十二轮审核修正（review88-22）。Μ.1 换卡和重获保留获权后离欧汇总，以连续离希日期核上界；Ν 和 Ο.3 按申报事由、适用期间与行程核对离境，部分行程无法解释的超限汇总继续参与判断。补公开入口回归并与 93e5a8d 回放历轮原输入。 | packages/engine/src/greece-{property-family,settlement}.ts、packages/engine/test/greece-{property-family,settlement}.test.ts、docs/tasks/reports/88-gr-rules.md |
 | 675 | 任务 88 第二十三轮审核修正（review88-23）。Μ.1、Ν 和 Ο.3／Μ.3 按汇总覆盖期核对行程，以日数范围匹配小数月。补换卡与重获、返希后重新届满、获权前后离境的公开入口回归，并与 5527ce8c 回放历轮审核。 | packages/engine/src/greece-{rules,settlement,property-family}.ts、packages/engine/test/greece-{settlement,property-family}.test.ts、docs/tasks/reports/88-gr-rules.md |
+| 676 | 任务 98：政策页标题与参数千分位按国家通用（与任务 93 相同的 `policy-page.tsx`），非英国国家读 `<国家>.policy.pageTitle`。 | apps/web/components/policy-page.tsx |
+| 677 | 任务 98：希腊完整版国家模块、问卷字段、对比旋钮与政策目录，首页／问卷／结果／对比／政策页接入 `evaluateGreeceFull`；旧的只算时间单页由新页面接管，问卷要求确认离境行程已列全，年度离境汇总按居留周年提示，PD-312／PD-315 在相关问题标注待确认。集合入口卡片改为完整版范围。 | apps/web/lib/greece-{draft,fields,module,policy,whatif}.ts、删除 apps/web/lib/greece.ts、apps/web/app/greece/、apps/web/i18n/{zh-CN,en,countries/greece,countries/greece-form}.ts、apps/web/lib/site-countries.ts、apps/web/public/sw.js、apps/web/test/about-page.test.tsx |
+| 678 | 任务 98：希腊模块单测（草稿编解码、分步校验、满足／未来日期／待确认、未确认行程、对比旋钮、政策目录与问卷字段 id）与双语 e2e。 | apps/web/test/greece.test.tsx、apps/e2e/tests/greece.spec.ts |
+| 679 | 任务 98：任务报告（问卷步骤与字段、对比旋钮、旧链接处理、验证结果）。 | docs/tasks/reports/98-gr-pages.md |
 | 680 | 任务 89：登记爱尔兰完整版官方快照、来源及待定细节，保留现有入籍与 Stamp 来源。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 681 | 任务 89：登记爱尔兰完整版的年龄、证明、许可、家庭、长期居留和条约居留参数及原文定位。 | packages/policy-data/src/{index,parameters/ireland-2026-11}.ts |
 | 682 | 任务 89：实现 16 条爱尔兰完整版评估，合并原有时间条件与法定资格、材料、费用和待确认事项，补双语 ID、边界及组合测试和交接报告。 | packages/engine/src/{index.ts,ireland-full/}、packages/engine/test/ireland-full.test.ts、docs/tasks/reports/89-ie-rules.md |
