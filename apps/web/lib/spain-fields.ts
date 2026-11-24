@@ -16,6 +16,8 @@ export type SpainField = {
   label: SpainFieldName;
   hint?: Suffix<'form'>;
   required?: boolean;
+  /** Household sizes count at least one person. */
+  min?: number;
 } & (
   | { type: 'boolean' | 'date' | 'number' | 'integer' | 'date-list' }
   | { type: 'choice'; options: readonly SpainOption[] }
@@ -49,10 +51,11 @@ const number = (name: SpainFieldName): SpainField => ({
   label: name,
   type: 'number',
 });
-const integer = (name: SpainFieldName): SpainField => ({
+const integer = (name: SpainFieldName, min?: number): SpainField => ({
   name,
   label: name,
   type: 'integer',
+  min,
 });
 const choice = (
   name: SpainFieldName,
@@ -108,7 +111,7 @@ export const spainNatTopFields: SpainField[] = [
   date('marriedToSpaniard'),
 ];
 
-const cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
+export const cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
 const deleExemptCountries = [
   'AR',
   'BO',
@@ -294,7 +297,7 @@ export const healthCoverFields: SpainField[] = [
 ];
 
 export const familyResourcesFields: SpainField[] = [
-  integer('familySize'),
+  integer('familySize', 1),
   number('eligibleMonthlyIncome'),
   list('income', [
     choice(
@@ -498,7 +501,7 @@ export const spainMobilitySections = {
         group('employer', [
           choice('kind', ['individual', 'company']),
           ...flags('taxAndSocialSecurityCurrent', 'projectAndPayrollSupported'),
-          integer('householdSize'),
+          integer('householdSize', 1),
           number('monthlyResourcesAfterGrossSalary'),
         ]),
       ]),

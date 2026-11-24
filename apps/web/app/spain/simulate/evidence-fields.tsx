@@ -310,7 +310,7 @@ function Question({
       <input
         {...props}
         type={isNumber ? 'number' : 'date'}
-        min={isNumber ? 0 : undefined}
+        min={isNumber ? (field.min ?? 0) : undefined}
         step={isNumber ? (field.type === 'number' ? 'any' : 1) : undefined}
         required={required}
         value={String(value ?? '')}

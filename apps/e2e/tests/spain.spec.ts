@@ -213,6 +213,10 @@ test('Spanish questionnaire assesses pathways, saves scenarios, shares links and
     .last();
   await gaps.locator('a[href*="?focus=dele"]').click();
   await expect(page.locator('#es-whatif-dele')).toBeFocused();
+  // Opening the comparison changes nothing until a control moves.
+  await expect(
+    page.getByRole('main').getByText(zhCN['whatif.unchanged'], { exact: true }),
+  ).toHaveCount(2);
 });
 
 test('English mobile questionnaire compares dates on what-if and shows Spanish policy sources without horizontal scroll', async ({

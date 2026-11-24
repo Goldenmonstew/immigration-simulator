@@ -129,6 +129,16 @@ export function activeSpainAnswers(draft: SpainDraft): SpainDraft {
   };
 }
 
+// The answers the engine reads.
+export function spainEngineInput(draft: SpainDraft): SpainDraft {
+  const active = activeSpainAnswers(draft);
+  const { schooling } = active.residence;
+  // Notice dates apply child by child, so an unconfirmed list stays unconfirmed.
+  return schooling && !schooling.children
+    ? { ...active, residence: { ...active.residence, schooling: undefined } }
+    : active;
+}
+
 type Errors = Record<string, TranslationKey>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -242,6 +252,8 @@ function checkFields(
           !Number.isSafeInteger(value)
         )
           errors[id] = 'es.form.integerError';
+        else if (required && field.min !== undefined && value < field.min)
+          errors[id] = 'es.whatif.invalidFamilySize';
         break;
     }
   }

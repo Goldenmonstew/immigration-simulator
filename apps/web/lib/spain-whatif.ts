@@ -1,12 +1,21 @@
-import type { EsNationalityRoute } from '@uk-immigration/engine';
+import {
+  evaluateSpainFull,
+  type CountryResult,
+  type EsHealthCover,
+  type EsNationalityFacts,
+  type EsNationalityRoute,
+} from '@uk-immigration/engine';
+import { spainFull2026_11 } from '@uk-immigration/policy-data';
 import { SpainWhatIfControls } from '../app/spain/whatif/controls';
 import type { TranslationKey } from '../i18n';
 import {
   activeSpainAnswers,
+  spainEngineInput,
   spainSteps,
   validateSpainStep,
   type SpainDraft,
 } from './spain-draft';
+import { cefrLevels } from './spain-fields';
 import { validDate } from './questionnaire';
 import type { CountryWhatIf } from './whatif';
 
@@ -51,7 +60,6 @@ const focusByCondition: Record<string, keyof typeof spainFocusControls> = {
   'ES-N10': 'conduct',
   'ES-N11': 'dele',
   'ES-N12': 'ccse',
-  'ES-N13': 'ccse',
   'ES-N16': 'ccse',
   'ES-L-BASIS': 'date',
   'ES-L01': 'date',
@@ -78,7 +86,6 @@ const focusByCondition: Record<string, keyof typeof spainFocusControls> = {
   'ES-M02': 'income',
   'ES-M03': 'insurance',
   'ES-M04': 'salary',
-  'ES-M05': 'salary',
   'ES-M08': 'conduct',
   'ES-F01': 'date',
   'ES-F03': 'income',
@@ -87,14 +94,12 @@ const focusByCondition: Record<string, keyof typeof spainFocusControls> = {
   'ES-R03': 'date',
   'ES-R04': 'date',
   'ES-R05': 'conduct',
-  'ES-R06': 'income',
   'ES-R07': 'insurance',
   'ES-T01': 'date',
   'ES-T02': 'trips',
   'ES-U04': 'date',
   'ES-U04-basis': 'date',
   'ES-U04-retention': 'trips',
-  'ES-U05': 'income',
   'ES-U06': 'date',
   'ES-U07': 'date',
   'ES-U08': 'date',
@@ -105,238 +110,347 @@ const focusByCondition: Record<string, keyof typeof spainFocusControls> = {
   'ES-TRANSITION': 'date',
 };
 
+const v = spainFull2026_11.values;
+
+// Each yes/no control starts from the baseline status of the conditions it sets.
+const conditionsFor = {
+  delePassed: ['ES-N11'],
+  ccsePassed: ['ES-N12'],
+  healthCover: ['ES-E06', 'ES-M03', 'ES-F04', 'ES-R07'],
+  conductCleared: [
+    'ES-N10',
+    'ES-N10-RECORDS',
+    'ES-L12',
+    'ES-L12-CERT',
+    'ES-E08',
+    'ES-E08-CERT',
+    'ES-M08',
+    'ES-R05',
+    'ES-U12',
+  ],
+};
+
+function baselineAnswer(result: CountryResult, ids: string[]) {
+  const statuses = result.columns
+    .flatMap((column) => column.pathways)
+    .flatMap((pathway) => pathway.checks)
+    .filter((check) => ids.includes(check.id) && check.applicable !== false)
+    .map((check) => check.status);
+  if (!statuses.length) return undefined;
+  if (statuses.every((status) => status === 'MET')) return true;
+  if (statuses.every((status) => status === 'NOT_MET')) return false;
+  return undefined;
+}
+
+/** The common value when every route that records it agrees. */
+function agreed(values: (number | undefined)[]) {
+  const known = values.filter((value) => value !== undefined);
+  return known.length && known.every((value) => value === known[0])
+    ? known[0]
+    : undefined;
+}
+
+export const spainMobilityPurpose = (draft: SpainDraft) =>
+  draft.targets.includes('M') ? draft.mobility.purpose : undefined;
+
+function initialKnobs(stored: SpainDraft): SpainWhatIf {
+  const draft = activeSpainAnswers(stored);
+  const result = evaluateSpainFull({
+    ...spainEngineInput(stored),
+    locale: 'en',
+  });
+  const has = (target: SpainDraft['targets'][number]) =>
+    draft.targets.includes(target);
+  const purpose = spainMobilityPurpose(draft);
+  const own = has('E') ? draft.residence.resources : undefined;
+  const family = has('F') ? draft.mobility.family?.resources : undefined;
+  const nonWorking =
+    purpose === 'non-working' ? draft.mobility.holder?.nonWorking : undefined;
+  return {
+    simulationDate: draft.simulationDate,
+    noTrips: false,
+    natRoute: draft.route,
+    delePassed: baselineAnswer(result, conditionsFor.delePassed),
+    ccsePassed: baselineAnswer(result, conditionsFor.ccsePassed),
+    familySize: agreed([
+      own?.familySize,
+      family?.familySize,
+      nonWorking?.dependants === undefined
+        ? undefined
+        : nonWorking.dependants + 1,
+    ]),
+    monthlyIncome: agreed([
+      own?.eligibleMonthlyIncome,
+      family?.eligibleMonthlyIncome,
+      nonWorking?.monthlyNonWorkIncome,
+    ]),
+    annualSalary:
+      purpose === 'employment'
+        ? draft.mobility.holder?.employment?.annualGrossSalary
+        : undefined,
+    healthCover: baselineAnswer(result, conditionsFor.healthCover),
+    conductCleared: baselineAnswer(result, conditionsFor.conductCleared),
+  };
+}
+
+const reliefs = [
+  'spanish-eso-diploma',
+  'full-dispensation',
+  'judicial-exemption-confirmed',
+  'pending',
+];
+
+// A "no" or unconfirmed exam answer cannot rest on a granted or pending dispensation.
+function withoutRelief(
+  n: EsNationalityFacts,
+  answer: false | undefined,
+): EsNationalityFacts {
+  return n.examRelief === undefined || reliefs.includes(n.examRelief)
+    ? { ...n, examRelief: answer === false ? 'none' : undefined }
+    : n;
+}
+
+function withLanguage(
+  n: EsNationalityFacts,
+  answer?: boolean,
+): EsNationalityFacts {
+  const minimum = v.nationalityDeleMinimum.value as (typeof cefrLevels)[number];
+  if (answer)
+    return {
+      ...n,
+      deleEvidence: 'dele',
+      deleLevel:
+        n.deleLevel &&
+        cefrLevels.indexOf(n.deleLevel) >= cefrLevels.indexOf(minimum)
+          ? n.deleLevel
+          : minimum,
+    };
+  // Without the certificate, only a nationality outside the exempt list remains.
+  const others = n.documentedNationalities?.filter(
+    (country) => !v.nationalityDeleExemptCountries.value.includes(country),
+  );
+  return {
+    ...withoutRelief(n, answer),
+    deleEvidence: answer === false ? 'none' : undefined,
+    deleLevel: undefined,
+    documentedNationalities:
+      answer === false ? (others ?? []) : others?.length ? others : undefined,
+  };
+}
+
+function withCivicTest(
+  n: EsNationalityFacts,
+  answer: boolean | undefined,
+  date: string,
+): EsNationalityFacts {
+  if (answer)
+    return {
+      ...n,
+      ccse: {
+        ...n.ccse,
+        verifiedPass: true,
+        issued: date,
+        validThrough: undefined,
+      },
+    };
+  return {
+    ...withoutRelief(n, answer),
+    ccse: answer === false ? { ...n.ccse, verifiedPass: false } : undefined,
+  };
+}
+
+function cover(answer: boolean | undefined, validFrom: string) {
+  return answer === undefined
+    ? undefined
+    : answer
+      ? ({
+          kind: 'public',
+          entitledOrAuthorized: true,
+          validFrom,
+          proof: true,
+        } satisfies EsHealthCover)
+      : ({ kind: 'none' } satisfies EsHealthCover);
+}
+
 export const spainWhatIf: CountryWhatIf<SpainDraft, SpainWhatIf> = {
   focusControls: spainFocusControls,
   focusForRule: (id) => focusByCondition[id],
-  initial(stored) {
-    const draft = activeSpainAnswers(stored);
-    const nat = draft.nationality;
-    const res = draft.residence;
-    const mob = draft.mobility;
-    const rec = draft.recovery;
-    const fm = draft.freeMovement;
-    const delePassed =
-      nat.deleEvidence === 'registered-official-equivalent' ||
-      (nat.deleEvidence === 'dele' &&
-        nat.deleLevel !== undefined &&
-        nat.deleLevel !== 'A1')
-        ? true
-        : nat.deleEvidence === 'none'
-          ? false
-          : undefined;
-    const ins =
-      res.insurance ?? mob.holder?.healthCover ?? mob.family?.healthCover ?? rec.insurance;
-    const healthCover =
-      ins?.proof && ins.entitledOrAuthorized && ins.kind && ins.kind !== 'none'
-        ? true
-        : ins?.kind === 'none'
-          ? false
-          : undefined;
-    const conductCleared =
-      nat.conductAndSecurityDecision ??
-      (res.securityDecision
-        ? res.securityDecision === 'clear'
-        : mob.holder?.securityDecision
-          ? mob.holder.securityDecision === 'cleared'
-          : rec.publicOrderAndSecurityCleared ?? fm.noOfficialRestriction);
-    return {
-      simulationDate: draft.simulationDate,
-      noTrips: false,
-      natRoute: draft.route,
-      delePassed,
-      ccsePassed: nat.ccse?.verifiedPass,
-      familySize:
-        res.resources?.familySize ?? mob.family?.resources?.familySize,
-      monthlyIncome:
-        res.resources?.eligibleMonthlyIncome ??
-        mob.family?.resources?.eligibleMonthlyIncome ??
-        mob.holder?.nonWorking?.monthlyNonWorkIncome,
-      annualSalary: mob.holder?.employment?.annualGrossSalary,
-      healthCover,
-      conductCleared,
-    };
-  },
+  initial: initialKnobs,
+  // Only the controls moved away from the baseline change the copy.
   apply(stored, knobs) {
     const draft = activeSpainAnswers(stored);
+    const baseline = initialKnobs(stored);
+    const changed = (key: keyof SpainWhatIf) => knobs[key] !== baseline[key];
+    const has = (target: SpainDraft['targets'][number]) =>
+      draft.targets.includes(target);
+    const purpose = spainMobilityPurpose(draft);
     const date = knobs.simulationDate;
-    const next: SpainDraft = {
-      ...draft,
-      simulationDate: date,
-      route: knobs.natRoute ?? draft.route,
-      trips: knobs.noTrips ? [] : draft.trips,
-      nationality: { ...draft.nationality },
-      residence: { ...draft.residence },
-      mobility: { ...draft.mobility },
-      recovery: { ...draft.recovery },
-      longTermCard: { ...draft.longTermCard },
-      freeMovement: { ...draft.freeMovement },
+    const filed = (on?: string) => (on && on < date ? on : date);
+    let {
+      trips,
+      route,
+      nationality,
+      residence,
+      mobility,
+      recovery,
+      longTermCard,
+      freeMovement,
+    } = draft;
+    const holder = (patch: NonNullable<typeof mobility.holder>) => {
+      mobility = { ...mobility, holder: { ...mobility.holder, ...patch } };
     };
+    const family = (patch: NonNullable<typeof mobility.family>) => {
+      mobility = { ...mobility, family: { ...mobility.family, ...patch } };
+    };
+
     if (knobs.noTrips) {
-      if (next.residence.tripDetails) next.residence.tripDetails = [];
-      if (next.freeMovement.trips) next.freeMovement.trips = [];
-      if (next.longTermCard.absences) next.longTermCard.absences = [];
-      if (next.longTermCard.outsideSpainPeriods)
-        next.longTermCard.outsideSpainPeriods = [];
+      trips = [];
+      if (residence.tripDetails) residence = { ...residence, tripDetails: [] };
+      if (longTermCard.absences)
+        longTermCard = { ...longTermCard, absences: [] };
+      if (longTermCard.outsideSpainPeriods)
+        longTermCard = { ...longTermCard, outsideSpainPeriods: [] };
+      if (has('U')) {
+        const worker = freeMovement.workerResidenceEvidence;
+        freeMovement = {
+          ...freeMovement,
+          trips: [],
+          longestPostAcquisitionAbsence: undefined,
+          ...(worker?.trips
+            ? { workerResidenceEvidence: { ...worker, trips: [] } }
+            : {}),
+        };
+      }
     }
-    if (knobs.delePassed !== undefined) {
-      next.nationality = {
-        ...next.nationality,
-        deleEvidence: knobs.delePassed ? 'dele' : 'none',
-        deleLevel: knobs.delePassed
-          ? next.nationality.deleLevel && next.nationality.deleLevel !== 'A1'
-            ? next.nationality.deleLevel
-            : 'A2'
-          : next.nationality.deleLevel,
-      };
+    if (changed('natRoute')) route = knobs.natRoute;
+    if (changed('delePassed'))
+      nationality = withLanguage(nationality, knobs.delePassed);
+    if (changed('ccsePassed'))
+      nationality = withCivicTest(nationality, knobs.ccsePassed, date);
+    if (changed('familySize')) {
+      const size = knobs.familySize;
+      if (has('E'))
+        residence = {
+          ...residence,
+          resources: { ...residence.resources, familySize: size },
+        };
+      if (has('F'))
+        family({
+          resources: { ...mobility.family?.resources, familySize: size },
+        });
+      if (purpose === 'non-working')
+        holder({
+          nonWorking: {
+            ...mobility.holder?.nonWorking,
+            dependants: size === undefined ? undefined : size - 1,
+          },
+        });
     }
-    if (knobs.ccsePassed !== undefined) {
-      next.nationality = {
-        ...next.nationality,
-        ccse: {
-          ...next.nationality.ccse,
-          verifiedPass: knobs.ccsePassed,
-          issued: knobs.ccsePassed
-            ? (next.nationality.ccse?.issued ?? date)
-            : next.nationality.ccse?.issued,
+    if (changed('monthlyIncome')) {
+      const income = knobs.monthlyIncome;
+      if (has('E'))
+        residence = {
+          ...residence,
+          resources: { ...residence.resources, eligibleMonthlyIncome: income },
+        };
+      if (has('F'))
+        family({
+          resources: {
+            ...mobility.family?.resources,
+            eligibleMonthlyIncome: income,
+          },
+        });
+      if (purpose === 'non-working')
+        holder({
+          nonWorking: {
+            ...mobility.holder?.nonWorking,
+            monthlyNonWorkIncome: income,
+          },
+        });
+    }
+    if (changed('annualSalary') && purpose === 'employment')
+      holder({
+        employment: {
+          ...mobility.holder?.employment,
+          annualGrossSalary: knobs.annualSalary,
         },
-      };
-    }
-    if (knobs.familySize !== undefined || knobs.monthlyIncome !== undefined) {
-      const patchResources = (
-        current: SpainDraft['residence']['resources'],
-      ) => ({
-        ...current,
-        ...(knobs.familySize !== undefined
-          ? { familySize: knobs.familySize }
-          : {}),
-        ...(knobs.monthlyIncome !== undefined
-          ? { eligibleMonthlyIncome: knobs.monthlyIncome, stable: current?.stable ?? true }
-          : {}),
       });
-      if (next.targets.includes('E')) {
-        next.residence = {
-          ...next.residence,
-          resources: patchResources(next.residence.resources),
-        };
-      }
-      if (next.targets.includes('F')) {
-        next.mobility = {
-          ...next.mobility,
-          family: {
-            ...next.mobility.family,
-            resources: patchResources(next.mobility.family?.resources),
-          },
-        };
-      }
-      if (next.targets.includes('M') && knobs.monthlyIncome !== undefined) {
-        next.mobility = {
-          ...next.mobility,
-          holder: {
-            ...next.mobility.holder,
-            nonWorking: {
-              ...next.mobility.holder?.nonWorking,
-              dependants:
-                next.mobility.holder?.nonWorking?.dependants ??
-                (knobs.familySize !== undefined
-                  ? Math.max(0, knobs.familySize - 1)
-                  : 0),
-              monthlyNonWorkIncome: knobs.monthlyIncome,
-              sourceAndAvailabilityDocumented:
-                next.mobility.holder?.nonWorking
-                  ?.sourceAndAvailabilityDocumented ?? true,
-            },
-          },
-        };
+    if (changed('healthCover')) {
+      const answer = knobs.healthCover;
+      if (has('E'))
+        residence = { ...residence, insurance: cover(answer, date) };
+      if (has('R-E'))
+        recovery = { ...recovery, insurance: cover(answer, date) };
+      if (purpose === 'non-working')
+        holder({ healthCover: cover(answer, filed(mobility.holder?.filedOn)) });
+      if (has('F')) {
+        family({
+          healthCover: cover(answer, filed(mobility.family?.filedOn)),
+        });
+        // Without cover, the holder's policy no longer covers the family member.
+        const held = mobility.holder?.healthCover;
+        if (held && !answer && !has('M'))
+          holder({ healthCover: { ...held, coversFamilyMember: answer } });
       }
     }
-    if (knobs.annualSalary !== undefined && next.targets.includes('M')) {
-      next.mobility = {
-        ...next.mobility,
-        holder: {
-          ...next.mobility.holder,
-          employment: {
-            ...next.mobility.holder?.employment,
-            annualGrossSalary: knobs.annualSalary,
-          },
-        },
-      };
-    }
-    if (knobs.healthCover !== undefined) {
-      const cover = knobs.healthCover
-        ? {
-            kind: 'public' as const,
-            entitledOrAuthorized: true,
-            equivalentCoverage: true,
-            validFrom: date <= '2000-01-01' ? date : '2000-01-01',
-            proof: true,
-          }
-        : { kind: 'none' as const };
-      if (next.targets.includes('E'))
-        next.residence = { ...next.residence, insurance: cover };
-      if (next.targets.includes('M') || next.targets.includes('F')) {
-        next.mobility = {
-          ...next.mobility,
-          holder: {
-            ...next.mobility.holder,
-            healthCover: { ...cover, coversFamilyMember: knobs.healthCover },
-          },
-          family: {
-            ...next.mobility.family,
-            healthCover: cover,
-          },
-        };
-      }
-      if (next.targets.includes('R-E'))
-        next.recovery = { ...next.recovery, insurance: cover };
-    }
-    if (knobs.conductCleared !== undefined) {
-      if (next.targets.includes('N')) {
-        next.nationality = {
-          ...next.nationality,
-          conductAndSecurityDecision: knobs.conductCleared,
-          criminalRecords: knobs.conductCleared
+    if (changed('conductCleared')) {
+      const answer = knobs.conductCleared;
+      if (has('N'))
+        nationality = {
+          ...nationality,
+          conductAndSecurityDecision: answer,
+          criminalRecords: answer
             ? {
                 spanishRecordOrQuery: true,
                 originRecordOrLawfulAlternative: true,
                 militaryProcedureIfApplicable: true,
               }
-            : next.nationality.criminalRecords,
+            : answer === false
+              ? nationality.criminalRecords
+              : undefined,
         };
-      }
-      if (next.targets.includes('L') || next.targets.includes('E')) {
-        next.residence = {
-          ...next.residence,
-          securityDecision: knobs.conductCleared ? 'clear' : 'threat',
-          criminalCertificatesWhereRequired: knobs.conductCleared,
+      if (has('L') || has('E'))
+        residence = {
+          ...residence,
+          securityDecision:
+            answer === undefined ? undefined : answer ? 'clear' : 'threat',
+          criminalCertificatesWhereRequired:
+            answer === false
+              ? residence.criminalCertificatesWhereRequired
+              : answer,
         };
-      }
-      if (next.targets.includes('M')) {
-        next.mobility = {
-          ...next.mobility,
-          holder: {
-            ...next.mobility.holder,
-            securityDecision: knobs.conductCleared ? 'cleared' : 'adverse',
-            noRefusalAlert: knobs.conductCleared,
-            noReturnBar: knobs.conductCleared,
-          },
+      if (has('M'))
+        holder({
+          securityDecision:
+            answer === undefined ? undefined : answer ? 'cleared' : 'adverse',
+          noRefusalAlert:
+            answer === false ? mobility.holder?.noRefusalAlert : answer,
+          noReturnBar: answer === false ? mobility.holder?.noReturnBar : answer,
+        });
+      if (has('R-N') || has('R-E'))
+        recovery = {
+          ...recovery,
+          publicOrderAndSecurityCleared: answer,
+          publicHealthCleared:
+            answer === false ? recovery.publicHealthCleared : answer,
+          clearRecordsInAllCountries:
+            answer === false ? recovery.clearRecordsInAllCountries : answer,
         };
-      }
-      if (next.targets.includes('R-N') || next.targets.includes('R-E')) {
-        next.recovery = {
-          ...next.recovery,
-          publicOrderAndSecurityCleared: knobs.conductCleared,
-          publicHealthCleared: knobs.conductCleared,
-          clearRecordsInAllCountries: knobs.conductCleared,
-        };
-      }
-      if (next.targets.includes('U')) {
-        next.freeMovement = {
-          ...next.freeMovement,
-          noOfficialRestriction: knobs.conductCleared,
-        };
-      }
+      if (has('U'))
+        freeMovement = { ...freeMovement, noOfficialRestriction: answer };
     }
-    return activeSpainAnswers(next);
+    return activeSpainAnswers({
+      ...draft,
+      simulationDate: date,
+      trips,
+      route,
+      nationality,
+      residence,
+      mobility,
+      recovery,
+      longTermCard,
+      freeMovement,
+    });
   },
   validate(draft, knobs) {
     const errors: Record<string, TranslationKey> = {};

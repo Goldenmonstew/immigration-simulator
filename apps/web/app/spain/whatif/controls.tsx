@@ -9,6 +9,7 @@ import type { TranslationKey } from '../../../i18n';
 import type { SpainDraft } from '../../../lib/spain-draft';
 import {
   spainFocusControls as ids,
+  spainMobilityPurpose,
   type SpainWhatIf,
 } from '../../../lib/spain-whatif';
 import type { WhatIfControlsProps } from '../../../lib/whatif';
@@ -22,25 +23,16 @@ export function SpainWhatIfControls({
 }: WhatIfControlsProps<SpainDraft, SpainWhatIf>) {
   const { t } = useTranslation();
   const targets = afterDraft.targets;
-  const hasNat = targets.includes('N');
-  const hasTrips = targets.some(
-    (item) => item === 'N' || item === 'L' || item === 'E' || item === 'U',
-  );
-  const hasFamilyResources = targets.some(
-    (item) => item === 'E' || item === 'F' || item === 'M',
-  );
-  const hasIncome = targets.some(
-    (item) =>
-      item === 'E' ||
-      item === 'F' ||
-      item === 'M' ||
-      item === 'R-E' ||
-      item === 'U',
-  );
-  const hasSalary = targets.includes('M');
-  const hasInsurance = targets.some(
-    (item) => item === 'E' || item === 'M' || item === 'F' || item === 'R-E',
-  );
+  const purpose = spainMobilityPurpose(afterDraft);
+  const has = (...items: typeof targets) =>
+    targets.some((item) => items.includes(item));
+  const hasNat = has('N');
+  // M reads card absences (ES-T02).
+  const hasTrips = has('N', 'L', 'E', 'U', 'M');
+  const hasResources = has('E', 'F') || purpose === 'non-working';
+  const hasSalary = purpose === 'employment';
+  const hasInsurance = has('E', 'F', 'R-E') || purpose === 'non-working';
+  const hasConduct = has('N', 'L', 'E', 'M', 'R-N', 'R-E', 'U');
 
   function choice(
     field: 'delePassed' | 'ccsePassed' | 'healthCover' | 'conductCleared',
@@ -132,7 +124,7 @@ export function SpainWhatIfControls({
           {choice('ccsePassed', ids.ccse, 'es.whatif.ccse')}
         </>
       )}
-      {hasFamilyResources && (
+      {hasResources && (
         <div className={styles.field}>
           <label htmlFor={ids.familySize}>{t('es.whatif.familySize')}</label>
           <input
@@ -154,7 +146,7 @@ export function SpainWhatIfControls({
           {error('familySize')}
         </div>
       )}
-      {hasIncome && (
+      {hasResources && (
         <div className={styles.field}>
           <label htmlFor={ids.income}>{t('es.whatif.income')}</label>
           <input
@@ -198,8 +190,9 @@ export function SpainWhatIfControls({
           {error('salary')}
         </div>
       )}
-      {hasInsurance && choice('healthCover', ids.insurance, 'es.whatif.insurance')}
-      {choice('conductCleared', ids.conduct, 'es.whatif.conduct')}
+      {hasInsurance &&
+        choice('healthCover', ids.insurance, 'es.whatif.insurance')}
+      {hasConduct && choice('conductCleared', ids.conduct, 'es.whatif.conduct')}
     </>
   );
 }
