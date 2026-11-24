@@ -244,7 +244,10 @@ function conditionsTiming(
     const late = !single && receipt > deadline;
     if (late && excuse !== true)
       return {
-        status: excuse === false ? 'NOT_MET' : 'UNKNOWN',
+        status:
+          excuse === false && (investor || marriage?.filing === 'joint')
+            ? 'NOT_MET'
+            : 'UNKNOWN',
         special: true,
       };
     return {
@@ -395,7 +398,22 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const admission = request.admission;
   const consularApplication =
     immigrantApplication && admission?.process === 'consular';
+  const i485 =
+    (immigrantApplication && admission?.process === 'adjustment') ||
+    request.pathway === 'US-HUMANITARIAN';
+  const recordedI485Receipt = i485
+    ? (admission?.i485FiledOn ??
+      (category === 'employment'
+        ? request.employment?.jobPortability?.i485PendingSince
+        : undefined))
+    : undefined;
+  const filedI485On =
+    recordedI485Receipt && recordedI485Receipt <= date
+      ? recordedI485Receipt
+      : undefined;
+  const planningI485 = i485 && !filedI485On;
   const usesUscisReceipt =
+    !filedI485On &&
     !consularApplication &&
     request.pathway !== 'US-TRAVEL' &&
     (request.pathway !== 'US-CONDITIONS' ||
@@ -437,22 +455,9 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
     nvcOpening > date
       ? nvcOpening
       : undefined;
-  const i485 =
-    (immigrantApplication && admission?.process === 'adjustment') ||
-    request.pathway === 'US-HUMANITARIAN';
-  const recordedI485Receipt = i485
-    ? (admission?.i485FiledOn ??
-      (category === 'employment'
-        ? request.employment?.jobPortability?.i485PendingSince
-        : undefined))
-    : undefined;
-  const filedI485On =
-    recordedI485Receipt && recordedI485Receipt <= date
-      ? recordedI485Receipt
-      : undefined;
   let filingCandidate = nvcFilingDate ?? date;
   let applicationReceipt = filedI485On ? date : receiptOn(filingCandidate);
-  if (i485 && !filedI485On) {
+  if (planningI485) {
     let returnOn =
       returnFromTrip(request.trips, applicationReceipt) ??
       returnFromTrip(request.trips, filingCandidate);
@@ -525,6 +530,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       : filingOn;
   const admissionTiming = {
     receipt: filingReceipt,
+    filedI485On,
     decision,
     formalApplicationOn,
     postmark,
@@ -676,18 +682,12 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
           filingReceipt,
           formalApplicationOn ?? filingReceipt,
         ),
-        ...adjustmentChecks(
-          request,
-          category,
-          admissionTiming,
-          facts,
-          filedI485On,
-        ),
+        ...adjustmentChecks(request, category, admissionTiming, facts),
       ];
       break;
     }
     case 'US-HUMANITARIAN':
-      requirements = humanitarianChecks(request, admissionTiming, filedI485On);
+      requirements = humanitarianChecks(request, admissionTiming);
       break;
     case 'US-MILITARY':
       requirements = [
@@ -752,6 +752,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
           category,
           request.pathway === 'US-TRAVEL' ? date : (filedI485On ?? receipt),
           postmark,
+          filedI485On,
         );
   const checks = [...timingChecks, ...requirements, ...notes];
   const pendingDetails = [

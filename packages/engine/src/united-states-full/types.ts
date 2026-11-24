@@ -339,10 +339,11 @@ export interface UsEmploymentAnswers {
   officerStatementAccepted?: UsReview;
   /** One entry for each legally required year from the priority date. */
   wageYears?: {
-    paidUsd: number;
+    paidUsd?: number;
     netIncomeUsd?: number;
     netCurrentAssetsUsd?: number;
   }[];
+  /** Whether the annual records cover the full required period. False means some records are missing. */
   wagePeriodComplete?: boolean;
   abilityToPayTotality?: UsReview;
   internationalAward?: boolean;
@@ -394,6 +395,11 @@ type UsVisaAvailability = 'available' | 'unavailable' | 'future-bulletin';
 
 type UsOtherInadmissibilityParagraph = 5 | 6 | 7 | 8 | 9 | 10;
 
+type UsI693Evidence = Pick<
+  UsAdmissionAnswers,
+  'medicalEvidence' | 'i693SignedOn' | 'i693LinkedToAnotherClosedCase'
+>;
+
 export interface UsAdmissionAnswers {
   /** Bare prospective applications have no favourable discretionary finding yet. */
   process?: 'adjustment' | 'consular';
@@ -425,6 +431,20 @@ export interface UsAdmissionAnswers {
   petitionStatus?: 'filed-with-i485' | 'pending' | 'approved';
   /** Actual receipt date for an underlying petition other than I-140. */
   petitionFiledOn?: IsoDate;
+  /** An I-485 transfer of underlying basis. The regular petition fields describe the replacement basis. */
+  i485BasisTransfer?: {
+    /** Date USCIS granted the transfer. Leave unset while unconfirmed. */
+    approvedOn?: IsoDate;
+    originalPetition?: {
+      filedOn?: IsoDate;
+      adjustmentBasis?: UsAdmissionAnswers['adjustmentBasis'];
+      /** Eligibility under the original petition at I-485 receipt, including any required petition approval. */
+      qualifyingBasisAtFiling?: UsReview;
+      /** Availability under the original petition on the chart designated for the I-485 receipt month. */
+      visaAtFiling?: UsVisaAvailability;
+      entryException?: UsReview;
+    };
+  };
   legalEntry?: 'admitted' | 'paroled' | 'without-inspection';
   adjustmentBasis?:
     | 'immediate-relative'
@@ -447,6 +467,10 @@ export interface UsAdmissionAnswers {
   medicalEvidence?: UsReview;
   i693SignedOn?: IsoDate;
   i693LinkedToAnotherClosedCase?: boolean;
+  /** Evidence specific to the original report included with this I-485. */
+  i693AtFiling?: UsI693Evidence;
+  /** Evidence specific to a supplemental report used for the modeled decision. */
+  i693AtDecision?: UsI693Evidence;
   healthWaiver?: UsReview;
   /** Confirmed exemption for the current application or admission, including any conditions at adjudication. */
   publicChargeExempt?: boolean;

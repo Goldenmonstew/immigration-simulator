@@ -13,6 +13,7 @@ export function feeChecks(
   category: AdjustmentCategory,
   receipt: IsoDate,
   filingOn?: IsoDate,
+  filedI485On?: IsoDate,
 ) {
   const check = checksFor(request);
   const a = request.fees;
@@ -325,7 +326,10 @@ export function feeChecks(
         ),
       );
   }
-  if (immigration === 'adjustment' || request.pathway === 'US-HUMANITARIAN') {
+  if (
+    !filedI485On &&
+    (immigration === 'adjustment' || request.pathway === 'US-HUMANITARIAN')
+  ) {
     const child =
       request.dateOfBirth !== undefined &&
       receipt < afterYears(request.dateOfBirth, law.i485ChildAge);
@@ -424,19 +428,20 @@ export function feeChecks(
     i94: hr1.i94[period],
   };
   if (a?.hr1) checks.push(fee('HR1', 'H.R. 1', feesByType[a.hr1], s.hr1Fee));
-  checks.push(
-    check(
-      'C45-FEE-RELIEF',
-      '费用减免及 H.R. 1 附加费',
-      'Fee relief and H.R. 1 additional fees',
-      reliefStatus,
-      [...s.feeRelief, ...s.hr1Fee],
-      'PD-276',
-      [
-        `适用表格的 I-912 可按资检福利、家庭收入不超过贫困线 ${law.waiverRatio * 100}% 或极端经济困难申请。N-400 纸申减费门槛为 ${law.reducedRatio * 100}%。H.R. 1 费用另核对法定豁免。`,
-        `For eligible forms, I-912 can use means-tested benefits, household income at or below ${law.waiverRatio * 100}% of the poverty guideline, or extreme financial hardship. The paper N-400 reduced fee uses ${law.reducedRatio * 100}%. Check statutory exceptions separately for H.R. 1 fees.`,
-      ],
-    ),
-  );
+  if (!filedI485On)
+    checks.push(
+      check(
+        'C45-FEE-RELIEF',
+        '费用减免及 H.R. 1 附加费',
+        'Fee relief and H.R. 1 additional fees',
+        reliefStatus,
+        [...s.feeRelief, ...s.hr1Fee],
+        'PD-276',
+        [
+          `适用表格的 I-912 可按资检福利、家庭收入不超过贫困线 ${law.waiverRatio * 100}% 或极端经济困难申请。N-400 纸申减费门槛为 ${law.reducedRatio * 100}%。H.R. 1 费用另核对法定豁免。`,
+          `For eligible forms, I-912 can use means-tested benefits, household income at or below ${law.waiverRatio * 100}% of the poverty guideline, or extreme financial hardship. The paper N-400 reduced fee uses ${law.reducedRatio * 100}%. Check statutory exceptions separately for H.R. 1 fees.`,
+        ],
+      ),
+    );
   return checks;
 }

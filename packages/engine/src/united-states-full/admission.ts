@@ -38,7 +38,7 @@ function ordinaryWaiver(grounds: Answer[], waiver?: UsReview): Answer[] {
 }
 
 function medicalEvidenceCheck(
-  a: UsAdmissionAnswers | undefined,
+  a: UsAdmissionAnswers['i693AtFiling'],
   date: IsoDate | undefined,
   adjustment: boolean,
 ): Answer {
@@ -156,6 +156,7 @@ function petitionApprovalUnconfirmed(
 
 type AdmissionTiming = {
   receipt: IsoDate;
+  filedI485On?: IsoDate;
   decision?: IsoDate;
   formalApplicationOn?: IsoDate;
   postmark?: IsoDate;
@@ -164,7 +165,13 @@ type AdmissionTiming = {
 export function admissionChecks(
   request: UsFullRequest,
   scope: 'immigrant' | 'return' | 'humanitarian',
-  { receipt, decision, formalApplicationOn, postmark }: AdmissionTiming,
+  {
+    receipt,
+    decision,
+    formalApplicationOn,
+    postmark,
+    filedI485On,
+  }: AdmissionTiming,
   category?: AdjustmentCategory,
   facts?: ReturnType<typeof preapprovedFacts>,
 ) {
@@ -281,23 +288,48 @@ export function admissionChecks(
     ? health
     : ordinaryWaiver(health, a?.healthWaiver);
   const medicalLaw = v.medical.value;
+  const hasI485MedicalStages = adjustment || humanitarian;
   const medicalWithApplication =
-    (adjustment || humanitarian) && receipt >= medicalLaw.requiredWithI485From;
+    hasI485MedicalStages && receipt >= medicalLaw.requiredWithI485From;
   const checkI693Validity =
     adjustment || (humanitarian && !optionalMedicalForm);
+  const originalMedical = a?.i693AtFiling;
+  const signedOn = a?.i693SignedOn;
+  const lateLegacySignature =
+    filedI485On &&
+    checkI693Validity &&
+    signedOn &&
+    signedOn > receipt
+      ? signedOn
+      : undefined;
   const medicalAtFiling = medicalWithApplication
-    ? medicalEvidenceCheck(a, receipt, checkI693Validity)
+    ? medicalEvidenceCheck(
+        originalMedical ?? (lateLegacySignature ? undefined : a),
+        receipt,
+        checkI693Validity,
+      )
     : true;
+  const legacyAtDecision =
+    lateLegacySignature && approvalDate && lateLegacySignature > approvalDate
+      ? undefined
+      : a;
+  const decisionMedical = hasI485MedicalStages
+    ? (a?.i693AtDecision ??
+      (legacyAtDecision?.medicalEvidence !== undefined ||
+      legacyAtDecision?.i693SignedOn
+        ? legacyAtDecision
+        : (originalMedical ?? legacyAtDecision)))
+    : a;
   const medical = assessGround(
     healthGrounds,
     all(
       medicalAtFiling,
-      medicalEvidenceCheck(a, approvalDate, checkI693Validity),
+      medicalEvidenceCheck(decisionMedical, approvalDate, checkI693Validity),
     ),
     medicalAtFiling,
   );
   const medicalFilingStatus =
-    (adjustment || humanitarian) && !medicalWithApplication
+    hasI485MedicalStages && !medicalWithApplication
       ? 'MET'
       : adjustment
         ? checkStatus(all(medicalAtFiling, ...healthGrounds))
@@ -497,8 +529,10 @@ function adjustmentBar(
     return other;
   const violations = a?.qualifyingViolationsDays;
   const employmentStatus =
-    category !== 'employment' ||
-    (a?.lawfulNonimmigrantStatusAtFiling ?? a?.legalEntry !== 'paroled');
+    category !== 'employment'
+      ? true
+      : (a?.lawfulNonimmigrantStatusAtFiling ??
+        (a?.legalEntry === 'paroled' ? false : undefined));
   if (violations === 0 && employmentStatus) return other;
   const kCategory =
     category === 'employment'
@@ -529,11 +563,13 @@ export function adjustmentChecks(
   category: AdjustmentCategory,
   timing: AdmissionTiming,
   facts: ReturnType<typeof preapprovedFacts>,
-  filedI485On?: IsoDate,
 ) {
-  const { receipt: filingReceipt, decision } = timing;
+  const { receipt: filingReceipt, decision, filedI485On } = timing;
   const check = checksFor(request);
   const a = request.admission;
+  const transfer =
+    a?.process === 'adjustment' ? a.i485BasisTransfer : undefined;
+  const original = transfer?.originalPetition;
   const petition = a?.petitionStatus;
   const petitionApproved = underlyingPetitionApproved(a);
   const { employment } = request;
@@ -548,7 +584,13 @@ export function adjustmentChecks(
     facts,
   );
   const immediateAtDecision = decision
-    ? immediateRelative(request, category, filingReceipt, facts, decision)
+    ? immediateRelative(
+        request,
+        category,
+        transfer?.approvedOn ?? filingReceipt,
+        facts,
+        decision,
+      )
     : undefined;
   const simulationMonth = request.simulationDate.slice(0, 7);
   const receiptMonth = filingReceipt.slice(0, 7);
@@ -584,15 +626,19 @@ export function adjustmentChecks(
     category === 'sij' &&
     (facts.has('sijClassification') ||
       petitionApprovalUnconfirmed(petition, a.petitionFiledOn));
-  const entryAtFiling =
-    sijFiling || a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
+  const entryAt = (
+    basis: AdjustmentCategory,
+    exception: UsReview | undefined,
+    sij: boolean,
+  ): Answer =>
+    sij || a?.legalEntry === 'admitted' || a?.legalEntry === 'paroled'
       ? true
       : a?.legalEntry === 'without-inspection'
-        ? category === 'vawa'
+        ? basis === 'vawa'
           ? true
-          : category === 'sij' || category === '245i'
-            ? reviewed(a.entryException)
-            : category === undefined || category === 'ambiguous'
+          : basis === 'sij' || basis === '245i'
+            ? reviewed(exception)
+            : basis === undefined || basis === 'ambiguous'
               ? undefined
               : false
         : undefined;
@@ -638,27 +684,53 @@ export function adjustmentChecks(
   const presenceAtReceipt = request.trips
     ? !returnFromTrip(request.trips, filingReceipt)
     : filedI485On !== undefined || undefined;
-  const filing = all(
-    inconsistentPetitionDate ||
-      (filedI485On && petitionFiledOn && petitionFiledOn > filedI485On)
-      ? undefined
-      : true,
-    filingBasis,
-    visaAtFiling,
-    consular
-      ? true
-      : a?.process === 'adjustment'
-        ? all(entryAtFiling, presenceAtReceipt)
-        : undefined,
-  );
-  const civilDocuments = a?.nvcCivilDocuments;
-  return [
-    check(
-      'C33-VISA-AND-ENTRY',
-      '移民类别、签证名额与入境查验',
-      'Immigrant basis, visa availability and admission or parole',
-      all(
-        filing,
+  const filing = transfer
+    ? all(
+        filedI485On && (!original?.filedOn || original.filedOn <= filedI485On)
+          ? true
+          : undefined,
+        reviewed(original?.qualifyingBasisAtFiling),
+        original?.adjustmentBasis === 'immediate-relative'
+          ? true
+          : availability(original?.visaAtFiling),
+        entryAt(original?.adjustmentBasis, original?.entryException, false),
+        presenceAtReceipt,
+      )
+    : all(
+        inconsistentPetitionDate ||
+          (filedI485On && petitionFiledOn && petitionFiledOn > filedI485On)
+          ? undefined
+          : true,
+        filingBasis,
+        visaAtFiling,
+        consular
+          ? true
+          : a?.process === 'adjustment'
+            ? all(
+                entryAt(category, a.entryException, sijFiling),
+                presenceAtReceipt,
+              )
+            : undefined,
+      );
+  const transferOn = transfer?.approvedOn;
+  const transferInEffect =
+    filedI485On &&
+    transferOn &&
+    decision &&
+    filedI485On <= transferOn &&
+    transferOn <= request.simulationDate &&
+    transferOn <= decision &&
+    (!petitionFiledOn || petitionFiledOn <= transferOn);
+  const decisionBasis = transfer
+    ? transferInEffect
+      ? all(
+          qualifyingBasis,
+          petitionApproved || undefined,
+          visaAtDecision,
+          entryAt(category, a?.entryException, sijFiling),
+        )
+      : undefined
+    : all(
         decision && petitionFiledOn && petitionFiledOn > decision
           ? undefined
           : true,
@@ -666,9 +738,17 @@ export function adjustmentChecks(
           ? qualifyingBasis
           : undefined,
         visaAtDecision,
-      ),
+      );
+  const civilDocuments = a?.nvcCivilDocuments;
+  return [
+    check(
+      'C33-VISA-AND-ENTRY',
+      '移民类别、签证名额与入境查验',
+      'Immigrant basis, visa availability and admission or parole',
+      all(filing, decisionBasis),
       [
         ...s.adjustment,
+        ...(transfer ? s.adjustmentTransfer : []),
         ...(consular
           ? [
               ...s.consularFiling,
@@ -684,15 +764,20 @@ export function adjustmentChecks(
             '所填基础请愿案的实际收件日晚于模拟日。请核对收件日和请愿状态。',
             'The reported underlying petition receipt is after the simulation date. Verify the receipt date and petition status.',
           ]
-        : decisionMonth === undefined
+        : transfer
           ? [
-              '按 NVC 通知的开放日递件。请提供面谈后的裁决日，再核对签证核准条件及适用的 Final Action Dates。',
-              'Submit on the opening date confirmed by NVC. Provide the post-interview adjudication date to assess visa approval and any applicable Final Action Dates.',
+              '首次递交按原请愿及原收件月指定表核对。USCIS 准予转换后，按替换请愿和裁决月的 Final Action Dates 核对核准。',
+              'Use the original petition and the designated chart for the original receipt month. Once USCIS grants transfer, use the replacement petition and the decision month’s Final Action Dates for approval.',
             ]
-          : [
-              `境内按 USCIS 收件月份（${receiptMonth}）指定表确认能否递交，领馆材料按 NVC 通知提交。允许同时递交的案件仍须等基础请愿案获批。受排期限制的案件按裁决月份（${decisionMonth}）的 Final Action Dates 确认名额。未满龄或 CSPA 锁龄的美国公民未婚子女可能属于即时亲属。`,
-              `Use the USCIS chart designated for the receipt month (${receiptMonth}), or NVC authorization to submit consular documents. Where concurrent filing is allowed, approval still depends on approval of the underlying petition. For numerically limited cases, use the Final Action Dates for the decision month (${decisionMonth}). An unmarried child of a U.S. citizen may qualify as an immediate relative based on age or CSPA protection.`,
-            ],
+          : decisionMonth === undefined
+            ? [
+                '按 NVC 通知的开放日递件。请提供面谈后的裁决日，再核对签证核准条件及适用的 Final Action Dates。',
+                'Submit on the opening date confirmed by NVC. Provide the post-interview adjudication date to assess visa approval and any applicable Final Action Dates.',
+              ]
+            : [
+                `境内按 USCIS 收件月份（${receiptMonth}）指定表确认能否递交，领馆材料按 NVC 通知提交。允许同时递交的案件仍须等基础请愿案获批。受排期限制的案件按裁决月份（${decisionMonth}）的 Final Action Dates 确认名额。未满龄或 CSPA 锁龄的美国公民未婚子女可能属于即时亲属。`,
+                `Use the USCIS chart designated for the receipt month (${receiptMonth}), or NVC authorization to submit consular documents. Where concurrent filing is allowed, approval still depends on approval of the underlying petition. For numerically limited cases, use the Final Action Dates for the decision month (${decisionMonth}). An unmarried child of a U.S. citizen may qualify as an immediate relative based on age or CSPA protection.`,
+              ],
       checkStatus(filing),
     ),
     ...(consular
@@ -761,8 +846,7 @@ export function adjustmentChecks(
 
 export function humanitarianChecks(
   request: UsFullRequest,
-  { receipt, decision }: AdmissionTiming,
-  filedI485On?: IsoDate,
+  { receipt, decision, filedI485On }: AdmissionTiming,
 ) {
   const check = checksFor(request);
   const a = request.humanitarian;
@@ -820,6 +904,7 @@ export function humanitarianChecks(
   );
   const admission = admissionChecks(request, 'humanitarian', {
     receipt,
+    filedI485On,
     decision:
       approvalRequirementDate && decision && approvalRequirementDate > decision
         ? approvalRequirementDate

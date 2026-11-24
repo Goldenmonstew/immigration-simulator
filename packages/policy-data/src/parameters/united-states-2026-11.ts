@@ -458,6 +458,7 @@ export const unitedStatesFullSources = {
       'https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf',
     ),
   ],
+  adjustmentTransfer: [pm('SRC-309', 7, 'A', 8, '(A), (C), (E)')],
   adjustmentFilingPresence: [
     source(
       'SRC-309',

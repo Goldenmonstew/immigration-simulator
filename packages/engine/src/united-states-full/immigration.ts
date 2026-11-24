@@ -426,15 +426,19 @@ function abilityToPay(request: UsFullRequest): Answer {
   const annual = a?.wageYears?.map(
     ({ paidUsd, netIncomeUsd, netCurrentAssetsUsd }) => {
       if (proffered === undefined) return undefined;
+      const coversShortfall = (amount: number | undefined): Answer =>
+        paidUsd === undefined
+          ? atLeast(amount, proffered) === true || undefined
+          : atLeast(amount, proffered - paidUsd);
       return any(
-        paidUsd >= proffered,
-        atLeast(netIncomeUsd, proffered - paidUsd),
-        atLeast(netCurrentAssetsUsd, proffered - paidUsd),
+        atLeast(paidUsd, proffered),
+        coversShortfall(netIncomeUsd),
+        coversShortfall(netCurrentAssetsUsd),
       );
     },
   );
   const records = annual?.length
-    ? all(a?.wagePeriodComplete, ...annual)
+    ? all(a?.wagePeriodComplete === true ? true : undefined, ...annual)
     : undefined;
   return any(officer, records, reviewed(a?.abilityToPayTotality));
 }
@@ -551,8 +555,7 @@ export function employmentChecks(
       );
     const offerAtFiling =
       portability && filedI485On
-        ? (portability.originalOfferValidAtFiling ??
-          (a.employmentOffer === true || undefined))
+        ? portability.originalOfferValidAtFiling
         : all(
             a.employmentOffer,
             portability?.originalOfferValidAtFiling !== false,
@@ -832,6 +835,8 @@ export function employmentChecks(
   if (category === 'gold-card') {
     const gold = a.gold;
     const approvedGold = facts.has('goldPetition');
+    const filedGold =
+      admission?.petitionFiledOn && admission.petitionFiledOn <= date;
     const consular = admission?.process
       ? admission.process === 'consular'
       : undefined;
@@ -870,6 +875,7 @@ export function employmentChecks(
           consular,
           carryForward(approvedGold, gold?.registrationAccepted),
           approvedGold ||
+            filedGold ||
             (request.fees?.channel
               ? request.fees.channel === 'online'
               : undefined),

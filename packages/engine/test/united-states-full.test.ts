@@ -231,6 +231,7 @@ const withEmployment = (
   employment: { ...employment, ...overrides },
   admission: { ...e.admission, petitionStatus },
 });
+
 const pendingPetition = (request: UsFullRequest): UsFullRequest => ({
   ...request,
   admission: { ...request.admission, petitionStatus: 'pending' },
@@ -6785,4 +6786,410 @@ describe('review86-19 regressions', () => {
       }
     },
   );
+});
+
+describe('review86-20 regressions', () => {
+  const familyEntries = ['US-FAMILY', 'US-ADJUSTMENT'] as const;
+  const employmentEntries = ['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const;
+  const filedFamily = {
+    ...f,
+    support: { ...support, sponsorAge: 30 },
+    admission: {
+      ...admission,
+      i485FiledOn: '2026-08-03',
+      decisionOn: '2026-11-23',
+    },
+  } satisfies UsFullRequest;
+  const originalMedical = {
+    medicalEvidence: 'cleared',
+    i693SignedOn: '2026-07-31',
+    i693LinkedToAnotherClosedCase: false,
+  } as const;
+  const supplementalMedical = {
+    ...originalMedical,
+    i693SignedOn: '2026-11-16',
+  } as const;
+
+  test.each([
+    ['late version only', supplementalMedical, 'UNKNOWN', 'UNKNOWN'],
+    [
+      'legacy supplemental with explicit original',
+      { ...supplementalMedical, i693AtFiling: originalMedical },
+      'MET',
+      'MET',
+    ],
+    [
+      'explicit supplemental with legacy original',
+      { ...originalMedical, i693AtDecision: supplementalMedical },
+      'MET',
+      'MET',
+    ],
+    [
+      'historical decision predates the legacy supplemental report',
+      {
+        ...supplementalMedical,
+        i693AtFiling: originalMedical,
+        decisionOn: '2026-10-01',
+      },
+      'MET',
+      'MET',
+    ],
+    [
+      'supplemental evidence barred',
+      {
+        i693AtFiling: originalMedical,
+        i693AtDecision: { ...supplementalMedical, medicalEvidence: 'barred' },
+      },
+      'MET',
+      'NOT_MET',
+    ],
+    [
+      'original evidence pending',
+      {
+        i693AtFiling: { medicalEvidence: 'pending' },
+        i693AtDecision: supplementalMedical,
+      },
+      'UNKNOWN',
+      'UNKNOWN',
+    ],
+    [
+      'original evidence explicitly barred',
+      {
+        i693AtFiling: { ...originalMedical, medicalEvidence: 'barred' },
+        i693AtDecision: supplementalMedical,
+      },
+      'NOT_MET',
+      'NOT_MET',
+    ],
+  ] as const)(
+    'checks I-693 by version (%s)',
+    (_, medical, filing, approval) => {
+      for (const pathway of familyEntries) {
+        const request = {
+          ...filedFamily,
+          pathway,
+          admission: { ...filedFamily.admission, ...medical },
+        };
+        expect(condition(request, 'C36-HEALTH')).toMatchObject({
+          filingStatus: filing,
+          status: approval,
+        });
+        const result = path(request);
+        expect(result).toMatchObject({
+          status: filing,
+          approvalStatus: approval,
+        });
+        expect(result.earliestDate).toBe(
+          filing === 'MET' ? time.simulationDate : undefined,
+        );
+        expect(result.approvalEarliestDate).toBe(
+          approval === 'MET' ? request.admission.decisionOn : undefined,
+        );
+      }
+    },
+  );
+
+  test.each(familyEntries)(
+    'checks channels and fees only before I-485 receipt (%s)',
+    (pathway) => {
+      for (const fees of [
+        undefined,
+        {
+          channel: 'online',
+          onlineCategoryAvailable: 'barred',
+          adjustmentSupplementA: true,
+        },
+      ] as const) {
+        const filed = path({ ...filedFamily, pathway, fees });
+        expect(filed).toMatchObject({
+          status: 'MET',
+          approvalStatus: 'MET',
+          earliestDate: time.simulationDate,
+          approvalEarliestDate: filedFamily.admission.decisionOn,
+        });
+        expect(
+          filed.checks.some(({ id }) =>
+            [
+              'US-FILING-CHANNEL',
+              'US-TIME-PAPER-RECEIPT',
+              'US-TIME-I485-PRESENCE',
+              'US-C44-I485',
+              'US-C44-I485A',
+              'US-C45-FEE-RELIEF',
+            ].includes(id),
+          ),
+        ).toBe(false);
+
+        const planned = path({
+          ...filedFamily,
+          pathway,
+          fees,
+          admission: { ...filedFamily.admission, i485FiledOn: undefined },
+        });
+        const expected = fees ? 'NOT_MET' : 'UNKNOWN';
+        expect(
+          planned.checks.find(({ id }) => id === 'US-FILING-CHANNEL')?.status,
+        ).toBe(expected);
+        expect(planned).toMatchObject({
+          status: expected,
+          approvalStatus: expected,
+        });
+      }
+    },
+  );
+
+  test.each([
+    ['incomplete period', false, employment.wageYears, 'UNKNOWN'],
+    ['unconfirmed period', undefined, employment.wageYears, 'UNKNOWN'],
+    [
+      'incomplete year',
+      true,
+      [{ paidUsd: 50000, netIncomeUsd: 9999 }],
+      'UNKNOWN',
+    ],
+    [
+      'wages missing',
+      true,
+      [{ netIncomeUsd: 9999, netCurrentAssetsUsd: 0 }],
+      'UNKNOWN',
+    ],
+    [
+      'financial records independently sufficient',
+      true,
+      [{ netIncomeUsd: 60000 }],
+      'MET',
+    ],
+    ['complete records', true, employment.wageYears, 'MET'],
+    [
+      'documented shortfall in a year',
+      false,
+      [{ paidUsd: 50000, netIncomeUsd: 9999, netCurrentAssetsUsd: 0 }],
+      'NOT_MET',
+    ],
+  ] as const)(
+    'checks ability to pay with %s through both entries',
+    (_, wagePeriodComplete, wageYears, expected) => {
+      for (const pathway of employmentEntries) {
+        const request: UsFullRequest = {
+          ...e,
+          pathway,
+          employment: {
+            ...e.employment,
+            wagePeriodComplete,
+            wageYears: wageYears ? [...wageYears] : undefined,
+          },
+        };
+        expect(condition(request, 'C29-ABILITY-TO-PAY').status).toBe(expected);
+        const result = path(request);
+        expect(result).toMatchObject({
+          status: expected,
+          approvalStatus: expected,
+        });
+        if (expected === 'UNKNOWN')
+          expect(result.pendingDetails).toContain('PD-277');
+      }
+    },
+  );
+
+  const originalPetition = {
+    adjustmentBasis: 'employment',
+    filedOn: '2026-05-01',
+    qualifyingBasisAtFiling: 'cleared',
+    visaAtFiling: 'available',
+  } as const;
+  const grantedTransfer = {
+    originalPetition,
+    approvedOn: '2026-08-03',
+  } as const;
+  const filedWorker = {
+    ...e,
+    admission: {
+      ...e.admission,
+      i485FiledOn: '2026-05-27',
+      visaAtFilingByMonth: { '2026-05': 'available' },
+      decisionOn: '2026-11-23',
+    },
+  } satisfies UsFullRequest;
+
+  test.each([
+    ['without confirmed transfer', {}, 'UNKNOWN', 'UNKNOWN'],
+    ['granted transfer', { i485BasisTransfer: grantedTransfer }, 'MET', 'MET'],
+    [
+      'original immediate relative and different replacement filing chart',
+      {
+        i485BasisTransfer: {
+          ...grantedTransfer,
+          originalPetition: {
+            ...originalPetition,
+            adjustmentBasis: 'immediate-relative',
+            visaAtFiling: undefined,
+          },
+        },
+        visaAtFilingByMonth: { '2026-05': 'unavailable' },
+      },
+      'MET',
+      'MET',
+    ],
+    [
+      'missing original petition',
+      {
+        i485BasisTransfer: { ...grantedTransfer, originalPetition: undefined },
+      },
+      'UNKNOWN',
+      'UNKNOWN',
+    ],
+    [
+      'original visa unavailable',
+      {
+        i485BasisTransfer: {
+          ...grantedTransfer,
+          originalPetition: {
+            ...originalPetition,
+            visaAtFiling: 'unavailable',
+          },
+        },
+      },
+      'NOT_MET',
+      'NOT_MET',
+    ],
+    [
+      'replacement visa unavailable',
+      { i485BasisTransfer: grantedTransfer, visaAtDecision: 'unavailable' },
+      'MET',
+      'NOT_MET',
+    ],
+    [
+      'replacement petition pending',
+      { i485BasisTransfer: grantedTransfer, petitionStatus: 'pending' },
+      'MET',
+      'UNKNOWN',
+    ],
+    [
+      'approval before transfer',
+      {
+        i485BasisTransfer: grantedTransfer,
+        decisionOn: '2026-07-15',
+        visaAtDecisionByMonth: { '2026-07': 'unavailable' },
+      },
+      'MET',
+      'UNKNOWN',
+    ],
+    [
+      'transfer not yet confirmed',
+      { i485BasisTransfer: { originalPetition } },
+      'MET',
+      'UNKNOWN',
+    ],
+  ] as const)(
+    'uses the petition for the relevant C33 stage (%s)',
+    (_, facts, filing, approval) => {
+      for (const pathway of employmentEntries) {
+        const request = {
+          ...filedWorker,
+          pathway,
+          admission: { ...filedWorker.admission, ...facts },
+        };
+        expect(condition(request, 'C33-VISA-AND-ENTRY')).toMatchObject({
+          filingStatus: filing,
+          status: approval,
+        });
+        const result = path(request);
+        expect(result).toMatchObject({
+          status: filing,
+          approvalStatus: approval,
+        });
+        expect(result.earliestDate).toBe(
+          filing === 'MET' ? time.simulationDate : undefined,
+        );
+        expect(result.approvalEarliestDate).toBe(
+          approval === 'MET' ? request.admission.decisionOn : undefined,
+        );
+      }
+    },
+  );
+
+  test.each(employmentEntries)(
+    'leaves C34 open when admission alone does not establish lawful status (%s)',
+    (pathway) => {
+      const request = {
+        ...e,
+        pathway,
+        admission: { ...e.admission, lawfulAdmissionFor245k: false },
+      };
+      expect(condition(request, 'C34-ADJUSTMENT-BARS').status).toBe('UNKNOWN');
+      expect(
+        condition(
+          {
+            ...request,
+            admission: {
+              ...request.admission,
+              lawfulNonimmigrantStatusAtFiling: false,
+            },
+          },
+          'C34-ADJUSTMENT-BARS',
+        ).status,
+      ).toBe('NOT_MET');
+    },
+  );
+
+  test.each(employmentEntries)(
+    'requires the original offer in a pending portability case (%s)',
+    (pathway) => {
+      const request: UsFullRequest = {
+        ...filedWorker,
+        pathway,
+        employment: {
+          ...filedWorker.employment,
+          jobPortability: { supplementJFiledOn: '2026-11-23', newOffer: true },
+        },
+      };
+      expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
+        status: 'UNKNOWN',
+        filingStatus: 'UNKNOWN',
+      });
+    },
+  );
+
+  test('a late joint I-751 cutoff does not resolve an unreported filing basis', () => {
+    const request: UsFullRequest = {
+      ...conditions,
+      permanentResident: '2024-11-23',
+      fees: { channel: 'online' },
+      conditions: {
+        marriage: {
+          ...marriage,
+          filing: undefined,
+          lateFilingExcuse: 'barred',
+        },
+      },
+    };
+    expect(condition(request, 'TIME-CONDITIONS-FILING').status).toBe('UNKNOWN');
+    expect(path(request)).toMatchObject({
+      status: 'UNKNOWN',
+      approvalStatus: 'UNKNOWN',
+    });
+  });
+
+  test('a received I-140G no longer needs a planned online channel', () => {
+    const request: UsFullRequest = {
+      ...gold,
+      admission: {
+        ...gold.admission,
+        petitionStatus: 'pending',
+        petitionFiledOn: '2026-07-01',
+        nvcDs260: undefined,
+      },
+      fees: undefined,
+    };
+    expect(condition(request, 'C32-GOLD-PROCESS').status).toBe('MET');
+    expect(
+      condition(
+        {
+          ...request,
+          admission: { ...request.admission, petitionFiledOn: undefined },
+        },
+        'C32-GOLD-PROCESS',
+      ).status,
+    ).toBe('UNKNOWN');
+  });
 });
