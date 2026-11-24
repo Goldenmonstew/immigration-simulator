@@ -412,7 +412,13 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       ),
     ];
   const p = v.longTermCard.value;
-  const eu = e.continuousOutsideEuMonths;
+  const sinceGrant =
+    e.stage !== 'initial' &&
+    r.trips &&
+    (!e.statusGrantedOn || e.statusGrantedOn <= r.simulationDate)
+      ? absencePeriods(r.trips, e.statusGrantedOn, r.simulationDate)
+      : undefined;
+  const eu = r.trips?.length ? undefined : e.continuousOutsideEuMonths;
   let retained: boolean | undefined;
   if (eu !== undefined) {
     if (eu < p.lossEuMonths) retained = true;
@@ -422,7 +428,16 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
     )
       retained = false;
     else retained = e.formerBlueCardEndorsement;
-  }
+  } else if (
+    // Greek departures have no destination. They give only an upper bound
+    // on time outside the EU (arts. 43(4), 148(1)(γ), 149(1)(α)).
+    sinceGrant?.every((a) =>
+      e.formerBlueCardEndorsement
+        ? a.until <= addMonths(a.from, v.formerBlueCardEuAbsenceMonths.value)
+        : a.until < addMonths(a.from, p.lossEuMonths),
+    )
+  )
+    retained = true;
   if (e.stage === 'reacquisition') {
     const loss =
       e.lossReason === 'absence-from-eu'
@@ -448,34 +463,19 @@ function longTermChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
     ];
   }
   const renewal = e.stage === 'renewal';
-  const sinceGrant =
-    renewal &&
-    r.trips &&
-    e.statusGrantedOn &&
-    e.statusGrantedOn <= r.simulationDate
-      ? absencePeriods(r.trips, e.statusGrantedOn, r.simulationDate)
-      : undefined;
-  const greekAbsence = e.continuousOutsideGreeceYears;
-  const reportedWithinLimit =
-    greekAbsence === undefined ? undefined : greekAbsence <= p.lossGreeceYears;
-  const recordedWithinLimit = sinceGrant?.every(
-    (a) => a.until <= addYears(a.from, p.lossGreeceYears),
-  );
-  const withinGreeceLimit =
-    reportedWithinLimit === false || recordedWithinLimit === false
-      ? false
-      : (reportedWithinLimit ?? recordedWithinLimit);
-  // A Greek departure gives no destination. It bounds, but does not prove,
-  // an EU absence. An independently reported EU duration remains applicable.
-  if (
-    eu === undefined &&
-    sinceGrant?.every((a) =>
-      e.formerBlueCardEndorsement
-        ? a.until <= addMonths(a.from, v.formerBlueCardEuAbsenceMonths.value)
-        : a.until < addMonths(a.from, p.lossEuMonths),
-    )
-  )
-    retained = true;
+  const greekAbsence = r.trips?.length
+    ? undefined
+    : e.continuousOutsideGreeceYears;
+  let withinGreeceLimit: boolean | undefined;
+  if (greekAbsence !== undefined)
+    withinGreeceLimit = greekAbsence <= p.lossGreeceYears;
+  else if (sinceGrant) {
+    const within = sinceGrant.every(
+      (a) => a.until <= addYears(a.from, p.lossGreeceYears),
+    );
+    // Without a grant date, a long trip may predate acquisition.
+    withinGreeceLimit = within || (e.statusGrantedOn ? false : undefined);
+  }
   const checks: CountryCheck[] = [];
   if (!renewal) {
     const eligible =

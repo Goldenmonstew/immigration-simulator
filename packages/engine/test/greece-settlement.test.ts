@@ -459,6 +459,49 @@ describe('M.1 long-term grant and retention', () => {
       }),
     ).toBe('NOT_MET');
   });
+  test('M.1 retention and loss use the recorded trips since grant before absence summaries', () => {
+    const longTerm = {
+      passportHistory: 'complete',
+      formerBlueCardEndorsement: false,
+      otherMemberStateLongTermOrRevocationGround: false,
+      continuousOutsideGreeceYears: 7,
+      continuousOutsideEuMonths: 84,
+      lossReason: 'absence-from-eu',
+      lossEvidenceReady: true,
+    } as const;
+    const past = { departed: '2012-01-01', returned: '2019-01-01' };
+    for (const [trip, statusGrantedOn, renewal, reacquisition] of [
+      [past, '2019-01-01', 'MET', 'NOT_MET'],
+      [past, undefined, 'UNKNOWN', 'UNKNOWN'],
+      [
+        { departed: '2020-01-01', returned: '2020-02-01' },
+        undefined,
+        'MET',
+        'NOT_MET',
+      ],
+      [
+        { departed: '2020-01-01', returned: '2021-02-01' },
+        '2019-01-01',
+        'UNKNOWN',
+        'UNKNOWN',
+      ],
+    ] as const) {
+      for (const [stage, id, expected] of [
+        ['renewal', 'LT-07', renewal],
+        ['reacquisition', 'LT-REACQUISITION', reacquisition],
+      ] as const) {
+        const path = full(lt, {
+          longTerm: { ...longTerm, statusGrantedOn, stage },
+          currentCardExpiresOn: '2026-12-01',
+          trips: [trip],
+        });
+        expect(path.checks.find((item) => item.id === id)?.status).toBe(
+          expected,
+        );
+        expect(path.status).toBe(expected);
+      }
+    }
+  });
 });
 
 describe('M.2 acquisition and conversion', () => {

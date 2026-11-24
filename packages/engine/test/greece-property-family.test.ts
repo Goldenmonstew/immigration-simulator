@@ -949,7 +949,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       ]),
       'EF-02',
       'FUTURE',
-      '2028-04-01',
+      '2028-10-01',
     );
     verify(
       run([
@@ -1056,6 +1056,253 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       );
     },
   );
+
+  const interrupted = [
+    {
+      departed: '2022-01-01',
+      returned: '2022-10-01',
+      familyAbsenceReason: 'ordinary',
+    },
+  ] satisfies GrFullRequest['trips'];
+
+  test('Ν uses the trips in the new five years when the same history is also summarised', () => {
+    verify(
+      full('GR-EU-FAMILY-PR', {
+        simulationDate: '2026-11-24',
+        trips: interrupted,
+        euFamily: {
+          ...european,
+          priorCardExpiry: '2027-12-10',
+          maxOrdinaryAnnualAbsenceMonths: 9,
+          seriousAbsenceCount: 0,
+        },
+      }),
+      'EF-02',
+      'FUTURE',
+      '2027-10-01',
+    );
+  });
+
+  test('Μ.3 uses the trips in the new five years when the same history is also summarised', () => {
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        simulationDate: '2026-11-24',
+        trips: interrupted,
+        greekFamily: {
+          ...greek,
+          priorCardExpiry: '2027-12-10',
+          maxAnnualAbsenceMonths: 9,
+        },
+      }),
+      'GF-03',
+      'FUTURE',
+      '2027-10-01',
+    );
+  });
+
+  test.each(['2026-11-24', '2028-04-30', '2028-05-01'])(
+    'Ν anchors residence years at the return that broke continuity, as of %s',
+    (simulationDate) => {
+      const path = full('GR-EU-FAMILY-PR', {
+        simulationDate,
+        euFamily: {
+          ...european,
+          residenceFrom: '2021-08-01',
+          priorCardExpiry: '2028-12-10',
+        },
+        trips: [
+          {
+            departed: '2021-12-24',
+            returned: '2022-01-15',
+            familyAbsenceReason: 'ordinary',
+          },
+          {
+            departed: '2022-08-01',
+            returned: '2023-05-01',
+            familyAbsenceReason: 'ordinary',
+          },
+        ],
+      });
+      if (simulationDate === '2028-05-01') verify(path, 'EF-02', 'MET');
+      else verify(path, 'EF-02', 'FUTURE', '2028-05-01');
+    },
+  );
+
+  test('Ν cannot place an excessive whole-history summary inside the first five years', () => {
+    const run = (maxOrdinaryAnnualAbsenceMonths: number) =>
+      full('GR-EU-FAMILY-PR', {
+        euFamily: {
+          ...european,
+          residenceFrom: '2014-11-23',
+          longestAbsenceAfterPrYears: 0,
+          maxOrdinaryAnnualAbsenceMonths,
+        },
+      });
+    verify(run(9), 'EF-03', 'UNKNOWN');
+    verify(run(6), 'EF-03', 'MET');
+  });
+
+  test('an unclassified trip can change which later absence broke Ν continuity', () => {
+    const run = (reason?: 'ordinary' | 'serious-reason') =>
+      full('GR-EU-FAMILY-PR', {
+        simulationDate: '2026-11-24',
+        euFamily: {
+          ...european,
+          residenceFrom: '2021-08-01',
+          priorCardExpiry: '2028-12-10',
+        },
+        trips: [
+          {
+            departed: '2021-08-10',
+            returned: '2022-02-20',
+            familyAbsenceReason: reason,
+          },
+          {
+            departed: '2022-09-01',
+            returned: '2023-06-01',
+            familyAbsenceReason: 'ordinary',
+          },
+        ],
+      });
+    verify(run('ordinary'), 'EF-02', 'FUTURE', '2027-02-20');
+    verify(run('serious-reason'), 'EF-02', 'FUTURE', '2028-06-01');
+    verify(run(), 'EF-03', 'UNKNOWN');
+  });
+
+  test('historical Ο.3 conversion cannot locate a whole-history excess in the qualifying period', () => {
+    const greekFamily: Greek = {
+      ...greek,
+      residenceFrom: '2018-02-05',
+      priorCardExpiry: '2026-02-14',
+      maxAnnualAbsenceMonths: 12,
+      extendedAbsence: 'compulsory-service',
+      longestConsecutiveAbsenceYears: 2.1,
+    };
+    for (const trips of [undefined, []]) {
+      verify(
+        full('GR-GREEK-FAMILY-PR', {
+          simulationDate: '2026-02-05',
+          greekFamily,
+          trips,
+        }),
+        'GF-03',
+        'UNKNOWN',
+      );
+    }
+  });
+
+  test('Μ.3 uses the post-grant summary when no individual trips are supplied', () => {
+    const greekFamily = {
+      ...greek,
+      residenceFrom: '2013-11-24',
+      permanentRightAcquiredOn: '2019-11-24',
+      priorCardExpiry: '2026-12-10',
+      longestAbsenceAfterPrYears: 3,
+    };
+    for (const trips of [undefined, []]) {
+      verify(
+        full('GR-GREEK-FAMILY-PR', { greekFamily, trips }),
+        'GF-03',
+        'NOT_MET',
+      );
+    }
+    const trips = [
+      {
+        departed: '2015-01-01',
+        returned: '2018-02-01',
+        familyAbsenceReason: 'compulsory-service',
+      },
+    ] satisfies GrFullRequest['trips'];
+    verify(full('GR-GREEK-FAMILY-PR', { greekFamily, trips }), 'GF-03', 'MET');
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily: { ...greekFamily, stage: 'maintain' },
+        trips,
+      }),
+      'GF-05',
+      'MET',
+    );
+    verify(
+      full('GR-EU-FAMILY-PR', {
+        euFamily: {
+          stage: 'maintain',
+          shamOrFraud: false,
+          permanentRightAcquiredOn: '2019-11-24',
+          longestAbsenceAfterPrYears: 3,
+        },
+        trips,
+      }),
+      'EF-03',
+      'MET',
+    );
+  });
+
+  test('ordinary family-card renewals use dated trips before whole-history summaries', () => {
+    const from = '2022-11-24';
+    const euFamily: EU = {
+      ...european,
+      stage: 'renewal',
+      residenceFrom: from,
+      permanentRightAcquired: false,
+      partnerRenewal: {
+        sponsorConfirmsContinuingRelationship: true,
+        resourcesAssessment: 'accepted',
+      },
+      maxOrdinaryAnnualAbsenceMonths: 9,
+      seriousAbsenceCount: 0,
+    };
+    const greekFamily: Greek = {
+      ...greek,
+      stage: 'renewal',
+      residenceFrom: from,
+      priorCardExpiry: '2026-12-10',
+      permanentRightAtCardExpiry: false,
+      ordinaryRenewalDocumentsReady: true,
+      maxAnnualAbsenceMonths: 9,
+    };
+    const cases = [
+      [undefined, 'UNKNOWN'],
+      [[], 'UNKNOWN'],
+      [
+        [
+          {
+            departed: '2023-01-01',
+            returned: '2023-10-01',
+            familyAbsenceReason: 'ordinary',
+          },
+        ],
+        'UNKNOWN',
+      ],
+      [
+        [
+          {
+            departed: '2021-01-01',
+            returned: from,
+            familyAbsenceReason: 'ordinary',
+          },
+        ],
+        'MET',
+      ],
+    ] as const;
+    for (const [history, status] of cases) {
+      const trips = history && [...history];
+      verify(full('GR-EU-FAMILY-PR', { euFamily, trips }), 'EF-07', status);
+      verify(
+        full('GR-GREEK-FAMILY-PR', { greekFamily, trips }),
+        'GF-08',
+        status,
+      );
+    }
+    const trips = [{ departed: '2023-01-01', returned: '2023-10-01' }];
+    verify(
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily: { ...greekFamily, extendedAbsence: 'compulsory-service' },
+        trips,
+      }),
+      'GF-08',
+      'UNKNOWN',
+    );
+  });
 
   test('Ν can qualify again on a documented return after losing an early right', () => {
     const run = (simulationDate: string) =>
