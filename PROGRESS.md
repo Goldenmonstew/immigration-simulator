@@ -671,3 +671,4 @@
 | 640 | 任务 97 审核修正（review97-1 风险 2）。离线缓存版本递增为 2026-11-24-es，已安装旧版的设备会重新安装并缓存新增的西班牙子页。 | apps/web/public/sw.js、apps/web/test/about-page.test.tsx |
 | 641 | 任务 97 审核修正（review97-1 建议 1）。修正西班牙问卷错别字与英文空格；自由流动关系改用 U02／U03 专属标签；医保、雇主、收入、居留阶段与亲属关系的类别各用专属标签；普通离境、提前退休、境外考点、受扶养直系尊亲属等跨字段共用的选项改用本处措辞。 | apps/web/lib/spain-fields.ts、apps/web/app/spain/simulate/evidence-fields.tsx、apps/web/i18n/countries/spain-form.ts、apps/web/test/spain-questionnaire.test.tsx |
 | 642 | 任务 97 审核修正（review97-1 建议 3）。西班牙问卷按所选路径精简：出境原因与例外独立成组供 L、E 共用；国内长居直接事由组只在选 L 时显示，欧盟长居详细记录组只在选 E 时显示，隐藏组答案不送引擎；跨境主申请人与随迁家属的获批后字段按各自读取项拆分；只选 U 时不再询问西班牙居留许可；直接事由的空选择改为「仅按普通居留年限申请」。 | apps/web/lib/spain-{draft,fields}.ts、apps/web/app/spain/simulate/{page,evidence-fields}.tsx、apps/web/i18n/countries/spain-form.ts、apps/web/test/spain-questionnaire.test.tsx、apps/e2e/tests/spain.spec.ts |
+| 643 | 任务 97 审核修正（review97-1）报告：逐条对应审核编号，记录待任务 93 共用修正解决的问题 7、风险 1 与建议 2 千分位，以及门禁与 e2e 结果。 | docs/tasks/reports/97-es-pages.md |

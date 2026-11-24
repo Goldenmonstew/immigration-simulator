@@ -77,3 +77,53 @@
 ## 4. 发现与建议
 
 - `packages/engine/src/spain-nationality.ts` 中 `ES-N13`（社会融合与学龄／机构证明）在判断成年人是否属于“获司法豁免并在适用机构登记”时，使用了 `any(exams.minor, n.examRelief === undefined ? undefined : n.examRelief === 'judicial-exemption-confirmed')`。因此成年申请人若未显式选择 `examRelief`（例如选 `none`）且未填 `registeredWithSchoolOrCareCentre: false`，即使已满 18 岁并通过了 DELE 与 CCSE，`ES-N13` 仍会保持 `UNKNOWN`。问卷中已提供 `examRelief`（「无／不适用」）与 `registeredWithSchoolOrCareCentre` 选项，建议后续若优化引擎，可在成年人已通过 DELE 和 CCSE 考试时默认视为无需司法免试机构证明。
+
+## 审核修正（review97-1）
+
+修正者：Claude Opus 5.5。PROGRESS 634–643，尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。每项先写失败的回归测试再修。brief 列出的共用文件 `policy-page.tsx`、`country-module.ts`、`share.ts`、`page-result.ts` 未改。
+
+### 1. 做了什么
+
+| PROGRESS | Commit | 审核项 | 改动 |
+|---|---|---|---|
+| 634 | `bbd9fbd0` Fix: 西班牙问卷可清回待确认并区分未填与确定值 | 问题 1、5、6 | 第 1、2 步顶层字段直接写入 `{ [key]: value }`，显式 `undefined` 覆盖旧值：记录完整性、入籍类别、结婚日可改回待确认，最后一条许可或出境记录可删除，空列表可从「已确认没有」改回待确认。居留许可「是否学习」改为必答（「请选择」→ 是／否），旧版表单迁移时写入 `study: false`。官方假日列表的空白行在填写中可保存，刷新不丢草稿；提交时按行报 `<id>-<i>`，错误只显示在该行，输入框带 `aria-invalid` 与 `aria-describedby`，提交后焦点落在该输入框。 |
+| 635 | `6ed71162` Fix: 西班牙学龄子女清单待确认时按待确认评估 | 问题 2 | 新增 `spainEngineInput`：`schooling` 只有通知日或补件截止日、`children` 未确认时，送引擎前略去该组，`ES-L13` 为待确认。本机结果与分享链接都不再抛 `TypeError`，草稿保留用户填的日期。 |
+| 636 | `5c30a97d` Fix: 西班牙对比页只改写用户移动的旋钮 | 问题 3、4；建议 3 的年薪旋钮 | 是／否旋钮（DELE、CCSE、医保、品格审查）的起始值取基线结果中对应条件的状态：全部满足为「是」，全部不满足为「否」，其余为待确认，`pending` 不再算作「否」。数字旋钮取各所选路径一致的值。`apply` 只改写与起始值不同的旋钮，未改动时副本等于 `activeSpainAnswers(draft)`，每条路径显示「与当前情景相同」。旋钮可改回待确认或清空，相应字段改为未答。DELE、CCSE 选「否」同时排除免试国籍与免试决定，`ES-N11`、`ES-N12` 为不满足；DELE 选「是」时等级取 `nationalityDeleMinimum`。医保按 E、R-E、M（非营利）、F 各自的递交日写入，选「否」时取消主申请人保单对随迁家属的覆盖。家庭人数同步 M 非营利的受扶养人数。「无出境」同时清除 U 的取得后最长离境和死亡工人记录中的出境。控件只为读取它的路径显示：R-E、U 不显示月收入，M 显示出境，年薪仅在 M 受雇目的显示，只选 F 时不显示品格审查。移除误指控件的 `ES-M05`、`ES-N13`、`ES-R06`、`ES-U05` 跳转。问卷的家庭人数与自然人雇主家庭人数下限改为 1，与对比页一致。 |
+| 637 | `45e87300` Fix: 西班牙草稿解码只核对所选路径并补日期先后校验 | 风险 3 | 解码只检查当前可见步骤的格式，取消勾选路径中的残留答案不再丢弃整份草稿，重新勾选后照常校验。CCSE 答对题数以 `nationalityCcseQuestions` 为上限。CCSE 签发／有效期、入学通知／补件截止、蓝卡起算／迁入日期补先后校验。旧版表单入籍类别无效时拒绝导入，不再改为 `general`。 |
+| 638 | `650c08a8` Fix: 西班牙记录完整性与获批后公证停钟改为必答 | 风险 4 | `timeRecordsComplete` 改为必答。填了获批通知日后，`notarialSuspensionAwaitingConfirmation` 须答是或否，标星号并在提交时校验（字段定义新增 `requiredWith`）。 |
+| 639 | `f6abed43` Fix: 西班牙结果页标明费用与后续手续，注明永久居留取得日 | 风险 5 | 不在 `decidedBy` 的条目，西班牙改用「费用、办卡、获批后手续与分支明细（不决定本路径结论）」折叠标题（`result-view.tsx` 按国家选标题，其他国家不变）。`ES-U` 已满足且取得日早于评估日时，结论下写「已于 YYYY-MM-DD 取得永久居留权。」 |
+| 640 | `91644440` Fix: 递增离线缓存版本以缓存西班牙子页 | 风险 2 | `sw.js` 缓存版本改为 `2026-11-24-es`，`about-page.test.tsx` 同步。 |
+| 641 | `11d9919f` Fix: 西班牙问卷文案与共用标签按位置拆分 | 建议 1 | 修正「散星」与英文多余空格。自由流动关系改用「与欧盟或西班牙公民主申请人的家庭关系（U02／U03）」。医保、雇主、收入、居留阶段、亲属关系的 `kind` 各用专属标签，删除通用的 `es.field.kind`。`choice` 可为个别取值换用本处措辞：普通离境、提前退休、境外考点、受扶养直系尊亲属；原共用选项去掉另一处的含义。 |
+| 642 | `73c17f8b` Fix: 西班牙问卷按所选路径精简字段 | 建议 3 | 出境原因与连续性例外独立成组，L、E 共用。国内长居直接事由组仅选 L 时显示，欧盟长居详细记录组仅选 E 时显示，隐藏组的答案不送引擎。主申请人获批后只问 M 读取的社保 alta，随迁家属只问 F 读取的许可到期、卡类与制卡费。只选 U 时第 1 步不问西班牙居留许可。直接事由的空选择按钮改为「仅按普通居留年限申请，不主张直接取得事由」。 |
+| 643 | 本节 `Docs` 提交 | — | 报告。 |
+
+建议 4 的回归测试分散在以上提交中：
+
+| 建议 4 | 覆盖位置 |
+|---|---|
+| ① 未改旋钮显示「与当前情景相同」 | `test/spain-whatif.test.tsx`：L+N 仅 L 已审查；L、M 安全审查 `pending`；E/M/F/R-E 过期或未确认的保单；只缺签发日的 CCSE 与登记等效 DELE；E、F 资源不同且 E 缺 `stable`。断言副本与基线一致、结果相同，渲染对比页数出每条路径的「与当前情景相同」。e2e 第一个用例从结果页跳到对比页后断言两条路径都显示该提示。 |
+| ② 删除最后一条、改回待确认、假日空白行刷新 | `test/spain-questionnaire.test.tsx`；e2e 第一个用例在第 1 步添加再删除出境记录、确认没有再改回待确认，在第 4 步添加空白假日后刷新，确认已填答案与空白行仍在。 |
+| ③ `schooling` 缺 `children` | `test/spain-questionnaire.test.tsx`，同时打开分享链接。 |
+| ④ 对比页分享回读 | `test/spain-whatif.test.tsx`：改动后的副本编码再解码相等，分享结果与副本结果相同。 |
+| ⑤ `PolicyPage` 无 `country.id` 保留默认标题 | 未做，见第 3 段。 |
+
+### 2. 怎么验证的
+
+- 在 `73c17f8b` 上运行 `export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整条命令退出码 0：6 个包 lint、typecheck 通过；测试 error-report 2 项、policy-data 23 项、engine 6,006 项通过（1 项既有测试跳过）、game 1,348 项、web 862 项全部通过；静态构建导出 36 个页面，含西班牙五页。
+- 西班牙相关单测：`VITEST_MAX_WORKERS=2 pnpm --filter web exec vitest run test/spain.test.tsx test/spain-questionnaire.test.tsx test/spain-whatif.test.tsx test/about-page.test.tsx`，4 个文件 37 项通过。新增的 `spain-questionnaire.test.tsx`（10 项）与 `spain-whatif.test.tsx`（8 项）中，各审核项的用例在修正前均先运行失败（`spain-whatif` 的分享回读用例在修正前已通过，作为回归保留）。
+- 浏览器 e2e：`cd apps/e2e && E2E_PORT=4432 npx playwright test tests/spain.spec.ts --project=desktop --reporter=line`，2 项通过，退出码 0；随后删除 `apps/e2e/test-results`。
+
+### 3. 没做或没验证的
+
+- 问题 7（`PolicyPage` 缺 `country.id` 时标题为空）、风险 1 中分享链接覆盖本机草稿的部分、建议 2 的年份千分位：只能在共用的 `policy-page.tsx`、`page-result.ts`、`share.ts`、`result-page.tsx` 中修，待任务 93 的共用修正合入后解决；建议 4 ⑤ 的回归测试随之补。
+- 风险 1 中「跳到主要内容」洗掉 `#s=`：链接由共用的 `site-shell.tsx` 渲染。日本的处理是在该文件按国家把链接换成按钮，并配合 `result-page.tsx` 的场景哈希跟踪，只改西班牙页面无法修。待任务 93 把这些国家判断统一后，把西班牙加入同一名单即可。
+- 建议 2 的 `SRC-345` Hoja 52 链接：brief 只要求做建议 1、3、4，未改，见第 4 段。
+- 未做截图视觉验收；本轮页面改动是问卷字段分组、按钮文字、对比页控件显隐与结果页折叠标题。
+
+### 4. 发现与建议
+
+- DELE 或 CCSE 选「否」会把已批准或待决的免试决定改为「无」。ESO 学历、全部免试与司法免试同时覆盖两项考试，所以只把 DELE 设为「否」时，原本靠免试满足的 `ES-N12` 也会随之变化。对比页没有为此另加说明。
+- `spainFull2026_11.values.nationalityDeleExemptCountries` 已有免试国家清单，`spain-fields.ts` 另写了一份相同的代码列表，可改为从参数生成。
+- 问卷文案里仍有政策数字直接写在翻译中（如「上限 10 个工作日」「€16.08」「459 个月」），没有经参数文件生成，参数更新时容易不一致。
+- `spain-policy-rules.ts` 中 `ES-F01`–`ES-F04` 的 `SRC-345` 没有带引擎里 Hoja 52 的专属 URL，政策页会链到 Hoja 51。
+- 本轮只处理审核点名的两处「留空被当作确定值」，其他布尔证据未逐项排查。
