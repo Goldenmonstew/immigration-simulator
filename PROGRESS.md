@@ -489,3 +489,4 @@
 | 491 | GitHub Pages 部署拆成 build 与 deploy 两个 job：同一 job 里刚上传的产物偶尔查不到（554dc5f、083fefa 两次失败，重跑后成功）。 | .github/workflows/github-pages.yml |
 | 770 | 任务 92：归档葡萄牙完整版官方快照，登记 SRC-470–492 与 PD-380–399，补存续期条例及 ARI FAQ 原文。 | policy-sources/、docs/SOURCES.md、docs/pending-details.md、apps/web/lib/sources.ts |
 | 771 | 任务 92：新增成年、刑期、生计、医保材料、投资、自由流动与费表参数，记录对应法条与生效日期。 | packages/policy-data/src/parameters/portugal-2026-11.ts、packages/policy-data/src/index.ts |
+| 772 | 任务 92：实现葡萄牙七条路径的完整版评估、双语条件与稳定 ID，增加分支与边界测试。 | packages/engine/src/portugal-full*.ts、packages/engine/src/index.ts、packages/engine/test/portugal-full.test.ts、docs/tasks/reports/92-pt-rules.md |

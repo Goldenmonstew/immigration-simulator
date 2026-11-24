@@ -1,0 +1,82 @@
+# 任务 92 · 葡萄牙完整版规则
+
+## 1. 做了什么
+
+| PROGRESS | 建议 commit message | 对应文件 |
+|---|---|---|
+| 770 | `Docs: 登记葡萄牙完整版法源与待定细节` | `policy-sources/` 本次新增的 36 份葡萄牙快照、`docs/SOURCES.md`、`docs/pending-details.md`、`apps/web/lib/sources.ts`、`PROGRESS.md` 第 770 项 |
+| 771 | `Feat: 增加葡萄牙完整版的法定参数与费表` | `packages/policy-data/src/parameters/portugal-2026-11.ts`、`packages/policy-data/src/index.ts`、`PROGRESS.md` 第 771 项 |
+| 772 | `Feat: 实现葡萄牙七条路径的完整版规则评估` | `packages/engine/src/portugal-full*.ts`、`packages/engine/src/index.ts`、`packages/engine/test/portugal-full.test.ts`、本报告、`PROGRESS.md` 第 772 项 |
+
+三组均使用 `Co-Authored-By: Codex gpt-6.2-sol <noreply@openai.com>`。
+
+公开入口为 `evaluatePortugalFull(request: PtFullRequest): CountryResult`。规则列 ID 为 `pt.current-law`，依据日期为 2026-11-23。条件标题与说明按 `locale` 输出；ID 的实际值在下表各条件名前加 `PT-`。条件适用范围随手续及法律版本选择，未触发的分支不生成条件。办件材料和费用以有独立 ID 的检查返回；整体状态以实体条件和时间结论为依据。时间预测先反映在原有检查说明中，只有其他实体条件已满足时才把预测日期放入路径的 `earliestDate`。已登记许可的有效期与缺席计算沿用 `evaluatePortugal`，包括既有 PD-140–149。旧在审入籍若原案时间不足，另显示沿用原来算法的现行法时间备选项；旧案的实体条件按原申请日判断。
+
+### 路径、条件与主要法源
+
+| 路径 | 条件 ID | 主要来源与定位 |
+|---|---|---|
+| `PT-NATURALISATION` 依居留入籍 | `A-VERSION`、`A01`、`A-STATELESS`、`A02`、`A02-CURRENT-ALTERNATIVE` | SRC-120 LO 1/2026 arts. 7–8、Lei 37/81 arts. 6(1)(a)–(b)、6(3)、15；SRC-121 arts. 6、15；SRC-122 D.5；SRC-487 Código Civil art. 130 |
+| 同上 · 新制 | `A03`、`A04`、`A05`、`A06` | SRC-120 art. 6(1)(c)–(e)、(10)，pp2–3；SRC-127 2026-10-29 公报第 2 项 |
+| 同上 · 新制 | `A07`、`A08`、`A09`、`A10` | SRC-120 art. 6(1)(f)–(i)、(11)、(14)–(16)，pp2–4；刑事记录结合勘误 p1；新制生计实施依据见 SRC-127 |
+| 同上 · 材料和费用 | `A11`、`A11-FEE`、`A11-EXAM-FEE` | SRC-470 RNP arts. 18–19、25、27、37、44；SRC-485 art. 26；SRC-488 RERN art. 18(2.2.1)；SRC-120 art. 6(12)；SRC-482 CIPLE、SRC-489 PaN、SRC-127 新制考试 |
+| 同上 · 旧制 | `A12`、`A13`、`A14`、`A15`、`A15-SUSPENSION` | SRC-121 arts. 6(1)(a)、(c)–(e)、13(2)–(4)，pp7–10；SRC-487 Lei 39/2025 arts. 6–8；SRC-470 art. 25；SRC-480 旧葡语证明 |
+| `PT-PERMANENT` 葡萄牙永久居留 | `B01`、`B01-CANCELLATION-RISK`、`B01-TITLE`、`B02`、`B02-GENERAL` | SRC-123 arts. 74、80(1)(a)–(b)、85；SRC-125/126 居留权与卡片；SRC-491 art. 81(3) |
+| 同上 · 生计、住房、语言、办件 | `B03`、`B04`、`B05`、`B06` | SRC-123 art. 80(1)(c)–(e)；SRC-471 art. 64；SRC-126 AIMA 永居；SRC-473–475 生计；SRC-480 PLA |
+| 同上 · 已有身份及换卡 | `B07`、`B07-ABSENCE`、`B07-REPLACE-DOCUMENTS`、`B07-FEE` | SRC-123 arts. 76、85 及 Lei 56/2023 art. 42(4)；SRC-125/471 arts. 65、65-K；SRC-476 III.1、III.3、SRC-477 art. 3 |
+| `PT-EU-LONG-TERM` 欧盟长期居民 | `C01`、`C01-CATEGORY`、`C01-SINGLE-ABSENCE`、`C01-TOTAL-ABSENCE`、`C02`、`C03` | SRC-123 arts. 121-I、125–127；SRC-126 ERLD；SRC-491 art. 2 修订的 arts. 121-I、121-J |
+| 同上 · 资源、医保、住房、语言、公序 | `C04`、`C05`、`C06`、`C07`、`C08` | SRC-123 arts. 126(1)(b)–(e)、126(6)、127(1)–(2)；SRC-471 art. 74；SRC-126 ERLD；SRC-473–475 生计；SRC-480 PLA |
+| 同上 · 文件、换卡、保持及恢复 | `C09`、`C09-FEE`、`C10`、`C10-PILOT-ABSENCE` | SRC-123 arts. 129–131；SRC-491 art. 121-I(5)；SRC-471 art. 74；SRC-476 VI、SRC-477 art. 3 |
+| `PT-GOLDEN-VISA` ARI 授予 | `D01`、`D02`、`D02-HOUSING`、`D02-SOCIAL`、`D03`、`D03-GENERAL`、`D04`、`D04-HEALTH` | SRC-123 arts. 4、77、78、90-A 及 Lei 56/2023 art. 44；SRC-491 art. 81(3)；SRC-471/472 arts. 65-A、65-D/E；SRC-473、475；SRC-126 ARI；SRC-481 FAQ 11–13、23 |
+| 同上 · 投资选择 | `D05`、`D06`、`D06A`、`D06B`、`D06C`、`D06D`、`D06E` | SRC-123 art. 3(1)(d)(ii)、(v)–(viii)、(2)–(5)，Lei 56/2023 art. 44；SRC-471 art. 65-A、65-D(2)、(7)–(10)；SRC-490 低密度清单 |
+| 同上 · 续期与家属 | `D07`、`D07-WINDOW`、`D07-STAY`、`D08`、`D08-CRIME`、`D08-GENERAL` | SRC-123 arts. 78–79、81、90-A(2)、98；SRC-124 arts. 65-B/C；SRC-471 art. 65-E；SRC-491 art. 81(3)；SRC-481 FAQ 11–12、23–28 |
+| 同上 · 历史、转永久或换发 | `D09`、`D10`、`D10-TERMS`、`D-FEE` | SRC-123 Lei 56/2023 arts. 42–44、55，及外国人法 art. 80；SRC-471 art. 65-K 及 DR 1/2024 art. 5(5)–(8)；SRC-486 art. 3；SRC-481 FAQ 26–29；SRC-476 III.3、SRC-477 art. 3 |
+| `PT-TEMPORARY-RENEWAL` 一般临时续期 | `E01`、`E01-RELEASE`、`E01-RECEIPT`、`E02`、`E03`、`E04`、`E05`、`E05-GENERAL`、`E06`、`E06-DOCUMENTS`、`E06-STUDY-HEALTH`、`E07` | SRC-123 arts. 75、77(3)、78–79、81-A、91；SRC-472 DR 9/2018 art. 2；SRC-471 art. 63；SRC-473 arts. 5、7；SRC-491 art. 81(3)；SRC-476 III.1–2、SRC-477 art. 3 |
+| `PT-FREE-MOVEMENT-PERMANENT` 自由流动永久权 | `F01`、`F02`、`F02-EARLY-CONTINUITY`、`F02-RETENTION`、`F03`、`F04`、`F05`、`F06` | SRC-478 arts. 1–3、6–13，pp5717–5720；SRC-484 AIMA 适用人员 |
+| 同上 · 登记、限制及费用 | `F07`、`F08`、`F09` | SRC-478 arts. 14–17、21–24、29；SRC-485 DL 41/2023 art. 25；SRC-484 AIMA 证明及门户；SRC-479 Portaria 13/2024 art. 2 与勘误 |
+| `PT-PARTNER-NATIONALITY` 婚姻或事实伴侣声明取得国籍 | `G-VERSION`、`G01`、`G02`、`G03-CRIME`、`G03-SECURITY`、`G03-SANCTIONS`、`G04`、`G05`、`G06`、`G06-PARTNER-STATEMENT`、`G06-FEE` | SRC-120 LO arts. 7–8、Lei 37/81 arts. 3、6、9–10；SRC-121 arts. 3、9–10、13；SRC-470 arts. 14、44、56；SRC-483 材料；SRC-488 RERN art. 18(2.2.1) |
+
+新增 SRC 为 **SRC-470–492**（含两端，23 条）。沿用 SRC-120–127 的在库资料；在 SRC-125、126 补记 DR 9/2018 原文和 AIMA ARI FAQ 的新归档位置。新增 PD 为 **PD-380–399**（含两端，20 项）。
+
+## 2. 怎么验证的
+
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` 退出码 0。全仓 5,300 项测试通过，1 项既有文案导出测试跳过；构建导出 27 个静态页面。
+- 补齐自由流动家属关系核验和缺席参数后，重新运行全仓 `pnpm lint`、`pnpm typecheck`、`pnpm build`，均退出 0。单独运行 `pnpm --filter @uk-immigration/policy-data test test/sources.test.ts`，来源一致性测试 1 项通过。运行 `pnpm --filter @uk-immigration/engine test test/portugal.test.ts test/portugal-full.test.ts`，116 项通过，包含 43 项新增测试。
+- 用调研档案的 `sources.sha256` 对 36 份新增快照及 17 份复用快照逐文件复算，全部一致。每个新增快照在来源表的哈希和备注官方链接均有对应记录。校验新增 SRC 与 PD 编号无冲突。
+- 边界用例按条文断言成年当日、旧案刑期、新制可反驳推定、净生计与覆盖期、蓝卡欧盟及葡萄牙段、ARI 投资与停留、续期及回执、自由流动和伴侣声明。另逐项对照原有时间检查状态、来源与双语 ID。
+
+## 3. 没做或没验证的
+
+工作树基线为 `8d04f33`。按 brief 留在 `fable/92-pt-rules`，供 Fable 提交。葡萄牙页面继续调用原时间引擎，原实现和原测试文件保留。网页端改动为 `lib/sources.ts` 新增网址，引用全站来源映射的政策页来源索引随之多出新条目。页面接线、Playwright 浏览器验收、游戏和部署留给后续任务。
+
+下列事项在材料不足、权威适用或个案判断待确认时仍会返回 `UNKNOWN`。
+
+| 条件 | 原因 |
+|---|---|
+| A02、A-VERSION、G-VERSION 与既有时间检查 | PD-140–149 延续既有证件、出境、时间换算、卡期和旧法边界。旧案审理基线以前及施行当日仍在审的版本边界需确认。 |
+| A03–A05、A11-EXAM-FEE | 新制认可证书、考试方式和费用未确定（PD-380）。旧 A2 证书单独不通过新制。获主管机关明确认可可用于对应的知识条件。 |
+| A06、A11、A-STATELESS、A11-FEE | 声明办理细节、无国籍认定、未成年人代表手续、相应材料及适用费目（PD-381、384）。 |
+| A07–A09、A14–A15、G03 | 重罪可反驳推定、境外判决映射、缓刑或复权、限制措施和正式安全评估（PD-382）；旧制有效限制措施导致程序中止。 |
+| A10 | 国籍新制生计的金额、考察期和证据口径未定（PD-383）。 |
+| B03、C04、D02、E02 | 未确认可计入的净收入、按目的的生计证明和折减、岛屿基数、担保资格；C 还需辨明团结子系统给付（PD-385、395）。 |
+| B04、C06、D02-HOUSING、E03；B05、C07 | 替代住房证明、基础葡语等效或 ERLD 适用豁免（PD-386–387）。 |
+| B01-TITLE、B02、B02-GENERAL、D03/D08、E05 | 许可注销、外国／缓刑裁判定性、一般拒绝与专门规则交互、移民与安全数据库结果需要官方资料（PD-146、388）。 |
+| C02、C03、C09、C10；C05、D04-HEALTH、E06-STUDY-HEALTH | 国际保护申请的连续性／撤销，混合蓝卡期和工作派遣，身份保持例外与成员国核验；只有 SNS 编号、保单范围或教育保险不明（PD-147、389–390）。 |
+| D01、D04、D08 | 免签或入境起算不明、外国记录的国别和时效、家属文件、续期受理（PD-391–392、395）。 |
+| D05、D06A–E、D07、D09、D10-TERMS | 地域认定、岗位年份或投资性质、首续停留期间、换投资、旧资本或房产手续、批件持续义务（PD-148、393–394）。 |
+| E01、E04、E06 | 超出常规续期窗口的受理、税社保例外、专类证据、经认可的学习中辍（PD-145、149、395）。 |
+| F01–F08 | 安道尔适用、复杂关系或连续期、无登记替代材料、医保互惠、退休和保留权证据与正式限制（PD-396–397）。 |
+| B07-FEE、C09-FEE、D-FEE、E07、F09 | 实际 DUC 落栏、法定减免或适用费目未确定、AIMA 历史或未来费表未归档、自由流动费表年龄边界（PD-398）。 |
+| G01–G06 | 伴侣稍后取得葡籍时的剩余关系年限、跨境登记、法院认可、实际联系及异议结论（PD-399）。 |
+
+## 4. 发现与建议
+
+任务 102 的页面可以沿用当前的居留和出境输入，按路径追加以下问题。
+
+- **共同资料**。先问模拟日、手续、国籍及其他国籍、出生日期、实际递交日、是否在改革生效时已在审、许可种类及续期回执。健康、犯罪、安全、残障只问必要类别或有无正式结论，提供“不确定／不回答”，不录入文件内容、证件号码、犯罪经过或病历。
+- **依居留入籍**。问法律上无国籍认定、出生国和葡语官方国籍、证明种类与是否获认可、文化和公民知识、是否完成庄严声明。旧案问解放身份日期、旧语言材料及适配。把刑期、判决是否终局、是否实际监禁、葡法罪类映射和官方障碍结论分开。
+- **国内永居、ERLD 和一般续期**。问家庭结构、收入来源、已确认可计净收入和覆盖月数、给付类别、住房使用与证明、税／社保分别是否合规、旅行文件、基础葡语与医保。问原许可目的、学习／雇佣等是否维持；ERLD 增加成功的保护申请、蓝卡签发国、当地与欧盟累计期间、EU 境内外出境、确认的工作派遣、成员国核验和恢复事由。
+- **ARI**。问主申请人或家属、关系／受扶养、手续、首次入境及合法化日期、投资是否已经完成、实际渠道、低密度确认、基金期限与葡萄牙配置、岗位数量与性质、投资变更、原批件以及记录证明日期。按手续各显示相应费用参考；投资额和日常生计分开。
+- **自由流动永久权**。问自身或随行家属身份、关系、共同居住、年龄／受养、逐段合法居留基础、互惠医保、出境理由和正式驱逐。单列原工作者保留身份、关系变化后家庭保留、提前退休或失能、跨境工作和工作者死亡分支。区分居留权本身与证明证件。
+- **婚姻或事实伴侣**。问关系起始和是否仍持续、葡籍取得时间、婚姻登记或同居司法确认、共同葡籍子女、证据和正式异议结论、外国公职或军役类型。
+- **共用结果接线**。用 `CountryPathway.checks` 的 ID 对齐对比，用 `pendingDetails` 与来源定位解释待确认；对适用手续显示资料准备和费用检查。国籍、身份和正式裁判适合用虚拟对比情景，现有个案仍以主管机关证据为准。
