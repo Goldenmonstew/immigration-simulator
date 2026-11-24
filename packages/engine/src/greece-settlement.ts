@@ -8,7 +8,14 @@ import { addDays, addMonths, addYears } from './dates';
 import type { GrPermit } from './greece';
 import type { GrFullRequest } from './greece-full';
 import { wageFloor } from './greece-work-family';
-import { ageOn, all, any, insuranceMet, type GrContext } from './greece-rules';
+import {
+  ageOn,
+  all,
+  any,
+  insuranceMet,
+  underAgeOn,
+  type GrContext,
+} from './greece-rules';
 import { Days, monthSpan } from './pilot';
 import type { IsoDate } from './types';
 
@@ -28,6 +35,7 @@ interface IntegrationEvidence {
     | 'none';
   greekLevel?: 'legacy-A' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   a2Certificate?: boolean;
+  a2ExamOn?: IsoDate;
   a2Total?: number;
   a2SectionsAtPassMark?: number;
   historyPoints?: number;
@@ -100,7 +108,8 @@ export interface GrSettlementAnswers {
     residesInGreece?: boolean;
     bornInGreece?: boolean;
     greekGrades?: number;
-    ageAtSchoolCompletion?: number;
+    /** Date the qualifying Greek school grades were completed. */
+    schoolCompletedOn?: IsoDate;
     disputedPermitGap?: boolean;
     /** Former article 161(1)(a) required ten years of lawful residence and economic/social integration. */
     legacyTenLawfulYears?: boolean;
@@ -119,6 +128,8 @@ export interface GrSettlementAnswers {
       | 'parent-of-greek-child-born-in-greece'
       | 'stateless'
       | 'none';
+    /** For the Greek-born child over whom the applicant exercises parental responsibility. */
+    childBirthDate?: IsoDate;
     convictions?: Conviction[];
     removalOrStatusProceedings?: boolean;
     exam?:
@@ -226,8 +237,9 @@ function integrationMet(r: GrFullRequest): boolean | IsoDate | undefined {
             e.greekLevel >= v.settlementGreekLevel.value;
     case 'a2': {
       if (e.a2Certificate === true) return true;
-      const age = ageOn(r.birthDate, r.simulationDate);
+      const age = ageOn(r.birthDate, e.a2ExamOn ?? r.simulationDate);
       return all(
+        !e.a2ExamOn || e.a2ExamOn <= r.simulationDate,
         age === undefined ? undefined : age >= p.a2ExamAge,
         e.a2Total === undefined ? undefined : e.a2Total >= p.total,
         e.a2SectionsAtPassMark === undefined
@@ -558,9 +570,7 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
   if (!renewal) {
     const schooling = all(
       e.greekGrades === undefined ? undefined : e.greekGrades >= p.grades,
-      e.ageAtSchoolCompletion === undefined
-        ? undefined
-        : e.ageAtSchoolCompletion < p.beforeAge,
+      underAgeOn(r.birthDate, e.schoolCompletedOn, p.beforeAge),
     );
     const activePermit = r.permits?.some(
       (permit) =>
@@ -570,11 +580,17 @@ function tenYearChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
     const residence =
       e.residesInGreece ??
       (r.entry === 'permit' && activePermit ? true : undefined);
-    const eligible = youth
-      ? any(e.bornInGreece, schooling)
-      : ordinary
-        ? tenYearResidence(r)
-        : undefined;
+    let eligible = ordinary ? tenYearResidence(r) : undefined;
+    if (youth) {
+      eligible = any(e.bornInGreece, schooling);
+      if (
+        e.bornInGreece !== true &&
+        schooling &&
+        e.schoolCompletedOn &&
+        e.schoolCompletedOn > r.simulationDate
+      )
+        eligible = e.schoolCompletedOn;
+    }
     checks.push(
       c.check(
         'TY-01',
@@ -862,7 +878,9 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       ? true
       : e.shortRouteBasis === undefined
         ? undefined
-        : e.shortRouteBasis !== 'none';
+        : e.shortRouteBasis === 'parent-of-greek-child-born-in-greece'
+          ? underAgeOn(e.childBirthDate, filing, p.adultAge)
+          : e.shortRouteBasis !== 'none';
   const clear = convictionClear(r, filing);
   const school = any(
     e.greekSchoolGrades === undefined
@@ -978,9 +996,13 @@ function nationalityChecks(r: GrFullRequest, c: GrContext): CountryCheck[] {
       '递交证件与所选通道',
       'Current title and route category',
       all(definitive, shortCategory),
-      [citizenship('5(1)(δ)–(ε), 5(3)'), grSource('F35', 'pp1–2')],
-      '核对法定清单内的有效卡、三年类别依据，或十二年通道的其他确定性居留卡。指南接纳投资者卡（PD-105）。',
-      'Verify the listed title and any three-year qualification, or a valid definitive permit on the twelve-year route. Ministry guidance accepts investor cards (PD-105).',
+      [
+        citizenship('5(1)(δ)–(ε), 5(3)'),
+        grSource('F35', 'pp1–2'),
+        grSource('F62', 'art. 7(1), Civil Code art. 1510'),
+      ],
+      '核对法定清单内的有效卡、三年类别依据，或十二年通道的其他确定性居留卡。以亲权申请时，在希出生的希腊籍子女在递件日须未成年。指南接纳投资者卡（PD-105）。',
+      'Verify the listed title and any three-year qualification, or a valid definitive permit on the twelve-year route. For the parental responsibility route the Greek child born in Greece must be a minor on filing. Ministry guidance accepts investor cards (PD-105).',
     ),
     c.check(
       'NAT-03',

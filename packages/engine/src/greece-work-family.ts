@@ -85,11 +85,13 @@ interface FamilyAnswers {
   bothParentsLawfullyInGreece?: boolean;
   housingDocument?: 'E9' | 'Taxisnet' | 'E2' | 'none';
   housingMeetsFamilyNeeds?: boolean;
-  member?: 'spouse' | 'child' | 'ascendant' | 'other';
+  /** Child includes recognised adoptions and either parent's children. Ascendant means a direct ascendant. */
+  member?: 'spouse' | 'registered-partner' | 'child' | 'ascendant' | 'other';
   unmarriedChildWithCustodyAndConsent?: boolean;
   adultChildIncapacityDependencyProved?: boolean;
   soleEligibleSpouse?: boolean;
   formedLegallyInGreece?: boolean;
+  /** Includes the civil-status record for this relationship and the applicable filing stage. */
   relationshipAndDocumentsGenuine?: boolean;
   familyLifeContinues?: boolean;
   autonomousBasis?:
@@ -102,6 +104,7 @@ interface FamilyAnswers {
   blueFamilyYearsInEU?: number;
   /** First day of continuous qualifying family residence across Member States, including Greece. */
   blueFamilyResidenceFrom?: IsoDate;
+  /** For dissolution, these periods refer to the marriage or registered partnership. */
   priorMarriageYears?: number;
   priorMarriageYearsInGreece?: number;
   hardshipDocumented?: boolean;
@@ -535,6 +538,7 @@ function workChecks(
 export function isJointInitialApplication(f: FamilyAnswers) {
   return (
     f.stage === 'initial' &&
+    !f.formedLegallyInGreece &&
     (f.jointInitialApplication ??
       (f.sponsor === 'blue-card' && f.jointBlueCardApplication))
   );
@@ -665,27 +669,33 @@ function familyMember(f: FamilyAnswers, req: GrFullRequest): Filing {
   if (!f.member || !f.sponsor) return undefined;
   if (f.member === 'spouse')
     return allDue(
-      req.birthDate &&
-        dueOn(
-          addYears(req.birthDate, p.familyMembers.value.adultAge),
-          req.simulationDate,
-        ),
+      f.sponsor === 'investor' ||
+        (req.birthDate &&
+          dueOn(
+            addYears(req.birthDate, p.familyMembers.value.adultAge),
+            req.simulationDate,
+          )),
       f.soleEligibleSpouse,
     );
+  if (f.member === 'registered-partner')
+    return f.sponsor === 'investor' || f.formedLegallyInGreece;
   if (f.member === 'ascendant') return f.sponsor === 'investor';
   if (f.member !== 'child') return false;
-  if (age === undefined) return undefined;
+  const adultException = all(
+    req.simulationDate >= p.workReformEffective.value,
+    f.adultChildIncapacityDependencyProved,
+  );
+  if (age === undefined)
+    return f.unmarriedChildWithCustodyAndConsent === adultException
+      ? adultException
+      : undefined;
   const ageLimit =
     f.sponsor === 'investor'
       ? p.familyMembers.value.investorChildLimit
       : p.familyMembers.value.adultAge;
   return any(
     all(age < ageLimit, f.unmarriedChildWithCustodyAndConsent),
-    all(
-      req.simulationDate >= p.workReformEffective.value,
-      age >= p.familyMembers.value.adultAge,
-      f.adultChildIncapacityDependencyProved,
-    ),
+    all(age >= p.familyMembers.value.adultAge, adultException),
   );
 }
 
@@ -742,9 +752,10 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
     );
   switch (f.autonomousBasis) {
     case 'child':
+      if (f.member && f.member !== 'child') return false;
       if (age === undefined || !f.member) return undefined;
       return allDue(
-        f.member === 'child' && age < a.finalChildAge,
+        age < a.finalChildAge,
         adulthood,
         age < a.childRenewalAge || f.sponsor === 'investor'
           ? f.previousFamilyCard
@@ -753,7 +764,9 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
     case 'residence': {
       const member =
         f.member &&
-        (f.member === 'spouse' || (f.member === 'child' && adulthood));
+        (f.member === 'spouse' ||
+          f.member === 'registered-partner' ||
+          (f.member === 'child' && adulthood));
       return allDue(
         f.previousFamilyCard,
         autonomousResidenceDue(f, req.simulationDate),
@@ -768,7 +781,8 @@ function autonomous(f: FamilyAnswers, req: GrFullRequest): Filing {
     case 'divorce':
       return all(
         f.previousFamilyCard,
-        f.member === undefined ? undefined : f.member === 'spouse',
+        f.member &&
+          (f.member === 'spouse' || f.member === 'registered-partner'),
         atLeast(f.priorMarriageYears, a.marriageYears),
         atLeast(f.priorMarriageYearsInGreece, a.marriageInGreeceYears),
       );
@@ -967,12 +981,15 @@ function familyChecks(
         'Eligible family member and admission procedure',
         allDue(familyMember(f, req), admission),
         [
-          grSource('F16', 'arts. 4(λε), 42, 84(1), (3), 86(3), 92'),
+          grSource(
+            'F16',
+            'arts. 4(λε), 42(1), 84(1), (3), 86(3), 92(1), 95(2)',
+          ),
           grSource('F36', 'arts. 9(2), 29'),
-          grSource('F21', 'art. 23(I)(1)–(3)'),
+          grSource('F21', 'art. 23(I)(1)–(4), (II)(1)–(2)'),
         ],
-        `配偶须满 ${deadlines.adultAge} 岁。普通和蓝卡家属的未婚子女须未满 ${deadlines.adultAge} 岁，投资类为未满 ${deadlines.investorChildLimit} 岁；另核对监护、同意书及无行为能力成年子女的同住供养证明。普通首签由境外申请入境批准，通常 ${deadlines.decisionMonths} 个月，特殊情况可再延 ${deadlines.extensionMonths} 个月。`,
-        `A spouse must be at least ${deadlines.adultAge}. Unmarried children must be under ${deadlines.adultAge} for ordinary and Blue Card families, or under ${deadlines.investorChildLimit} for investors. Check custody, consent, or documented dependency and co-residence of an adult child without legal capacity. Ordinary first admissions start from abroad, normally within ${deadlines.decisionMonths} months with up to ${deadlines.extensionMonths} additional months exceptionally.`,
+        `一般团聚包括年满 ${deadlines.adultAge} 岁的配偶、未满 ${deadlines.adultAge} 岁的未婚子女，蓝卡适用相同范围。双方持希腊居留许可并在希登记的民事伴侣可依第 92 条申请。投资者家属还包括登记伴侣及双方的直系尊亲属，未婚子女的年龄上限为未满 ${deadlines.investorChildLimit} 岁。子女须核对适用的收养、监护及同意材料。无行为能力的成年子女另核对失能、同住及供养证明。普通境外入境批准通常限 ${deadlines.decisionMonths} 个月，特殊情况可再延 ${deadlines.extensionMonths} 个月。`,
+        `Ordinary and Blue Card reunification covers spouses aged ${deadlines.adultAge} or over and unmarried children under ${deadlines.adultAge}. Partners who hold Greek residence permits and register their partnership in Greece can apply under article 92. Investors can also sponsor registered partners and either partner’s direct ascendants. Their unmarried children must be under ${deadlines.investorChildLimit}. Verify adoption, custody and parental consent where applicable. For adult children without legal capacity, verify incapacity, co-residence and support. Ordinary admission from abroad normally takes up to ${deadlines.decisionMonths} months, exceptionally extended by ${deadlines.extensionMonths} months.`,
       ),
     );
   }
@@ -993,7 +1010,7 @@ function familyChecks(
       'FT-06',
       '家庭居留规费',
       'Family residence fees',
-      true,
+      fee === undefined ? undefined : true,
       [...p.familyFees.sources, grSource('F21', 'art. 2(γ)')],
       `${fee === undefined ? `按年龄及卡别核对：未成年人免申请费，成人 €${fees.permit}，满 ${a.childRenewalAge} 岁的子女专项续卡 €${fees.childRenewal}。` : `申请费 €${fee}。`}另付制卡 €${p.workFees.value.print}。${initial ? `须办理团聚 D 签时领事费 €${fees.nationalVisa}。` : ''}`,
       `${fee === undefined ? `Verify age and permit: minors are exempt, adults pay €${fees.permit}, and the special child renewal at ${a.childRenewalAge} costs €${fees.childRenewal}.` : `Application fee €${fee}.`} Printing costs €${p.workFees.value.print}.${initial ? ` Add €${fees.nationalVisa} if a family national visa is required.` : ''}`,
@@ -1006,9 +1023,13 @@ function familyChecks(
         '家属转自主居留 Ο.2',
         'Autonomous family residence (Ο.2)',
         autonomous(f, req),
-        [...p.familyAutonomy.sources, grSource('F36', 'art. 29 (art. 95(2))')],
-        `持家属卡满 ${a.residenceYears} 年的配偶或成年子女可申请。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶前在希至少 ${a.bereavementYears} 年，离婚前婚姻至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年；另核对成年子女专用卡和有证据的特殊困难。Ο.2 最长 ${a.cardYears} 年。`,
-        `Spouses or adult children with ${a.residenceYears} years on family permits can apply. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Alternatives include ${a.bereavementYears} year before bereavement, marriage of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before divorce, the child permit on adulthood, or documented exceptional hardship. Autonomous residence runs for up to ${a.cardYears} years.`,
+        [
+          ...p.familyAutonomy.sources,
+          grSource('F21', 'art. 24(1.1)–(1.2)'),
+          grSource('F36', 'art. 29 (art. 95(2))'),
+        ],
+        `持家属卡满 ${a.residenceYears} 年的配偶、登记伴侣或成年子女可申请。蓝卡家属可合计成员国居留，但最后 ${a.blueGreekYears} 年须在希腊。丧偶前在希至少 ${a.bereavementYears} 年，婚姻或登记伴侣关系解除前须持续至少 ${a.marriageYears} 年且在希至少 ${a.marriageInGreeceYears} 年。另核对成年子女专用卡和有证据的特殊困难。Ο.2 最长 ${a.cardYears} 年。`,
+        `Spouses, registered partners and adult children with ${a.residenceYears} years on family permits can apply. Blue Card families can count residence in other Member States if the final ${a.blueGreekYears} years were in Greece. Alternatives include ${a.bereavementYears} year before bereavement, a marriage or registered partnership of ${a.marriageYears} years with ${a.marriageInGreeceYears} in Greece before dissolution, the child permit on adulthood, or documented exceptional hardship. Autonomous residence runs for up to ${a.cardYears} years.`,
       ),
     );
   } else {
@@ -1022,11 +1043,17 @@ function familyChecks(
           initial || f.familyLifeContinues,
         ),
         [
-          grSource('F16', 'arts. 84(2), 88(1)–(2)'),
-          grSource('F21', 'art. 23(I)(1)(β), (3)(β), (4)(α)'),
+          grSource('F16', 'arts. 84(2), 88(1)–(2), 92(1)'),
+          grSource(
+            'F21',
+            'art. 23(I)(1)(β), (3)(β), (4)(α), (II)(1)(α), (2)(α)',
+          ),
+          ...(f.sponsor === 'blue-card' && initial
+            ? [grSource('F60', 'procedure 517141, documents 4–5')]
+            : []),
         ],
-        '核对经认证的亲属文件。续签还须确认家庭关系及共同生活持续。',
-        'Verify authentic family records. Renewal also requires a continuing family relationship and family life.',
+        '境内组建家庭首签须按关系出示结婚、在希登记民事伴侣或子女出生记录。境外团聚须提供获认证及翻译的亲属证明，按情况附监护、同意材料。续期须声明家庭状况未变并确认家庭生活持续。',
+        'For domestic family formation, provide the applicable marriage record, Greek partnership registration or birth record. For admission from abroad, provide certified and translated evidence of the relationship, with custody and consent evidence where required. Renewal requires a declaration of unchanged family circumstances and continuing family life.',
       ),
     );
   }

@@ -54,7 +54,8 @@ const greek: Greek = {
 };
 const european: EU = {
   stage: 'permanent',
-  qualifyingNonGreekEuSponsorAndRelationship: true,
+  qualifyingNonGreekEuSponsor: true,
+  relationship: 'spouse',
   sponsorExercisedTreatyRights: true,
   qualifyingResidenceDocumented: true,
   residenceFrom: '2021-11-23',
@@ -210,7 +211,9 @@ describe('Β.5 property and family conditions', () => {
     );
   });
   test('private insurance extends to each dependant; public insurance alone fails', () => {
-    const family: Investor['family'] = [{ kind: 'spouse-partner', age: 34 }];
+    const family: Investor['family'] = [
+      { kind: 'spouse-partner', birthDate: '1992-11-23' },
+    ];
     expect(gv('GV-06', { family }).status).toBe('MET');
     expect(
       gv(
@@ -226,15 +229,30 @@ describe('Β.5 property and family conditions', () => {
       'NOT_MET',
     );
   });
+  test.each(['initial', 'renewal'] as const)(
+    'Β.5 uses the same documented relationships at %s',
+    (stage) => {
+      for (const kind of [
+        'spouse',
+        'registered-partner',
+        'ascendant',
+      ] as const) {
+        expect(gv('GV-09', { stage, family: [{ kind }] }).status).toBe('MET');
+      }
+      expect(gv('GV-09', { stage, family: [{ kind: 'other' }] }).status).toBe(
+        'NOT_MET',
+      );
+    },
+  );
   test('under 21 and unmarried, recognised incapacity, and previous family card converting at 21', () => {
     const child = {
       kind: 'child',
-      age: 20,
+      birthDate: '2006-11-23',
       unmarriedWithRequiredCustody: true,
     } as const;
     const at21 = {
       ...child,
-      age: 21,
+      birthDate: '2005-11-23',
       incapacityDocumentedAndLivingAsDependant: false,
       convertingPreviousFamilyCard: false,
     };
@@ -247,17 +265,28 @@ describe('Β.5 property and family conditions', () => {
     expect(
       gv('GV-09', {
         family: [
-          { ...at21, age: 25, incapacityDocumentedAndLivingAsDependant: true },
+          {
+            ...at21,
+            birthDate: '2001-11-23',
+            incapacityDocumentedAndLivingAsDependant: true,
+          },
         ],
       }).status,
     ).toBe('MET');
     expect(gv('GV-09', { family: undefined }).status).toBe('UNKNOWN');
+    expect(
+      gv('GV-09', { family: [{ ...at21, birthDate: undefined }] }).status,
+    ).toBe('UNKNOWN');
   });
   test('family cost includes all four cards, minor exemption and per-person visa cost', () => {
     const family: Investor['family'] = [
-      { kind: 'ascendant', age: 70 },
-      { kind: 'child', age: 17 },
-      { kind: 'child', age: 21, convertingPreviousFamilyCard: true },
+      { kind: 'ascendant', birthDate: '1956-11-23' },
+      { kind: 'child', birthDate: '2009-11-23' },
+      {
+        kind: 'child',
+        birthDate: '2005-11-23',
+        convertingPreviousFamilyCard: true,
+      },
     ];
     // 2000 + 150 + 0 + 450 + 4 × 16 + 2 × 180 = 3024.
     expect(gv('GV-07', { family, nationalVisas: 2 }).explanation).toContain(
@@ -266,6 +295,18 @@ describe('Β.5 property and family conditions', () => {
     expect(gv('GV-07', {}).explanation).toContain('Total €2016');
     expect(gv('GV-07', { family: undefined }).explanation).not.toContain(
       'Total €',
+    );
+    const child = { kind: 'child', birthDate: '2008-11-24' } as const;
+    expect(gv('GV-07', { family: [child] }).explanation).toContain(
+      'Total €2032',
+    );
+    expect(
+      gv('GV-07', { family: [child] }, { simulationDate: '2026-11-24' })
+        .explanation,
+    ).toContain('Total €2182');
+    expect(gv('GV-07', { family: [{ kind: 'child' }] }).status).toBe('UNKNOWN');
+    expect(gv('GV-07', { family: [], nationalVisas: undefined }).status).toBe(
+      'MET',
     );
   });
   test('renewal requires continued ownership and completed restoration by first renewal', () => {
@@ -336,6 +377,120 @@ describe('Β.5 property and family conditions', () => {
 });
 
 describe('Ο.3 and Μ.3 Greek citizen family', () => {
+  test.each(['initial', 'renewal', 'permanent'] as const)(
+    'Ο.3 and Μ.3 accept documented child incapacity and consular civil partnerships at %s',
+    (stage) => {
+      expect(
+        gf('GF-01', {
+          stage,
+          relationship: 'registered-partner',
+          registeredInGreece: false,
+          partnershipConcludedAt: 'greek-consulate',
+        }).status,
+      ).toBe('MET');
+      expect(
+        gf('GF-01', {
+          stage,
+          relationship: 'registered-partner',
+          partnershipConcludedAt: 'other',
+        }).status,
+      ).toBe('NOT_MET');
+      const child = {
+        stage,
+        relationship: 'child-with-incapacity',
+        incapacityDocumentedAndLivingAsDependant: true,
+      } as const;
+      expect(gf('GF-01', child, { birthDate: '2008-11-23' }).status).toBe(
+        'MET',
+      );
+      expect(gf('GF-01', child).status).toBe('UNKNOWN');
+      expect(
+        gf(
+          'GF-01',
+          { ...child, incapacityDocumentedAndLivingAsDependant: false },
+          { birthDate: '2000-01-01' },
+        ).status,
+      ).toBe('UNKNOWN');
+      expect(
+        gf('GF-01', {
+          ...child,
+          dependent: true,
+          incapacityDocumentedAndLivingAsDependant: false,
+        }).status,
+      ).toBe('MET');
+      expect(
+        gf(
+          'GF-01',
+          {
+            ...child,
+            dependent: false,
+            incapacityDocumentedAndLivingAsDependant: false,
+          },
+          { birthDate: '2000-01-01' },
+        ).status,
+      ).toBe('NOT_MET');
+      expect(
+        gf('GF-01', { stage, relationship: 'descendant', dependent: true })
+          .status,
+      ).toBe('MET');
+    },
+  );
+  test('Ο.3 checks the resident Greek minor’s birthday and the applicant sibling’s own birthday', () => {
+    const parent = {
+      stage: 'initial',
+      relationship: 'parent-of-resident-greek-minor',
+    } as const;
+    expect(gf('GF-01', parent).status).toBe('UNKNOWN');
+    expect(
+      gf('GF-01', { ...parent, greekRelativeBirthDate: '2008-11-24' }).status,
+    ).toBe('MET');
+    expect(
+      gf('GF-01', { ...parent, greekRelativeBirthDate: '2008-11-23' }).status,
+    ).toBe('NOT_MET');
+    const sibling = {
+      ...parent,
+      relationship: 'minor-sibling-of-resident-greek-minor',
+      greekRelativeBirthDate: '2015-06-01',
+    } as const;
+    expect(gf('GF-01', sibling).status).toBe('UNKNOWN');
+    expect(gf('GF-01', sibling, { birthDate: '2008-11-24' }).status).toBe(
+      'MET',
+    );
+    expect(gf('GF-01', sibling, { birthDate: '2008-11-23' }).status).toBe(
+      'NOT_MET',
+    );
+    expect(
+      gf(
+        'GF-01',
+        { ...sibling, stage: 'permanent', initialCardGrantedOn: '2021-11-23' },
+        { birthDate: '2008-11-23' },
+      ).status,
+    ).toBe('MET');
+  });
+  test('Ο.3 checks the age of a sibling at expiry for the single additional term', () => {
+    const renewal = {
+      stage: 'renewal',
+      relationship: 'minor-sibling-of-resident-greek-minor',
+      priorCardExpiry: '2026-12-15',
+      permanentRightAtCardExpiry: false,
+      ordinaryRenewalDocumentsReady: true,
+      siblingExtensionAlreadyGranted: false,
+    } as const;
+    expect(gf('GF-08', renewal, { birthDate: '2005-12-16' }).status).toBe(
+      'MET',
+    );
+    expect(gf('GF-08', renewal, { birthDate: '2005-12-15' }).status).toBe(
+      'NOT_MET',
+    );
+    expect(gf('GF-08', renewal).status).toBe('UNKNOWN');
+    expect(
+      gf(
+        'GF-08',
+        { ...renewal, siblingExtensionAlreadyGranted: true },
+        { birthDate: '2005-12-16' },
+      ).status,
+    ).toBe('NOT_MET');
+  });
   test('initial recognised relation, age/dependency and application for public cover', () => {
     expect(gf('GF-01', { stage: 'initial' }).status).toBe('MET');
     expect(gf('GF-01', { registeredInGreece: false }).status).toBe('NOT_MET');
@@ -463,6 +618,139 @@ describe('Ο.3 and Μ.3 Greek citizen family', () => {
 });
 
 describe('Ν EU family', () => {
+  test.each([
+    [
+      {
+        relationship: 'registered-partner',
+        partnershipRecognisedAsMarriageEquivalent: true,
+      },
+      'MET',
+    ],
+    [{ relationship: 'registered-partner' }, 'UNKNOWN'],
+    [
+      { relationship: 'ascendant', dependent: true, studentSponsor: false },
+      'MET',
+    ],
+    [
+      { relationship: 'ascendant', dependent: false, studentSponsor: false },
+      'NOT_MET',
+    ],
+    [
+      { relationship: 'ascendant', dependent: true, studentSponsor: true },
+      'UNKNOWN',
+    ],
+    [
+      {
+        relationship: 'ascendant',
+        dependent: true,
+        studentSponsor: true,
+        extendedFamilyRecognised: true,
+      },
+      'MET',
+    ],
+    [
+      { relationship: 'durable-partner', extendedFamilyRecognised: false },
+      'NOT_MET',
+    ],
+    [
+      { relationship: 'durable-partner', extendedFamilyRecognised: true },
+      'MET',
+    ],
+    [{ relationship: 'extended-family' }, 'UNKNOWN'],
+    [
+      { relationship: 'extended-family', extendedFamilyRecognised: true },
+      'MET',
+    ],
+    [
+      { relationship: 'descendant', studentSponsor: true, dependent: false },
+      'NOT_MET',
+    ],
+    [{ relationship: 'descendant', dependent: true }, 'MET'],
+    [
+      {
+        relationship: 'descendant',
+        incapacityDocumentedAndLivingAsDependant: true,
+      },
+      'MET',
+    ],
+    [
+      {
+        relationship: 'other',
+        qualifyingNonGreekEuSponsorAndRelationship: true,
+      },
+      'NOT_MET',
+    ],
+  ] as const)('EU family relationship %j gives %s', (facts, expected) => {
+    expect(ef('EF-01', facts).status).toBe(expected);
+  });
+  test.each([
+    ['2000-11-24', 'MET'],
+    ['2000-11-23', 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'permanent Ν checks a descendant born on %s at the start of treaty residence',
+    (birthDate, status) => {
+      const euFamily = {
+        ...european,
+        relationship: 'descendant',
+        studentSponsor: false,
+        dependent: false,
+      } as const;
+      const result = evaluateGreeceFull({
+        pathways: ['GR-EU-FAMILY-PR'],
+        simulationDate,
+        birthDate,
+        euFamily,
+        citizenship: 'third-country',
+        publicOrder: 'clear',
+        passport: { kind: 'exception-granted' },
+        biometrics: 'provided',
+      }).columns[0].pathways[0];
+      expect(result.checks.find((x) => x.id === 'EF-01')?.status).toBe(status);
+      expect(result.status).toBe(status);
+    },
+  );
+  test.each([
+    ['2008-11-24', 'MET'],
+    ['2008-11-23', 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'access in Greece checks the child’s birthday %s',
+    (childBirthDate, status) => {
+      expect(
+        ef('EF-04', {
+          stage: 'retained',
+          retention: {
+            basis: 'access-in-greece',
+            childBirthDate,
+            eventDate: '2025-01-01',
+            livelihood: 'employment',
+          },
+        }).status,
+      ).toBe(status);
+    },
+  );
+  test.each([
+    ['1965-06-20', 'MET'],
+    ['1965-06-21', 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'retirement without statutory pension rights uses the worker’s birthday %s at cessation',
+    (sponsorBirthDate, expected) => {
+      expect(
+        ef('EF-02', {
+          residenceFrom: '2022-01-01',
+          early: {
+            basis: 'self-employed-retirement-without-pension',
+            sponsorBirthDate,
+            eventDate: '2025-06-20',
+            greekSpouseDurationExemption: true,
+            livedTogetherAtEvent: true,
+          },
+        }).status,
+      ).toBe(expected);
+    },
+  );
   test('evidence of treaty residence and regular five years', () => {
     expect(ef('EF-01', {}).status).toBe('MET');
     expect(ef('EF-01', { sponsorExercisedTreatyRights: false }).status).toBe(
@@ -611,6 +899,92 @@ describe('property and family reviews through evaluateGreeceFull', () => {
     expect(path.status).toBe(status);
     expect(path.earliestDate).toBe(earliestDate);
   }
+
+  test('Ο.3 first grant and ordinary renewal accept the same registered partner and apply their own evidence lists', () => {
+    const partner = {
+      relationship: 'registered-partner',
+      partnershipConcludedAt: 'greek-consulate',
+      genuineRelationship: true,
+    } as const;
+    const initial = full('GR-GREEK-FAMILY-PR', {
+      greekFamily: {
+        ...partner,
+        stage: 'initial',
+        stableResidenceInGreece: true,
+      },
+    });
+    verify(initial, 'GF-01', 'MET');
+    const renew = (facts: Partial<Greek>, cover = insurance) =>
+      full('GR-GREEK-FAMILY-PR', {
+        greekFamily: {
+          ...partner,
+          stage: 'renewal',
+          priorCardExpiry: '2026-12-15',
+          permanentRightAtCardExpiry: false,
+          ordinaryRenewalDocumentsReady: true,
+          ...facts,
+        },
+        insurance: cover,
+      });
+    verify(renew({}), 'GF-08', 'MET');
+    verify(renew({ ordinaryRenewalDocumentsReady: false }), 'GF-08', 'NOT_MET');
+    verify(
+      renew({ ordinaryRenewalDocumentsReady: undefined }),
+      'GF-08',
+      'UNKNOWN',
+    );
+    verify(renew({ permanentRightAtCardExpiry: true }), 'GF-08', 'NOT_MET');
+    verify(
+      renew({ permanentRightAtCardExpiry: undefined }),
+      'GF-08',
+      'UNKNOWN',
+    );
+    verify(renew({}, { kind: 'uninsured' }), 'GF-08', 'NOT_MET');
+  });
+
+  test.each([
+    ['2005-07-01', 'NOT_MET', 'NOT_MET'],
+    ['2005-07-15', 'NOT_MET', 'NOT_MET'],
+    ['2005-07-16', 'FUTURE', 'MET'],
+    [undefined, 'UNKNOWN', 'UNKNOWN'],
+  ] as const)(
+    'Β.5 renewal reassesses the accompanying child born on %s when the filing window opens',
+    (birthDate, forecast, atWindow) => {
+      const run = (day: string) =>
+        full('GR-GOLDEN-VISA', {
+          simulationDate: day,
+          permits: [{ kind: 'investor', from: '2021-09-15', to: '2026-09-15' }],
+          currentCardExpiresOn: '2026-09-15',
+          goldenVisa: {
+            ...investor,
+            stage: 'renewal',
+            retainsInvestment: true,
+            registrationProofSubmittedAtGrant: true,
+            family: [
+              {
+                kind: 'child',
+                birthDate,
+                unmarriedWithRequiredCustody: true,
+                convertingPreviousFamilyCard: false,
+                incapacityDocumentedAndLivingAsDependant: false,
+              },
+            ],
+          },
+        });
+      const projected = run('2026-06-20');
+      const actual = run('2026-07-15');
+      expect(projected.status).toBe(forecast);
+      expect(actual.status).toBe(atWindow);
+      for (const result of [projected, actual]) {
+        expect(
+          result.checks.find((check) => check.id === 'GV-09')?.status,
+        ).toBe(atWindow);
+        expect(result.earliestDate).toBe(
+          atWindow === 'MET' ? '2026-07-15' : undefined,
+        );
+      }
+    },
+  );
 
   test.each([
     [undefined, 'UNKNOWN'],
@@ -1211,7 +1585,7 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       family: [
         {
           kind: 'child',
-          age: 25,
+          birthDate: '2001-11-23',
           convertingPreviousFamilyCard: false,
           incapacityDocumentedAndLivingAsDependant: true,
         },

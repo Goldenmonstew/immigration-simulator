@@ -273,4 +273,7 @@ export const sourceUrls: Record<string, string> = {
     'https://api.et.gr/apiFEK/2/2025/6014/pdf',
   'SRC-376':
     'https://en.mitos.gov.gr/index.php/%CE%94%CE%94%3AResidence_permit_for_family_members_of_a_highly_qualified_residence_permit_holder_%28%E2%80%98E.1%E2%80%99%29_%E2%80%93_Initial_granting',
+  'SRC-377':
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:C_202301392',
+  'SRC-378': 'https://api.et.gr/apiFEK/1/2021/81/pdf',
 };

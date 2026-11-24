@@ -2,7 +2,7 @@ import { grSource, greeceFull2026_11 } from '@uk-immigration/policy-data';
 import type { CountryCheck } from './country-result';
 import { addMonths, addYears } from './dates';
 import type { GrFullPathwayId, GrFullRequest } from './greece-full';
-import { ageOn, all, insuranceMet } from './greece-rules';
+import { all, any, insuranceMet, underAgeOn } from './greece-rules';
 import type { GrContext } from './greece-rules';
 import { isJointInitialApplication } from './greece-work-family';
 import type { IsoDate } from './types';
@@ -106,7 +106,6 @@ function passportCheck(
 function characterCheck(req: GrFullRequest, c: GrContext) {
   const limits = p.generalCharacter.value;
   const facts = req.character;
-  const age = ageOn(req.birthDate, req.simulationDate);
   const listed =
     facts?.seriousListingRemovalRefused ||
     (facts?.seriousSecurityListingYears !== undefined &&
@@ -115,14 +114,12 @@ function characterCheck(req: GrFullRequest, c: GrContext) {
     facts?.repeatOffences ||
     (facts?.finalSentenceMonths !== undefined &&
       facts.finalSentenceMonths >= limits.sentenceMonths);
-  const met =
-    age !== undefined && age < limits.childScreenAge
-      ? true
-      : listed || req.publicOrder === 'adverse'
-        ? false
-        : req.publicOrder === 'clear'
-          ? true
-          : undefined;
+  const met = any(
+    underAgeOn(req.birthDate, req.simulationDate, limits.childScreenAge),
+    listed || req.publicOrder === 'adverse'
+      ? false
+      : req.publicOrder === 'clear' || undefined,
+  );
   return c.check(
     'C-03',
     '公共秩序与安全审查',
@@ -164,19 +161,16 @@ function changeCheck(req: GrFullRequest, c: GrContext) {
 
 function cardCheck(req: GrFullRequest, c: GrContext) {
   const limits = p.cardFormalities.value;
-  const age = ageOn(req.birthDate, req.simulationDate);
-  const exempt =
-    (age !== undefined && age < limits.fingerprintAge) ||
-    req.biometrics === 'medical-exemption';
   const missed = req.missedFingerprintAppointments;
-  const met = exempt
-    ? true
-    : missed !== undefined && missed >= limits.missedAppointments
+  const met = any(
+    underAgeOn(req.birthDate, req.simulationDate, limits.fingerprintAge),
+    req.biometrics === 'medical-exemption',
+    missed !== undefined && missed >= limits.missedAppointments
       ? false
       : req.biometrics === 'provided' ||
-          req.biometrics === 'awaiting-appointment'
-        ? true
-        : undefined;
+          req.biometrics === 'awaiting-appointment' ||
+          undefined,
+  );
   return c.check(
     'C-07',
     '指纹通知与制卡',
@@ -246,6 +240,7 @@ export function ordinaryRenewalWindow(
 function renewalCheck(id: GrFullPathwayId, req: GrFullRequest, c: GrContext) {
   const expiry =
     (id === 'GR-TEN-YEAR' && req.tenYear?.cardExpiresOn) ||
+    (id === 'GR-GREEK-FAMILY-PR' && req.greekFamily?.priorCardExpiry) ||
     req.currentCardExpiresOn;
   if (id === 'GR-LONG-TERM')
     return c.check(
@@ -298,13 +293,12 @@ export function commonChecks(
   const gold = id === 'GR-GOLDEN-VISA';
   const entry = req.entry;
   const kind = work ? req.work?.permit : undefined;
-  const renewal = work
-    ? req.work?.stage === 'renewal'
-    : reunion
-      ? req.familyTcn?.stage === 'renewal'
-      : id === 'GR-LONG-TERM'
-        ? req.longTerm?.stage === 'renewal'
-        : id === 'GR-TEN-YEAR' && req.tenYear?.stage === 'renewal';
+  const renewal =
+    (work && req.work?.stage === 'renewal') ||
+    (reunion && req.familyTcn?.stage === 'renewal') ||
+    (greekFamily && req.greekFamily?.stage === 'renewal') ||
+    (id === 'GR-LONG-TERM' && req.longTerm?.stage === 'renewal') ||
+    (id === 'GR-TEN-YEAR' && req.tenYear?.stage === 'renewal');
   const initialGold = gold && initialInvestor(req);
   const initialReunion = reunion && req.familyTcn?.stage === 'initial';
   const overseas = initialGold && overseasInvestorFiling(req);

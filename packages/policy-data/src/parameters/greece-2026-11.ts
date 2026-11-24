@@ -264,14 +264,16 @@ const official = {
     'SRC-374',
     'https://mitos.gov.gr/index.php/ΔΔ:Άδεια_διαμονής_κατόπιν_έγκρισης_μετάκλησης_για_εξαρτημένη_εργασία_–_Ανανέωση_(«Ε.4»)',
   ],
-  F59: [
-    'SRC-375',
-    'https://api.et.gr/apiFEK/2/2025/6014/pdf',
-  ],
+  F59: ['SRC-375', 'https://api.et.gr/apiFEK/2/2025/6014/pdf'],
   F60: [
     'SRC-376',
     'https://en.mitos.gov.gr/index.php/%CE%94%CE%94%3AResidence_permit_for_family_members_of_a_highly_qualified_residence_permit_holder_%28%E2%80%98E.1%E2%80%99%29_%E2%80%93_Initial_granting',
   ],
+  F61: [
+    'SRC-377',
+    'https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:C_202301392',
+  ],
+  F62: ['SRC-378', 'https://api.et.gr/apiFEK/1/2021/81/pdf'],
 } as const;
 
 export function grSource(
@@ -667,8 +669,10 @@ export const greeceFull2026_11 = {
     },
     efPeriods: {
       value: {
+        childAge: 21,
         residenceYears: 5,
         retirementYears: 3,
+        noPensionRetirementAge: 60,
         priorWorkMonths: 12,
         incapacityYears: 2,
         crossBorderYears: 3,
@@ -681,7 +685,10 @@ export const greeceFull2026_11 = {
         decisionMonths: 6,
         cardYears: 10,
       },
-      sources: [grSource('F02', 'arts. 13–15, 17(2)–(5), pp. 2982–2984')],
+      sources: [
+        grSource('F02', 'arts. 2(2)(β), 13–15, 17(2)–(5), pp. 2978, 2982–2984'),
+        grSource('F36', 'art. 9(4), Migration Code art. 4(ληγ), p. 445'),
+      ],
     },
     gvTransitionalValues: {
       value: { legacyHigh: 500000, legacyOther: 250000 },

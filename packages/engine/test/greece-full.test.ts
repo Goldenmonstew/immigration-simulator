@@ -465,6 +465,12 @@ describe('common permit rules', () => {
     ).toEqual(['PD-301']);
     expect(check('C-03', { publicOrder: 'clear' }).status).toBe('MET');
     expect(
+      check('C-03', { birthDate: undefined, publicOrder: 'adverse' }).status,
+    ).toBe('UNKNOWN');
+    expect(
+      check('C-03', { birthDate: undefined, publicOrder: 'clear' }).status,
+    ).toBe('MET');
+    expect(
       check('C-03', { character: { seriousSecurityListingYears: 6 } }).status,
     ).toBe('NOT_MET');
     expect(
@@ -521,6 +527,16 @@ describe('common permit rules', () => {
   });
   test('fingerprinting from the sixth birthday, exemption and two missed appointments', () => {
     const missed = { biometrics: undefined, missedFingerprintAppointments: 2 };
+    expect(check('C-07', { ...missed, birthDate: undefined }).status).toBe(
+      'UNKNOWN',
+    );
+    expect(
+      check('C-07', {
+        ...missed,
+        birthDate: undefined,
+        biometrics: 'medical-exemption',
+      }).status,
+    ).toBe('MET');
     expect(check('C-07', { ...missed, birthDate: '2020-11-24' }).status).toBe(
       'MET',
     );

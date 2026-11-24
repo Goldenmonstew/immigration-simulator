@@ -505,6 +505,157 @@ test.each([
   },
 );
 
+test.each(['initial', 'renewal'] as const)(
+  'Ο.1 accepts the same Greek-registered civil partnership at %s filing',
+  (stage) => {
+    const result = route('GR-FAMILY-TCN', {
+      simulationDate: '2026-11-24',
+      entry: 'permit',
+      currentCardExpiresOn: '2026-12-01',
+      familyTcn: {
+        stage,
+        sponsor: 'ordinary',
+        sponsorPermitValid: true,
+        formedLegallyInGreece: true,
+        member: 'registered-partner',
+        relationshipAndDocumentsGenuine: true,
+        familyLifeContinues: true,
+        priorYearTaxAndInsuranceEvidence: true,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-05')).toMatchObject({
+      status: 'MET',
+      sources: expect.arrayContaining([
+        expect.objectContaining({
+          srcId: 'SRC-086',
+          locator: expect.stringContaining('92(1)'),
+        }),
+        expect.objectContaining({
+          srcId: 'SRC-356',
+          locator: expect.stringContaining('(II)'),
+        }),
+      ]),
+    });
+    expect(result.status).toBe('MET');
+  },
+);
+
+test.each([
+  ['ordinary', false, 'NOT_MET'],
+  ['blue-card', false, 'NOT_MET'],
+  ['ordinary', undefined, 'UNKNOWN'],
+  ['investor', false, 'MET'],
+] as const)(
+  'Ο.1 registered partner of %s with formation in Greece %s',
+  (sponsor, formedLegallyInGreece, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: {
+        ...reunion,
+        member: 'registered-partner',
+        sponsor,
+        formedLegallyInGreece,
+      },
+      entry: formedLegallyInGreece === undefined ? 'permit' : 'national-visa',
+    });
+    expect(result.checks.find((item) => item.id === 'FT-05')?.status).toBe(
+      status,
+    );
+    expect(result.status).toBe(status);
+  },
+);
+
+test('domestic partnership requires permits for both partners and the registration evidence', () => {
+  const applicant: Family = {
+    ...reunion,
+    member: 'registered-partner',
+    formedLegallyInGreece: true,
+    sponsor: 'blue-card',
+    jointInitialApplication: true,
+  };
+  for (const [
+    entry,
+    sponsorPermitValid,
+    relationshipAndDocumentsGenuine,
+    expected,
+  ] of [
+    ['permit', false, true, 'NOT_MET'],
+    ['short-stay', true, true, 'NOT_MET'],
+    ['permit', true, false, 'NOT_MET'],
+    ['permit', true, undefined, 'UNKNOWN'],
+  ] as const) {
+    const result = route('GR-FAMILY-TCN', {
+      entry,
+      familyTcn: {
+        ...applicant,
+        sponsorPermitValid,
+        relationshipAndDocumentsGenuine,
+      },
+    });
+    expect(result.status).toBe(expected);
+  }
+});
+
+test.each(['residence', 'divorce'] as const)(
+  'Ο.2 accepts a documented former Ο.1 partner on the %s basis',
+  (autonomousBasis) => {
+    const result = route('GR-FAMILY-TCN', {
+      familyTcn: {
+        stage: 'autonomous',
+        member: 'registered-partner',
+        sponsor: 'ordinary',
+        previousFamilyCard: true,
+        autonomousBasis,
+        familyResidenceYears: 5,
+        priorMarriageYears: 3,
+        priorMarriageYearsInGreece: 1,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'FT-07')?.status).toBe(
+      'MET',
+    );
+    expect(result.status).toBe('MET');
+  },
+);
+
+test('a missing birth date leaves age-dependent Ο.1 qualification and fees open', () => {
+  const request = { birthDate: undefined };
+  const child: Family = {
+    member: 'child',
+    unmarriedChildWithCustodyAndConsent: true,
+    adultChildIncapacityDependencyProved: false,
+  };
+  const result = route('GR-FAMILY-TCN', {
+    ...request,
+    familyTcn: { ...reunion, ...child },
+  });
+  expect(result.checks.find((item) => item.id === 'FT-05')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(result.checks.find((item) => item.id === 'FT-06')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(result.status).toBe('UNKNOWN');
+  expect(
+    family(
+      'FT-05',
+      { ...child, adultChildIncapacityDependencyProved: true },
+      request,
+    ).status,
+  ).toBe('MET');
+  expect(
+    family(
+      'FT-05',
+      { ...child, unmarriedChildWithCustodyAndConsent: false },
+      request,
+    ).status,
+  ).toBe('NOT_MET');
+  expect(family('FT-05', { member: 'spouse' }, request).status).toBe('UNKNOWN');
+  expect(
+    family('FT-05', { member: 'spouse', sponsor: 'investor' }, request).status,
+  ).toBe('MET');
+  expect(work('WK-INVITATION-AGE', {}, request).status).toBe('UNKNOWN');
+});
+
 test.each([
   [false, true, 'MET'],
   [true, false, 'NOT_MET'],

@@ -45,8 +45,19 @@ export function any(...answers: Answer[]): Answer {
       ? undefined
       : false;
 }
-export function ageOn(birthDate: IsoDate | undefined, date: IsoDate) {
-  return birthDate === undefined ? undefined : fullYears(birthDate, date);
+export function ageOn(
+  birthDate: IsoDate | undefined,
+  date: IsoDate | undefined,
+) {
+  return birthDate && date ? fullYears(birthDate, date) : undefined;
+}
+export function underAgeOn(
+  birthDate: IsoDate | undefined,
+  on: IsoDate | undefined,
+  limit: number,
+): Answer {
+  const age = ageOn(birthDate, on);
+  return age === undefined ? undefined : age >= 0 && age < limit;
 }
 export function insuranceMet(
   insurance: GrInsurance | undefined,

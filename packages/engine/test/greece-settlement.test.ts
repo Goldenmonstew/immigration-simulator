@@ -253,6 +253,15 @@ describe('M.1 long-term grant and retention', () => {
     ).toBe('NOT_MET');
     expect(
       status(lt, 'LT-04', {
+        integration: { ...base, a2ExamOn: '2026-11-22' },
+        birthDate: '2010-11-23',
+      }),
+    ).toBe('NOT_MET');
+    expect(
+      status(lt, 'LT-04', { integration: base, birthDate: undefined }),
+    ).toBe('UNKNOWN');
+    expect(
+      status(lt, 'LT-04', {
         integration: { ...base, a2SectionsAtPassMark: 3 },
       }),
     ).toBe('NOT_MET');
@@ -654,7 +663,7 @@ describe('M.2 acquisition and conversion', () => {
       residesInGreece: true,
       bornInGreece: false,
       greekGrades: 6,
-      ageAtSchoolCompletion: 22,
+      schoolCompletedOn: '2008-05-11',
     } as const;
     expect(status(ty, 'TY-01', { tenYear: e, permits: [] })).toBe('MET');
     expect(check(ty, 'TY-02', { tenYear: e })).toBeUndefined();
@@ -674,8 +683,22 @@ describe('M.2 acquisition and conversion', () => {
       }),
     ).toBe('MET');
     expect(
-      status(ty, 'TY-01', { tenYear: { ...e, ageAtSchoolCompletion: 23 } }),
+      status(ty, 'TY-01', {
+        tenYear: { ...e, schoolCompletedOn: '2008-05-12' },
+      }),
     ).toBe('NOT_MET');
+    expect(status(ty, 'TY-01', { tenYear: e, birthDate: undefined })).toBe(
+      'UNKNOWN',
+    );
+    expect(
+      status(ty, 'TY-01', { tenYear: { ...e, schoolCompletedOn: undefined } }),
+    ).toBe('UNKNOWN');
+    expect(
+      status(ty, 'TY-01', {
+        tenYear: { ...e, bornInGreece: true },
+        birthDate: undefined,
+      }),
+    ).toBe('MET');
     expect(status(ty, 'TY-01', { tenYear: { ...e, greekGrades: 5 } })).toBe(
       'NOT_MET',
     );
@@ -779,6 +802,32 @@ describe('M.2 acquisition and conversion', () => {
 });
 
 describe('ΚΕΙ naturalisation', () => {
+  test.each([
+    ['2008-11-24', 'MET'],
+    ['2008-11-23', 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'parental responsibility on filing depends on the Greek-born child’s birthday %s',
+    (childBirthDate, expected) => {
+      const nationality = {
+        permit: 'listed',
+        shortRouteBasis: 'parent-of-greek-child-born-in-greece',
+        childBirthDate,
+      } as const;
+      expect(status(nat, 'NAT-02', { route: 'three-year', nationality })).toBe(
+        expected,
+      );
+      expect(
+        status(nat, 'NAT-02', {
+          route: 'three-year',
+          nationality: {
+            ...nationality,
+            shortRouteBasis: 'greek-spouse-with-child',
+          },
+        }),
+      ).toBe('MET');
+    },
+  );
   const satisfactory: NonNullable<GrFullRequest['nationality']> = {
     permit: 'listed',
     convictions: [],
