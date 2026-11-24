@@ -3505,7 +3505,11 @@ describe('review86-8 regressions', () => {
     'requires applicable I-693 evidence at filing only from the receipt cutoff (%s)',
     (simulationDate, status, earliestDate) => {
       const request: UsFullRequest = {
-        ...withAdmission({ medicalEvidence: 'pending' }),
+        ...withAdmission({
+          medicalEvidence: 'pending',
+          classAHealth: 'pending',
+          vaccines: 'pending',
+        }),
         simulationDate,
         support: { ...support, jointSponsor: 'cleared' },
       };
@@ -3533,7 +3537,12 @@ describe('review86-8 regressions', () => {
           firmlyResettled: false,
           discretion: 'cleared',
         },
-        admission: { ...admission, medicalEvidence: 'pending' },
+        admission: {
+          ...admission,
+          medicalEvidence: 'pending',
+          classAHealth: 'pending',
+          vaccines: 'pending',
+        },
       };
       expect(path(request)).toMatchObject({
         status: 'MET',
@@ -3546,6 +3555,226 @@ describe('review86-8 regressions', () => {
       });
     }
   });
+});
+
+describe('review86-9 regressions', () => {
+  test('uses the N-400 receipt date for the 65/20 civics test', () => {
+    const request: UsFullRequest = {
+      ...withNatural({
+        civics: undefined,
+        civicsCorrect: 6,
+        lprResidenceYears: 21,
+      }),
+      simulationDate: '2026-11-22',
+      dateOfBirth: '1961-11-23',
+    };
+    const paper: UsFullRequest = { ...request, fees: { channel: 'paper' } };
+    expect(condition(paper, 'C04-CIVICS').status).toBe('MET');
+    expect(path(paper)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-23',
+      approvalStatus: 'FUTURE',
+    });
+    expect(
+      condition({ ...request, fees: { channel: 'online' } }, 'C04-CIVICS')
+        .status,
+    ).toBe('NOT_MET');
+    expect(
+      condition(
+        { ...request, fees: { onlineCategoryAvailable: 'pending' } },
+        'C04-CIVICS',
+      ),
+    ).toMatchObject({ status: 'UNKNOWN', pendingDetails: ['PD-271'] });
+  });
+
+  test('excludes fraud, false citizenship and unlawful presence for an approved SIJ adjustment', () => {
+    const approvedSij = withAdmission({
+      adjustmentBasis: 'sij',
+      petitionStatus: 'approved',
+      legalEntry: 'without-inspection',
+      immigrationFraud: true,
+      falseCitizenship: true,
+      falseCitizenshipException: false,
+      unlawfulDeparture: { leftOn: '2026-01-01', qualifyingDays: 365 },
+    });
+    expect(condition(approvedSij, 'C33-VISA-AND-ENTRY').status).toBe('MET');
+    expect(condition(approvedSij, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+      filingStatus: 'MET',
+      status: 'MET',
+    });
+    expect(path(approvedSij)).toMatchObject({
+      status: 'MET',
+      earliestDate: time.simulationDate,
+      approvalStatus: 'MET',
+      approvalEarliestDate: time.simulationDate,
+    });
+    expect(
+      condition(
+        {
+          ...approvedSij,
+          admission: { ...approvedSij.admission, unlawfulReentryBar: true },
+        },
+        'C40-IMMIGRATION-HISTORY',
+      ),
+    ).toMatchObject({ filingStatus: 'NOT_MET', status: 'NOT_MET' });
+    expect(
+      condition(
+        {
+          ...approvedSij,
+          admission: {
+            ...approvedSij.admission,
+            otherInadmissibility: 'pending',
+          },
+        },
+        'C40-IMMIGRATION-HISTORY',
+      ),
+    ).toMatchObject({
+      filingStatus: 'UNKNOWN',
+      status: 'UNKNOWN',
+      pendingDetails: ['PD-274'],
+    });
+  });
+
+  test('applies SIJ exemptions only to the identified inadmissibility grounds', () => {
+    const request = withAdmission({
+      adjustmentBasis: 'sij',
+      petitionStatus: 'approved',
+      otherInadmissibilityByGround: {
+        '5(A)': 'barred',
+        '6(A)(i)': 'barred',
+        '6(D)': 'barred',
+        '7(A)(i)': 'pending',
+      },
+    });
+    expect(condition(request, 'C40-IMMIGRATION-HISTORY').status).toBe('MET');
+    expect(
+      condition(
+        withAdmission({
+          ...request.admission,
+          otherInadmissibilityByGround: {
+            ...request.admission?.otherInadmissibilityByGround,
+            '9(A)': 'barred',
+          },
+        }),
+        'C40-IMMIGRATION-HISTORY',
+      ).status,
+    ).toBe('NOT_MET');
+    expect(
+      condition(
+        withAdmission({
+          ...request.admission,
+          adjustmentBasis: 'immediate-relative',
+        }),
+        'C40-IMMIGRATION-HISTORY',
+      ).status,
+    ).toBe('NOT_MET');
+  });
+
+  test('applies the VAWA entry exemption but checks fraud and conditional unlawful-presence relief separately', () => {
+    const inputs = {
+      adjustmentBasis: 'vawa',
+      petitionStatus: 'approved',
+      legalEntry: 'without-inspection',
+      publicCharge: 'barred',
+      otherInadmissibilityByGround: { '6(A)(i)': 'barred' },
+    } as const;
+    const request = withAdmission(inputs);
+    expect(condition(request, 'C37-PUBLIC-CHARGE').applicable).toBe(false);
+    expect(condition(request, 'C40-IMMIGRATION-HISTORY').status).toBe('MET');
+    expect(
+      condition(
+        withAdmission({ ...inputs, immigrationFraud: true }),
+        'C40-IMMIGRATION-HISTORY',
+      ).status,
+    ).toBe('NOT_MET');
+    const unlawfulDeparture = { leftOn: '2026-01-01', qualifyingDays: 365 };
+    for (const [vawaUnlawfulPresenceException, status] of [
+      [undefined, 'UNKNOWN'],
+      ['cleared', 'MET'],
+      ['barred', 'NOT_MET'],
+    ] as const) {
+      expect(
+        condition(
+          withAdmission({
+            ...inputs,
+            unlawfulDeparture,
+            vawaUnlawfulPresenceException,
+          }),
+          'C40-IMMIGRATION-HISTORY',
+        ),
+      ).toMatchObject({ filingStatus: status, status });
+    }
+    const consular = withAdmission({
+      ...inputs,
+      process: 'consular',
+      decisionOn: time.simulationDate,
+      otherInadmissibilityByGround: undefined,
+      unlawfulDeparture,
+      vawaUnlawfulPresenceException: 'cleared',
+    });
+    expect(condition(consular, 'C37-PUBLIC-CHARGE').applicable).toBe(false);
+    expect(condition(consular, 'C40-IMMIGRATION-HISTORY')).toMatchObject({
+      filingStatus: 'NOT_APPLICABLE',
+      status: 'MET',
+    });
+  });
+
+  test.each(['refugee', 'asylee'] as const)(
+    'applies the INA 209(c) exemptions and retains applicable grounds for %s',
+    (status) => {
+      const request: UsFullRequest = {
+        ...h,
+        humanitarian: {
+          ...human,
+          status,
+          waiver: 'not-needed',
+          refugeeDefinitionOrDerivative: true,
+          firmlyResettled: false,
+          discretion: 'cleared',
+        },
+        admission: {
+          ...admission,
+          publicCharge: 'barred',
+          otherInadmissibilityByGround: {
+            '5(A)': 'barred',
+            '5(B)': 'barred',
+            '7(A)(i)': 'pending',
+          },
+        },
+      };
+      expect(condition(request, 'C37-PUBLIC-CHARGE').applicable).toBe(false);
+      expect(condition(request, 'C40-IMMIGRATION-HISTORY').status).toBe('MET');
+      expect(path(request)).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'MET',
+      });
+      expect(
+        condition(
+          {
+            ...request,
+            admission: { ...request.admission, immigrationFraud: true },
+          },
+          'C40-IMMIGRATION-HISTORY',
+        ),
+      ).toMatchObject({ filingStatus: 'NOT_MET', status: 'NOT_MET' });
+      expect(
+        condition(
+          {
+            ...request,
+            humanitarian: { ...request.humanitarian, waiver: 'cleared' },
+            admission: {
+              ...request.admission,
+              otherInadmissibilityByGround: {
+                '9(A)': 'barred',
+                '10(A)': 'pending',
+              },
+            },
+          },
+          'C40-IMMIGRATION-HISTORY',
+        ),
+      ).toMatchObject({ filingStatus: 'UNKNOWN', status: 'UNKNOWN' });
+    },
+  );
 });
 
 describe('filing and evidence exceptions', () => {

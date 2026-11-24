@@ -17,7 +17,7 @@ import {
   adjustmentChecks,
   humanitarianChecks,
 } from './admission';
-import { checksFor, checkStatus, reviewed, s, v } from './check';
+import { checksFor, checkStatus, reviewed, s } from './check';
 import { feeChecks } from './fees';
 import { familyChecks, employmentChecks, supportChecks } from './immigration';
 import { conditionChecks, travelChecks } from './maintenance';
@@ -423,14 +423,12 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       : undefined;
   const naturalizationAt = (candidate: IsoDate) => {
     const receipt = receiptOn(candidate);
-    const cutoff = v.civicsTest.value.switchDate;
-    const uncertainVersion =
-      filingChannel?.status === 'UNKNOWN' &&
-      receipt < cutoff &&
-      nextUsBusinessDay(receipt) >= cutoff;
     return naturalizationChecks(
       request,
-      uncertainVersion ? undefined : receipt,
+      receipt,
+      filingChannel?.status === 'UNKNOWN'
+        ? nextUsBusinessDay(receipt)
+        : receipt,
     );
   };
   const nvcOpening = admission?.nvcFilingOpensOn;

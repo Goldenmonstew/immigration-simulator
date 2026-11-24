@@ -98,10 +98,11 @@ function exemption(
   request: UsFullRequest,
   age: number,
   residence: number,
+  date = request.simulationDate,
 ): Answer {
   const oldEnough = request.dateOfBirth && afterYears(request.dateOfBirth, age);
   return all(
-    oldEnough ? request.simulationDate >= oldEnough : undefined,
+    oldEnough ? date >= oldEnough : undefined,
     atLeast(request.naturalization?.lprResidenceYears, residence),
   );
 }
@@ -163,7 +164,8 @@ function selectiveService(request: UsFullRequest, gmcYears: number): Answer {
 
 export function naturalizationChecks(
   request: UsFullRequest,
-  receipt?: IsoDate,
+  receipt: IsoDate,
+  possiblePaperReceipt: IsoDate,
 ) {
   const check = checksFor(request);
   const a = request.naturalization;
@@ -206,16 +208,19 @@ export function naturalizationChecks(
     englishWaived,
   );
   const civics = v.civicsTest.value;
-  const special = exemption(
-    request,
-    civics.special.age,
-    civics.special.lprYears,
-  );
-  const version = receipt
-    ? receipt >= civics.switchDate
-      ? civics.current
-      : civics.old
-    : undefined;
+  const specialAt = (on: IsoDate) =>
+    exemption(request, civics.special.age, civics.special.lprYears, on);
+  const specialAtReceipt = specialAt(receipt);
+  const uncertainSpecial = specialAtReceipt !== specialAt(possiblePaperReceipt);
+  const special = uncertainSpecial ? undefined : specialAtReceipt;
+  const currentVersion = receipt >= civics.switchDate;
+  const paperCurrentVersion = possiblePaperReceipt >= civics.switchDate;
+  const version =
+    currentVersion === paperCurrentVersion
+      ? currentVersion
+        ? civics.current
+        : civics.old
+      : undefined;
   const test = special ? civics.special : version;
   const score = a?.civicsCorrect;
   const scored = !test
@@ -335,15 +340,20 @@ export function naturalizationChecks(
             `重考通常在首次面谈后 ${civics.retestDays.earliest}–${civics.retestDays.latest} 天安排，具体日期待通知。`,
             `A retest is usually scheduled ${civics.retestDays.earliest}–${civics.retestDays.latest} days after the first interview. Await the notice.`,
           ]
-        : test
+        : uncertainSpecial
           ? [
-              `适用题库 ${test.bank} 题，最多问 ${test.asked} 题，答对 ${test.correct} 题。简版资格未确认时仍需核实年龄和在美永居年限。`,
-              `The indicated bank has ${test.bank} questions, with up to ${test.asked} asked and ${test.correct} correct required. Confirm age and LPR residence for special consideration.`,
+              '纸质与网上收件日跨越简版考试的年龄门槛。请确认实际收件日。',
+              'Paper and online receipt dates straddle the age threshold for special consideration. Confirm the actual receipt date.',
             ]
-          : [
-              '纸质与网上收件日跨越题库切换日。请先确认实际收件日。',
-              'Paper and online receipt dates straddle the civics test change. Confirm the receipt date first.',
-            ],
+          : test
+            ? [
+                `适用题库 ${test.bank} 题，最多问 ${test.asked} 题，答对 ${test.correct} 题。简版资格按 N-400 收件日的年龄与累计在美永居年限核对。`,
+                `The indicated bank has ${test.bank} questions, with up to ${test.asked} asked and ${test.correct} correct required. Special consideration uses age and cumulative U.S. residence as an LPR on the N-400 receipt date.`,
+              ]
+            : [
+                '纸质与网上收件日跨越题库切换日。请先确认实际收件日。',
+                'Paper and online receipt dates straddle the civics test change. Confirm the receipt date first.',
+              ],
       'NOT_APPLICABLE',
     ),
     {

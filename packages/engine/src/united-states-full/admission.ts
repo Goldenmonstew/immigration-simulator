@@ -114,6 +114,20 @@ function unlawfulPresence(
   return not(departure.voluntaryBeforeProceedings);
 }
 
+function admissionExemptions(
+  scope: 'immigrant' | 'return' | 'humanitarian',
+  a: UsAdmissionAnswers | undefined,
+) {
+  if (scope === 'humanitarian') return v.humanitarianAdmissionExemptions;
+  if (scope !== 'immigrant' || a?.petitionStatus !== 'approved') return;
+  if (a.adjustmentBasis === 'sij' && a.process === 'adjustment')
+    return v.sijAdmissionExemptions;
+  if (a.adjustmentBasis === 'vawa') {
+    if (a.process === 'adjustment') return v.vawaAdjustmentAdmissionExemptions;
+    if (a.process === 'consular') return v.vawaConsularAdmissionExemptions;
+  }
+}
+
 export function admissionChecks(
   request: UsFullRequest,
   a: UsAdmissionAnswers | undefined,
@@ -143,20 +157,27 @@ export function admissionChecks(
   const humanitarian = scope === 'humanitarian';
   const optionalMedicalForm =
     humanitarian && request.humanitarian?.status === 'refugee';
-  const approvedExemptBasis =
-    scope === 'immigrant' &&
-    a?.petitionStatus === 'approved' &&
-    ((a.adjustmentBasis === 'vawa' && (adjustment || consular)) ||
-      (a.adjustmentBasis === 'sij' && adjustment));
-  const publicExempt =
-    humanitarian || approvedExemptBasis || a?.publicChargeExempt === true;
+  const exemptions = admissionExemptions(scope, a);
+  const exemptionSources = exemptions?.sources ?? [];
+  const isExempt = (ground: string) =>
+    exemptions?.value.some(
+      (exemption) => ground === exemption || ground.startsWith(`${exemption}(`),
+    ) ?? false;
+  const publicExempt = isExempt('4(A)') || a?.publicChargeExempt === true;
   const publicResult = publicExempt ? true : reviewed(a?.publicCharge);
-  const noFraud = not(a?.immigrationFraud);
-  const falseClaim =
-    a?.falseCitizenship === true
+  const noFraud = isExempt('6(C)(i)') || not(a?.immigrationFraud);
+  const falseClaim = isExempt('6(C)(ii)')
+    ? true
+    : a?.falseCitizenship === true
       ? a.falseCitizenshipException
       : not(a?.falseCitizenship);
-  const other = reviewed(a?.otherInadmissibility);
+  const otherGrounds = a?.otherInadmissibilityByGround;
+  const identifiedGrounds = Object.entries(otherGrounds ?? {}).map(
+    ([ground, finding]) => isExempt(ground) || reviewed(finding),
+  );
+  const ordinaryImmigrationGrounds = otherGrounds
+    ? [noFraud]
+    : [noFraud, reviewed(a?.otherInadmissibility)];
   const { waiver, waiverFiling } = request.humanitarian ?? {};
   const waiverDecision = waiver === 'not-needed' ? false : reviewed(waiver);
   const waiverMaterials =
@@ -212,6 +233,12 @@ export function admissionChecks(
     ),
     medicalAtFiling,
   );
+  const medicalFilingStatus =
+    (adjustment || humanitarian) && !medicalWithApplication
+      ? 'MET'
+      : adjustment
+        ? checkStatus(all(medicalAtFiling, ...healthGrounds))
+        : (approvalOnly ?? medical.filingStatus);
   const criminal = assessGround(
     criminalGrounds(a, applicationDate),
     not(a?.drugTraffickingBar),
@@ -225,13 +252,23 @@ export function admissionChecks(
   const immigrationGrounds = (bar: Answer) => [
     falseClaim,
     not(a?.unlawfulReentryBar),
-    ...ordinaryWaiver([bar, noFraud, other], a?.immigrationWaiver),
+    ...ordinaryWaiver(
+      [bar, ...ordinaryImmigrationGrounds],
+      a?.immigrationWaiver,
+    ),
+    ...identifiedGrounds,
   ];
-  const barAtFiling = adjustment ? unlawfulPresence(a, receipt) : true;
-  const barAtDecision = unlawfulPresence(
-    a,
-    consularVisa ? decision : approvalDate,
-  );
+  const presenceAt = (on: IsoDate | undefined) => {
+    if (isExempt('9(B)')) return true;
+    const presence = unlawfulPresence(a, on);
+    return (adjustment || consularVisa) &&
+      a?.adjustmentBasis === 'vawa' &&
+      a.petitionStatus === 'approved'
+      ? any(presence, reviewed(a.vawaUnlawfulPresenceException))
+      : presence;
+  };
+  const barAtFiling = adjustment ? presenceAt(receipt) : true;
+  const barAtDecision = presenceAt(consularVisa ? decision : approvalDate);
   const immigrationResult = assessGround(
     immigrationGrounds(all(barAtFiling, barAtDecision)),
     true,
@@ -265,9 +302,7 @@ export function admissionChecks(
               '核对 Class A 传染病、伴有有害行为的疾病、药物滥用、适龄疫苗及当前有效的体检材料。新冠疫苗已从清单移除。',
               'Check Class A infectious diseases, disorders with harmful behavior, drug abuse, age-appropriate vaccination and currently valid medical evidence. COVID-19 vaccination was removed from the list.',
             ],
-      adjustment
-        ? checkStatus(all(medicalAtFiling, ...healthGrounds))
-        : (approvalOnly ?? medical.filingStatus),
+      medicalFilingStatus,
     ),
     {
       ...check(
@@ -275,9 +310,11 @@ export function admissionChecks(
         '公共负担资格或法定豁免',
         'Public charge assessment or statutory exemption',
         publicResult,
-        adjustment
-          ? [...s.publicCharge, ...s.publicChargeExemptions]
-          : s.publicCharge,
+        [
+          ...s.publicCharge,
+          ...(adjustment ? s.publicChargeExemptions : []),
+          ...exemptionSources,
+        ],
         consular ? 'PD-273' : 'PD-261',
         publicExempt
           ? [
@@ -339,7 +376,7 @@ export function admissionChecks(
       '移民欺诈、虚称公民、非法居留及再入境',
       'Immigration fraud, false citizenship, unlawful presence and reentry',
       immigrationResult.answer,
-      [...s.immigrationBars, ...adjustmentSources],
+      [...s.immigrationBars, ...adjustmentSources, ...exemptionSources],
       humanitarian ? ['PD-274', 'PD-275'] : 'PD-274',
       consularVisa
         ? [
@@ -347,8 +384,8 @@ export function admissionChecks(
             'At visa adjudication, check whether the unlawful-presence bar has expired and assess other immigration-history grounds and available waivers.',
           ]
         : [
-            '按合资格非法居留天数与离境日期计算禁令；另核对虚称公民、递解、非法再入境及可用豁免。',
-            'Use qualifying unlawful-presence days and the departure date to assess the bars. Separately check false citizenship claims, removal, unlawful reentry and available waivers.',
+            '按申请类别核对适用的移民史事由。若适用非法居留禁令，按合资格天数与离境日期计算。非法再入境及个案豁免另行核对。',
+            'Check the immigration-history grounds that apply to this category. Where the unlawful-presence bar applies, use qualifying days and the departure date. Check unlawful reentry and individual waivers separately.',
           ],
       adjustment
         ? checkStatus(all(...immigrationGrounds(barAtFiling)))

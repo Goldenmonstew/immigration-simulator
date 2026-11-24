@@ -238,7 +238,7 @@ export const unitedStatesFullSources = {
     pm('SRC-292', 12, 'E', 2, '(A)–(C)'),
   ],
   civics: [
-    pm('SRC-292', 12, 'E', 2, '(A), (C)'),
+    pm('SRC-292', 12, 'E', 2, '(A)(2), (C)(2)'),
     source(
       'SRC-292',
       'PA-2025-24 pp1–2',
@@ -535,6 +535,20 @@ export const unitedStatesFullSources = {
     ),
   ],
   immigrationBars: [usc('SRC-311', '1182', '(a)(6), (a)(9), (i)')],
+  sijAdmissionExemptions: [usc('SRC-309', '1255', '(h)(2)(A)')],
+  vawaAdmissionExemptions: [
+    usc('SRC-311', '1182', '(a)(4)(E)(i), (a)(6)(A)(ii), (a)(9)(B)(iii)(IV)'),
+    source(
+      'SRC-311',
+      'Form I-601 Instructions pp14–15, Approved VAWA Self-Petitioners',
+      'https://www.uscis.gov/sites/default/files/document/forms/i-601instr.pdf#page=14',
+    ),
+  ],
+  humanitarianAdmissionExemptions: [
+    usc('SRC-314', '1159', '(c)'),
+    pm('SRC-314', 7, 'L', 3, '(A)'),
+    pm('SRC-314', 7, 'M', 3, '(A)'),
+  ],
   humanitarian: [
     usc('SRC-314', '1159', '(a)–(b)'),
     pm('SRC-314', 7, 'L', 2, '(B)'),
@@ -784,6 +798,22 @@ export const unitedStatesFull2026_11 = {
     publicCharge: parameter(
       { effective: '2026-09-18', minimumBondUsd: 1000, bondReviewYears: 5 },
       s.publicCharge,
+    ),
+    sijAdmissionExemptions: parameter(
+      ['4', '5(A)', '6(A)', '6(C)', '6(D)', '7(A)', '9(B)'],
+      s.sijAdmissionExemptions,
+    ),
+    vawaAdjustmentAdmissionExemptions: parameter(
+      ['4(A)', '4(B)', '4(C)', '6(A)(i)'],
+      s.vawaAdmissionExemptions,
+    ),
+    vawaConsularAdmissionExemptions: parameter(
+      ['4(A)', '4(B)', '4(C)'],
+      s.vawaAdmissionExemptions,
+    ),
+    humanitarianAdmissionExemptions: parameter(
+      ['4', '5', '7(A)'],
+      s.humanitarianAdmissionExemptions,
     ),
     unlawfulPresence: parameter(
       {

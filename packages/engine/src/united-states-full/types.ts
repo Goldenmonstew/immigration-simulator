@@ -348,6 +348,8 @@ export interface UsEmploymentAnswers {
 
 type UsVisaAvailability = 'available' | 'unavailable' | 'future-bulletin';
 
+type UsOtherInadmissibilityParagraph = 5 | 6 | 7 | 8 | 9 | 10;
+
 export interface UsAdmissionAnswers {
   /** Bare prospective applications have no favourable discretionary finding yet. */
   process?: 'adjustment' | 'consular';
@@ -417,8 +419,19 @@ export interface UsAdmissionAnswers {
         voluntaryBeforeProceedings?: boolean;
       }
     | 'none';
+  /** Evidence of the VAWA exception to INA 212(a)(9)(B)(i). */
+  vawaUnlawfulPresenceException?: UsReview;
+  /** Whether INA 212(a)(9)(C) still bars this applicant after any case-specific relief. */
   unlawfulReentryBar?: boolean;
   otherInadmissibility?: UsReview;
+  /** Replaces the aggregate answer. Use INA 212(a) suffixes for grounds without a dedicated input, after any individual waiver. */
+  otherInadmissibilityByGround?: Partial<
+    Record<
+      | `${UsOtherInadmissibilityParagraph}`
+      | `${UsOtherInadmissibilityParagraph}(${string})`,
+      UsReview
+    >
+  >;
   immigrationWaiver?: UsReview;
 }
 

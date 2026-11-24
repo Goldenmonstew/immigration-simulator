@@ -1096,6 +1096,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-pm-v12-e-ch3.html` → <https://www.uscis.gov/policy-manual/volume-12-part-e-chapter-3>
 - `policy-sources/2025-10-20-us-pa-civics-test.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20251020-CivicsTest.pdf>
 - PA-2025-24 p2，*Policy Highlights*：USCIS 对 2025-10-20 起递交的 N-400 应用新版题库，普通考生须答对 12 题，更早递交适用旧题库的 6 题门槛。收件日依据见 SRC-081 1 USCIS-PM B.6(E)。
+- 12 USCIS-PM E.2(A)(2)、(C)(2) 的 *Special Consideration* 规定，年满 65 岁及在美累计至少 20 年 LPR 居住两项均须在 N-400 递交时满足。收件日同样采用 SRC-081 1 USCIS-PM B.6(E)。
 - 12 USCIS-PM E.3(I)(1) 的 *Passing the English and Civics Requirements* 说明 N-648 不充分后通过两项考试的处理。
 
 ## SRC-293 USCIS 良好品格、整体审查及公共福利备忘录
@@ -1217,6 +1218,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-23-us-visa-availability.html` → <https://www.uscis.gov/green-card/green-card-processes-and-procedures/visa-availability-and-priority-dates>
 - `policy-sources/2026-11-23-us-i485instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf>
 - 8 U.S.C. §1255(h)(1) 在适用 §1255(a) 时，将获批的 SIJ 视为已获准假释入境。I-485 Instructions p21「Special Immigrant Juvenile (Form I-360)」允许名额可用时与 I-360 同时递交 I-485，或在 I-360 待决时递交。核准仍须取得 SIJ 分类。
+- 8 U.S.C. §1255(h)(2)(A) 对 SIJ 调整排除 §1182(a)(4)、(5)(A)、(6)(A)、(6)(C)、(6)(D)、(7)(A) 和 (9)(B)。(6)(C) 包含移民欺诈／虚假陈述及虚称美国公民。(9)(C) 的非法再入境仍属适用事由，按 §1255(h)(2)(B) 核对个案豁免。见 [8 U.S.C. §1255(h)](https://uscode.house.gov/us/usc/t8/s1255/#h)。
 - 8 CFR §245.1(b)(4)–(6)、(10) 中的 SIJ 例外适用于身份中断和相关就业违规，其他禁令仍须核对。
 - 8 CFR §245.2(a)(2)(i)(A)–(C)、8 U.S.C. §1255(n) 及 I-485 Instructions pp3、17–21 规定适用即时亲属、亲属优先、I-140、EB-5、VAWA 和 SIJ 等类别的同时递交。7 USCIS-PM A.6(A)、(C)(4)–(5) 要求核对基础请愿案及递交月、裁决月两阶段的名额。I-485 Instructions p11 Item 9 要求按适用情形随件递交 I-693 或疫苗记录。
 - 8 U.S.C. §1255(a)(2) 要求境内调整申请人具备准入资格。一般规则要求在 I-485 递交时符合资格并持续至裁决。I-485 Instructions pp11–12 Item 10 列明需随件提交的适用法院及警方文件。见 [8 CFR §103.2(b)(1)，Demonstrating eligibility](https://www.ecfr.gov/current/title-8/section-103.2#p-103.2(b)(1))、[I-485 Instructions](https://www.uscis.gov/sites/default/files/document/forms/i-485instr.pdf#page=11)。
@@ -1237,6 +1239,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2026-11-19-us-ecfr-8cfr-part212.xml` → <https://www.ecfr.gov/api/versioner/v1/full/2026-11-19/title-8.xml?part=212>
 - `policy-sources/2026-09-23-us-pa-criminal-inadmissibility.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20260923-CriminalInadmissibility.pdf>
 - 8 U.S.C. §1182(a) 规定签证及准入资格。§1182(a)(9)(B)(i)(I)–(II) 的非法居留禁令按离境后再次寻求入境的时点核对。领馆路径按裁决日核对是否届满，NVC 材料递交条件见 SRC-309 Submit Documents Step 9。
+- §1182(a)(4)(E)(i) 排除 VAWA 自请人的公共负担事由。USCIS 对已获批 VAWA 自请人的境内调整按已免除 (6)(A)(i) 的未经查验入境事由处理。(9)(B)(iii)(IV) 的非法居留例外要求证实虐待或极端残酷与违反非移民签证条件之间有实质联系。(9)(C)(iii) 的非法再入境豁免须单独获准，欺诈／虚假陈述可按 §1182(i) 申请个案豁免。见 [Form I-601 Instructions pp14–15，Approved VAWA Self-Petitioners](https://www.uscis.gov/sites/default/files/document/forms/i-601instr.pdf#page=14)。
 - 8 U.S.C. §1182(a)(2)(A)(ii)(I) 的未成年 CIMT 例外在领馆审查中以正式签证申请日核对，从犯罪或获释（取较晚者）起须超过法定期限。§1182(a)(3)(D)(iii)(I)–(II) 的原党籍例外以正式申请日核对期限，并要求没有安全威胁。境内调整的原党籍期限以 I-485 收件日核对。见 [8 U.S.C. §1182](https://uscode.house.gov/us/usc/t8/s1182/)、[9 FAM 302.3-2(B)(7)，Minor Exception](https://fam.state.gov/FAM/09FAM/09FAM030203.html)、[8 USCIS-PM F.3，Past Membership 与注 63](https://www.uscis.gov/policy-manual/volume-8-part-f-chapter-3)。
 - `policy-sources/2026-11-24-us-9fam504.8.html`。签证裁决官完成确定签发资格所需的安全核查。见 [9 FAM 504.8-3，Clearing Immigrant Visa Applicants](https://fam.state.gov/FAM/09FAM/09FAM050408.html#M504_8_3)。
 
@@ -1246,6 +1249,7 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - `policy-sources/2025-06-11-us-pa-i693-validity.pdf` → <https://www.uscis.gov/sites/default/files/document/policy-manual-updates/20250611-I-693Validity.pdf>
 - `policy-sources/2026-11-24-us-i693.html` → <https://www.uscis.gov/i-693>
 - Form I-693 页首明确规定 2024-12-02 起将所需 I-693 或部分疫苗记录随 I-485 递交。PA-2025-08 p2 记载 2024-12-10 发布含该要求的 I-485 改版，并说明此前曾在递交后以 RFE 补取材料。两日期分别用于随件要求生效和改版发布。PA-2025-08 对个案绑定有效性的更新自 2025-06-11 起适用于待决或新递交的案件。
+- 旧版 I-485 Instructions 的 Item 10 允许随 I-485 交体检报告或在递交后补交。按该时点，待确认的体检报告、Class A 健康结论和疫苗记录均在核准时核对。见 [2022 年版 I-485 Instructions，Item 10](https://www.uscis.gov/sites/default/files/document/forms/Version_Preliminar_Edicion_12-23-22_USCIS_RECHAZARA_EL_FORMULARIO_SI_SE_PRESENTA_ANTES_DEL_12-23-22_Instrucciones_del_Formulario_I-485.pdf)。
 - `policy-sources/2026-11-23-us-pm-v8-b-ch9.html` → <https://www.uscis.gov/policy-manual/volume-8-part-b-chapter-9>
 - `policy-sources/2026-11-23-us-i693instr.pdf` → <https://www.uscis.gov/sites/default/files/document/forms/i-693instr.pdf>
 - `policy-sources/2026-11-23-us-9fam302.2.html` → <https://fam.state.gov/FAM/09FAM/09FAM030202.html>
@@ -1278,6 +1282,7 @@ Form I-485 Part 9 Item 56 列出的境内调整公共负担豁免类别如下。
 - `policy-sources/2026-11-23-us-pm-v7-l-ch3.html` → <https://www.uscis.gov/policy-manual/volume-7-part-l-chapter-3>
 - `policy-sources/2026-11-23-us-pm-v7-m-ch2.html` → <https://www.uscis.gov/policy-manual/volume-7-part-m-chapter-2>
 - `policy-sources/2026-11-23-us-pm-v7-m-ch3.html` → <https://www.uscis.gov/policy-manual/volume-7-part-m-chapter-3>
+- 8 U.S.C. §1159(c) 及 7 USCIS-PM L.3(A)、M.3(A) 对难民和庇护调整排除 §1182(a)(4)、(5)、(7)(A)。同法允许对其他适用事由作个案豁免，其中毒品贩运 (2)(C) 及指定安全事由 (3)(A)、(B)、(C)、(E) 除外。
 - [Form I-602，Where to File](https://www.uscis.gov/i-602) 规定与 I-485 同件时邮寄，I-485 已递交时送相应审理办公室。
 
 ## SRC-315 军人入籍 INA 328、329
