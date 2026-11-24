@@ -660,3 +660,4 @@
 | 816 | 任务 101 第二十六轮审核修正（review101-26）。日本对比与分享仅在消费拟递交日的路径附加假设递交日说明；みなし再入国与已生效普通再入国许可不附加该说明，在其余输入未变时保留「与当前情景相同」。补只选みなし与已生效普通许可的对比及分享回读回归。 | apps/web/lib/japan-module.ts、apps/web/test/{japan.test.tsx,japan-questionnaire.test.tsx}、docs/tasks/reports/101-jp-pages.md |
 | 630 | 任务 97：实现西班牙完整版国家模块、草稿编解码与校验、101 项条件政策目录、对比旋钮与双语文案，登记西班牙五页路由并移除旧单页辅助模块。 | apps/web/lib/spain-{draft,fields,module,policy,policy-rules,whatif}.ts、apps/web/lib/{spain,site-countries}.ts、apps/web/i18n/countries/spain{,-form,-module}.ts、apps/web/i18n/{zh-CN,en}.ts |
 | 631 | 任务 97：接入西班牙完整版首页、七步动态问卷、结果页、What-if 对比页与政策依据页。 | apps/web/app/spain/spain-content.tsx、apps/web/app/spain/simulate/{page,evidence-fields}.tsx、apps/web/app/spain/{result,policy}/page.tsx、apps/web/app/spain/whatif/{page,controls}.tsx |
+| 632 | 任务 97：补充西班牙完整版页面单元测试、双语与移动端 e2e 用例及任务报告。 | apps/web/test/spain.test.tsx、apps/e2e/tests/spain.spec.ts、docs/tasks/reports/97-es-pages.md |
