@@ -322,9 +322,14 @@ export function commonChecks(
     (work && !renewal) ||
     (reunion && req.familyTcn?.stage === 'initial');
   if (initialEntry) {
+    const joiningBlueCardHolder =
+      reunion &&
+      req.familyTcn?.sponsor === 'blue-card' &&
+      !req.familyTcn.jointBlueCardApplication;
     const shortStayOk =
       initialGold ||
       greekFamily ||
+      joiningBlueCardHolder ||
       kind === 'E1' ||
       (work && req.work?.admission === 'strategic-project');
     let allowed: boolean | undefined;
@@ -358,6 +363,12 @@ export function commonChecks(
         [
           grSource('F16', 'arts. 8(b), 10(1),(11), 12, 84, 93, 100'),
           grSource('F36', 'arts. 13, 21'),
+          ...(joiningBlueCardHolder
+            ? [
+                grSource('F16', 'arts. 42(1)–(3), 86(1)'),
+                grSource('F60', 'procedure 517141, condition 2, documents 1–3'),
+              ]
+            : []),
           ...(initialGold
             ? [
                 grSource('F23', 'art. 64, art. 100(1)(a)'),
@@ -367,10 +378,14 @@ export function commonChecks(
         ],
         initialGold && entry === 'outside'
           ? `境外可凭合规授权书递件。自递件起 ${p.investorEntryMonths.value} 个月内须入境补录指纹及欠交的保险凭证。`
-          : '核对申请类别对应的入境签证、免签或准许转换的居留证件。境外邀请阶段尚需核实实际入境文件。',
+          : joiningBlueCardHolder
+            ? '蓝卡持有人的家属可持团聚 D 签、申根短期签证或凭免签入境记录，在合法停留期内递交首卡申请。'
+            : '核对申请类别对应的入境签证、免签或准许转换的居留证件。境外邀请阶段尚需核实实际入境文件。',
         initialGold && entry === 'outside'
           ? `A qualifying mandate allows filing before entry. Enter within ${p.investorEntryMonths.value} months of filing to submit biometrics and any outstanding insurance evidence.`
-          : 'Check the visa for this purpose, lawful short stay or qualifying change of status. An invitation from abroad still requires entry documents for the permit.',
+          : joiningBlueCardHolder
+            ? 'A family member joining a Blue Card holder may file during a lawful stay with a family D visa, a uniform short-stay visa or evidence of visa-free entry.'
+            : 'Check the visa for this purpose, lawful short stay or qualifying change of status. An invitation from abroad still requires entry documents for the permit.',
       ),
     );
   }

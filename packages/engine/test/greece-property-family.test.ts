@@ -640,7 +640,6 @@ describe('property and family reviews through evaluateGreeceFull', () => {
   test('Β.5 accepts a registration application receipt on the decision effective date, including pending filings', () => {
     const goldenVisa = {
       ...investor,
-      e9DeclarationCopy: false,
       registeredTransferEvidence: 'application-receipt',
     } as const;
     verify(
@@ -648,31 +647,45 @@ describe('property and family reviews through evaluateGreeceFull', () => {
       'GV-03',
       'NOT_MET',
     );
-    verify(
-      full('GR-GOLDEN-VISA', {
-        simulationDate: '2025-11-11',
-        entry: 'receipt',
-        goldenVisa: {
-          ...goldenVisa,
-          overseasFilingDate: '2025-11-10',
-          overseasEvidenceCompletedOn: '2025-11-11',
-        },
-      }),
-      'GV-03',
-      'MET',
-    );
+    for (const e9DeclarationCopy of [true, false]) {
+      verify(
+        full('GR-GOLDEN-VISA', {
+          simulationDate: '2025-11-11',
+          entry: 'receipt',
+          goldenVisa: {
+            ...goldenVisa,
+            overseasFilingDate: '2025-11-10',
+            overseasEvidenceCompletedOn: '2025-11-11',
+            e9DeclarationCopy,
+          },
+        }),
+        'GV-03',
+        e9DeclarationCopy ? 'MET' : 'NOT_MET',
+      );
+    }
   });
 
   test.each([
-    ['2025-11-10', 'MET'],
-    ['2025-11-11', 'NOT_MET'],
+    ['2024-04-04', false, 'MET'],
+    ['2024-04-05', false, 'NOT_MET'],
+    ['2025-06-01', false, 'NOT_MET'],
+    ['2025-11-10', true, 'MET'],
+    ['2025-11-10', false, 'NOT_MET'],
+    ['2025-11-10', undefined, 'UNKNOWN'],
+    ['2025-11-11', true, 'MET'],
+    ['2025-11-11', false, 'NOT_MET'],
+    ['2025-11-11', undefined, 'UNKNOWN'],
   ] as const)(
-    'Β.5 applies the Ε9 requirement by filing date (%s)',
-    (simulationDate, status) => {
+    'Β.5 purchase filed on %s with Ε9 evidence %s',
+    (simulationDate, e9DeclarationCopy, status) => {
       verify(
         full('GR-GOLDEN-VISA', {
           simulationDate,
-          goldenVisa: { ...investor, e9DeclarationCopy: false },
+          goldenVisa: {
+            ...investor,
+            originalConditionsStillMet: true,
+            e9DeclarationCopy,
+          },
         }),
         'GV-03',
         status,
@@ -718,11 +731,99 @@ describe('property and family reviews through evaluateGreeceFull', () => {
             ...investor,
             title: 'qualifying-tourist-lease',
             e9DeclarationCopy: false,
+            eotLeaseAcknowledgment: true,
             registeredTransferEvidence,
           },
         }),
         'GV-03',
         status,
+      );
+    },
+  );
+
+  test.each([
+    [true, 'MET'],
+    [false, 'NOT_MET'],
+    [undefined, 'UNKNOWN'],
+  ] as const)(
+    'Β.5 initial tourist lease with ΕΟΤ acknowledgment %s',
+    (eotLeaseAcknowledgment, status) => {
+      for (const simulationDate of ['2025-11-10', '2025-11-11'] as const) {
+        verify(
+          full('GR-GOLDEN-VISA', {
+            simulationDate,
+            goldenVisa: {
+              ...investor,
+              title: 'qualifying-tourist-lease',
+              touristLeaseKind: 'timeshare',
+              e9DeclarationCopy: false,
+              eotLeaseAcknowledgment,
+            },
+          }),
+          'GV-03',
+          status,
+        );
+      }
+    },
+  );
+
+  test.each([
+    ['2025-11-10', 'long-term-complex', false, 'UNKNOWN'],
+    ['2025-11-10', undefined, false, 'UNKNOWN'],
+    ['2025-11-10', 'long-term-complex', true, 'MET'],
+    ['2025-11-11', 'long-term-complex', false, 'NOT_MET'],
+    ['2025-11-11', undefined, false, 'NOT_MET'],
+    ['2025-11-11', undefined, undefined, 'UNKNOWN'],
+  ] as const)(
+    'Β.5 lease filed %s with kind %s and ΕΟΤ evidence %s',
+    (simulationDate, touristLeaseKind, eotLeaseAcknowledgment, status) => {
+      const result = full('GR-GOLDEN-VISA', {
+        simulationDate,
+        goldenVisa: {
+          ...investor,
+          title: 'qualifying-tourist-lease',
+          touristLeaseKind,
+          eotLeaseAcknowledgment,
+          e9DeclarationCopy: false,
+        },
+      });
+      verify(result, 'GV-03', status);
+      const pending = result.checks.find(
+        (check) => check.id === 'GV-03',
+      )?.pendingDetails;
+      expect(pending ?? []).toEqual(
+        simulationDate === '2025-11-10' && status === 'UNKNOWN'
+          ? ['PD-307']
+          : [],
+      );
+    },
+  );
+
+  test.each([
+    ['2025-11-10', 'MET'],
+    ['2025-11-11', 'NOT_MET'],
+  ] as const)(
+    'Β.5 ownership renewal without Ε9 on %s',
+    (simulationDate, status) => {
+      const result = full('GR-GOLDEN-VISA', {
+        simulationDate,
+        permits: [{ kind: 'investor', from: '2020-12-01', to: '2025-12-01' }],
+        currentCardExpiresOn: '2025-12-01',
+        goldenVisa: {
+          ...investor,
+          stage: 'renewal',
+          regime: 'legacy-card',
+          originalConditionsStillMet: true,
+          retainsInvestment: true,
+          e9DeclarationCopy: false,
+        },
+      });
+      expect(result.checks.find((check) => check.id === 'GV-08')?.status).toBe(
+        status,
+      );
+      expect(result.status).toBe(status);
+      expect(result.earliestDate).toBe(
+        status === 'MET' ? simulationDate : undefined,
       );
     },
   );

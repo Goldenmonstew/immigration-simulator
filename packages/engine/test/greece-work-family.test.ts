@@ -575,6 +575,32 @@ test.each([
 );
 
 test.each([
+  ['national-visa', 'MET'],
+  ['short-stay', 'MET'],
+  ['unlawful', 'NOT_MET'],
+] as const)(
+  'Ο.1 spouse joining a current Blue Card holder after %s entry',
+  (entry, status) => {
+    const result = route('GR-FAMILY-TCN', {
+      entry,
+      familyTcn: {
+        ...reunion,
+        sponsor: 'blue-card',
+        sponsorPermitValid: true,
+        jointBlueCardApplication: false,
+      },
+    });
+    expect(result.checks.find((item) => item.id === 'C-02')?.status).toBe(
+      status,
+    );
+    expect(result.checks.find((item) => item.id === 'FT-01')?.status).toBe(
+      'MET',
+    );
+    expect(result.status).toBe(status);
+  },
+);
+
+test.each([
   [1, 'NOT_MET'],
   [2, 'MET'],
   [undefined, 'UNKNOWN'],

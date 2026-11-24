@@ -59,6 +59,10 @@ interface GoldenVisaAnswers {
   registrationProofSubmittedAtGrant?: boolean;
   /** Copy of the investor's Ε9 declaration for this filing. */
   e9DeclarationCopy?: boolean;
+  /** The earlier document list expressly covered timeshare leases. */
+  touristLeaseKind?: 'timeshare' | 'long-term-complex';
+  /** ΕΟΤ certificate acknowledging this specific lease. */
+  eotLeaseAcknowledgment?: boolean;
   builtOrBuildingPermit?: boolean;
   mainAreaSqm?: number;
   /** Whether the main spaces had been converted to housing by filing. */
@@ -333,15 +337,18 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   const lease = a.title === 'qualifying-tourist-lease';
   const filingDate = renewal ? sim : (a.overseasFilingDate ?? sim);
   const currentDocuments = filingDate >= p.gvConversionDecisionEffective.value;
+  const ownershipE9Required = renewal
+    ? currentDocuments
+    : filingDate >= p.gvReformEffective.value;
   const e9 =
-    !currentDocuments ||
+    !ownershipE9Required ||
     any(a.title === undefined ? undefined : lease, a.e9DeclarationCopy);
   const e9Zh =
-    currentDocuments && !lease
+    ownershipE9Required && !lease
       ? '产权投资须提供投资者的 Ε9 房产申报表副本。'
       : '';
   const e9En =
-    currentDocuments && !lease
+    ownershipE9Required && !lease
       ? ' For property ownership, provide a copy of the investor’s Ε9 property declaration.'
       : '';
   const registration = a.registeredTransferEvidence;
@@ -462,10 +469,16 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
   if (!renewal) {
     // Article 3 of KYA 214926/2025 also admits application receipts for earlier pending filings.
     const acceptsReceipt = sim >= p.gvConversionDecisionEffective.value;
+    const uncertainLeaseEvidence =
+      lease &&
+      !currentDocuments &&
+      a.touristLeaseKind !== 'timeshare' &&
+      a.eotLeaseAcknowledgment !== true;
     const acquisitionEvidence = all(
       a.notarialEvidence,
       receiptOnly ? acceptsReceipt : registration,
       e9,
+      !lease || (uncertainLeaseEvidence ? undefined : a.eotLeaseAcknowledgment),
     );
     const registrationZh = acceptsReceipt
       ? '须提供登记凭证、登记申请回执或律师对登记或登记申请的证明。'
@@ -501,7 +514,7 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         [
           grSource(
             'F23',
-            'art. 64, art. 100(1)(ε),(3),(5),(6),(11), pp. 1198–1200',
+            'art. 64(1), art. 100(1)(ε),(3),(5),(6) final sentence,(11), pp. 1198–1200; art. 69(1)',
           ),
           grSource('F21', 'art. 31, §§2.1(β–γ), 2.2(β–στ), 2.3(β–γ)'),
           grSource(
@@ -512,18 +525,24 @@ function goldenChecks(req: GrFullRequest, c: GrContext): CountryCheck[] {
         (transfer
           ? '成年继承人或受父母赠与人应提供公证估值，公证材料须列明房产此前的用卡记录。'
           : lease
-            ? '提供合格旅游租约、公证人的租金及付款证明和希腊国家旅游组织的知悉证明。'
+            ? uncertainLeaseEvidence
+              ? '提供合格旅游租约及租金付款公证。旧部令明列分时租约须有希腊国家旅游组织（ΕΟΤ）知悉该租约的证明；综合旅游住宿长期租约须核实当时的材料要求。'
+              : '提供合格旅游租约、公证人的租金及付款证明，以及希腊国家旅游组织（ΕΟΤ）已知悉该具体租约的证明。'
             : '确认价款付清、解除条件已撤销、付款渠道和汇款人合规，且已核对原业主用卡记录。') +
           registrationZh +
           e9Zh,
         (transfer
           ? 'An adult heir or recipient of a parental gift must document the assessed value and prior investor-card use in the notarial record.'
           : lease
-            ? 'Provide the qualifying tourist lease, the notary’s certificate documenting the rent and payment, and acknowledgment from the Greek National Tourism Organisation.'
+            ? uncertainLeaseEvidence
+              ? 'Provide the qualifying lease and notarised evidence of rent and payment. The earlier decision expressly required ΕΟΤ acknowledgment of a specific timeshare lease. Verify the historical requirement for a long-term lease in a tourist complex.'
+              : 'Provide the qualifying tourist lease, the notary’s certificate of rent and payment, and proof that the Greek National Tourism Organisation (ΕΟΤ) has acknowledged this specific lease.'
             : 'Confirm full payment, released conditions, a qualifying bank channel and payer, and the seller’s investor-card record.') +
           registrationEn +
           e9En,
-        !transfer && a.payer === undefined ? ['PD-307'] : undefined,
+        uncertainLeaseEvidence || (!transfer && a.payer === undefined)
+          ? ['PD-307']
+          : undefined,
       ),
     );
   }
