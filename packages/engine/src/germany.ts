@@ -172,7 +172,7 @@ const TITLES: DePermitKind[] = [
   'eu-long-term',
 ];
 
-const KIND_NAMES: Record<DePermitKind, [string, string]> = {
+export const KIND_NAMES: Record<DePermitKind, [string, string]> = {
   study: ['学习许可', 'a study permit'],
   training: ['职业培训许可', 'a vocational training permit'],
   skilled: ['技术工人许可', 'a skilled worker permit'],
@@ -390,6 +390,23 @@ export const needed = (
   return any.length ? { all, any } : { all: conds, any: [] };
 };
 export function evaluateGermany(req: DeRequest): DeResult {
+  return evaluateGermanyTimeline(req);
+}
+
+/** Confirmed dates supplied only by the full assessment. The timeline still
+ * checks the title, trips and subsequent breaks on each projected date. */
+export function evaluateGermanyTimeline(
+  req: DeRequest,
+  confirmed: {
+    employmentWindows?: { from: IsoDate; until: IsoDate }[];
+    countedResidenceSince?: IsoDate;
+    naturalisationTitleLosses?: {
+      from: IsoDate;
+      to?: IsoDate;
+      uncertain: boolean;
+    }[];
+  } = {},
+): DeResult {
   const L = textFor(req);
   const N = ([zh, en]: [string, string]) => L(zh, en);
   const sim = req.simulationDate;
@@ -825,12 +842,22 @@ export function evaluateGermany(req: DeRequest): DeResult {
       if (need === undefined || entered === undefined) return undefined;
       const r = route === 'blue-card' ? c.run[days.index(d)] : -1;
       const from = r >= 0 && days.date(r) > sim ? days.date(r) : sim;
+      if (route === 'blue-card' && from === sim && confirmed.employmentWindows)
+        return sim;
       return addMonths(from, Math.max(0, need - entered));
     };
     const missing = need !== undefined && entered === undefined;
     const meets = (d: IsoDate, allow: Allow) => {
       const by = countedBy(d);
-      return timeOK(d, allow) && (!by || d >= by);
+      return (
+        timeOK(d, allow) &&
+        (!by || d >= by) &&
+        (route !== 'blue-card' ||
+          !confirmed.employmentWindows ||
+          confirmed.employmentWindows.some(
+            ({ from, until }) => from <= d && d < until,
+          ))
+      );
     };
     const timeEarliest = firstDate((d) => time(d) !== 'no');
     const earliest = missing ? undefined : firstDate((d) => meets(d, NONE));
@@ -1377,17 +1404,27 @@ export function evaluateGermany(req: DeRequest): DeResult {
     // unbroken stretch, the stretch before it (first and last day). With
     // `lapsed`, a title a trip may have ended is taken as ended: no lawful
     // residence until the next permit.
+    const losses = confirmed.naturalisationTitleLosses ?? [];
+    const uncertainDepartures = losses.filter((loss) => loss.uncertain);
     const runsWith = (lapsed: boolean) => {
       const run = new Array<number>(days.count).fill(-1);
       const before = new Map<number, [number, number]>();
       let start = -1;
       let last: [number, number] = [0, -1];
       let cut = -1;
+      const absentTitle: boolean[] = [];
+      for (const loss of losses) {
+        if (!loss.uncertain || lapsed)
+          days.mark(absentTitle, loss.from, loss.to);
+      }
       for (let i = 0; i < days.count; i++) {
         const k = kinds[i];
         const n = tripOn[i];
         const lawful =
-          !!k && (k !== 'asylum' || recognised) && !(lapsed && doubt[i]);
+          !!k &&
+          !absentTitle[i] &&
+          (k !== 'asylum' || recognised) &&
+          !(lapsed && doubt[i]);
         if (!lawful || (n >= 0 && (longTrip[n] || n === cut))) {
           if (start >= 0) last = [start, i - 1];
           start = -1;
@@ -1413,7 +1450,10 @@ export function evaluateGermany(req: DeRequest): DeResult {
     };
     type Runs = ReturnType<typeof runsWith>;
     const sureRuns = runsWith(true);
-    const notLapsedRuns = doubtful.length ? runsWith(false) : sureRuns;
+    const notLapsedRuns =
+      doubtful.length || uncertainDepartures.length
+        ? runsWith(false)
+        : sureRuns;
     // § 12b Abs. 2: residence before an interruption may be counted, up to
     // 3 years (2 for spouses, and only while married: AH-StAG Nr. 9.1
     // Rdn. 5), at discretion (PD-128).
@@ -1441,10 +1481,16 @@ export function evaluateGermany(req: DeRequest): DeResult {
       if (TITLES.includes(kd) || kd === 'integration') return held;
       return kd === 'temporary' && held && allow.has('permit');
     };
+    const confirmedDue =
+      confirmed.countedResidenceSince &&
+      afterYears(confirmed.countedResidenceSince, years);
+    const simulationIndex = days.index(sim);
     const residenceOK = (d: IsoDate, allow: Allow): boolean => {
       const R = allow.has('lapse') ? notLapsedRuns : sureRuns;
       const k = days.index(d);
       if (k < 1 || R.run[k] < 0 || !holdsOK(k, allow)) return false;
+      if (confirmedDue && R.run[k] === R.run[simulationIndex])
+        return d >= confirmedDue;
       const r = R.run[k - 1];
       if (r < 0) return false;
       const need = daysBetween(addYears(d, -years), d);
@@ -1484,7 +1530,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
         ? needed(conds, meets, possible)
         : undefined;
     const phrase: Partial<Record<Cond, [string, string]>> = {
-      lapse: lapsePhrase,
+      lapse: uncertainDepartures.length
+        ? [
+            '已录入的出境均未使所持许可失效（需核实逐证例外）',
+            'the recorded departures did not end the residence title, subject to confirmation of the applicable exceptions',
+          ]
+        : lapsePhrase,
       pending: [
         '只凭等待中的续期申请也算持有 § 10 Abs. 1 Satz 1 Nr. 2 要求的许可（有争议），且模拟日之后续期获批或申请仍在等待（§ 81 Abs. 4，PD-124）',
         'holding only a pending renewal application counts as holding the permit § 10 Abs. 1 Satz 1 Nr. 2 requires (which is disputed), and after the simulation date the renewal is granted or still pending (§ 81 Abs. 4, PD-124)',
@@ -1542,6 +1593,9 @@ export function evaluateGermany(req: DeRequest): DeResult {
             ...v.naturalisationAbsenceMonths.sources,
             stAG('§ 10 Abs. 1 Satz 1 Nr. 2', '10'),
             stAG('§ 12b Abs. 1 Satz 5', '12b'),
+            ...(losses.length
+              ? [aufenthG('§ 51 Abs. 1 Nr. 6, Abs. 1a, 2, 4, 7, 9', '51')]
+              : []),
             { srcId: 'SRC-106', locator: 'Nr. 12b.1.5 Rdn. 23 (p98)' },
             { srcId: 'SRC-105', locator: 'BT-Drs. 20/9044 (p40)' },
             ...(asylum
@@ -1620,6 +1674,12 @@ export function evaluateGermany(req: DeRequest): DeResult {
       ],
       pendingDetails: [
         'PD-120',
+        ...(possible &&
+        uncertainDepartures.some((d) => d.from <= possible) &&
+        why &&
+        [...why.all, ...why.any].includes('lapse')
+          ? ['PD-353']
+          : []),
         ...(why && [...why.all, ...why.any].includes('permit')
           ? ['PD-122']
           : []),

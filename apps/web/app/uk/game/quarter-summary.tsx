@@ -2,10 +2,10 @@
 
 import { withCount } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
-import { displayedRuleSets } from '../../../lib/policy';
 import {
   isOver,
   progress,
+  ukGameRuleColumns,
   type GameState,
   type SettlementSource,
 } from '@uk-immigration/game';
@@ -215,11 +215,9 @@ export function QuarterSummary({
           <h3>{t('game.yearSummary')}</h3>
           <p>{t('game.progressChanges')}</p>
           <div className={styles.progressBars}>
-            {displayedRuleSets.map(({ id }, index) => (
+            {ukGameRuleColumns.map(({ id, label }) => (
               <div key={id} className={styles.progressButton}>
-                <strong>
-                  {t(index === 0 ? 'game.currentLaw' : 'game.reform')}
-                </strong>
+                <strong>{t(label)}</strong>
                 <p>
                   {Math.round(previous[id].percent)}% →{' '}
                   {Math.round(next[id].percent)}%
@@ -235,9 +233,7 @@ export function QuarterSummary({
                 <span
                   className={styles.track}
                   role="progressbar"
-                  aria-label={t(
-                    index === 0 ? 'game.currentLaw' : 'game.reform',
-                  )}
+                  aria-label={t(label)}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={Math.round(next[id].percent)}
