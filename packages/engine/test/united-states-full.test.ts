@@ -1802,12 +1802,12 @@ describe('review86-1 regressions', () => {
       'approved',
     );
     expect(condition(missing, 'C28-OFFER-PERM')).toMatchObject({
-      status: 'UNKNOWN',
-      pendingDetails: ['PD-277'],
+      status: 'MET',
+      filingStatus: 'MET',
     });
     expect(path(missing)).toMatchObject({
       status: 'MET',
-      approvalStatus: 'UNKNOWN',
+      approvalStatus: 'MET',
       earliestDate: time.simulationDate,
     });
     const late = withEmployment(
@@ -2964,7 +2964,7 @@ describe('review86-5 regressions', () => {
     expect(invalid.earliestDate).toBeUndefined();
   });
 
-  test('an approved I-140 uses its actual receipt to check the historical PERM', () => {
+  test('an approved I-140 establishes historical PERM compliance without a receipt date', () => {
     const request: UsFullRequest = {
       ...e,
       employment: { ...employment, permCertifiedOn: '2025-10-01' },
@@ -2973,15 +2973,14 @@ describe('review86-5 regressions', () => {
     expect(condition(request, 'C33-VISA-AND-ENTRY').status).toBe('MET');
     expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
       filingStatus: 'MET',
-      status: 'UNKNOWN',
-      pendingDetails: ['PD-277'],
+      status: 'MET',
     });
     expect(path(request)).toMatchObject({
       status: 'MET',
       earliestDate: time.simulationDate,
-      approvalStatus: 'UNKNOWN',
+      approvalStatus: 'MET',
+      approvalEarliestDate: time.simulationDate,
     });
-    expect(path(request).approvalEarliestDate).toBeUndefined();
     const withReceipt = {
       ...request,
       employment: { ...request.employment, i140FiledOn: '2025-11-01' },
@@ -4772,15 +4771,15 @@ describe('filing and evidence exceptions', () => {
 
   test('PERM mandatory recruitment dates and professional steps', () => {
     const permRecruitment = {
-      stateJobOrderDays: 30,
-      advertisements: 2,
+      laborCertificationFiledOn: '2026-05-01',
+      stateJobOrder: { from: '2026-03-03', through: '2026-04-01' },
+      advertisementDates: ['2025-11-02', '2025-11-09'],
       professional: true,
-      mandatoryRecruitmentDaysBeforeFiling: [30, 180],
-      noticeWorkdays: 10,
+      notice: { method: 'union', notifiedOn: '2026-04-01' },
       extraDistinctSteps: 3,
       qualifiedAvailableUsWorker: false,
       employerPaidPermCosts: true,
-    };
+    } satisfies NonNullable<UsEmploymentAnswers['permRecruitment']>;
     expect(
       condition(withEmployment({ permRecruitment }), 'C28-OFFER-PERM').status,
     ).toBe('MET');
@@ -4789,7 +4788,7 @@ describe('filing and evidence exceptions', () => {
         withEmployment({
           permRecruitment: {
             ...permRecruitment,
-            mandatoryRecruitmentDaysBeforeFiling: [29, 180],
+            stateJobOrder: { from: '2026-03-04', through: '2026-04-02' },
           },
         }),
         'C28-OFFER-PERM',
@@ -5117,22 +5116,24 @@ describe('review86-14 regressions', () => {
     );
   });
 
-  test('Schedule A uses notice and employer costs without ordinary PERM recruitment fields', () => {
+  test('the approved Schedule A I-140 does not require original notice dates', () => {
     const request = withEmployment(
       {
         perm: 'schedule-a',
         permCertifiedOn: undefined,
         recruitmentAndFeesCompliant: undefined,
-        permRecruitment: { noticeWorkdays: 10, employerPaidPermCosts: true },
+        permRecruitment: {
+          notice: { method: 'posting' },
+          employerPaidPermCosts: true,
+        },
       },
       'approved',
     );
     expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
-      status: 'UNKNOWN',
-      filingStatus: 'UNKNOWN',
-      pendingDetails: ['PD-277'],
+      status: 'MET',
+      filingStatus: 'MET',
     });
-    expect(path(request).approvalStatus).toBe('UNKNOWN');
+    expect(path(request).approvalStatus).toBe('MET');
   });
 
   test('derives spouse citizenship duration and age when party membership ended', () => {
@@ -5192,17 +5193,17 @@ describe('review86-14 regressions', () => {
 
 describe('review86-15 regressions', () => {
   test.each([
-    [30, undefined, 'MET'],
-    [180, undefined, 'MET'],
-    [14, false, 'NOT_MET'],
-    [14, true, 'NOT_MET'],
-    [181, undefined, 'NOT_MET'],
-    [30, false, 'NOT_MET'],
+    ['2026-10-24', undefined, 'MET'],
+    ['2026-05-27', undefined, 'MET'],
+    ['2026-11-09', false, 'NOT_MET'],
+    ['2026-11-09', true, 'NOT_MET'],
+    ['2026-05-26', undefined, 'NOT_MET'],
+    ['2026-10-24', false, 'NOT_MET'],
     [undefined, undefined, 'UNKNOWN'],
     [undefined, true, 'UNKNOWN'],
   ] as const)(
-    'Schedule A concurrent filing with notice %s days before filing and compliance %s is %s',
-    (days, compliant, expected) => {
+    'Schedule A concurrent filing with notice on %s and compliance %s is %s',
+    (notifiedOn, compliant, expected) => {
       const request = withEmployment(
         {
           category: 'eb3',
@@ -5210,10 +5211,8 @@ describe('review86-15 regressions', () => {
           permCertifiedOn: undefined,
           recruitmentAndFeesCompliant: compliant,
           permRecruitment: {
-            noticeWorkdays: 10,
+            notice: { method: 'union', notifiedOn },
             employerPaidPermCosts: true,
-            mandatoryRecruitmentDaysBeforeFiling:
-              days === undefined ? undefined : [days],
           },
         },
         'filed-with-i485',
@@ -5345,3 +5344,233 @@ describe('review86-15 regressions', () => {
     });
   });
 });
+
+describe('review86-16 regressions', () => {
+  const scheduleA: Partial<UsEmploymentAnswers> = {
+    category: 'eb3',
+    perm: 'schedule-a',
+    permCertifiedOn: undefined,
+  };
+
+  test.each(['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const)(
+    'uses the approved I-140 for historical Schedule A and PERM conditions in %s',
+    (pathway) => {
+      for (const original of [scheduleA, { perm: 'certified' }] as const) {
+        const approved = withEmployment(
+          {
+            ...original,
+            i140FiledOn:
+              original.perm === 'schedule-a' ? '2026-07-01' : undefined,
+            permCertifiedOn: undefined,
+            categoryQualifications: undefined,
+            prevailingWageUsd: undefined,
+            recruitmentAndFeesCompliant: undefined,
+          },
+          'approved',
+        );
+        const request = { ...approved, pathway };
+        expect(condition(request, 'C28-OFFER-PERM')).toMatchObject({
+          status: 'MET',
+          filingStatus: 'MET',
+        });
+        expect(path(request)).toMatchObject({
+          status: 'MET',
+          approvalStatus: 'MET',
+          earliestDate: time.simulationDate,
+          approvalEarliestDate: time.simulationDate,
+        });
+        for (const [employmentOffer, status] of [
+          [false, 'NOT_MET'],
+          [undefined, 'UNKNOWN'],
+        ] as const) {
+          const result = path({
+            ...request,
+            employment: { ...request.employment, employmentOffer },
+          });
+          expect(result).toMatchObject({ status, approvalStatus: status });
+          expect(result.earliestDate).toBeUndefined();
+          expect(result.approvalEarliestDate).toBeUndefined();
+        }
+        const missingPayEvidence = {
+          ...request,
+          employment: { ...request.employment, wageYears: [{ paidUsd: 0 }] },
+        };
+        expect(condition(missingPayEvidence, 'C29-ABILITY-TO-PAY').status).toBe(
+          'UNKNOWN',
+        );
+        expect(path(missingPayEvidence).approvalStatus).toBe('UNKNOWN');
+      }
+    },
+  );
+
+  const postingDates = [
+    '2026-10-09',
+    '2026-10-13',
+    '2026-10-14',
+    '2026-10-15',
+    '2026-10-16',
+    '2026-10-19',
+    '2026-10-20',
+    '2026-10-21',
+    '2026-10-22',
+    '2026-10-23',
+  ];
+  test.each([
+    ['union', { method: 'union', notifiedOn: '2026-10-09' }, 'MET'],
+    ['posting', { method: 'posting', businessDates: postingDates }, 'MET'],
+    [
+      'short posting',
+      { method: 'posting', businessDates: postingDates.slice(1) },
+      'NOT_MET',
+    ],
+    [
+      'duplicate posting day',
+      {
+        method: 'posting',
+        businessDates: [...postingDates.slice(1), postingDates[1]],
+      },
+      'NOT_MET',
+    ],
+    ['missing method', undefined, 'UNKNOWN'],
+  ] as const)(
+    'Schedule A accepts the applicable notice method (%s)',
+    (_, notice, status) => {
+      const request = withEmployment(
+        {
+          ...scheduleA,
+          permRecruitment: {
+            notice,
+            employerPaidPermCosts: true,
+          },
+        },
+        'filed-with-i485',
+      );
+      for (const pathway of ['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const) {
+        const input = { ...request, pathway };
+        expect(condition(input, 'C28-OFFER-PERM').status).toBe(status);
+        expect(path(input).status).toBe(status);
+      }
+    },
+  );
+
+  test.each(['US-EMPLOYMENT', 'US-ADJUSTMENT'] as const)(
+    'compares Schedule A notice dates with paper and historical receipts in %s',
+    (pathway) => {
+      const scheduleAWithNotice = (notifiedOn: string) => ({
+        ...scheduleA,
+        permRecruitment: { notice: { method: 'union' as const, notifiedOn } },
+      });
+      const request = withEmployment(
+        scheduleAWithNotice('2026-05-26'),
+        'filed-with-i485',
+      );
+      const sunday = { ...request, pathway, simulationDate: '2026-11-22' };
+      expect(condition(sunday, 'TIME-PAPER-RECEIPT').explanation).toContain(
+        '2026-11-23',
+      );
+      expect(condition(sunday, 'C28-OFFER-PERM').status).toBe('NOT_MET');
+      const result = path(sunday);
+      expect(result).toMatchObject({
+        status: 'NOT_MET',
+        approvalStatus: 'NOT_MET',
+      });
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.approvalEarliestDate).toBeUndefined();
+      const historical = withEmployment(
+        {
+          ...scheduleAWithNotice('2026-05-17'),
+          i140FiledOn: '2026-07-01',
+        },
+        'pending',
+      );
+      expect(
+        condition({ ...historical, pathway }, 'C28-OFFER-PERM').status,
+      ).toBe('MET');
+    },
+  );
+
+  test.each(['US-FAMILY', 'US-ADJUSTMENT'] as const)(
+    'checks the qualifying age of a stepchild before concurrent filing in %s',
+    (pathway) => {
+      const request: UsFullRequest = {
+        ...f,
+        pathway,
+        dateOfBirth: '2007-05-01',
+        family: {
+          ...family,
+          beneficiaryAge: 19,
+          relationship: 'unmarried-child',
+          childRelationship: 'step',
+          relationshipEstablishedAtAge: 19,
+          relationshipValid: undefined,
+        },
+        admission: {
+          ...admission,
+          adjustmentBasis: undefined,
+          qualifyingBasis: 'pending',
+          petitionStatus: 'filed-with-i485',
+          visaAtFiling: 'unavailable',
+          visaAtDecision: 'unavailable',
+        },
+      };
+      expect(condition(request, 'C23-RELATIONSHIP').status).toBe('NOT_MET');
+      const result = path(request);
+      expect(result).toMatchObject({
+        status: 'NOT_MET',
+        approvalStatus: 'NOT_MET',
+      });
+      expect(result.earliestDate).toBeUndefined();
+      expect(result.approvalEarliestDate).toBeUndefined();
+    },
+  );
+});
+
+const adjustmentFixtures = [
+  { name: 'family', request: f },
+  { name: 'adjustment', request: p7 },
+  { name: 'consular family', request: authorizedConsular },
+  { name: 'EB-2 PERM', request: e },
+  { name: 'EB-1A', request: eb1a },
+  { name: 'EB-5', request: eb5 },
+  { name: 'Gold Card', request: gold },
+  ...cases.flatMap(({ id, met, other }) => [
+    { name: `${id} supported`, request: met },
+    { name: `${id} adverse or unresolved`, request: other },
+  ]),
+].filter(
+  ({ request }) =>
+    request.pathway === 'US-FAMILY' ||
+    request.pathway === 'US-EMPLOYMENT' ||
+    (request.pathway === 'US-ADJUSTMENT' &&
+      request.family &&
+      request.admission?.adjustmentBasis === 'immediate-relative'),
+);
+
+test.each(adjustmentFixtures)(
+  '$name has identical eligibility checks in its dedicated and inferred adjustment entry',
+  ({ request }) => {
+    const dedicated =
+      request.pathway === 'US-EMPLOYMENT' ? 'US-EMPLOYMENT' : 'US-FAMILY';
+    const common = {
+      ...request,
+      admission: { ...request.admission, adjustmentBasis: undefined },
+    };
+    const specialized = path({ ...common, pathway: dedicated });
+    const inferred = path({ ...common, pathway: 'US-ADJUSTMENT' });
+    const eligibilityChecks = (result: typeof specialized) =>
+      result.checks.filter((item) => !/^US-C4[45]-/.test(item.id));
+    expect(eligibilityChecks(inferred)).toEqual(eligibilityChecks(specialized));
+    for (const item of inferred.checks.filter((check) =>
+      /^US-C4[45]-/.test(check.id),
+    )) {
+      const shared = specialized.checks.find((check) => check.id === item.id);
+      if (shared) expect(item).toEqual(shared);
+    }
+    expect(inferred.status).toBe(specialized.status);
+    expect(inferred.approvalStatus).toBe(specialized.approvalStatus);
+    expect(inferred.earliestDate).toBe(specialized.earliestDate);
+    expect(inferred.approvalEarliestDate).toBe(
+      specialized.approvalEarliestDate,
+    );
+  },
+);

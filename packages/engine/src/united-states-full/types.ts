@@ -284,6 +284,7 @@ export interface UsSupportAnswers {
 export interface UsEmploymentAnswers {
   category?: 'eb2-perm' | 'eb3' | 'eb1a' | 'eb2-niw' | 'eb5' | 'gold-card';
   categoryQualifications?: UsReview;
+  /** A valid offer for the petitioned job that the beneficiary intends to accept. */
   employmentOffer?: boolean;
   perm?: 'certified' | 'schedule-a' | 'pending' | 'none';
   permCertifiedOn?: IsoDate;
@@ -293,11 +294,18 @@ export interface UsEmploymentAnswers {
   profferedWageUsd?: number;
   recruitmentAndFeesCompliant?: boolean;
   permRecruitment?: {
-    stateJobOrderDays?: number;
-    advertisements?: number;
-    /** For Schedule A, provide only the notice timing. */
-    mandatoryRecruitmentDaysBeforeFiling?: number[];
-    noticeWorkdays?: number;
+    /** Actual or candidate DOL receipt date of the ordinary PERM application (ETA-9089). */
+    laborCertificationFiledOn?: IsoDate;
+    stateJobOrder?: { from: IsoDate; through: IsoDate };
+    /** Publication dates of the qualifying mandatory advertisements. */
+    advertisementDates?: IsoDate[];
+    notice?:
+      | { method: 'union'; notifiedOn?: IsoDate }
+      | {
+          method: 'posting';
+          /** Complete business dates covered by one uninterrupted posting at the worksite, where no bargaining representative applies. */
+          businessDates?: readonly IsoDate[];
+        };
     professional?: boolean;
     extraDistinctSteps?: number;
     qualifiedAvailableUsWorker?: boolean;
@@ -382,7 +390,7 @@ export interface UsAdmissionAnswers {
   /** Adjudication date to assess. For consular cases without interviewOn, both stages share this date. */
   decisionOn?: IsoDate;
   qualifyingBasis?: UsReview;
-  /** Status of the underlying petition, including an I-140 with an unknown receipt date. */
+  /** Status of the underlying petition, including a still-valid approval with an unknown receipt date. */
   petitionStatus?: 'filed-with-i485' | 'pending' | 'approved';
   /** Actual receipt date for an underlying petition other than I-140. */
   petitionFiledOn?: IsoDate;

@@ -633,26 +633,18 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       break;
     }
     case 'US-FAMILY':
-      requirements = [
-        ...familyChecks(request, applicationReceipt),
-        ...supportChecks(request, category, applicationReceipt),
-        ...adjustmentChecks(request, category, admissionTiming),
-      ];
-      break;
     case 'US-EMPLOYMENT':
-      requirements = [
-        ...employmentChecks(request, applicationReceipt),
-        ...supportChecks(request, category, applicationReceipt),
-        ...adjustmentChecks(request, category, admissionTiming),
-      ];
-      break;
     case 'US-ADJUSTMENT':
       requirements = [
-        ...adjustmentChecks(request, category, admissionTiming),
-        ...supportChecks(request, category, applicationReceipt),
-        ...(category === 'employment' && request.employment?.category
+        ...(category === 'family'
+          ? familyChecks(request, applicationReceipt)
+          : []),
+        ...(category === 'employment' &&
+        (request.pathway === 'US-EMPLOYMENT' || request.employment?.category)
           ? employmentChecks(request, applicationReceipt)
           : []),
+        ...supportChecks(request, category, applicationReceipt),
+        ...adjustmentChecks(request, category, admissionTiming),
       ];
       break;
     case 'US-HUMANITARIAN':

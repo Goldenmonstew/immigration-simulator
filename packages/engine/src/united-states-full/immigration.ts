@@ -1,4 +1,4 @@
-import { addDays } from '../dates';
+import { addDays, daysBetween } from '../dates';
 import { afterYears } from '../pilot';
 import type { IsoDate } from '../types';
 import { nextUsBusinessDay } from '../united-states';
@@ -338,27 +338,40 @@ export function supportChecks(
   ];
 }
 
-function permRecruitment(a: UsEmploymentAnswers): Answer {
+function permRecruitment(a: UsEmploymentAnswers, i140Date?: IsoDate): Answer {
   const record = a.permRecruitment;
   const law = v.perm.value;
-  const timing = record?.mandatoryRecruitmentDaysBeforeFiling;
-  const timingCompliant = timing?.length
-    ? timing.every((days) => days >= law.minDays && days <= law.maxDays)
-    : undefined;
-  if (a.perm === 'schedule-a')
+  const scheduleA = a.perm === 'schedule-a';
+  const receipt = scheduleA ? i140Date : record?.laborCertificationFiledOn;
+  const inWindow = (on: IsoDate) => {
+    if (!receipt) return undefined;
+    const days = daysBetween(on, receipt);
+    return days >= law.minDays && days <= law.maxDays;
+  };
+  const notice = record?.notice;
+  const noticeCompliant = !receipt
+    ? undefined
+    : notice?.method === 'union' && notice.notifiedOn
+      ? inWindow(notice.notifiedOn)
+      : notice?.method === 'posting' && notice.businessDates?.length
+        ? new Set(notice.businessDates.filter(inWindow)).size >=
+          law.noticeWorkdays
+        : undefined;
+  if (scheduleA)
     return all(
       a.recruitmentAndFeesCompliant !== false,
-      timingCompliant,
-      atLeast(record?.noticeWorkdays, law.noticeWorkdays) ??
-        a.recruitmentAndFeesCompliant,
+      noticeCompliant,
       record?.employerPaidPermCosts ?? a.recruitmentAndFeesCompliant,
     );
   if (!record) return a.recruitmentAndFeesCompliant;
+  const order = record.stateJobOrder;
+  const ads = record.advertisementDates;
   return all(
-    atLeast(record.stateJobOrderDays, law.orderDays),
-    atLeast(record.advertisements, law.advertisements),
-    timingCompliant,
-    atLeast(record.noticeWorkdays, law.noticeWorkdays),
+    order && daysBetween(order.from, order.through) + 1 >= law.orderDays,
+    receipt && order ? inWindow(order.through) : undefined,
+    atLeast(ads?.length, law.advertisements),
+    receipt && ads?.length ? ads.every(inWindow) : undefined,
+    noticeCompliant,
     record.professional === true
       ? all(
           atLeast(record.extraDistinctSteps, law.professionalSteps),
@@ -443,30 +456,40 @@ export function employmentChecks(request: UsFullRequest, receipt: IsoDate) {
           : a.perm === 'none'
             ? false
             : undefined;
-    const offer = all(
-      a.employmentOffer,
-      reviewed(a.categoryQualifications),
-      wages,
-      permRecruitment(a),
-    );
+    const offer = petitionApproved
+      ? inconsistentI140Date
+        ? undefined
+        : a.employmentOffer
+      : all(
+          a.employmentOffer,
+          reviewed(a.categoryQualifications),
+          wages,
+          permRecruitment(a, inconsistentI140Date ? undefined : i140Date),
+          certification,
+        );
     return [
       ...based,
       check(
         'C28-OFFER-PERM',
         '永久全职工作、职业资格及 PERM',
         'Permanent full-time offer, category qualifications and PERM',
-        all(offer, certification),
-        s.perm,
+        offer,
+        petitionApproved ? [...s.perm, ...s.approvedEmployment] : s.perm,
         'PD-277',
-        a.perm === 'schedule-a'
+        petitionApproved
           ? [
-              `Schedule A 须在递交前 ${v.perm.value.minDays}–${v.perm.value.maxDays} 天发出通知，并核对张贴及雇主费用。`,
-              `For Schedule A, confirm notice ${v.perm.value.minDays}–${v.perm.value.maxDays} days before filing, posting, and employer-paid costs.`,
+              '本案请愿获批已确认当时的劳工认证和分类条件。请核实获批职位的工作邀约仍有效。',
+              'The approved petition establishes the labor certification and classification requirements at filing. Confirm the job offer based on the approved petition is still valid.',
             ]
-          : [
-              'PERM 有效期按使用它的 I-140 收件日核对。拟递交 I-140 时使用预计收件日。',
-              'Check PERM validity on the date USCIS received the I-140 using it. For a prospective I-140, use the expected receipt date.',
-            ],
+          : a.perm === 'schedule-a'
+            ? [
+                `Schedule A 在 I-140 收件前 ${v.perm.value.minDays}–${v.perm.value.maxDays} 天通知有管辖权的工会代表；无代表时在该窗口内连续张贴至少 ${v.perm.value.noticeWorkdays} 个工作日。另核对雇主承担费用。`,
+                `For Schedule A, notify the applicable bargaining representative ${v.perm.value.minDays}–${v.perm.value.maxDays} days before I-140 receipt. Where there is no representative, post for at least ${v.perm.value.noticeWorkdays} consecutive business days within that window. Verify employer-paid costs separately.`,
+              ]
+            : [
+                '按 ETA-9089 收件日核对招聘与通知。PERM 有效期按实际或预计的 I-140 收件日核对。',
+                'Check recruitment and notice against ETA-9089 receipt. Check PERM validity against actual or expected I-140 receipt.',
+              ],
         petitionApproved ? checkStatus(offer) : undefined,
       ),
       check(
