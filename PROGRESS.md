@@ -491,3 +491,9 @@
 | 591 | 任务 86：登记美国完整版出处、日期参数、数字门槛及费用。 | packages/policy-data/src/{index.ts,parameters/united-states-2026-11.ts} |
 | 592 | 任务 86：提供美国九路径完整版 CountryResult，接入既有时间计算，增加资格、审查与费用条件、回归测试及页面接线交接。 | packages/engine/src/{index.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、docs/tasks/reports/86-us-rules.md |
 | 593 | 任务 86 审核修正（review86-1）：逐条核对九路径，拆分递交与核准状态，统一纸质收件日，修正 I-864、I-751、N-400、SIJ、PERM、CSPA、EB-5、Gold Card 和 N-336，补回归及官方出处。 | packages/engine/src/{united-states.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、packages/policy-data/src/parameters/united-states-2026-11.ts、docs/{SOURCES,pending-details}.md、policy-sources/ 两份快照、docs/tasks/reports/86-us-rules.md |
+
+## 2026-11-24
+
+| # | 改动描述 | 涉及文件 |
+|---|---|---|
+| 594 | 任务 86 第二轮审核修正（review86-2）：核对九路径，补足核准日期、纸申默认与跨月排期，分开返美义务提示和人道豁免的递交、核准结论，并补回归。 | packages/engine/src/united-states-full/、packages/engine/test/united-states-full.test.ts、packages/policy-data/src/parameters/united-states-2026-11.ts、docs/pending-details.md、docs/tasks/reports/86-us-rules.md |

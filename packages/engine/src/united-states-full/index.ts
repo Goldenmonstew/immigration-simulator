@@ -6,6 +6,7 @@ import { addDays } from '../dates';
 import { afterYears } from '../pilot';
 import type { PilotStatus } from '../pilot';
 import { textFor } from '../rule';
+import type { IsoDate } from '../types';
 import { evaluateUnitedStates, nextUsBusinessDay } from '../united-states';
 import type { UsPathway } from '../united-states';
 import {
@@ -245,16 +246,51 @@ function conditionsTiming(
     : { status: 'UNKNOWN', special: online.special || paper.special };
 }
 
+function defaultsToPaper(request: UsFullRequest): boolean {
+  if (request.fees?.channel) return false;
+  if (request.pathway === 'US-HUMANITARIAN') return true;
+  if (
+    request.pathway === 'US-NATURALIZATION' ||
+    request.pathway === 'US-SPOUSE'
+  ) {
+    return (
+      request.fees?.relief === 'waiver' || request.fees?.relief === 'reduced'
+    );
+  }
+  return (
+    request.admission?.process === 'adjustment' &&
+    (request.pathway === 'US-FAMILY' ||
+      request.pathway === 'US-EMPLOYMENT' ||
+      request.pathway === 'US-ADJUSTMENT') &&
+    (request.fees?.onlineCategoryAvailable === 'barred' ||
+      request.admission.adjustmentBasis === 'sij' ||
+      (request.pathway === 'US-EMPLOYMENT' &&
+        request.employment?.category === 'eb5'))
+  );
+}
+
 export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   const L = textFor(request);
   const check = checksFor(request);
   const legacy = legacyPathway(request);
   const timingChecks = timeChecks(request, legacy);
+  const date = request.simulationDate;
+  const paperDefault = defaultsToPaper(request);
+  const paper =
+    (request.fees?.channel === 'paper' || paperDefault) &&
+    request.pathway !== 'US-TRAVEL' &&
+    request.pathway !== 'US-CONDITIONS' &&
+    !(
+      request.pathway === 'US-ADJUSTMENT' &&
+      request.admission?.process === 'consular'
+    );
+  const receiptOn = (candidate: IsoDate) =>
+    paper ? nextUsBusinessDay(candidate) : candidate;
   let eligibility: FilingTiming = { status: 'MET' };
   let requirements: UsFullCheck[];
   switch (request.pathway) {
     case 'US-NATURALIZATION':
-    case 'US-SPOUSE':
+    case 'US-SPOUSE': {
       eligibility = {
         status:
           legacy?.status === 'NOT_APPLICABLE'
@@ -263,7 +299,33 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
         earliestDate: legacy?.earliestDate,
       };
       requirements = naturalizationChecks(request);
+      if (request.permanentResident) {
+        const years =
+          request.pathway === 'US-SPOUSE'
+            ? time.spouseYears
+            : time.naturalizationYears;
+        const anniversary = afterYears(request.permanentResident, years.value);
+        requirements.push({
+          ...check(
+            'TIME-LPR-APPROVAL',
+            '入籍核准所需完整居住年限',
+            'Full residence period required for naturalization approval',
+            date >= anniversary,
+            [...years.sources, ...time.earlyFilingDays.sources],
+            undefined,
+            [
+              `完整法定居住年限的周年日为 ${anniversary}。`,
+              `The full statutory residence period reaches its anniversary on ${anniversary}.`,
+            ],
+            'NOT_APPLICABLE',
+          ),
+          ...(date < anniversary
+            ? { approvalRequirementDate: anniversary }
+            : {}),
+        });
+      }
       break;
+    }
     case 'US-CONDITIONS': {
       const conditionFiling = conditionsTiming(request, legacy);
       eligibility = conditionFiling;
@@ -344,18 +406,21 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       requirements = [
         ...familyChecks(request),
         ...supportChecks(request),
-        ...adjustmentChecks(request),
+        ...adjustmentChecks(request, receiptOn(date)),
       ];
       break;
     case 'US-EMPLOYMENT':
       requirements = [
         ...employmentChecks(request),
         ...supportChecks(request),
-        ...adjustmentChecks(request),
+        ...adjustmentChecks(request, receiptOn(date)),
       ];
       break;
     case 'US-ADJUSTMENT':
-      requirements = [...adjustmentChecks(request), ...supportChecks(request)];
+      requirements = [
+        ...adjustmentChecks(request, receiptOn(date)),
+        ...supportChecks(request),
+      ];
       break;
     case 'US-HUMANITARIAN':
       requirements = humanitarianChecks(request);
@@ -368,24 +433,16 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       break;
   }
   const { status: timing } = eligibility;
-  const candidate = eligibility.earliestDate ?? request.simulationDate;
-  const paper =
-    request.fees?.channel === 'paper' &&
-    request.pathway !== 'US-TRAVEL' &&
-    request.pathway !== 'US-CONDITIONS' &&
-    !(
-      request.pathway === 'US-ADJUSTMENT' &&
-      request.admission?.process === 'consular'
-    );
-  const receipt = paper ? nextUsBusinessDay(candidate) : candidate;
-  if (paper && receipt !== candidate) {
+  const candidate = eligibility.earliestDate ?? date;
+  const receipt = receiptOn(candidate);
+  if (receipt !== candidate) {
     timingChecks.push(
       check(
         'TIME-PAPER-RECEIPT',
         'USCIS 纸质收件日',
         'USCIS paper receipt date',
         false,
-        s.paperReceipt,
+        paperDefault ? [...s.paperReceipt, ...s.onlineFiling] : s.paperReceipt,
         undefined,
         [
           `纸质件最早可在 ${receipt} 收件。`,
@@ -394,19 +451,25 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
       ),
     );
   }
+  const approvalDate = requirements.reduce(
+    (earliest, item) =>
+      item.approvalRequirementDate && item.approvalRequirementDate > earliest
+        ? item.approvalRequirementDate
+        : earliest,
+    receipt,
+  );
   const combine = (filing: boolean): PilotStatus => {
     if (timing === 'NOT_APPLICABLE') return timing;
     const statuses = requirements.flatMap((item) =>
       item.informational ||
+      (!filing && item.approvalRequirementDate) ||
       (timing === 'FUTURE' && legacy && item.id === 'US-C01-AGE')
         ? []
         : [filing ? (item.filingStatus ?? item.status) : item.status],
     );
     if (timing === 'NOT_MET' || statuses.includes('NOT_MET')) return 'NOT_MET';
     if (timing === 'UNKNOWN' || statuses.includes('UNKNOWN')) return 'UNKNOWN';
-    return timing === 'FUTURE' || receipt > request.simulationDate
-      ? 'FUTURE'
-      : 'MET';
+    return (filing ? receipt : approvalDate) > date ? 'FUTURE' : 'MET';
   };
   const status = combine(true);
   const approvalStatus =
@@ -421,6 +484,10 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
   ];
   const earliestDate =
     status === 'MET' || status === 'FUTURE' ? receipt : undefined;
+  const approvalEarliestDate =
+    approvalStatus === 'MET' || approvalStatus === 'FUTURE'
+      ? approvalDate
+      : undefined;
   const summary = {
     MET: L(
       request.pathway === 'US-TRAVEL'
@@ -471,6 +538,7 @@ export function evaluateUnitedStatesFull(request: UsFullRequest): UsFullResult {
             status,
             ...(approvalStatus ? { approvalStatus } : {}),
             ...(earliestDate ? { earliestDate } : {}),
+            ...(approvalEarliestDate ? { approvalEarliestDate } : {}),
             summary: summary[status],
             checks,
             assumptions: [...(legacy?.assumptions ?? []), ...timingNotes],

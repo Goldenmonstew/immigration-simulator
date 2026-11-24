@@ -45,25 +45,50 @@ export function conditionChecks(request: UsFullRequest) {
   if (request.conditional === 'investor') {
     const a = request.conditions?.investor;
     const law = v.eb5.value;
+    const preRia =
+      a?.originalPetitionFiledOn && a.originalPetitionFiledOn < law.rulesFrom;
     const sustained = a?.originalPetitionFiledOn
-      ? a.originalPetitionFiledOn < law.rulesFrom
+      ? preRia
         ? reviewed(a.continuousInvestmentDuringConditionalResidence)
         : atLeast(a.sustainmentYears, law.sustainmentYears)
       : undefined;
+    const capitalEvidence = all(
+      sustained,
+      a?.atRisk,
+      reviewed(a?.requiredCapitalFullyInvested),
+      reviewed(a?.lawfullySourcedFunds),
+    );
+    const residentSince =
+      request.principalConditional ?? request.permanentResident;
+    const anniversary =
+      preRia && residentSince
+        ? afterYears(residentSince, legacy.conditionalYears.value)
+        : undefined;
+    const approvalRequirementDate =
+      capitalEvidence === true &&
+      anniversary &&
+      request.simulationDate < anniversary
+        ? anniversary
+        : undefined;
     return [
-      check(
-        'C17-CAPITAL',
-        '投资本金及持续在险',
-        'Capital invested and sustained at risk',
-        all(
-          sustained,
-          a?.atRisk,
-          reviewed(a?.requiredCapitalFullyInvested),
-          reviewed(a?.lawfullySourcedFunds),
+      {
+        ...check(
+          'C17-CAPITAL',
+          '投资本金及持续在险',
+          'Capital invested and sustained at risk',
+          approvalRequirementDate ? false : capitalEvidence,
+          [...s.i829, ...s.eb5],
+          'PD-278',
+          approvalRequirementDate
+            ? [
+                `如资金继续在险，旧法规定的条件居留投资期在 ${approvalRequirementDate} 届满。`,
+                `If the capital remains at risk, the pre-RIA sustainment period ends on ${approvalRequirementDate}.`,
+              ]
+            : undefined,
+          approvalRequirementDate ? 'MET' : undefined,
         ),
-        [...s.i829, ...s.eb5],
-        'PD-278',
-      ),
+        ...(approvalRequirementDate ? { approvalRequirementDate } : {}),
+      },
       check(
         'C17-I829-PAPER',
         'I-829 纸质递交',
@@ -178,6 +203,10 @@ function deportabilityCheck(a?: UsTravelAnswers) {
 
 export function travelChecks(request: UsFullRequest) {
   const check = checksFor(request);
+  const obligation = (...args: Parameters<typeof check>) => ({
+    ...check(...args),
+    informational: true as const,
+  });
   const a = request.travel;
   const date = request.simulationDate;
   const birth = request.dateOfBirth;
@@ -310,7 +339,7 @@ export function travelChecks(request: UsFullRequest) {
     seekingAdmission,
     returnedOn: trip?.returned,
     checks: [
-      check(
+      obligation(
         'C18-REGISTRATION',
         '登记与随身携证',
         'Registration and carrying evidence',
@@ -329,7 +358,7 @@ export function travelChecks(request: UsFullRequest) {
           `Registered green card holders must carry their registration evidence from age ${reg.carryAge}. Registration of children with diplomatic immunity requires separate confirmation.`,
         ],
       ),
-      check(
+      obligation(
         'C19-ADDRESS',
         '地址变更申报',
         'Change-of-address reporting',
@@ -341,7 +370,7 @@ export function travelChecks(request: UsFullRequest) {
           `Report a move within ${address.days} days. A report can still be timely while the deadline is open.`,
         ],
       ),
-      check(
+      obligation(
         'C19-REPLACEMENT',
         '绿卡证件更新',
         'Green card replacement and renewal',

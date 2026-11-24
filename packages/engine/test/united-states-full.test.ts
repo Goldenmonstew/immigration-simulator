@@ -1918,8 +1918,9 @@ describe('review86-1 regressions', () => {
       });
       expect(path(short)).toMatchObject({
         status: 'MET',
-        approvalStatus: 'NOT_MET',
+        approvalStatus: 'FUTURE',
         earliestDate: time.simulationDate,
+        approvalEarliestDate: '2026-11-24',
       });
     }
   });
@@ -2002,6 +2003,314 @@ describe('review86-1 regressions', () => {
       explanation: 'Scheduled form fee: USD 180.',
       sources: [{ srcId: 'SRC-317', locator: '22 CFR 22.1, item 35(a)' }],
     });
+  });
+});
+
+describe('review86-2 regressions', () => {
+  test('pre-RIA I-829 can be filed before the conditional residence sustainment period ends', () => {
+    const early: UsFullRequest = {
+      ...i829,
+      permanentResident: '2024-11-30',
+      conditions: {
+        investor: {
+          ...investor,
+          originalPetitionFiledOn: '2022-03-14',
+          continuousInvestmentDuringConditionalResidence: 'cleared',
+        },
+      },
+    };
+    expect(condition(early, 'C17-CAPITAL')).toMatchObject({
+      status: 'NOT_MET',
+      filingStatus: 'MET',
+    });
+    expect(path(early)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-23',
+      approvalStatus: 'FUTURE',
+      approvalEarliestDate: '2026-11-30',
+    });
+    expect(path({ ...early, simulationDate: '2026-11-30' })).toMatchObject({
+      approvalStatus: 'MET',
+      approvalEarliestDate: '2026-11-30',
+    });
+  });
+
+  test.each([
+    [n, '2022-01-01', 4.89],
+    [spouse, '2024-01-01', 2.89],
+  ] as const)(
+    'early N-400 filing keeps the full residence anniversary for approval (%#)',
+    (request, permanentResident, lprResidenceYears) => {
+      const early = {
+        ...request,
+        permanentResident,
+        naturalization: { ...request.naturalization, lprResidenceYears },
+      };
+      expect(path(early)).toMatchObject({
+        status: 'MET',
+        earliestDate: '2026-11-23',
+        approvalStatus: 'FUTURE',
+        approvalEarliestDate: '2027-01-01',
+      });
+      expect(path({ ...early, simulationDate: '2027-01-01' })).toMatchObject({
+        status: 'MET',
+        earliestDate: '2027-01-01',
+        approvalStatus: 'MET',
+        approvalEarliestDate: '2027-01-01',
+      });
+      const pendingExam = {
+        ...early,
+        naturalization: {
+          ...early.naturalization,
+          english: 'preparing' as const,
+        },
+      };
+      expect(path(pendingExam)).toMatchObject({
+        status: 'MET',
+        earliestDate: '2026-11-23',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(path(pendingExam).approvalEarliestDate).toBeUndefined();
+    },
+  );
+
+  test('defaults paper-only applications to their paper receipt day', () => {
+    const saturday = '2026-11-21';
+    const asylee: UsFullRequest = {
+      ...h,
+      humanitarian: {
+        ...human,
+        status: 'asylee',
+        refugeeDefinitionOrDerivative: true,
+        firmlyResettled: false,
+        discretion: 'cleared',
+      },
+    };
+    const noOnlineAccess: UsFullRequest = {
+      ...p7,
+      fees: { onlineCategoryAvailable: 'barred' },
+    };
+    const sij: UsFullRequest = {
+      ...p7,
+      family: undefined,
+      admission: { ...admission, adjustmentBasis: 'sij' },
+      fees: undefined,
+    };
+    const paperRelief: UsFullRequest = { ...n, fees: { relief: 'reduced' } };
+    for (const request of [
+      h,
+      asylee,
+      noOnlineAccess,
+      sij,
+      { ...eb5, fees: undefined },
+      paperRelief,
+    ]) {
+      expect(path({ ...request, simulationDate: saturday })).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: '2026-11-23',
+        approvalStatus: 'FUTURE',
+        approvalEarliestDate: '2026-11-23',
+      });
+    }
+    for (const request of [n, spouse, m, { ...p7, fees: undefined }]) {
+      expect(path({ ...request, simulationDate: saturday })).toMatchObject({
+        status: 'MET',
+        approvalStatus: 'MET',
+        earliestDate: saturday,
+      });
+    }
+  });
+
+  test('keeps registration, address reporting and replacement as separate travel obligations', () => {
+    const returning: UsFullRequest = {
+      ...t,
+      trips: [{ departed: '2026-11-15', returned: '2026-11-23' }],
+      travel: {
+        ...travel,
+        movedOn: '2026-11-01',
+        addressReportedOn: 'not-reported',
+        cardExpiresOn: '2027-03-01',
+        carryingEvidence: false,
+      },
+    };
+    expect(condition(returning, 'C22-RETURN-DOCUMENT').status).toBe('MET');
+    for (const id of ['C18-REGISTRATION', 'C19-ADDRESS', 'C19-REPLACEMENT']) {
+      expect(condition(returning, id)).toMatchObject({
+        status: 'NOT_MET',
+        informational: true,
+      });
+    }
+    expect(path(returning)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-23',
+    });
+    expect(path(returning).approvalStatus).toBeUndefined();
+    const noDocument = {
+      ...returning,
+      travel: { ...returning.travel, documentValidAtReturn: false },
+    };
+    expect(path(noDocument).status).toBe('NOT_MET');
+    expect(path(noDocument).earliestDate).toBeUndefined();
+  });
+
+  test('requires the actual receipt month for paper I-485 in all three preference pathways', () => {
+    const preference: UsFullRequest = {
+      ...f,
+      family: {
+        ...family,
+        petitioner: 'lpr',
+        priorMarriageLprSince: 'not-applicable',
+      },
+      support: { ...support, sponsorStatus: 'lpr' },
+      admission: { ...admission, adjustmentBasis: 'family-preference' },
+    };
+    const employed = {
+      ...e,
+      employment: {
+        ...employment,
+        i140FiledOn: '2026-07-01',
+        i140Status: 'approved' as const,
+      },
+    };
+    for (const request of [
+      preference,
+      employed,
+      { ...preference, pathway: 'US-ADJUSTMENT' as const },
+    ]) {
+      const monthEnd = { ...request, simulationDate: '2026-10-31' };
+      expect(path(monthEnd), request.pathway).toMatchObject({
+        status: 'UNKNOWN',
+        approvalStatus: 'UNKNOWN',
+        pendingDetails: expect.arrayContaining(['PD-272']),
+      });
+      expect(path(monthEnd).earliestDate).toBeUndefined();
+      expect(path(monthEnd).approvalEarliestDate).toBeUndefined();
+      const withNovember = (
+        availability: 'available' | 'unavailable' | 'future-bulletin',
+      ) => ({
+        ...monthEnd,
+        admission: {
+          ...monthEnd.admission,
+          visaAtFilingByMonth: { '2026-11': availability },
+        },
+      });
+      expect(path(withNovember('available')), request.pathway).toMatchObject({
+        status: 'FUTURE',
+        earliestDate: '2026-11-02',
+        approvalStatus: 'FUTURE',
+        approvalEarliestDate: '2026-11-02',
+      });
+      const unavailable = path(withNovember('unavailable'));
+      expect(unavailable).toMatchObject({
+        status: 'NOT_MET',
+        approvalStatus: 'NOT_MET',
+      });
+      expect(unavailable.earliestDate).toBeUndefined();
+      expect(path(withNovember('future-bulletin')).status).toBe('UNKNOWN');
+      expect(path({ ...monthEnd, fees: { channel: 'online' } })).toMatchObject({
+        status: 'MET',
+        earliestDate: '2026-10-31',
+        approvalStatus: 'MET',
+      });
+    }
+    expect(path({ ...f, simulationDate: '2026-10-31' })).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-11-02',
+      approvalStatus: 'FUTURE',
+    });
+    const consular: UsFullRequest = {
+      ...preference,
+      pathway: 'US-ADJUSTMENT',
+      simulationDate: '2026-10-31',
+      admission: {
+        ...preference.admission,
+        process: 'consular',
+        visaAtFilingByMonth: { '2026-10': 'unavailable' },
+      },
+    };
+    expect(path(consular)).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-10-31',
+      approvalStatus: 'MET',
+    });
+  });
+
+  test.each([
+    ['C36-HEALTH', { classAHealth: 'barred' }],
+    ['C38-CRIMINAL-INADMISSIBILITY', { criminalOtherGround: 'barred' }],
+    ['C39-SECURITY', { securityGround: 'other-bar' }],
+    ['C40-IMMIGRATION-HISTORY', { immigrationFraud: true }],
+  ] satisfies [string, Partial<UsAdmissionAnswers>][])(
+    'a pending INA 209(c) waiver only holds approval for %s',
+    (id, ground) => {
+      const pending: UsFullRequest = {
+        ...h,
+        humanitarian: { ...human, waiver: 'pending' },
+        admission: { ...admission, ...ground },
+      };
+      expect(condition(pending, id)).toMatchObject({
+        status: 'UNKNOWN',
+        filingStatus: 'MET',
+      });
+      expect(path(pending)).toMatchObject({
+        status: 'MET',
+        earliestDate: '2026-11-23',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(path(pending).approvalEarliestDate).toBeUndefined();
+
+      const ready: UsFullRequest = {
+        ...pending,
+        humanitarian: {
+          ...pending.humanitarian,
+          waiverFiling: 'cleared',
+          waiver: undefined,
+        },
+      };
+      expect(path(ready)).toMatchObject({
+        status: 'MET',
+        earliestDate: '2026-11-23',
+        approvalStatus: 'UNKNOWN',
+      });
+
+      const noMaterials: UsFullRequest = {
+        ...pending,
+        humanitarian: { ...pending.humanitarian, waiverFiling: 'barred' },
+      };
+      expect(path(noMaterials)).toMatchObject({
+        status: 'NOT_MET',
+        approvalStatus: 'UNKNOWN',
+      });
+      expect(path(noMaterials).earliestDate).toBeUndefined();
+      const granted: UsFullRequest = {
+        ...pending,
+        humanitarian: { ...pending.humanitarian, waiver: 'cleared' },
+      };
+      expect(path(granted)).toMatchObject({
+        status: 'MET',
+        earliestDate: '2026-11-23',
+        approvalStatus: 'MET',
+        approvalEarliestDate: '2026-11-23',
+      });
+    },
+  );
+
+  test('a pending humanitarian waiver cannot override a nonwaivable ground', () => {
+    const pending: UsFullRequest = {
+      ...h,
+      humanitarian: { ...human, waiver: 'pending' },
+      admission: {
+        ...admission,
+        drugTraffickingBar: true,
+        securityGround: 'nonwaivable',
+      },
+    };
+    expect(path(pending)).toMatchObject({
+      status: 'NOT_MET',
+      approvalStatus: 'NOT_MET',
+    });
+    expect(path(pending).earliestDate).toBeUndefined();
+    expect(path(pending).approvalEarliestDate).toBeUndefined();
   });
 });
 

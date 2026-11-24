@@ -22,6 +22,8 @@ export type UsFullPathwayId =
 export interface UsFullCheck extends CountryCheck {
   /** When omitted, use status for filing as well as approval. */
   filingStatus?: CountryCheck['status'] | 'NOT_APPLICABLE';
+  /** Date a currently unmet approval timing requirement can be satisfied. */
+  approvalRequirementDate?: IsoDate;
   informational?: true;
 }
 
@@ -29,8 +31,10 @@ export interface UsFullPathway extends CountryPathway {
   id: UsFullPathwayId;
   /** Filing eligibility, or return eligibility for US-TRAVEL. */
   status: PilotStatus;
-  /** Approval requirements based on the supplied facts. No adjudication date is inferred. */
+  /** Approval requirements as of the simulation date, based on the supplied facts. */
   approvalStatus?: PilotStatus;
+  /** Earliest date the assessed requirements can be met, independent of processing time. */
+  approvalEarliestDate?: IsoDate;
   checks: UsFullCheck[];
 }
 
@@ -151,6 +155,7 @@ export interface UsConditionsAnswers {
   investor?: UsInvestmentAnswers & {
     originalPetitionFiledOn?: IsoDate;
     requiredCapitalFullyInvested?: UsReview;
+    /** Pre-RIA evidence that the investment has been sustained during conditional residence to date. */
     continuousInvestmentDuringConditionalResidence?: UsReview;
     /** Job creation within a reasonable time, retention for a qualifying troubled business, or exceptional circumstances. */
     jobsAccepted?: UsReview;
@@ -339,13 +344,17 @@ export interface UsEmploymentAnswers {
   relativeOwnershipPct?: number;
 }
 
+type UsVisaAvailability = 'available' | 'unavailable' | 'future-bulletin';
+
 export interface UsAdmissionAnswers {
   /** Bare prospective applications have no favourable discretionary finding yet. */
   process?: 'adjustment' | 'consular';
-  /** Availability under the USCIS filing chart, or authorization to submit documents in consular processing. */
-  visaAtFiling?: 'available' | 'unavailable' | 'future-bulletin';
-  /** Final Action Dates status at the anticipated or actual decision. */
-  visaAtDecision?: 'available' | 'unavailable' | 'future-bulletin';
+  /** USCIS filing chart for the simulation month, or NVC authorization to submit consular documents. */
+  visaAtFiling?: UsVisaAvailability;
+  /** USCIS filing chart by YYYY-MM; required for a receipt in a different month. */
+  visaAtFilingByMonth?: Partial<Record<string, UsVisaAvailability>>;
+  /** Final Action Dates status as of the simulation date. */
+  visaAtDecision?: UsVisaAvailability;
   qualifyingBasis?: UsReview;
   legalEntry?: 'admitted' | 'paroled' | 'without-inspection';
   adjustmentBasis?:
@@ -398,13 +407,16 @@ export interface UsAdmissionAnswers {
 
 export interface UsHumanitarianAnswers {
   status?: 'refugee' | 'asylee';
-  /** Qualifying days after refugee admission or asylum grant, as of the adjudication being evaluated. */
+  /** Qualifying days after refugee admission or asylum grant, as of the simulation date. */
   presenceDays?: number;
   statusRetained?: boolean;
   alreadyLpr?: boolean;
   refugeeDefinitionOrDerivative?: boolean;
   firmlyResettled?: boolean;
   discretion?: UsReview;
+  /** Whether the evidence for a needed INA 209(c) waiver can be submitted with the application. */
+  waiverFiling?: UsReview;
+  /** The decision on the waiver, or confirmation that no waiver is needed. */
   waiver?: UsReview | 'not-needed';
 }
 

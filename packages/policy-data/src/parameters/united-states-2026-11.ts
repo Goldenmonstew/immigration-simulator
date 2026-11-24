@@ -226,6 +226,13 @@ export const unitedStatesFullSources = {
     ),
   ],
   paperReceipt: [pm('SRC-081', 1, 'B', 6, '(E)')],
+  onlineFiling: [
+    source(
+      'SRC-082',
+      'Forms Available to File Online, Upload a Completed PDF, Form I-485 and Form N-400',
+      'https://www.uscis.gov/file-online/forms-available-to-file-online',
+    ),
+  ],
   english: [
     usc('SRC-291', '1423', '(a)–(b)'),
     pm('SRC-292', 12, 'E', 2, '(A)–(C)'),
@@ -296,7 +303,10 @@ export const unitedStatesFullSources = {
     usc('SRC-079', '1186a', '(c)(1), (c)(4), (d)(2)'),
     pm('SRC-297', 6, 'I', 3),
   ],
-  i829: [usc('SRC-079', '1186b', '(d)'), pm('SRC-298', 6, 'G', 7)],
+  i829: [
+    usc('SRC-079', '1186b', '(d)'),
+    pm('SRC-298', 6, 'G', 7, '(A), fn. 4'),
+  ],
   registration: [
     usc('SRC-299', '1304', '(e)'),
     source(
@@ -386,7 +396,7 @@ export const unitedStatesFullSources = {
   ],
   adjustment: [
     usc('SRC-309', '1255', '(a), (h), (i)'),
-    pm('SRC-309', 7, 'A', 6),
+    pm('SRC-309', 7, 'A', 6, '(C)'),
   ],
   adjustmentBars: [
     usc('SRC-309', '1255', '(c), (d), (k), (n)'),
@@ -427,7 +437,7 @@ export const unitedStatesFullSources = {
   ],
   humanitarianWaiver: [
     usc('SRC-314', '1159', '(c)'),
-    pm('SRC-314', 7, 'L', 3),
+    pm('SRC-314', 7, 'L', 3, '(C)–(D)'),
     pm('SRC-314', 7, 'M', 3),
   ],
   military: [
