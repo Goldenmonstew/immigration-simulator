@@ -144,6 +144,29 @@
 | SRC-125 | GUIDANCE | 里斯本检察院（PGD Lisboa）编纂版（非官方公报文本，仅交叉核对）：Decreto Regulamentar 84/2007（列至 DR 1/2024）art. 63 续期；Código Civil art. 279、296 期间计算 | https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=940&tabela=leis ；https://www.pgdlisboa.pt/leis/lei_print_articulado.php?nid=775&tabela=leis | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-pgdlisboa-dr-84-2007-consolidado.html`（sha256 `8c0509aba4b9cf5f98fcb0f0f39742d91917e6500626ddd2302cd4a5f6a1f49f`）；`policy-sources/2026-11-22-pt-pgdlisboa-codigo-civil.html`（sha256 `1134e2bc2feb5ca33aaafd4e7f6c34d55b847ec3f389d8ea9cc1c7613eeaf538`） | archived |
 | SRC-126 | GUIDANCE | AIMA（移民与庇护署）页面：投资居留许可 ARI（art. 90-A）、永久居留（art. 80）、欧盟长期居民 ERLD（art. 125）；《Esclarecimento: Direito de Residência》（2025-10-17） | https://aima.gov.pt/pt/viver/autorizacao-de-residencia-para-investimento-art-90-o-a ；https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o ；https://aima.gov.pt/pt/viver/aquisicao-do-estatuto-de-residente-de-longa-duracao-erld-art-125-o ；https://aima.gov.pt/pt/noticias/direito-de-residencia | 见标题 | 2026-11-22 | `policy-sources/2026-11-22-pt-aima-ari-art-90-a.html`（sha256 `759f939a21c33b9a228b1f85146c37b65db06127d8f3c6378474fd9465197d37`）；`policy-sources/2026-11-22-pt-aima-ar-permanente-art-80.html`（sha256 `739864b9a7789f04abe2502b87d991cd6b89bee22b381518a73a0aa6a8ad04ef`）；`policy-sources/2026-11-22-pt-aima-erld-art-125.html`（sha256 `188f74257278bb429fe5977e8ee73c6fddeb3c7fc966f0ab1756ad553c4f9f5e`）；`policy-sources/2025-10-17-pt-aima-direito-de-residencia.html`（sha256 `93937c52620f1a21cf5acce152f5850131b5483b073ef67ed4d9dd07785cb036`） | archived |
 | SRC-127 | GUIDANCE | 葡萄牙政府关于新国籍法的说明：司法部新闻《Lei da Nacionalidade: novas regras entram em vigor a 19 de maio》（2026-05-19）；司法部入籍指南《Reside legalmente em Portugal há pelo menos 5 anos》（2026-11-22 抓取，仍按旧法写 5 年，已过时）；部长会议公报（2026-10-29，第 2 项通过国籍条例 Decreto-Lei） | https://justica.gov.pt/Noticias/Lei-da-Nacionalidade-novas-regras-entram-em-vigor-a-19-de-maio ；https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/Reside-legalmente-em-Portugal-ha-pelo-menos-5-anos ；https://www.portugal.gov.pt/pt/gc25/governo/comunicados-do-conselho-de-ministros/comunicado-do-conselho-de-ministros-de-29-de-outubro-de-2026 | 见标题 | 2026-11-22 | `policy-sources/2026-05-19-pt-justica-noticia-lei-nacionalidade.html`（sha256 `667814f2bcfdc424689f8bd24dcf4378abfdd7124d8f2402a30116a395183c4a`）；`policy-sources/2026-11-22-pt-justica-guia-reside-5-anos.html`（sha256 `1eb2c2027170a3a4f7d5f4458e08e7ac42096c08fb12b3220d3e4708cfc702d4`）；`policy-sources/2026-10-29-pt-gov-comunicado-cm.html`（sha256 `7e5d433eed2dba88a608d27a9712b2966e14637a3f0601e31e50ddd8fffd2f1e`） | archived |
+| SRC-470 | LAW | 葡萄牙 · Regulamento da Nacionalidade Portuguesa（DL 26/2022 重刊） | https://files.diariodarepublica.pt/1s/2022/03/05500/0000200059.pdf | 2022-03-18 | 2026-11-23 | `policy-sources/2022-03-18-pt-dl-26-2022.pdf`（sha256 `8dd5480d6cc38cf67d2f2058b921de0c0482f5b2cef0ec5451a45af53d7f8115`） | archived |
+| SRC-471 | LAW | 葡萄牙 · DR 1/2024，外国人法实施条例修订 | https://files.diariodarepublica.pt/1s/2024/01/01200/0000600050.pdf | 2024-01-17 | 2026-11-23 | `policy-sources/2024-01-17-pt-dr-1-2024.pdf`（sha256 `b94db50993f10b2d2d6fdbe67e3e9ae9812c58be2e4c215dbe028627439ca846`） | archived |
+| SRC-472 | LAW | 葡萄牙 · DR 4/2022 与 DR 9/2018，外国人法实施条例 | https://files.diariodarepublica.pt/1s/2022/09/19000/0002800097.pdf ；https://files.diariodarepublica.pt/1s/2018/09/17500/0471804757.pdf | 2022-09-30；2018-09-11 | 2026-11-23 | `policy-sources/2022-09-30-pt-dr-4-2022.pdf`（sha256 `82bc888263b162fbc4c96549a5725eaba5a84bbaaf6398918708ae9123777118`）；`policy-sources/2018-09-11-pt-dr-9-2018.pdf`（sha256 `87218db7207ff00347c22b4db3fca0a8ef03b0531df00fcbf54e2fd0f622dbb2`） | archived |
+| SRC-473 | LAW | 葡萄牙 · Portaria 1563/2007，居留生计标准 | https://files.diariodarepublica.pt/gratuitos/1s/2007/12/23800.pdf | 2007-12-11 | 2026-11-23 | `policy-sources/2007-12-11-pt-portaria-1563-2007.pdf`（sha256 `551884e7cce2b2b75ea5192eb46e6e715286fbcb7b913e76a10b8e4d4559f17b`） | archived |
+| SRC-474 | LAW | 葡萄牙 · 本土与自治区最低工资参考及普通雇员社保份额 | https://files.diariodarepublica.pt/1s/2025/12/24900/0001400016.pdf ；https://files.diariodarepublica.pt/1s/2026/02/02300/0001400015.pdf ；https://files.diariodarepublica.pt/gratuitos/1s/2026/07/14600.pdf ；https://files.diariodarepublica.pt/gratuitos/1s/2009/09/18000.pdf | 2025-12-29；2026-02-03；2026-07-30；2009-09-16 | 2026-11-23 | `policy-sources/2025-12-29-pt-dl-139-2025.pdf`（sha256 `e9e6da9ad45ffb70cb0a19a755fd31e4da9934174a3885edaacf7523c842c64f`）；`policy-sources/2026-02-03-pt-dlr-madeira-1-2026.pdf`（sha256 `0ddf54d909d290b94defc993f5d0f2d74701d10d39488065ad22ff2bed9fe805`）；`policy-sources/2026-07-30-pt-resolucao-madeira-26-2026.pdf`（sha256 `d4d259cc976d570d14f7ce93db69046cca8c295023de2741ff32d8e7695052cb`）；`policy-sources/2009-09-16-pt-lei-110-2009.pdf`（sha256 `3af99421b96092a6803922106324d4cbabb3762c510b5ff4293196984493d991`） | archived |
+| SRC-475 | GUIDANCE | 葡萄牙 · AIMA 生计资源与证据说明 | https://aima.gov.pt/pt/temas-transversais/meios-de-subsistencia | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-aima-meios.html`（sha256 `ebf83ea468a2761988b3071b55a2bdf4e6953315ad7d4d376bc5be9ad6609deb`） | archived |
+| SRC-476 | GUIDANCE | 葡萄牙 · AIMA 2026 年收费表与生效公告 | https://aima.gov.pt/media/pages/documents/dc677d0005-1772305205/tabela-de-taxas-e-demais-encargos-a-cobrar-pelos-procedimentos-administrativos.pdf ；https://aima.gov.pt/pt/noticias/atualizacao-da-tabela-de-taxas | 2026-03-01；网页见抓取日 | 2026-11-23 | `policy-sources/2026-03-01-pt-aima-tabela-taxas.pdf`（sha256 `ed59e0ad90923f0a6a1cf68e5352b0195047b17fcf441dfb7834dbf150362fb3`）；`policy-sources/2026-02-28-pt-aima-atualizacao-taxas.html`（sha256 `922fe5e18d5926313cd262c788529011a9b8f75c45b7adc955cfabb13a162fe6`） | archived |
+| SRC-477 | LAW | 葡萄牙 · Portaria 307/2023，AIMA 收费及年度调整 | https://aima.gov.pt/media/pages/documents/fa233e86c7-1750429842/portaria-307.pdf | 2023-10-13 | 2026-11-23 | `policy-sources/2023-10-13-pt-portaria-307-2023.pdf`（sha256 `c2b0dcb6ca35655aae1a4a79ae60ea584cc8e8c494c23f6886691eae0b0753c0`） | archived |
+| SRC-478 | LAW | 葡萄牙 · Lei 37/2006，自由流动居留权 | https://files.diariodarepublica.pt/1s/2006/08/15300/57175724.pdf | 2006-08-09 | 2026-11-23 | `policy-sources/2006-08-09-pt-lei-37-2006.pdf`（sha256 `e327ca4c5974dbb5151a4af4b51ac760fa2bc948be65f03eed6f5c845b79884d`） | archived |
+| SRC-479 | LAW | 葡萄牙 · Portaria 13/2024、勘误、原费表及前次修订，自由流动收费 | https://files.diariodarepublica.pt/1s/2024/01/01500/0001300017.pdf ；https://files.diariodarepublica.pt/1s/2024/01/02200/0001000010.pdf ；https://files.diariodarepublica.pt/gratuitos/1s/2017/05/09600.pdf ；https://files.diariodarepublica.pt/gratuitos/1s/2010/12/25302.pdf | 2024-01-22；2024-01-31；2017-05-18；2010-12-31 | 2026-11-23 | `policy-sources/2024-01-22-pt-portaria-13-2024.pdf`（sha256 `1210fb420d1af28d150ad272543f613d3b7d11dcf4f5fa732fc5bdda4ba1078a`）；`policy-sources/2024-01-31-pt-portaria-32-2024.pdf`（sha256 `1c84a24a32036bd38d8bb67029c9cc364acf557bdf198eb3ffcd6d7e1ff2340a`）；`policy-sources/2017-05-18-pt-portaria-164-2017.pdf`（sha256 `ab6e4dd4e6a00b090bad41f029c23c03616ddb0814b435ffecb57e47dcc19700`）；`policy-sources/2010-12-31-pt-portaria-1334-d-2010.pdf`（sha256 `2a6dcfca2d39eac571edd223c56e31d40140f786e8077ebe9a03625b66e6728d`） | archived |
+| SRC-480 | LAW | 葡萄牙 · PLA 与旧制语言证明法规 | https://files.diariodarepublica.pt/gratuitos/1s/2020/08/15100.pdf ；https://files.diariodarepublica.pt/1s/2022/07/14000/0000200004.pdf ；https://files.diariodarepublica.pt/1s/2014/09/17500/0488804889.pdf | 2020-08-05；2022-07-21；2014-09-11 | 2026-11-23 | `policy-sources/2020-08-05-pt-portaria-183-2020.pdf`（sha256 `383c32370d3c573ae06c0cf958aa0bdf5802212c66d27b1b50f0252bc04b3b4d`）；`policy-sources/2022-07-21-pt-portaria-184-2022.pdf`（sha256 `7568e9696daeb9c9b322d6b2b0f27898f3c2275122a1f0133da60484c8425142`）；`policy-sources/2014-09-11-pt-portaria-176-2014.pdf`（sha256 `3adf947175d09e306dbdd1fb3913a008ebc338920dde685403cfa473a6ee91e7`） | archived |
+| SRC-481 | GUIDANCE | 葡萄牙 · AIMA ARI 常见问题 | https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-aima-ari-faq.html`（sha256 `24f4be9067da60c223999fc1e25d2ea41195dc690fb148be43da9a50dcc4abbd`） | archived |
+| SRC-482 | GUIDANCE | 葡萄牙 · 里斯本大学 CAPLE · CIPLE | https://caple.letras.ulisboa.pt/exame/2/ciple | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-caple-ciple.html`（sha256 `d3355211533d7b80813f18db313edd5ccdfaa69ef246630fc830d804023acb4f`） | archived |
+| SRC-483 | GUIDANCE | 葡萄牙 · 司法部 · 婚姻与事实伴侣声明取得国籍旧指南 | https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/E-casado-ou-vive-em-uniao-de-facto-com-um-portugues-ha-mais-de-3-anos | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-justica-casamento.html`（sha256 `34bbec87ad30780e05e610a5894a1d7d6db21f9619428dad282e098363e4617c`） | archived |
+| SRC-484 | GUIDANCE | 葡萄牙 · AIMA 自由流动永久证书、家属卡与线上入口 | https://aima.gov.pt/pt/nacionais-ue-e-familiares/nacionais-ue/certificado-de-residencia-permanente-para-nacionais-ue ；https://aima.gov.pt/pt/nacionais-ue-e-familiares/familiares-de-nacionais-ue/cartao-de-residencia-permanente-para-familiares-de-nacionais-da-ue ；https://aima.gov.pt/pt/noticias/portal-de-renovacoes-atualizado-para-nacionais-da-uniao-europeia-ue-e-familiares | 网页见抓取日 | 2026-11-23 | `policy-sources/2026-11-23-pt-aima-ue-certificado.html`（sha256 `c8c81a409b859c565d828049cc70456ea5eeeeb71999536be7987393eaef0928`）；`policy-sources/2026-11-23-pt-aima-ue-cartao.html`（sha256 `0832ab12e60559bd2e7c5febfb4fdc393eaa1347ef506372553c4402db459d28`）；`policy-sources/2026-11-23-pt-aima-ue-portal.html`（sha256 `31aae90a55c114d19fe15eff2595de226bba08cdac78f49308151bc28554c9fb`） | archived |
+| SRC-485 | LAW | 葡萄牙 · DL 41/2023，AIMA 职权移转 | https://files.diariodarepublica.pt/gratuitos/1s/2023/06/10700.pdf | 2023-06-02 | 2026-11-23 | `policy-sources/2023-06-02-pt-dl-41-2023.pdf`（sha256 `0ab6a0be57b5aba56c9af835e9c96bbb2da481524abacef2dfcd414492001c34`） | archived |
+| SRC-486 | LAW | 葡萄牙 · DL 37-A/2024，废止部分无居留签证手续 | https://files.diariodarepublica.pt/1s/2024/06/10601/0000200003.pdf | 2024-06-03 | 2026-11-23 | `policy-sources/2024-06-03-pt-dl-37-a-2024.pdf`（sha256 `334a3bb9095248170af42a89e24b7cfa96ac0aed054d866edeb411e5c7fd80cb`） | archived |
+| SRC-487 | LAW | 葡萄牙 · Lei 39/2025 与 DL 496/1977，婚龄改革及民法成年 | https://files.diariodarepublica.pt/1s/2025/04/06400/0000300012.pdf ；https://files.diariodarepublica.pt/1s/1977/11/27301/00010050.pdf | 2025-04-01；1977-11-25 | 2026-11-23 | `policy-sources/2025-04-01-pt-lei-39-2025.pdf`（sha256 `1fa52a537f7a9546b37a1d25d668a77b05811fd86967e9176d997bafa2dba429`）；`policy-sources/1977-11-25-pt-dl-496-1977.pdf`（sha256 `1beec94d6c2893387a2b4fc6214aeff6f3d408e802e8946b364792f58b758441`） | archived |
+| SRC-488 | LAW | 葡萄牙 · DL 209/2012，国籍程序费用 | https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/legislacao/diplomas_legislativos/Documents/Decreto_Lei_209_2012.pdf | 2012-09-19 | 2026-11-23 | `policy-sources/2012-09-19-pt-dl-209-2012.pdf`（sha256 `5ad83eddc1434ee2daa1b41514e02ae590463c46140c667809e18fc5cb892fe7`） | archived |
+| SRC-489 | LAW | 葡萄牙 · Despacho 12941/2014，旧 PaN 测试费 | https://files.diariodarepublica.pt/2s/2014/10/205000000/2681226813.pdf | 2014-10-23 | 2026-11-23 | `policy-sources/2014-10-23-pt-despacho-12941-2014.pdf`（sha256 `81f88a0eba86d95466f8458f5c3c70caf6d9af5cc4d603598e24164eed854f63`） | archived |
+| SRC-490 | LAW | 葡萄牙 · Portaria 208/2017，投资低密度地区 | https://files.diariodarepublica.pt/1s/2017/07/13400/0373103734.pdf | 2017-07-13 | 2026-11-23 | `policy-sources/2017-07-13-pt-portaria-208-2017.pdf`（sha256 `198e8b1b26f3d543baca4379d8d9e0503ea8cea23ca0c2fa7c0e75890be867ce`） | archived |
+| SRC-491 | LAW | 葡萄牙 · Lei 53/2023，通用拒绝与 EU Blue Card | https://files.diariodarepublica.pt/1s/2023/08/16900/0000700024.pdf | 2023-08-31 | 2026-11-23 | `policy-sources/2023-08-31-pt-lei-53-2023.pdf`（sha256 `ccecec4830450cfa9ce34909aa4a5836df78cffd2368162f18d1b47a99bc318b`） | archived |
+| SRC-492 | LAW | 葡萄牙 · Lei 69/2026，总体规划 | https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf | 2026-11-18 | 2026-11-23 | `policy-sources/2026-11-18-pt-lei-69-2026.pdf`（sha256 `50c387cb53ba61c4d263bafc9a9c6c0b45d79f23eb97a4c630953d42984801f9`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -997,6 +1020,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-120 Lei Orgânica n.º 1/2026（现行国籍法）
 
+- 任务 92：附件 art. 3（p9）为婚姻及事实伴侣声明路径；art. 6（pp9–11／修改条文 pp2–4）列入籍实体条件、无国籍免程序费、犯罪证明及可反驳推定；art. 9–10（p12）为实际联系、公职与军役、异议例外及期限。第 11 款证明主体按同日勘误（p1）。
+
 - `policy-sources/2026-05-18-pt-lo-1-2026-dr95.pdf` → <https://files.diariodarepublica.pt/1s/2026/05/09500/0000200020.pdf>
 - `policy-sources/2026-05-18-pt-dr-retificacao-17-2026.pdf` → <https://files.diariodarepublica.pt/1s/2026/05/09500/0002100021.pdf>
 - 官方公报 PDF（DRE 详情页由前端渲染，curl 只得空壳，地址取自详情页的"Descarregar PDF"）。`p<N>` 指 PDF 物理页序，与页脚"N/19"一致；附件为 Lei 37/81 的全文重新公布。
@@ -1006,6 +1031,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 
 ## SRC-121 Lei Orgânica n.º 1/2024（旧国籍法文本）
 
+- 任务 92：附件 arts. 3、6、9、10、13（pp7–10）为旧制关系、成年或 emancipação、葡语、刑事、安全、异议及程序中止条件。
+
 - `policy-sources/2024-03-05-pt-lo-1-2024-dr46.pdf` → <https://files.diariodarepublica.pt/1s/2024/03/04600/0000200019.pdf>
 - 第 9 条（p5）：公布次月首日施行，即 2024-04-01。附件重新公布的 `art. 6 n.º 1 b)`（p8）：居住满 5 年；`art. 15 n.º 1`（p12）：合法居留指持外国人法规定的证件、签证或许可在葡萄牙的人；`art. 15 n.º 3`（p13）：15 年区间；`n.º 4`（p13）：自申请临时居留许可之日起算，以获批为前提。第 6 条（p4–p5）只涉及塞法迪后裔的在审申请；2024-04-01 前递交的普通入籍申请适用更早的文本，试点没有建模（PD-143）。
 
@@ -1014,6 +1041,8 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 - 判决 `III - Decisão` d 项宣告草案第 7 条第 3、4 款（按递交日旧法审查并定为解释性规定）违宪，最终法律删去了这两款。理由 `D.5`（第五个问题）认定废止旧 art. 15 n.º 4 合宪："com a obtenção do título de residência, inicia-se a contagem do prazo"；同节记述 2024 年前自批准临时居留许可之日起算。判决理由不是法条，起算锚点见 PD-140。
 
 ## SRC-123 Lei n.º 23/2007（外国人法）
+
+- 任务 92：Lei 18/2022 附件 arts. 77–82（pp65–68）、90-A（p72）、121-I、125–131（pp100–103）分别用于授予、续期、永久居留、ARI、蓝卡与 ERLD。投资选五项与历史过渡查 Lei 56/2023 arts. 42–44、55，蓝卡与通用拒绝的中间修订查 SRC-491。Lei 62/2026 arts. 2、4 为后续修订。
 
 - `policy-sources/2022-08-25-pt-lei-18-2022-dr164.pdf` → <https://files.diariodarepublica.pt/1s/2022/08/16400/0000200137.pdf>
 - `policy-sources/2023-10-06-pt-lei-56-2023-dr194.pdf` → <https://files.diariodarepublica.pt/1s/2023/10/19400/0000200050.pdf>
@@ -1031,17 +1060,168 @@ UKCISA 是英国国际学生事务委员会。下列页面抓取于 2026-11-19�
 ## SRC-125 PGD Lisboa 编纂版
 
 - 里斯本检察院网站的编纂文本，不是官方公报；快照为 ISO-8859-1 编码的打印页。只在公报原文未取得时使用，结果里注明。
-- Decreto Regulamentar 84/2007 `art. 63.º`（编纂版列出经 DR 2/2013、15-A/2015、9/2018、1/2024 修改）：n.º 14 证件到期后 6 个月内居留权不失效（AIMA 在 SRC-126 中按此条复述）；n.º 16 续期可在到期前 90 至 30 天内申请。任务 71 审核指出 n.º 16 由 DR 9/2018 第 2 条加入、DR 1/2024 未改其内容，两份公报原文均未存档（PD-149）。
+- Decreto Regulamentar 84/2007 `art. 63.º`（编纂版列出经 DR 2/2013、15-A/2015、9/2018、1/2024 修改）：n.º 14 证件到期后 6 个月内居留权不失效（AIMA 在 SRC-126 中按此条复述）；n.º 16 由 DR 9/2018 第 2 条加入，原公报见 SRC-472；DR 1/2024 未改此款，原公报见 SRC-471。
 - Decreto Regulamentar 84/2007 `art. 65.º-K`（编纂版列出初版为 DR 9/2018、经 DR 1/2024 修改）：符合 Lei 23/2007 art. 80 的黄金签证持有人申请永久居留时，发给投资类永久居留，不适用 art. 85 n.º 2 b、n.º 3–4（因出境注销）。
 - Código Civil `art. 279.º` b）期间起算的事件当天不计，c）按年计的期间止于对应日 24 时，没有对应日的止于该月末日；`art. 296.º` 法定期间同样适用。
 
 ## SRC-126 AIMA 页面
 
 - ARI 页面：第 1 年停留不少于 7 天，"nos anos subsequentes"（此后各年）不少于 14 天；这是简写，AIMA 常见问题第 24 问与 SRC-124 art. 65-C 都写每个 2 年期 14 天，试点按 2 年期计（PD-148）；同页写明符合 art. 80 的持有人获发投资类永久居留（Autorização de Residência para Atividade de Investimento Permanente），不适用因出境注销的规定（引 DR 84/2007 art. 65-K）；另写 ARI 自证件签发日起有效 2 年。永久居留页面：持临时居留许可至少 5 年，证件 5 年换发。ERLD 页面：申请前紧邻 5 年合法、不间断居留。《Direito de Residência》：非欧盟国民的居留权在居留卡到期后 6 个月内仍然保留（引 DR 84/2007 art. 63 n.º 14）；2025-06-30 前到期的卡另延至 2026-04-15（PD-145）。
-- 交叉核对（未存档）：AIMA《Perguntas frequentes – Autorização de Residência para Investimento (ARI)》https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari ，2026-11-23 读取。第 24 问：第 1 年 7 天、此后每个 2 年期 14 天，与 art. 65-C 一致。下载存档须用户确认，暂未存档。
+- AIMA《Perguntas frequentes – Autorização de Residência para Investimento (ARI)》已在 SRC-481 归档。第 24 问列第 1 年 7 天、此后每个 2 年期 14 天，与 art. 65-C 一致。
 
 ## SRC-127 葡萄牙政府关于新国籍法的说明
 
 - 司法部新闻（2026-05-19）："Regulamentação complementar"一节写明新规定 2026-05-19 施行，在审程序继续适用旧文本，新规定只适用于施行后递交的申请；正文列出 7 年、10 年。
 - 司法部入籍指南页（2026-11-22 抓取）标题与正文仍写居住满 5 年，是旧法内容，不作为现行规则的依据。
 - 部长会议公报（2026-10-29）第 2 项：通过实施新国籍法的 Decree-Law；截至 2026-11-22 未见公布，新法下居留起算的证明方式待条例明确（PD-140）。
+
+## SRC-470 葡萄牙 · Regulamento da Nacionalidade Portuguesa（DL 26/2022 重刊）
+
+arts. 6、14、18–19、25、27、37、44、56：无国籍旧程序、婚姻与同居声明、材料、葡语证明、费用与异议。
+
+- `policy-sources/2022-03-18-pt-dl-26-2022.pdf` → <https://files.diariodarepublica.pt/1s/2022/03/05500/0000200059.pdf>
+
+## SRC-471 葡萄牙 · DR 1/2024，外国人法实施条例修订
+
+arts. 63–65、65-A、65-D/E/K、74（DR 84/2007）：续期、永居、ARI 与 ERLD。第 5 条第 5–8 款处理旧 ARI 项目过渡。
+
+- `policy-sources/2024-01-17-pt-dr-1-2024.pdf` → <https://files.diariodarepublica.pt/1s/2024/01/01200/0000600050.pdf>
+
+## SRC-472 葡萄牙 · DR 4/2022 与 DR 9/2018，外国人法实施条例
+
+DR 4/2022 重刊 arts. 5、63、65-A–E、74：担保、续期和 ARI 的证明。DR 9/2018 art. 2 修改 DR 84/2007 art. 63(16)：续期可在到期前 90 天内提出。
+
+- `policy-sources/2022-09-30-pt-dr-4-2022.pdf` → <https://files.diariodarepublica.pt/1s/2022/09/19000/0002800097.pdf>
+- `policy-sources/2018-09-11-pt-dr-9-2018.pdf` → <https://files.diariodarepublica.pt/1s/2018/09/17500/0471804757.pdf>
+
+## SRC-473 葡萄牙 · Portaria 1563/2007，居留生计标准
+
+arts. 2、5、7–9、11–13（公报 pp8866–8868）：家庭权重、按许可目的核对、合资格减免、永居与 ERLD 至少保障 12 个月。
+
+- `policy-sources/2007-12-11-pt-portaria-1563-2007.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2007/12/23800.pdf>
+
+## SRC-474 葡萄牙 · 本土与自治区最低工资参考及普通雇员社保份额
+
+DL 139/2025 arts. 2–3、7（本土 2026 EUR 920）；DLR 1/2026/M arts. 2、4（马德拉 EUR 980）；Resolução 26/2026 公报 p64（交叉记载亚速尔 EUR 966）；Lei 110/2009 附件 art. 53（普通雇员个人社保份额 11%）。
+
+- `policy-sources/2025-12-29-pt-dl-139-2025.pdf` → <https://files.diariodarepublica.pt/1s/2025/12/24900/0001400016.pdf>
+- `policy-sources/2026-02-03-pt-dlr-madeira-1-2026.pdf` → <https://files.diariodarepublica.pt/1s/2026/02/02300/0001400015.pdf>
+- `policy-sources/2026-07-30-pt-resolucao-madeira-26-2026.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2026/07/14600.pdf>
+- `policy-sources/2009-09-16-pt-lei-110-2009.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2009/09/18000.pdf>
+
+## SRC-475 葡萄牙 · AIMA 生计资源与证据说明
+
+“Montante / Forma de comprovar”：受养成年子女、工资单和服务收据、担保和其他收入证据。
+
+- `policy-sources/2026-11-23-pt-aima-meios.html` → <https://aima.gov.pt/pt/temas-transversais/meios-de-subsistencia>
+
+## SRC-476 葡萄牙 · AIMA 2026 年收费表与生效公告
+
+2026-03-01 生效。III.1–3、VI、XIV（pp2–4、费表末节）：续期、永居、ARI、ERLD 和渠道。
+
+- `policy-sources/2026-03-01-pt-aima-tabela-taxas.pdf` → <https://aima.gov.pt/media/pages/documents/dc677d0005-1772305205/tabela-de-taxas-e-demais-encargos-a-cobrar-pelos-procedimentos-administrativos.pdf>
+- `policy-sources/2026-02-28-pt-aima-atualizacao-taxas.html` → <https://aima.gov.pt/pt/noticias/atualizacao-da-tabela-de-taxas>
+
+## SRC-477 葡萄牙 · Portaria 307/2023，AIMA 收费及年度调整
+
+art. 3：每年 3 月 1 日按规定指数更新费用。
+
+- `policy-sources/2023-10-13-pt-portaria-307-2023.pdf` → <https://aima.gov.pt/media/pages/documents/fa233e86c7-1750429842/portaria-307.pdf>
+
+## SRC-478 葡萄牙 · Lei 37/2006，自由流动居留权
+
+arts. 2–3、6–13、14–17、21–24、29（公报 pp5717–5724）：适用身份、家庭、永久居留、文件与限制。
+
+- `policy-sources/2006-08-09-pt-lei-37-2006.pdf` → <https://files.diariodarepublica.pt/1s/2006/08/15300/57175724.pdf>
+
+## SRC-479 葡萄牙 · Portaria 13/2024、勘误、原费表及前次修订，自由流动收费
+
+Portaria 13/2024 art. 2（公报 pp14–15）：改 Portaria 1334-D/2010 art. 3；勘误修正生效条，2024-02-21 生效。
+
+- `policy-sources/2024-01-22-pt-portaria-13-2024.pdf` → <https://files.diariodarepublica.pt/1s/2024/01/01500/0001300017.pdf>
+- `policy-sources/2024-01-31-pt-portaria-32-2024.pdf` → <https://files.diariodarepublica.pt/1s/2024/01/02200/0001000010.pdf>
+- `policy-sources/2017-05-18-pt-portaria-164-2017.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2017/05/09600.pdf>
+- `policy-sources/2010-12-31-pt-portaria-1334-d-2010.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2010/12/25302.pdf>
+
+## SRC-480 葡萄牙 · PLA 与旧制语言证明法规
+
+Portaria 183/2020 art. 9 与 Portaria 184/2022：PLA 证书；Portaria 176/2014 arts. 2、4：旧国籍法律语言证明与测试。
+
+- `policy-sources/2020-08-05-pt-portaria-183-2020.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2020/08/15100.pdf>
+- `policy-sources/2022-07-21-pt-portaria-184-2022.pdf` → <https://files.diariodarepublica.pt/1s/2022/07/14000/0000200004.pdf>
+- `policy-sources/2014-09-11-pt-portaria-176-2014.pdf` → <https://files.diariodarepublica.pt/1s/2014/09/17500/0488804889.pdf>
+
+## SRC-481 葡萄牙 · AIMA ARI 常见问题
+
+FAQ 11–13、23–29：健康、生计、材料、续期和投资类永居。第 24 问按每两年一期核对最低停留。
+
+- `policy-sources/2026-11-23-pt-aima-ari-faq.html` → <https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari>
+
+## SRC-482 葡萄牙 · 里斯本大学 CAPLE · CIPLE
+
+“Detalhes do Exame”：A2 考试及抓取时的 EUR 95 价格。
+
+- `policy-sources/2026-11-23-pt-caple-ciple.html` → <https://caple.letras.ulisboa.pt/exame/2/ciple>
+
+## SRC-483 葡萄牙 · 司法部 · 婚姻与事实伴侣声明取得国籍旧指南
+
+“Documentos necessários / Quanto custa”：司法认定、声明材料与 EUR 250 费目。实体门槛以适用版国籍法为准。
+
+- `policy-sources/2026-11-23-pt-justica-casamento.html` → <https://justica.gov.pt/Como-obter-nacionalidade-portuguesa/E-casado-ou-vive-em-uniao-de-facto-com-um-portugues-ha-mais-de-3-anos>
+
+## SRC-484 葡萄牙 · AIMA 自由流动永久证书、家属卡与线上入口
+
+“Quem pode requerer / Documentos”及门户公告：证书、家属卡、地址证据与旧预约衔接。
+
+- `policy-sources/2026-11-23-pt-aima-ue-certificado.html` → <https://aima.gov.pt/pt/nacionais-ue-e-familiares/nacionais-ue/certificado-de-residencia-permanente-para-nacionais-ue>
+- `policy-sources/2026-11-23-pt-aima-ue-cartao.html` → <https://aima.gov.pt/pt/nacionais-ue-e-familiares/familiares-de-nacionais-ue/cartao-de-residencia-permanente-para-familiares-de-nacionais-da-ue>
+- `policy-sources/2026-11-23-pt-aima-ue-portal.html` → <https://aima.gov.pt/pt/noticias/portal-de-renovacoes-atualizado-para-nacionais-da-uniao-europeia-ue-e-familiares>
+
+## SRC-485 葡萄牙 · DL 41/2023，AIMA 职权移转
+
+arts. 25–26：居留文件与国籍程序相关职权移转。
+
+- `policy-sources/2023-06-02-pt-dl-41-2023.pdf` → <https://files.diariodarepublica.pt/gratuitos/1s/2023/06/10700.pdf>
+
+## SRC-486 葡萄牙 · DL 37-A/2024，废止部分无居留签证手续
+
+art. 3 及过渡条：旧 ARI 转创业居留的交叉条款已废止。
+
+- `policy-sources/2024-06-03-pt-dl-37-a-2024.pdf` → <https://files.diariodarepublica.pt/1s/2024/06/10601/0000200003.pdf>
+
+## SRC-487 葡萄牙 · Lei 39/2025 与 DL 496/1977，婚龄改革及民法成年
+
+Lei 39/2025 arts. 6–8：废止未成年人解放制度及过渡；DL 496/1977 art. 1 修改 Código Civil art. 130：满 18 周岁。
+
+- `policy-sources/2025-04-01-pt-lei-39-2025.pdf` → <https://files.diariodarepublica.pt/1s/2025/04/06400/0000300012.pdf>
+- `policy-sources/1977-11-25-pt-dl-496-1977.pdf` → <https://files.diariodarepublica.pt/1s/1977/11/27301/00010050.pdf>
+
+## SRC-488 葡萄牙 · DL 209/2012，国籍程序费用
+
+arts. 2、19：RERN art. 18(2.2.1) 成人程序 EUR 250，2012-10-01 生效。
+
+- `policy-sources/2012-09-19-pt-dl-209-2012.pdf` → <https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/legislacao/diplomas_legislativos/Documents/Decreto_Lei_209_2012.pdf>
+
+## SRC-489 葡萄牙 · Despacho 12941/2014，旧 PaN 测试费
+
+第 1–5 点：报名、查阅及复核；旧制预算，开放情况需核实。
+
+- `policy-sources/2014-10-23-pt-despacho-12941-2014.pdf` → <https://files.diariodarepublica.pt/2s/2014/10/205000000/2681226813.pdf>
+
+## SRC-490 葡萄牙 · Portaria 208/2017，投资低密度地区
+
+arts. 1–2、附件：认定地域清单。
+
+- `policy-sources/2017-07-13-pt-portaria-208-2017.pdf` → <https://files.diariodarepublica.pt/1s/2017/07/13400/0373103734.pdf>
+
+## SRC-491 葡萄牙 · Lei 53/2023，通用拒绝与 EU Blue Card
+
+art. 2 修改外国人法 arts. 77、81、121-I、121-J；art. 8 生效，扩展蓝卡欧盟累计居留规则。
+
+- `policy-sources/2023-08-31-pt-lei-53-2023.pdf` → <https://files.diariodarepublica.pt/1s/2023/08/16900/0000700024.pdf>
+
+## SRC-492 葡萄牙 · Lei 69/2026，总体规划
+
+附件“国籍”段为政策规划，未发布国籍考试、生计或宣誓参数。
+
+- `policy-sources/2026-11-18-pt-lei-69-2026.pdf` → <https://files.diariodarepublica.pt/1s/2026/11/22400/0000200050.pdf>
