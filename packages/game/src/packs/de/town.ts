@@ -506,8 +506,8 @@ export const deActions: Activity<DeEffect, DeFestival>[] = [
       'Get a registration certificate (Meldebescheinigung)',
     ),
     note: t(
-      '定居和入籍都要核对登记住址。游戏里证明免费，只花时间。',
-      'Settlement and naturalisation both check your registered address. In this game the certificate is free and only takes time.',
+      '定居和入籍都要核对登记住址。本局住址一直按已登记计，不开证明也能递交；游戏里证明免费，只花时间。',
+      'Settlement and naturalisation both check your registered address. In this game your address counts as registered throughout, so you can apply without the certificate; it is free and only takes time.',
     ),
     minutes: b.minutes.paperwork,
     oncePerDay: true,

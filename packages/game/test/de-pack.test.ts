@@ -371,6 +371,17 @@ test('the annual review never lowers the Blue Card salary', () => {
   expect(review(64_000)).toBe(68_000);
 });
 
+test('the registration certificate says the address stays registered throughout', () => {
+  const ward = visit(de.newGame('bluecard', 5, 'en'), 'ward', 600);
+  const certificate = de
+    .activities(ward, 'ward')
+    .find(({ id }) => id === 'ward-certificate')!;
+  expect(certificate.note?.zhCN).toContain('本局住址一直按已登记计');
+  expect(certificate.note?.en).toContain(
+    'your address counts as registered throughout',
+  );
+});
+
 test('the diary casts a line on the Lindenkanal, not at a pond', () => {
   const bank = visit(de.newGame('bluecard', 5, 'en'), 'pond', 600);
   const cast = de.fish(bank, false);
