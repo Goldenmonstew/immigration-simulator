@@ -615,6 +615,7 @@
 | 704 | 任务 99 审核修正（review99-1）：离线缓存版本升到 `2026-11-25-v6`，老访客重新预缓存含爱尔兰五页的离线清单。 | apps/web/public/sw.js、apps/web/test/about-page.test.tsx |
 | 705 | 任务 99 审核修正（review99-1 风险 3 补正）：续期提示按引擎逐路径写准留空按「是」核对的题目：就业许可续期不再声称留空按「是」；Stamp 5、LTR、EU／WA 各用自己的提示，分别列出 IRP 有效许可与本步对应题目；加回归核对所列题目留空与填「是」的结论相同、就业续期留空仍待确认。 | apps/web/lib/ireland-fields.ts、apps/web/i18n/countries/ireland-form.ts、apps/web/test/ireland.test.tsx |
 | 706 | 任务 99 审核修正（review99-1 建议 4 补正）：爱尔兰文案在加载时读取参数后，`policy-selection.test.ts` 对 policy-data 的整体模拟缺少这些导出而失败；模拟改为保留真实模块的其余导出，只替换规则集顺序与参数。 | apps/web/test/policy-selection.test.ts |
+| 707 | 任务 99 审核修正报告（review99-1）：逐条对应问题 1–4、风险 1–5、建议 1–8 的修正与回归，完整验收、爱尔兰 e2e、Axe 与离线用例、375 px 截图结果。 | docs/tasks/reports/99-ie-pages.md |
 | 710 | 任务 90：登记德国完整版 SRC-410–439、补入 SRC-104、105 原刊；59 份官方快照中复用 6 份，新增 53 份。登记 PD-340–359 并补齐网址。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 711 | 任务 90：登记德国规则集 de.current-law-2026-11；归集路径期限、年度生计与工资、年龄分档、考试和费用参数及逐项定位。 | packages/policy-data/src/{index,types,parameters/index,parameters/germany-2026-11}.ts |
 | 712 | 任务 90：新增 evaluateGermanyFull，覆盖 R00–R18（难民两档），复用原时间引擎，测试中英文条件、来源、豁免、日期边界和整体状态。 | packages/engine/src/{index,germany-full,germany-full-common,germany-full-shared,germany-fees,germany-settlement,germany-citizenship,germany-mobility}.ts、packages/engine/test/germany-{full,settlement,citizenship,mobility}.test.ts、docs/tasks/reports/90-de-rules.md |
