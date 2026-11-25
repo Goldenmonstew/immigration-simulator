@@ -138,6 +138,22 @@ function progress(state: GrState): Progress<GrColumn, GrOutcome> {
   return { pr: entry('pr'), nat: entry('nat') };
 }
 
+/**
+ * The timeline as it stood on the assessment date. Address changes and their
+ * reports carry the day they happen, which is after the quarter's first day,
+ * so they join the assessment in the next quarter, as trips do on return.
+ */
+export function timelineOn(timeline: GrTimeline, date: IsoDate): GrTimeline {
+  return {
+    ...timeline,
+    changes: timeline.changes
+      .filter((change) => change.occurredOn <= date)
+      .map(({ reportedOn, ...change }) =>
+        reportedOn && reportedOn <= date ? { ...change, reportedOn } : change,
+      ),
+  };
+}
+
 export const grRules: EvaluationAdapter<
   GrTimeline,
   CountryResult,
@@ -147,7 +163,11 @@ export const grRules: EvaluationAdapter<
   GrFestival
 > = {
   evaluate: ({ date, timeline, locale }) =>
-    evaluateGreeceFull({ ...timeline, simulationDate: date, locale }),
+    evaluateGreeceFull({
+      ...timelineOn(timeline, date),
+      simulationDate: date,
+      locale,
+    }),
   progress,
   route: (state) => state.timeline.pathways[0],
   visaMonthsLeft,
@@ -202,13 +222,19 @@ export const grRules: EvaluationAdapter<
         setFlags(state, [`tax-filed-${year}`]);
         return true;
       }
+      // Changes and reports carry the day they happen, as trips do.
       case 'moved':
-        timeline.changes.push({ kind: 'ordinary', occurredOn: state.date });
+        timeline.changes.push({
+          kind: 'ordinary',
+          occurredOn: state.day.date,
+        });
         setFlags(state, ['change-report-due']);
         return true;
       case 'reportChange':
         timeline.changes = timeline.changes.map((change) =>
-          change.reportedOn ? change : { ...change, reportedOn: state.date },
+          change.reportedOn
+            ? change
+            : { ...change, reportedOn: state.day.date },
         );
         state.flags = state.flags.filter(
           (flag) => flag !== 'change-report-due',

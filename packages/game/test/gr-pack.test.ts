@@ -206,24 +206,48 @@ test('the Saturday street market sells this season’s produce', () => {
   ).toEqual(['seed-potato', 'seed-strawberry']);
 });
 
-test('moving home and reporting the address go through the migration office', () => {
+test('address changes carry the day and join the assessment next quarter', () => {
+  const fine = values.changeReporting.value.firstFine;
   const home = visit(gr.newGame('bluecard', 5, 'en'), 'home', 480);
   const moved = settle(gr.doActivity(home, 'rent-brighter-home'));
   expect(moved.timeline.changes).toEqual([
-    { kind: 'ordinary', occurredOn: '2026-03-01' },
+    { kind: 'ordinary', occurredOn: '2026-03-10' },
   ]);
   const c06 = (state: State) =>
     gr.pathwayOf(state.result, 'pr')!.checks.find(({ id }) => id === 'C-06')!
       .status;
-  expect(c06(moved)).toBe('NOT_MET');
+  // Assessed on 2026-03-01, before the move.
+  expect(gr.timelineOn(moved.timeline, moved.date).changes).toEqual([]);
+  expect(c06(moved)).toBe('MET');
   const office = visit(moved, 'visa', 600);
   const reported = gr.doActivity(office, 'report-change');
   expect(reported.timeline.changes).toEqual([
-    { kind: 'ordinary', occurredOn: '2026-03-01', reportedOn: '2026-03-01' },
+    { kind: 'ordinary', occurredOn: '2026-03-10', reportedOn: '2026-03-10' },
   ]);
-  expect(c06(reported)).toBe('MET');
   expect(reported.stats.money).toBe(office.stats.money);
   expect(reported.flags).not.toContain('change-report-due');
+  expect(nextQuarter(reported).date).toBe('2026-06-01');
+  expect(c06(nextQuarter(reported))).toBe('MET');
+
+  // Unreported by the next quarter: past the two-month limit.
+  const unreported = nextQuarter(moved);
+  expect(c06(unreported)).toBe('NOT_MET');
+  const late = visit(unreported, 'visa', 600);
+  const action = gr
+    .activities(late, 'visa')
+    .find(({ id }) => id === 'report-change')!;
+  expect(action.label.en).toContain('late');
+  const lateReported = gr.doActivity(late, 'report-change');
+  expect(lateReported.stats.money).toBe(late.stats.money - fine);
+  expect(lateReported.timeline.changes[0].reportedOn).toBe(
+    lateReported.day.date,
+  );
+  // The late report joins the assessment from the next quarter, still late.
+  expect(
+    gr.timelineOn(lateReported.timeline, lateReported.date).changes,
+  ).toEqual([{ kind: 'ordinary', occurredOn: '2026-03-10' }]);
+  expect(c06(lateReported)).toBe('NOT_MET');
+  expect(c06(nextQuarter(lateReported))).toBe('NOT_MET');
 });
 
 test('a JSON save round trip continues the same quarter after a trip', () => {

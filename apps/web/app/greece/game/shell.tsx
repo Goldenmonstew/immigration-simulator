@@ -66,7 +66,9 @@ export function itemIcon(id: string) {
 
 /** The game timeline as a completed questionnaire for the result page. */
 export function gameDraft(state: GrState): GreeceDraft {
-  const { nationality, ...timeline } = structuredClone(state.timeline);
+  const { nationality, ...timeline } = structuredClone(
+    grGame.timelineOn(state.timeline, state.date),
+  );
   const { incomeByTaxYear, ...rest } = nationality;
   const draft: GreeceDraft = {
     ...createGreeceDraft(),

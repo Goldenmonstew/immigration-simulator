@@ -118,6 +118,43 @@ test.each(['bluecard', 'spouse'])(
   },
 );
 
+test.each(['bluecard', 'spouse'])(
+  'the ending link opens after %s moves and reports mid-quarter',
+  (id) => {
+    const quarterLater = (from: State) => {
+      let next = from;
+      for (let i = 0; i < 12 && next.date === from.date; i++)
+        next = settle(gr.sleep(next));
+      return next;
+    };
+    const leave = (state: State) =>
+      gr.doActivity(visit(state, 'station', 900), 'leave');
+    const report = (state: State) =>
+      settle(gr.doActivity(visit(state, 'visa', 600), 'report-change'));
+    const opening = settle(gr.newGame(id, 7, 'zh-CN'));
+    const moved = settle(
+      gr.doActivity(visit(opening, 'home', 480), 'rent-brighter-home'),
+    );
+    const reported = report(moved);
+    // Reported a quarter late, then left in that same quarter.
+    const late = report(quarterLater(moved));
+    expect(late.date).not.toBe(moved.date);
+    for (const state of [leave(moved), leave(reported), leave(late)]) {
+      expect(state.ending).toBe('left');
+      const page = openResult(state);
+      expect(page.correction).toBeUndefined();
+      expect(page.draft).toEqual(gameDraft(state));
+      // The questionnaire holds only what had happened by its date.
+      for (const change of page.draft!.changes ?? []) {
+        expect(change.occurredOn <= state.date).toBe(true);
+        if (change.reportedOn)
+          expect(change.reportedOn <= state.date).toBe(true);
+      }
+      expect(view(page.result!)).toEqual(view(state.result));
+    }
+  },
+);
+
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak Greek residence in %s',
   (locale) => {

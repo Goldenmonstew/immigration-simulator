@@ -117,7 +117,7 @@ const lateReport = (state: GrState) =>
     (change) =>
       !change.reportedOn &&
       addMonths(change.occurredOn, values.changeReporting.value.months) <
-        state.date,
+        state.day.date,
   );
 
 export function actionAvailable(

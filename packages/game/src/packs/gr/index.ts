@@ -112,6 +112,7 @@ export {
   isBlueCard,
   pathwayOf,
   renewalWindow,
+  timelineOn,
   unfiledTaxYear,
   type GrColumn,
   type GrEffect,
