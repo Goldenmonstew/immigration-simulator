@@ -309,6 +309,41 @@ test('a short let that ends for lack of money is a move to report', () => {
   expect(back.flags).toContain('address-report-due');
 });
 
+test('trips that would skip the only I-751 filing day are not offered', () => {
+  const trips = (state: State) =>
+    ids(state, 'station').filter((id) => id.startsWith('travel-'));
+  // Each quarter's workday is a Tuesday: 2027-06-15 is before the window
+  // opens (2027-06-17), so 2027-09-14 is the only day the I-751 can go in.
+  const spring = visit(
+    playTo(us.newGame('spouse', 3, 'en'), '2027-03-01'),
+    'station',
+    600,
+  );
+  expect(spring.day.date).toBe('2027-03-09');
+  expect(us.workdayOf(spring.date)).toBe(spring.day.date);
+  // Six months away would keep her abroad through the September quarter.
+  expect(trips(spring)).toEqual(['travel-1', 'travel-3']);
+  const summer = visit(playTo(spring, '2027-06-01'), 'station', 600);
+  expect(summer.day.date).toBe('2027-06-15');
+  expect(us.workdayOf('2027-09-01')).toBe('2027-09-14');
+  expect(trips(summer)).toEqual(['travel-1']);
+  // The station says why the longer trips are missing.
+  const [trip] = us.activities(summer, 'station');
+  expect(trip.note?.en).toMatch(/I-751/);
+  // After the petition is mailed, only the card's date limits trips.
+  const mailed = settle(
+    us.doActivity(visit(playTo(summer, '2027-09-01'), 'visa', 600), 'extend'),
+  );
+  expect(mailed.day.date).toBe('2027-09-14');
+  // The engineer, with no I-751 to file, keeps every trip.
+  const engineer = visit(
+    playTo(us.newGame('engineer', 3, 'en'), '2027-06-01'),
+    'station',
+    600,
+  );
+  expect(trips(engineer)).toEqual(['travel-1', 'travel-3', 'travel-6']);
+});
+
 test('the I-751 is mailed on a day inside its window and stays pending', () => {
   const answers = (state: State, pathway: 'US-SPOUSE' | 'US-TRAVEL') =>
     us.usRequest(state.timeline, pathway, us.filingDay(state.date), 'en');

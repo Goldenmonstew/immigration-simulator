@@ -105,7 +105,7 @@ export const {
   visaMonthsLeft,
 } = createGame(usGameContent);
 export const characters = usProfiles;
-export const { characterOf } = hooks;
+export const { characterOf, tripSkipsI751, workdayOf } = hooks;
 export const loadCharacter = usGameContent.loadCharacter;
 export const places = usPlaces;
 export const npcs = usNpcs;

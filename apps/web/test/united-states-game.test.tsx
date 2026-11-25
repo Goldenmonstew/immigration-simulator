@@ -352,6 +352,21 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test('the station says why trips that skip the I-751 are missing', () => {
+  const summer = visit(
+    playTo(settle(us.newGame('spouse', 3, 'en')), '2027-06-01'),
+    'station',
+    600,
+  );
+  expect(usCountry.placeNote?.(summer, 'station')?.en).toMatch(/I-751/);
+  const engineer = visit(
+    playTo(settle(us.newGame('engineer', 3, 'en')), '2027-06-01'),
+    'station',
+    600,
+  );
+  expect(usCountry.placeNote?.(engineer, 'station')).toBeUndefined();
+});
+
 test('the Federal Building says when the next filing opens', () => {
   const spouse = settle(us.newGame('spouse', 4, 'en'));
   expect(usCountry.placeNote?.(spouse, 'visa')?.en).toBe(

@@ -2,7 +2,7 @@ import {
   evaluateUnitedStatesFull,
   type UsFullResult,
 } from '@uk-immigration/engine';
-import { addDays, addMonths } from '../../calendar';
+import { addDays, addMonths, firstWeekday } from '../../calendar';
 import type { GameTools } from '../../content-pack';
 import type {
   Achievement,
@@ -37,6 +37,7 @@ import {
   usFish,
   usItems,
   usNotices,
+  usPlaces,
 } from './town';
 
 type UsTools = GameTools<UsTimeline, UsFullResult, UsEffect, UsFestival>;
@@ -99,16 +100,42 @@ const festivalResults: Record<UsFestival, Text> = {
 const conditional = (state: UsState) =>
   state.timeline.conditional !== 'none' && !state.timeline.filed.i751;
 
-/** Whether an I-751 mailed today is within its window, as the engine judges. */
-const i751OpenToday = (state: UsState) =>
+/** Whether an I-751 mailed on a date is within its window, as the engine judges. */
+const i751OpenOn = (state: UsState, date: IsoDate) =>
   evaluateUnitedStatesFull(
-    usRequest(
-      state.timeline,
-      'US-CONDITIONS',
-      filingDay(state.day.date),
-      state.locale,
-    ),
+    usRequest(state.timeline, 'US-CONDITIONS', filingDay(date), state.locale),
   ).columns[0].pathways[0].status === 'MET';
+const i751OpenToday = (state: UsState) => i751OpenOn(state, state.day.date);
+
+const visaHours = usPlaces.find((place) => place.id === 'visa')!.hours!;
+/** A quarter's workday, as the shared day plan sets it (game.ts beginDay). */
+export const workdayOf = (quarterStart: IsoDate) =>
+  firstWeekday(addDays(quarterStart, 7), 2);
+
+/**
+ * Whether a trip home would keep a conditional resident away on every day the
+ * I-751 can still go in. The Federal Building opens on the quarter's workday,
+ * and a trip lasts until the first quarter that starts on or after the return
+ * (game.ts continueTrip), so the skipped days are today's workday, if the
+ * counter is still open, and the workdays of the quarters in between.
+ */
+export function tripSkipsI751(state: UsState, months: number): boolean {
+  if (!conditional(state)) return false;
+  const back = addMonths(state.day.date, months);
+  const skipped: IsoDate[] = [];
+  if (
+    state.day.kind === 'workday' &&
+    state.day.minute + b.minutes.paperwork <= visaHours.closes
+  )
+    skipped.push(state.day.date);
+  for (
+    let start = addMonths(state.date, b.monthsPerQuarter);
+    start < back;
+    start = addMonths(start, b.monthsPerQuarter)
+  )
+    skipped.push(workdayOf(start));
+  return skipped.some((date) => i751OpenOn(state, date));
+}
 
 /**
  * Approval waits only on the I-751, which USCIS has not decided: the game does
@@ -149,6 +176,11 @@ export function actionAvailable(
   { affordable }: UsTools,
 ): boolean | undefined {
   const flags = state.flags;
+  if (action.id.startsWith('travel-'))
+    return (
+      !tripSkipsI751(state, Number(action.id.slice('travel-'.length))) &&
+      affordable(state, action.effects)
+    );
   if (action.id === 'rent-brighter-home' || action.id === 'leave-brighter-home')
     return (
       reportableToday(state, action.minutes) &&
@@ -220,6 +252,11 @@ export function actionDetails(state: UsState, action: UsActivity): void {
     );
     action.effects = [{ type: 'money', delta: -fee }, ...action.effects];
   }
+  if (action.id.startsWith('travel-') && conditional(state))
+    action.note = t(
+      `${action.note?.zhCN ?? ''}I-751 寄出之前，会错过所有还能寄 I-751 的工作日的行程不提供。`,
+      `${action.note?.en ?? ''} Until the I-751 is mailed, trips that would miss every workday it can still go in are not offered.`,
+    );
   if (action.id === 'oath' && onlyI751Pending(state)) {
     action.label = t(
       '参加入籍宣誓典礼（I-751 待 USCIS 裁定）',

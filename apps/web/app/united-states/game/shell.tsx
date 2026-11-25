@@ -239,7 +239,16 @@ export const usCountry: GameCountry<UsKinds> = {
     );
   },
   placeNote: (state, place) =>
-    place === 'visa' ? federalBuildingNote(state) : undefined,
+    place === 'visa'
+      ? federalBuildingNote(state)
+      : // The station's trips home last 1, 3 or 6 months (town.ts).
+        place === 'station' &&
+          [1, 3, 6].some((months) => usGame.tripSkipsI751(state, months))
+        ? t(
+            'I-751 还没寄：会错过所有还能寄 I-751 的工作日的行程，这里不提供。',
+            'The I-751 is not mailed yet: trips that would miss every workday it can still go in are not offered here.',
+          )
+        : undefined,
   furnishingNames: usGame.usFurnishingNames,
   endingActionText: (_state, actionId) =>
     actionId === 'oath'
