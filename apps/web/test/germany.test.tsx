@@ -1631,7 +1631,13 @@ test('the What-if date counts pension and Blue Card months as the result page pr
       ...blue,
       mobility: {
         blueCard: {
-          employment: [{ startedOn: '2022-05-23', firstMonth: '2022-06' }],
+          employment: [
+            {
+              startedOn: '2022-05-23',
+              firstMonth: '2022-06',
+              lastMonth: '2026-10',
+            },
+          ],
         },
       },
     },
@@ -1647,4 +1653,81 @@ test('the What-if date counts pension and Blue Card months as the result page pr
   );
   expect(controls).toContain('下方填的月数截至问卷模拟日，之后每满一个月加 1');
   expect(controls).toContain('而结果页的预计日期沿用这些确认');
+});
+
+test('an unfinished draft with an uncorrected entry reopens with its answers at that step (review100-2 risk 4)', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const reopen = (draft: GermanyDraft) =>
+    decodeGermanyDraft(JSON.parse(JSON.stringify(storeGermanyAnswers(draft))));
+  const unfinished = (step: number, patch: Partial<GermanyDraft>) => ({
+    ...sampleDraft(),
+    completed: false,
+    step,
+    ...patch,
+  });
+
+  const score = unfinished(2, {
+    common: { ...sampleDraft().common, orientationScore: 40 },
+  });
+  expect(reopen(score)).toMatchObject({
+    step: 2,
+    completed: false,
+    common: { orientationScore: 40 },
+  });
+  expect(validateGermanyStep(score)).toEqual({
+    'de-common-orientationScore': 'de.error.score',
+  });
+
+  const month = unfinished(3, {
+    routes: ['R03'],
+    mobility: {
+      blueCard: {
+        employment: [{ firstMonth: '2023-0', lastMonth: '2023-12' }],
+      },
+    },
+  });
+  expect(reopen(month)?.mobility?.blueCard?.employment?.[0].firstMonth).toBe(
+    '2023-0',
+  );
+  expect(reopen(month)?.step).toBe(3);
+  expect(validateGermanyStep(month)).toMatchObject({
+    'de-route-R03-blueCard-employment-0-firstMonth': 'de.form.monthError',
+  });
+
+  // Reversed dates, negative numbers and facts after the simulation date are
+  // only reported when continuing.
+  for (const patch of [
+    { trips: [{ departed: '2025-03-01', returned: '2025-02-01' }] },
+    {
+      permits: [{ kind: 'skilled' as const, from: '2022-05-23' }],
+      firstEntry: '2027-01-01',
+    },
+    { contributionMonths: -3 },
+  ])
+    expect(reopen(unfinished(1, patch))).toMatchObject({ step: 1, ...patch });
+
+  // The questionnaire reads the same draft back from the device.
+  draftStorage(de, score);
+  expect(de.decodeDraft(draftStorage(de).draft)).toMatchObject({
+    step: 2,
+    common: { orientationScore: 40 },
+  });
+
+  // A finished result with the same entry still needs correcting, and
+  // malformed answers are still rejected.
+  const finished = { ...score, completed: true, step: 5 };
+  expect(reopen(finished)).toBeUndefined();
+  expect(
+    decodeGermanyDraft(
+      JSON.parse(JSON.stringify(storeGermanyAnswers(finished))),
+      'show-correction',
+    ),
+  ).toMatchObject({ completed: false, step: 2 });
+  expect(
+    reopen(unfinished(2, { common: { passport: 'lost' as 'valid' } })),
+  ).toBeUndefined();
 });

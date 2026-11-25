@@ -251,6 +251,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 const validMonth = (value: unknown): value is string =>
   typeof value === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 
+// Answers of the wrong type are always rejected. Required answers, ranges,
+// unfinished months and facts after the simulation date are only checked on
+// submission, so an unfinished draft reopens with what was typed.
 function checkFields(
   fields: GermanyField[],
   record: object,
@@ -325,8 +328,10 @@ function checkFields(
             (item) =>
               typeof item !== 'number' ||
               !Number.isFinite(item) ||
-              item < 0 ||
-              (field.type === 'integer-list' && !Number.isSafeInteger(item)),
+              (required &&
+                (item < 0 ||
+                  (field.type === 'integer-list' &&
+                    !Number.isSafeInteger(item)))),
           )
         )
           errors[id] =
@@ -342,20 +347,34 @@ function checkFields(
         if (field.type === 'nullable-date' && value === null) break;
         if (typeof value !== 'string' || !validDate(value))
           errors[id] = 'de.error.date';
-        else if (simulationDate && value > simulationDate && field.actualDate)
+        else if (
+          required &&
+          simulationDate &&
+          value > simulationDate &&
+          field.actualDate
+        )
           errors[id] = 'de.error.futureFact';
         break;
       case 'month':
-        if (!validMonth(value)) errors[id] = 'de.form.monthError';
+        if (typeof value !== 'string' || (required && !validMonth(value)))
+          errors[id] = 'de.form.monthError';
         break;
       case 'text':
         if (typeof value !== 'string') errors[id] = 'de.form.required';
         break;
       case 'number':
       case 'integer':
-        if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+        if (
+          typeof value !== 'number' ||
+          !Number.isFinite(value) ||
+          (required && value < 0)
+        )
           errors[id] = 'de.form.numberError';
-        else if (field.type === 'integer' && !Number.isSafeInteger(value))
+        else if (
+          required &&
+          field.type === 'integer' &&
+          !Number.isSafeInteger(value)
+        )
           errors[id] = 'de.form.integerError';
         break;
     }
@@ -373,11 +392,25 @@ function checkStep(draft: GermanyDraft, step: number, submitting: boolean) {
     prefix: string,
   ) => checkFields(definitions, values, prefix, submitting, errors, asOf);
   const order = (id: string, start?: string, end?: string | null) => {
-    if (start && end && validDate(start) && validDate(end) && end < start)
+    if (
+      submitting &&
+      start &&
+      end &&
+      validDate(start) &&
+      validDate(end) &&
+      end < start
+    )
       errors[id] ??= 'de.error.order';
   };
   const monthOrder = (id: string, start?: string, end?: string) => {
-    if (start && end && validMonth(start) && validMonth(end) && end < start)
+    if (
+      submitting &&
+      start &&
+      end &&
+      validMonth(start) &&
+      validMonth(end) &&
+      end < start
+    )
       errors[id] ??= 'de.error.order';
   };
 
@@ -444,6 +477,7 @@ function checkStep(draft: GermanyDraft, step: number, submitting: boolean) {
           draft.common.registeredOn,
         );
       if (
+        submitting &&
         draft.common?.orientationScore !== undefined &&
         (draft.common.orientationScore < 0 ||
           draft.common.orientationScore > 33)
@@ -519,6 +553,7 @@ function checkStep(draft: GermanyDraft, step: number, submitting: boolean) {
       for (const section of Object.values(citizenshipSections))
         fields(section, draft.citizenship ?? {}, 'de-nat');
       if (
+        submitting &&
         draft.citizenship?.knowledge &&
         'correct' in draft.citizenship.knowledge &&
         (draft.citizenship.knowledge.correct < 0 ||
