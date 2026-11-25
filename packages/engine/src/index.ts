@@ -256,8 +256,14 @@ export {
   evaluateGermanyFull,
 } from './germany-full';
 export type { DeFullRequest, DeFullRoute } from './germany-full';
-export { evaluateIrelandFull } from './ireland-full';
+export {
+  IRELAND_CONDITION_IDS,
+  IRELAND_FULL_PATHWAY_TITLES,
+  evaluateIrelandFull,
+  irelandCondition,
+} from './ireland-full';
 export type {
+  IrelandConditionId,
   IrelandBurden,
   IrelandCharacter,
   IrelandCitizenship,
@@ -286,3 +292,14 @@ export type { NzFamilyAnswers } from './new-zealand-family';
 
 export { evaluateUnitedStatesFull } from './united-states-full';
 export type * from './united-states-full';
+export { MY_FULL_PATHWAYS, evaluateMalaysiaFull } from './malaysia-full';
+export type {
+  MyFamilyTie,
+  MyFullRequest,
+  MyMm2hCategory,
+  MyPassKind,
+  MyPassPeriod,
+  MyPathway,
+  MyPathwayId,
+  MyTrip,
+} from './malaysia-full';
