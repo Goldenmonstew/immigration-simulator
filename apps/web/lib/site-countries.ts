@@ -39,7 +39,10 @@ export function countryPath(
 const calculatorPages = ['', 'simulate', 'result', 'whatif', 'policy'];
 const pagesByCountry: Partial<Record<CountryId, string[]>> = {
   uk: [...calculatorPages, 'about', 'game'],
+  es: calculatorPages,
   au: calculatorPages,
+  ie: calculatorPages,
+  ca: calculatorPages,
   pt: [...calculatorPages, 'game'],
   nz: calculatorPages,
   jp: [...calculatorPages, 'game'],
