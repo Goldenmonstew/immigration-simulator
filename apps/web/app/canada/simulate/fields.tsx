@@ -398,7 +398,7 @@ function Question({
             >
               {t('ca.form.add')} · {label}
             </button>
-            {!rows.length && (
+            {!rows.length && !(field.type === 'list' && field.nonEmpty) && (
               <button
                 type="button"
                 className={form.copyRow}

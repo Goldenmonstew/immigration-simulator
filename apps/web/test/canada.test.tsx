@@ -393,6 +393,64 @@ test('Quebec sponsored groups include the new group and the other labels match t
   expect(t('ca.form.taxYearsHint', 'en')).toContain('signing year');
 });
 
+// review95-2 risk 3: a new Quebec undertaking always has at least the new
+// group, so the list offers no "no records" answer and an empty list from a
+// saved draft or share link counts as unanswered, not as nothing to add.
+test('Quebec sponsored groups cannot be confirmed empty', () => {
+  const draft: CanadaDraft = {
+    ...ca.createDraft(),
+    step: 10,
+    completed: true,
+    simulationDate: '2026-11-24',
+    goals: ['CA-FAMILY'],
+    answers: {
+      family: {
+        quebec: true,
+        multigenerationalDependants: true,
+        province: {
+          ownHouseholdSize: 1,
+          sponsoredGroups: [],
+          eligibleCanadianIncome: 1_000_000,
+          resourcesSustainable: true,
+        },
+      },
+    },
+  };
+  const income = (next: CanadaDraft) =>
+    pathway(next, 'CA-FAMILY').checks.find(({ id }) => id === 'CA-R78')?.status;
+  const unanswered = structuredClone(draft);
+  delete unanswered.answers.family!.province!.sponsoredGroups;
+  expect(income(unanswered)).toBe('UNKNOWN');
+  const decoded = decodeDraft(ca, encodeDraft(ca, draft))!;
+  expect(decoded.answers.family?.province).not.toHaveProperty(
+    'sponsoredGroups',
+  );
+  expect(income(decoded)).toBe('UNKNOWN');
+  expect(
+    income({
+      ...draft,
+      answers: {
+        family: {
+          ...draft.answers.family,
+          province: {
+            ...draft.answers.family!.province,
+            sponsoredGroups: [{ adults: 1, children: 0 }],
+          },
+        },
+      },
+    }),
+  ).toBe('MET');
+
+  const html = form({ ...draft, answers: unanswered.answers });
+  const label = t('ca.field.sponsoredGroups');
+  const list = html.slice(html.indexOf(`>${label}</legend>`));
+  const groups = list.slice(0, list.indexOf('</fieldset>'));
+  expect(groups).toContain(t('ca.form.add'));
+  expect(groups).not.toContain(t('ca.form.noRecords'));
+  // Other lists on the step still offer it.
+  expect(html).toContain(t('ca.form.noRecords'));
+});
+
 test('drafts round-trip in their envelope and reject malformed answers', () => {
   const draft: CanadaDraft = {
     ...residencyDraft(),

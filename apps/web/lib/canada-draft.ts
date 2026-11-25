@@ -310,9 +310,10 @@ function cleanField(field: CanadaField, value: unknown): unknown {
       if (value === false && field.allowFalse) return false;
       return cleanRecord(field.fields, value);
     case 'list':
-      return Array.isArray(value)
-        ? value.map((row) => cleanRecord(field.fields, row))
-        : invalid();
+      if (!Array.isArray(value)) invalid();
+      return field.nonEmpty && !value.length
+        ? undefined
+        : value.map((row) => cleanRecord(field.fields, row));
     case 'routes': {
       if (!isRecord(value)) invalid();
       const routes: Answers = {};

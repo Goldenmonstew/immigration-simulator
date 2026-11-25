@@ -30,7 +30,8 @@ export type CanadaField = {
   | { type: 'choice' | 'extension'; options: readonly string[]; set: string }
   | { type: 'tuple'; size: number; max: number }
   | { type: 'group'; fields: CanadaField[]; allowFalse?: boolean }
-  | { type: 'list'; fields: CanadaField[] }
+  // nonEmpty: an answered list always has a row, so there is no "no records".
+  | { type: 'list'; fields: CanadaField[]; nonEmpty?: true }
   | { type: 'routes'; field: CanadaField }
 );
 
@@ -1494,10 +1495,17 @@ export const canadaSteps: CanadaStep[] = [
                 'refused',
               ]),
               integer('ownHouseholdSize'),
-              list('sponsoredGroups', [
-                required(integer('adults')),
-                required(integer('children')),
-              ]),
+              // A new undertaking always adds at least its own group.
+              {
+                name: 'sponsoredGroups',
+                label: 'sponsoredGroups',
+                type: 'list',
+                fields: [
+                  required(integer('adults')),
+                  required(integer('children')),
+                ],
+                nonEmpty: true,
+              },
               number('eligibleCanadianIncome'),
               number('eligibleCanadianAssets'),
               ...flags(
