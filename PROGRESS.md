@@ -880,3 +880,4 @@
 | 919 | 任务 95 审核修正（review95-2 风险 3）。魁省担保群组（表 B）不再提供“确认没有记录”：新担保至少有本次新增一组；本机草稿或分享链接里该列表为空时按未答处理，CA-R78 为待确认，不再按 0 计入表 B。其他清单不变。 | apps/web/lib/canada-{fields,draft}.ts、apps/web/app/canada/simulate/fields.tsx、apps/web/test/canada.test.tsx |
 | 920 | 任务 95 审核修正（review95-2 建议 2）。加拿大“适用／不适用”分组（如安省近期毕业）选“适用”后，清空最后一个子项时仍保留“适用”（存为空记录），不再无提示退回未答、隐藏子项。 | apps/web/app/canada/simulate/fields.tsx、apps/web/test/canada.test.tsx |
 | 921 | 任务 95 审核修正（review95-2）报告：逐条对应问题 1、风险 1–3、建议 1–3，风险 4 与签署日对比跳转列入发现与建议／未做；同步报告中已过时的共用组件、结果说明与缓存版本（建议 1）。 | docs/tasks/reports/95-ca-pages.md |
+| 1125 | 任务 105 合入 main 后跟进试点修正（review111-1 问题 3）。加拿大 7 道菜的做法文案键由 `game.prepare-<ID>` 改为 `ca.game.prepare-<ID>`，外壳 `gameKey` 优先取用，不再被英国或别国同 ID 的不带前缀文案覆盖（美国也有 `garden-salad`）；草莓酱补本国做法，原先沿用英国文案。 | apps/web/i18n/countries/canada-game.ts、apps/web/test/canada-game.test.tsx |

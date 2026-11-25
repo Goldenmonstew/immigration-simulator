@@ -1,13 +1,14 @@
-// Canada's town game: its civics stat and recipes, plus `ca.game.*` wording
+// Canada's town game: its civics stat, plus `ca.game.*` wording (recipes too)
 // that replaces the shared game strings (see gameKey in app/game-shell/game-ui.tsx).
 export const caGameZh = {
   'game.civics': '公民知识',
-  'game.prepare-poutine': '炸好薯条，撒奶酪粒，浇上热肉汁',
-  'game.prepare-fish-cakes': '把鱼和土豆捏成饼，煎到两面金黄',
-  'game.prepare-chowder': '小火慢炖，加一勺奶油',
-  'game.prepare-corn-boil': '水开了下玉米，抹上黄油',
-  'game.prepare-garden-salad': '切块，淋上枫糖油醋汁',
-  'game.prepare-turnip-mash': '煮软压成泥，拌进黄油',
+  'ca.game.prepare-poutine': '炸好薯条，撒奶酪粒，浇上热肉汁',
+  'ca.game.prepare-fish-cakes': '把鱼和土豆捏成饼，煎到两面金黄',
+  'ca.game.prepare-chowder': '小火慢炖，加一勺奶油',
+  'ca.game.prepare-corn-boil': '水开了下玉米，抹上黄油',
+  'ca.game.prepare-strawberry-jam': '加糖慢熬，装进梅森罐',
+  'ca.game.prepare-garden-salad': '切块，淋上枫糖油醋汁',
+  'ca.game.prepare-turnip-mash': '煮软压成泥，拌进黄油',
   'ca.game.prColumn': '永久居民',
   'ca.game.citColumn': '入籍',
   'ca.game.timeDate': '居住天数最早满足',
@@ -45,12 +46,15 @@ export const caGameZh = {
 
 export const caGameEn: Record<keyof typeof caGameZh, string> = {
   'game.civics': 'Civics',
-  'game.prepare-poutine': 'Fry the chips, add curds and hot gravy',
-  'game.prepare-fish-cakes': 'Shape fish and potato into cakes and fry golden',
-  'game.prepare-chowder': 'Simmer gently and stir in cream',
-  'game.prepare-corn-boil': 'Drop the corn in the boiling pot and butter it',
-  'game.prepare-garden-salad': 'Chop and dress with maple vinaigrette',
-  'game.prepare-turnip-mash': 'Boil soft, mash and fold in butter',
+  'ca.game.prepare-poutine': 'Fry the chips, add curds and hot gravy',
+  'ca.game.prepare-fish-cakes':
+    'Shape fish and potato into cakes and fry golden',
+  'ca.game.prepare-chowder': 'Simmer gently and stir in cream',
+  'ca.game.prepare-corn-boil': 'Drop the corn in the boiling pot and butter it',
+  'ca.game.prepare-strawberry-jam':
+    'Simmer with sugar and pour into Mason jars',
+  'ca.game.prepare-garden-salad': 'Chop and dress with maple vinaigrette',
+  'ca.game.prepare-turnip-mash': 'Boil soft, mash and fold in butter',
   'ca.game.prColumn': 'Permanent residence',
   'ca.game.citColumn': 'Citizenship',
   'ca.game.timeDate': 'Physical presence met from',

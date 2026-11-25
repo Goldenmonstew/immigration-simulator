@@ -7,7 +7,7 @@ import * as ca from '@uk-immigration/game/ca';
 import { caGameArt } from '@uk-immigration/game/ca/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
-import { t, withCount } from '../i18n';
+import { t, withCount, type TranslationKey } from '../i18n';
 import { canadaModule } from '../lib/canada-module';
 import { decodeDraft } from '../lib/share';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
@@ -17,6 +17,7 @@ import {
   gameDraft,
   itemIcon,
 } from '../app/canada/game/shell';
+import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/canada/town.json';
 
 type State = ReturnType<typeof ca.newGame>;
@@ -114,6 +115,29 @@ test.each(['zh-CN', 'en'] as const)(
     expect(columns).toBeDefined();
     if (locale === 'en') expect(hud + bars).not.toMatch(/[㐀-鿿]/);
     expect(html).toContain('town-ca.current-law-2026-11-heading');
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'Canadian recipes keep their own cooking steps in %s',
+  (locale) => {
+    for (const recipe of ca.recipes) {
+      const shared = `game.prepare-${recipe.id}` as TranslationKey;
+      const own = gameKey('ca', shared);
+      expect(own, recipe.id).toBe(`ca.${shared}`);
+      expect(t(own, locale), recipe.id).not.toBe(t(shared, locale));
+    }
+    expect(
+      t(gameKey('ca', 'game.prepare-garden-salad' as TranslationKey), locale),
+    ).toBe(
+      locale === 'en'
+        ? 'Chop and dress with maple vinaigrette'
+        : '切块，淋上枫糖油醋汁',
+    );
+    // The UK salad keeps its own step.
+    expect(t('game.prepare-salad', locale)).toBe(
+      locale === 'en' ? 'Toss gently' : '轻轻拌匀',
+    );
   },
 );
 
