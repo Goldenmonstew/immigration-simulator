@@ -140,6 +140,8 @@ export const myFormZh = {
     '担保人的年龄与籍贯要求见结果说明（沙巴、砂拉越须由当地籍公民担保）。',
   'my.hint.sensitive':
     '可留空，留空时结果显示待确认。本工具不收集名单或案件细节。',
+  'my.hint.prRefused':
+    '可留空。留空时「此前被拒后的等待期」显示待确认，年限日期也不会计入被拒后的等待期。',
   'my.hint.citizenReferees':
     '愿意提供身份证（MyKad）副本作推荐人的马来西亚公民人数。',
   'my.hint.selfRating': '申请表要求自评，不设最低等级。',
@@ -373,6 +375,8 @@ export const myFormEn: Record<keyof typeof myFormZh, string> = {
     'The result explains the sponsor’s age and origin requirements (a sponsor of Sabah or Sarawak origin for applications there).',
   'my.hint.sensitive':
     'You may leave this blank; the result then shows it as needing confirmation. This tool collects no listing or case details.',
+  'my.hint.prRefused':
+    'You may leave this blank. The waiting period after a refusal then shows as needing confirmation, and the time requirement date does not include that waiting period.',
   'my.hint.citizenReferees':
     'Malaysian citizens who will provide a copy of their identity card (MyKad) as referees.',
   'my.hint.selfRating':

@@ -926,3 +926,4 @@
 | 967 | 任务 114 审核修正（review114-1 建议 1）：对比页的"翻转为满足""翻转为未满足／未知""仍未满足"只列申请条件与时间条件，与结果页"还差什么"同口径；做法是共用 `CountryWhatIf` 加可选的 `compared`，`diffPathways` 按它过滤，未设置的国家行为不变（web 全部单测通过）。 | apps/web/lib/{whatif,malaysia-whatif}.ts、apps/web/components/whatif-lab.tsx、apps/web/test/malaysia.test.tsx |
 | 968 | 任务 114 审核修正（review114-1 建议 2）：出生日期只在读取它的路径（PR 子女、REP、RP、三类公民身份、MM2H、DE Rantau）下显示，国籍只在 WAS、REP、公民配偶 LTSVP、DE Rantau 下显示；e2e 先选路径再填出生日期。 | apps/web/lib/malaysia-fields.ts、apps/web/test/malaysia.test.tsx、apps/e2e/tests/malaysia.spec.ts |
 | 969 | 任务 114 审核修正（review114-1 建议 3）：归化与公民之妻登记的居住年限缺口改链到对比页"假设 MyPR 签发日"控件；e2e 改为跟随该链接并核对聚焦。 | apps/web/lib/malaysia-whatif.ts、apps/web/test/malaysia.test.tsx、apps/e2e/tests/malaysia.spec.ts |
+| 970 | 任务 114 审核修正（review114-1 建议 4）："曾被拒绝永久居留申请"保持可留空，提示写明留空时被拒后的等待期显示待确认、年限日期也不计入等待期。 | apps/web/lib/malaysia-fields.ts、apps/web/i18n/countries/malaysia-form.ts、apps/web/test/malaysia.test.tsx |

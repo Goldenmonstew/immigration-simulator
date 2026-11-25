@@ -379,7 +379,7 @@ export const malaysiaSteps: MalaysiaStep[] = [
             hint: 'sensitive',
             for: [...ALL_PR, 'cit-naturalisation', 'cit-wife'],
           }),
-          bool('prRefused', { for: PR }),
+          bool('prRefused', { hint: 'prRefused', for: PR }),
           date('prRefusedOn', {
             when: on('prRefused', true),
             for: PR,

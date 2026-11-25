@@ -347,6 +347,13 @@ test('the questionnaire renders the fields the end-to-end flow uses', () => {
   expect(records).not.toContain('id="my-immigrationRecord"');
   expect(records).not.toContain('id="my-language-english"');
   expect(records).toContain(t('my.hint.sensitive'));
+  // review114-1 suggestion 4: what leaving the refusal blank does.
+  const refusal = step({ ...wifeDraft(), step: 3 });
+  expect(refusal).toContain('aria-describedby="my-prRefused-hint"');
+  for (const locale of ['zh-CN', 'en'] as const)
+    expect(t('my.hint.prRefused', locale)).toMatch(
+      locale === 'en' ? /blank.*waiting period/ : /留空.*等待期/,
+    );
   const citizenship = step({ ...draft, step: 5 });
   for (const id of [
     'my-citizenship-prHeld',
