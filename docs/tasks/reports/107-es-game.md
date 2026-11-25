@@ -4,10 +4,10 @@
 
 | PROGRESS | commit | 内容 |
 |---|---|---|
-| 640 | `Feat: 西班牙人生模拟内容包与规则适配` | `packages/game/src/packs/es/` 内容包与 `@uk-immigration/game/es`、`es/presentation` 入口；评估适配器把时间线交给 `evaluateSpainFull`；单测 `packages/game/test/es-pack.test.ts`。 |
-| 641 | `Feat: 接入西班牙人生模拟页面、地图与美术` | `/spain/game` 页面；`app/spain/game/` 的国家配置、场景子类与场景绘制、音效；维拉马尔地图与原创横幅；注册表 `hasGame: true`、西班牙首页游戏入口、离线清单与缓存版本；中英文案；网页单测 `apps/web/test/spain-game.test.tsx`；地点名按按钮宽度缩短（内容包三处文案）。 |
-| 642 | `Test: 西班牙人生模拟 e2e` | `apps/e2e/tests/spain-game.spec.ts`。 |
-| 643 | `Docs: 任务 107 报告` | 本报告。 |
+| 1040 | `Feat: 西班牙人生模拟内容包与规则适配` | `packages/game/src/packs/es/` 内容包与 `@uk-immigration/game/es`、`es/presentation` 入口；评估适配器把时间线交给 `evaluateSpainFull`；单测 `packages/game/test/es-pack.test.ts`。 |
+| 1041 | `Feat: 接入西班牙人生模拟页面、地图与美术` | `/spain/game` 页面；`app/spain/game/` 的国家配置、场景子类与场景绘制、音效；维拉马尔地图与原创横幅；注册表 `hasGame: true`、西班牙首页游戏入口、离线清单与缓存版本；中英文案；网页单测 `apps/web/test/spain-game.test.tsx`；地点名按按钮宽度缩短（内容包三处文案）。 |
+| 1042 | `Test: 西班牙人生模拟 e2e` | `apps/e2e/tests/spain-game.spec.ts`。 |
+| 1043 | `Docs: 任务 107 报告` | 本报告。 |
 
 ### 对共用外壳的改动（逐条）
 
@@ -90,3 +90,71 @@
 - `about-page.test.tsx` 与 `public/sw.js` 的缓存版本本分支改为 `2026-11-24-v6-es`，其他国家合并时会在这一行冲突，按最后合并的版本号处理即可。
 - 共用外壳的 `VisaStatus` 只描述"会到期的证件"；西班牙这里是居留卡。若之后补了续期参数，可以直接复用日本的 `extend`/`renewalValidTo` 写法。
 - 缺的素材：西班牙角色与镇民的立绘和行走图、第二个儿童形象；西语/瓦伦西亚语招牌（Mercat、Farmàcia、Estrangeria、Registre Civil）；沙滩瓦片、海鸥、橙子、欧洽塔与米饭锅的物品图标。
+
+## 合入 main 与试点修正跟进
+
+brief：`brief-107c`，以及统筹在门禁跑完后补充的三点（照美国、希腊、澳大利亚游戏审核）。本分支建在日本试点（任务 111）与西班牙页面（任务 97）的早期版本上，两者合入 main 后分别又经过 review111-1 至 111-3 与 review97-1、97-2 的修正。本节先合入 main，再按 brief 的五项、"补充（Fable）"两点与统筹补充的三点逐项核对西班牙游戏。第 1–4 节里与本节不符的说法以本节为准：
+
+- PROGRESS 行号 640–643 已改为 1040–1043（与 main 上任务 97 的审核修正行同号）；缓存版本为 `2026-11-25-esgame`。
+- 菜谱做法键带 `es.` 前缀；抛竿地点、结局家具名与空厨房提示改用本地文案。
+- 考试、认证翻译、搬家与 padrón 按办理当天记录，从下一季的评估起计入（原来当场计入，CCSE 证书日记为季首日期）。第 2 节里"认证翻译、CCSE、DELE 写入时间线……之后入籍只差年限"现在要到下一季才成立。
+- 递交按当天记录，结局评估与结局链接以递交日为模拟日期、按递交日缴 790-026（原来都是季首日期）；递交还要按当天日期再核一次。
+- 游戏内评估按结果页的检查项分类显示；居留卡过期且已过长期居留递交期时，结局评估的长期居留为未满足（原来是"无法确定"）。
+
+新行从 1044 起，提交前查过所有本地分支、远端分支与各 worktree 的 PROGRESS，1040–1059 没有被占用。
+
+### 1. 做了什么（按 commit）
+
+| PROGRESS | commit | 对应 | 内容 |
+|---|---|---|---|
+| 1040–1043（改号） | `Merge: 合入 main` | brief 第 1 项 | 冲突 4 处：`site-countries.ts` 的 `pagesByCountry` 每国一行，西班牙取带 `'game'` 的那行，其余照 main（日本已有 `'game'`）；`sw.js` 与 `about-page.test.tsx` 缓存版本改为 `2026-11-25-esgame`；`PROGRESS.md` 取 main 的全部行，本分支任务 107 的 640–643 依次改号为 1040–1043（内容不变），本分支重复带来的任务 97 行 630–633 以 main 为准。共用外壳（`app/game-shell/`）、`game.ts`、`content-pack.ts` 没有冲突，以 main 为准；本分支对外壳只有 `iconPaths` 的 `spanish` 一行，自动合入，写法与 main 的 `japanese` 相同。`game-page.tsx`、`lib/game-country.ts`、`packages/game/package.json` 的国家登记合并后是日本与西班牙的并集；`i18n/countries/spain.ts` 自动合并。合并后西班牙问卷把居留许可的"是否学习停留"改为必答，结局链接回读得到"请返回问卷…"，由 1047 修正。 |
+| 1044 | `Fix: 西班牙菜谱做法文案改用国家前缀键` | review111-1 问题 3 | 5 道菜的做法键由 `game.prepare-<ID>` 改为 `es.game.prepare-<ID>`，外壳 `gameKey` 优先取用。西班牙的菜谱 ID 与英国、日本都不重名，改后也不会被以后合入的国家覆盖。 |
+| 1045 | `Test: 西班牙入籍与长期居留结局按递交种类选文案` | review111-1 问题 2（核对） | 西班牙内容包从一开始就在 `beforeAction` 里记下 `applied-nat`/`applied-lt`（`ending` 效果之前），没有日本那种 `actionFlags` 错位，代码不用改。原有用例只测各角色递交自己的路径，雨桐缺旗标时会恰好落到自己的长期居留文案、测不出问题，所以补"递交非本角色路径"的用例：雨桐在更长的居留卡下满十年递交入籍，乔尔满五年递交长期居留，结局叙述与结局日志都是所递交路径的通用文案。 |
+| 1046 | `Fix: 西班牙居留卡过期结局反映递交期已过` | review111-3 | 西班牙时间线没有"身份有效""续签待决"这类布尔：居留许可的 `to` 就是居留卡到期日（引擎口径里没有 `to` 才表示有效并按时续签），入籍的 ES-N01 在卡过期后本就未满足。剩下的是长期居留的到期后递交期（SRC-083 art. 184.2，`longTermLateMonths` 3 个月）：过了这个期限，引擎因为不知道当地假日（`officeHolidays`）无法排除顺延，ES-L11 与 ES-L01-PERMIT 一直是"无法确定"，雨桐 2027-09-01 的过期结局里长期居留显示"无法确定"。`esRules.expired` 判定结束且模拟日已晚于"居留卡到期日 + 递交期"时，把问卷字段 `residence.filingWindowAccepted`（机关已确认在法定递交窗口内）写为 `false`，结局评估与结果页的这两项和长期居留路径为未满足。递交期内结束的情形（乔尔的居留年限本就不足）不写，长期居留由引擎判为未满足。 |
+| 1047 | `Fix: 西班牙结局链接按结果页回读，游戏内评估与结果页一致` | review111-1 问题 1、补充（Fable）两点 | 两位角色的居留许可补 `study: false`（引擎把未填与 `false` 同样处理，评估不变），草稿通过合入后的问卷校验。`gameDraft` 经结果页的 `activeSpainAnswers` 只留所选路径（L、N）问卷会问的答案，与分享链接保存的草稿相同；目前游戏写入的答案都在这两条路径的问卷里，裁剪后不变，单测核对这一点。结果页 `run` 里的检查项分类与自由流动取得日注记抽成 `presentSpainResult`（`run` 改为评估后调用，结果页行为不变）；代办所评估、结局评估与进度详情经它显示（`shownResult`），所以"还差"清单与检查项分组（时间条件、费用预算、批准后事项）和结果页相同。西班牙结果页不改路径结论，进度条直接用引擎状态即与结果页一致，单测逐状态核对结论、标签与"还差"。 |
+| 1048 | `Test: 西班牙 e2e 英文状态栏不依赖开局随机事件的花费` | 验收中发现 | 第一次跑 e2e 时英文界面用例失败：状态栏是 €5,194 而不是断言的 €5,200。游戏种子取自时钟，开局早上若抽到 almuerzo 事件、`dismissCards` 取第一个选项会先花 €6（心情 73 = 66 + 4 + 3 也对得上），所以这条断言本来就随机失败，与本次改动无关。改为断言英文格式的 `€5,xxx`。 |
+| 1049 | `Fix: 西班牙考试、认证翻译、搬家与 padrón 按当天记录，下一季进入评估` | review111-2 问题 1、统筹补充第 1 点 | 原来 CCSE 证书日记为季首 `state.date`（比考试那天早 9 天），DELE、认证翻译、搬家与 padrón 不带日期、当场改写问卷答案，所以季中办的事当季就进入评估。时间线加游戏专用的 `steps`（DELE、CCSE、认证翻译的日期，搬家及 padrón 登记日的列表），效果只按 `state.day.date` 记录；`filingAnswers` 按评估日取问卷答案：评估日之后办的事先不计入，最近一次搬家在评估日前未登记 padrón 时住址证明为否，CCSE 证书日为考试当天。游戏内评估（`esRules.evaluate`）与结局链接草稿（`gameDraft`）都经它，是同一份评估日时间线，草稿里没有晚于模拟日期的已发生事项。考试与认证翻译的说明写明"从下一季的评估起计入"。西班牙引擎里住址登记没有天数期限，搬家不需限制时段。 |
+| 1050 | `Fix: 西班牙抛竿地点、结局家具名与空厨房提示改用本地文案` | 统筹补充第 3 点（review111-1 建议 1） | 内容包设 `fishingSpot`「防波堤 / the breakwater」，日记与旅程写"防波堤抛竿"；导出 `esFurnishingNames`（藤编摇椅、木百叶遮阳帘、台灯），市场的家具标签与结局"一点点布置的家"同源，标签显示不变；新增 `es.game.kitchenNoIngredients`：蔬菜来自街区菜园，鱼去防波堤钓，大米在市场买。 |
+| 1051 | `Fix: 西班牙递交按当天记录，结局评估与结局链接按递交日` | 统筹补充第 1 点 | 递交入籍或长期居留时新效果 `filed` 按当天记下 `steps.filed`；`assessmentDate`（递交日，未递交时为季首日期）供评估、草稿与外壳共用，结局评估与结局链接以递交日为模拟日期、按递交日缴 790-026。有期限的手续按当天判断：递交除了要求本季评估为满足，还要按办理当天再评估一次仍为满足，居留卡在评估日与办理日之间到期（入籍）、到期后递交期在两日之间截止（长期居留）时不再提供递交。两位角色的卡在月底到期、递交期截止于 7 月 30 日或 11 月 30 日，现有角色碰不到这两种情形，单测改卡期复现。 |
+| 1052 | `Docs: 任务 107 合入 main 与试点修正跟进报告` | brief 第 3 项 | 本节、第 1 节表格的行号与 PROGRESS。 |
+
+brief 第 2 项各条与统筹补充各点的对应：菜谱前缀键 → 1044；结局文案按递交种类 → 1045；季中按当天日期写进时间线的事 → 1049、1051；身份过期结局 → 1046；结局链接回读与问卷校验 → 1047；补充（Fable）的结论一致与剪掉隐藏答案 → 1047；统筹补充第 1 点 → 1049、1051；第 2 点 → 核对后无需改（见第 3 段）；第 3 点 → 1050。
+
+### 2. 怎么验证的
+
+- 每项先写回归测试并确认失败，再改：
+  - 1044：网页单测「Spanish recipes keep their own cooking steps in %s」，修前 `gameKey('es', 'game.prepare-all-i-pebre')` 返回不带前缀的键。
+  - 1045：新用例第一次运行即通过（没有错位要修）。为确认用例能抓住问题，临时注释掉 `index.ts` 的 `beforeAction` 再跑：新用例与两个原有递交用例失败（雨桐递交入籍得到的是她自己的长期居留文案），恢复后通过，临时改动未提交。
+  - 1046：内容包用例「a lapsed card ends the story unless long-term residence can still be filed」补断言：乔尔递交期内过期，两条路径未满足、不写递交窗口；雨桐从 2027-06-01 走到 2027-09-01 过期结局，`filingWindowAccepted` 为 `false`，ES-L11、ES-L01-PERMIT 与两条路径都是未满足。修前断言失败，雨桐的长期居留、ES-L11、ES-L01-PERMIT 是 `UNKNOWN`（先用临时脚本确认，脚本未入库）。
+  - 1047：网页单测「the ending link opens the same %s timeline on the Spain result page」按角色循环。用结果页同一入口 `readPageResult(spainModule, 'zh-CN', 片段, 'result')` 回读，逐状态核对：
+    - 无更正提示。
+    - 草稿等于 `gameDraft(state)`，也等于 `activeSpainAnswers` 裁剪后的自己；停在问卷最后一个可见步骤。
+    - 各路径的状态、最早日期、居住年限日期、摘要与逐项检查的状态和分类，等于游戏内显示（`shownResult`）。
+    - 两列进度条的结论等于结果页结论，标签等于结果页的 `pathwayTitle`，"还差"等于结果页 `gapRules` 的标题。
+    - 过期结局两条路径都是未满足。
+    - 修前两位角色在开局就得到更正提示「请返回问卷，完成所选路径的必填项目后再查看结果。」（问卷 `es-permits-0-study` 必填）。
+  - 1048：改后单独跑 `spain-game.spec.ts` 5 项通过，英文界面用例 `--repeat-each=5` 也全部通过。
+  - 1049：内容包用例「steps taken in town carry their day and join the next quarter’s assessment」（取代原来的「the padrón, papers and exams feed the nationality assessment」）：乔尔 2026-03-10 搬家、当天登记 padrón、办认证翻译、考过 CCSE 与 DELE，`steps` 都记 2026-03-10；本季（评估日 2026-03-01）问卷答案不变、入籍仍是未满足；按 2026-06-01 取答案时 DELE、CCSE（证书日 2026-03-10）、认证翻译都已计入，搬家未登记时住址证明为否、登记后为是；下一季入籍为 `FUTURE` 2026-09-02。修前 `timeline.steps` 不存在，用例报错。网页回读用例加了"同季搬家、下一季离开"与"考试后下一季离开"两个状态，并断言草稿里的 CCSE 证书日与行程日期都不晚于模拟日期；考试当季的草稿里 CCSE 仍是未通过，下一季的草稿里是考试当天的证书。
+  - 1050：内容包用例「the diary casts a line off the breakwater, not at a pond」与网页单测「the kitchen hint and ending furniture use Spanish wording in %s」，修前日志是"在池塘抛竿"、厨房提示等于英国文案。
+  - 1051：内容包用例「applying for nationality …」改为在本季第 10 天递交，断言 `steps.filed`、`assessmentDate` 与 790-026 缴费日都是 2026-12-10，结局评估等于引擎按 2026-12-10 的结果；新用例「a filing is offered only if it can still be made on the day」：乔尔的卡改为 2026-12-05 到期，2026-12-01 当天可递交、12-10 不再提供；雨桐的卡改为 2027-03-05 到期，递交期截止于 06-05（周六）顺延到 06-07，06-07 可递交、06-10 不再提供。修前 `steps.filed` 为 `undefined`、12-10 仍提供入籍申请。网页回读用例的递交状态改在 2026-12-10 递交，修前草稿模拟日期是 2026-12-01（临时撤掉 `shell.tsx` 的改动复现，随后恢复）。
+  - 每个 commit 前跑了受影响包的 `tsc --noEmit`、ESLint、Prettier 检查与 `es-pack`、`spain-game` 两个测试文件；1047 另跑了西班牙页面单测（`spain`、`spain-questionnaire`、`spain-whatif`、`spain-links`、`country-views` 与 `spain-game`，6 个文件 62 项通过），确认抽出 `presentSpainResult` 后结果页不变；1049、1050 另跑了 `copy-review`、`punctuation`、`locale` 单测。
+- 整链第一次（HEAD `88069baa`，统筹补充之前）：`export VITEST_MAX_WORKERS=2` 后 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0：error-report 2、policy-data 23、engine 6,006（既有 1 项按默认跳过）、game 1,372、web 1,065 项通过，构建生成 62 个静态页面（含 `/spain/game`）。随后 e2e（4487 端口确认空闲）31 项里 30 项通过，失败的是上面 1048 那条随机断言。
+- 整链第二次（HEAD `4af3477c`，统筹补充改完、报告提交前）：同一命令退出码 0：error-report 2、policy-data 23、engine 6,006（既有 1 项按默认跳过）、game 1,374、web 1,067 项通过，构建生成 62 个静态页面。
+- 浏览器 e2e：确认 4487 端口空闲后 `cd apps/e2e && E2E_PORT=4487 npx playwright test tests/game.spec.ts tests/life.spec.ts tests/japan-game.spec.ts tests/spain-game.spec.ts --project=desktop --reporter=line`，31 项全部通过（英国 `game.spec.ts` 14、`life.spec.ts` 7，日本 5，西班牙 5）；服务由 Playwright 的 webServer 起停，跑完端口已释放，`apps/e2e/test-results` 已删除。
+- 视觉检查：用临时 Playwright 脚本无头截图（脚本放在 scratchpad，跑时复制进 `tests/`，跑完删除，未入库）。雨桐开局上午 10:00 走到代办所：长期居留「最早 2026-10-04 满足条件」，"还差什么"只列申请条件与时间条件，检查项标注「申请条件」，费用与获批后事项收在「费用、办卡、获批后手续与分支明细（不决定本路径结论）」里，与结果页相同。存档里加上三件家具后在电车站离开西班牙：结局"一点点布置的家"列出藤编摇椅、木百叶遮阳帘、台灯；结局评估的入籍"未满足条件"，三项检查分别标「时间条件」「申请条件」，分组与结果页一致。
+
+### 3. 没做或没验证的
+
+- 统筹补充第 2 点（个案裁量不预设最有利）：核对后西班牙没有要改的代码，也没有补单测。游戏不办理临时居留续期（第 3 节原有说明）；递交即结局，结局文案只写"递交了 / 收下了"，评估里获批后的 ES-N17、ES-N18、ES-T01 保持"无法确定"；探亲后入籍的连续性 `continuityDecision` 不预设，入籍显示"无法确定"；考试按游戏内西语分数判定，不是机关裁量；1046 写入的递交窗口结论是对玩家不利的一方。角色开局的机关结论类事实见第 4 段第 1 条。
+- 递交日只用于结局：西班牙的递交就是结局，`steps.filed` 之后不再有下一季。离开西班牙、过期与到时结局仍按季首评估日出链接。
+- 季末余额不足时的自动退租由共用 `game.ts` 处理，不经过西班牙的 `moved` 效果，不记搬家（试点 review111-1 已列为未做，希腊在自己的分支另做了；本次三点不含这一项）。
+- 进度条 `FUTURE` 标签没有改成日本的"时间条件最早 X 满足"：西班牙结果页的结论标签就是「最早 X 满足条件」，单测核对两者相同。
+- 英国 e2e 截图基线未在本机比对（本机 Playwright 忽略截图）；没有跑 a11y e2e 与 mobile project；音效未检查。
+- 合入的是 `3f9dae44`；报告提交时 `origin/main` 已前进到 `dd7f4837`（马来西亚完整版规则 #91），开 PR 前还要再合一次 main，没有做。
+
+### 4. 发现与建议（范围外，未实现）
+
+1. 两位角色开局就设了机关审查后的结论：`conductAndSecurityDecision: true`（主管机关已认可良好公民品格）、`integrationDecision: true`（已认可充分融入）、`residence.securityDecision: 'clear'`（刑事与安全审查通过）。按"个案裁量不预设最有利"的口径，这些都是递交后才有的结论。日本（`goodConductConfirmed`）、希腊、澳大利亚的角色也这样写，审核没有提过。若改为待定，入籍与长期居留会一直是"无法确定"、永远不能递交，需要照日本最长在留期间的做法"只剩这几项待机关审查时开放递交"，并改进度条与说明，影响面较大，需统筹决定。
+2. 引擎：长期居留的到期后递交期过后，没有 `officeHolidays` 时 ES-L11、ES-L01-PERMIT 一直是"无法确定"（过了几个月也一样）。问卷用户会遇到同样情况；可考虑对明显超出假日顺延的日期判为否（需来源），或在问卷提示填写假日表。游戏这边由 1046 写递交窗口结论。
+3. e2e：游戏种子取自 `Date.now()`，开局事件随机。日本 e2e 也断言开局存款 `¥1,800,000`，若日本有开局早上花钱的事件，会和 1048 一样随机失败，建议各国 e2e 核对一遍。
+4. 共用 `game.ts` 的日记分组 `['extend', 'settle']` 不含 `naturalise`（试点已提），西班牙递交入籍时也没有"文件夹越装越厚"那句。
