@@ -1,17 +1,17 @@
 # 任务 108 · 希腊人生模拟游戏
 
-实现者：Claude Opus 5.5。brief 分配的 PROGRESS 行号 670–679 已被任务 88 审核修正（670–675）和任务 98（676–679）占用；查过全部本地分支后改用空着的 735–738。
+实现者：Claude Opus 5.5。brief 分配的 PROGRESS 行号 670–679 已被任务 88 审核修正（670–675）和任务 98（676–679）占用；查过全部本地分支后改用空着的 735–738；合入 main 时 735 与任务 100 同号，依次改为 1070–1073。
 
 ## 1. 做了什么（按 commit）
 
 | PROGRESS | commit | 内容 |
 |---|---|---|
-| 735 | `Feat: 希腊人生模拟内容包与规则适配` | `packages/game/src/packs/gr/` 内容包与 `@uk-immigration/game/gr`、`gr/presentation` 入口；评估适配器把时间线交给 `evaluateGreeceFull`；单测 `packages/game/test/gr-pack.test.ts`（12 项）。 |
-| 736 | `Feat: 接入希腊人生模拟页面、地图与美术` | `/greece/game` 页面；`app/greece/game/` 的国家配置、场景子类与场景绘制、音效；利马纳基地图、按希腊配色重新着色的瓦片、原创横幅；注册表 `hasGame: true`、希腊首页游戏入口、离线清单与缓存版本；中英文案；网页单测 `apps/web/test/greece-game.test.tsx`。 |
-| 736 | `Feat: 希腊移民局办事处显示居留卡期限与续期窗口` | 移民局办事处的地点说明：蓝卡到期日、续期窗口与逾期截止日；配偶显示 Ο.3 到期日与 Μ.3 最早日期（并入 736 行的说明）。 |
-| 735 | `Fix: 希腊长期居留申请与蓝卡续期按含费用的金额判断能否办理` | Μ.1/Μ.3 申请费与蓝卡续期的许可费、制卡费、逾期罚款计入能否办理的判断，避免把存款扣成负数（并入 735 行的说明）。 |
-| 737 | `Test: 希腊人生模拟 e2e` | `apps/e2e/tests/greece-game.spec.ts`（5 项）。 |
-| 738 | `Docs: 任务 108 报告` | 本报告。 |
+| 1070 | `Feat: 希腊人生模拟内容包与规则适配` | `packages/game/src/packs/gr/` 内容包与 `@uk-immigration/game/gr`、`gr/presentation` 入口；评估适配器把时间线交给 `evaluateGreeceFull`；单测 `packages/game/test/gr-pack.test.ts`（12 项）。 |
+| 1071 | `Feat: 接入希腊人生模拟页面、地图与美术` | `/greece/game` 页面；`app/greece/game/` 的国家配置、场景子类与场景绘制、音效；利马纳基地图、按希腊配色重新着色的瓦片、原创横幅；注册表 `hasGame: true`、希腊首页游戏入口、离线清单与缓存版本；中英文案；网页单测 `apps/web/test/greece-game.test.tsx`。 |
+| 1071 | `Feat: 希腊移民局办事处显示居留卡期限与续期窗口` | 移民局办事处的地点说明：蓝卡到期日、续期窗口与逾期截止日；配偶显示 Ο.3 到期日与 Μ.3 最早日期（并入 1071 行的说明）。 |
+| 1070 | `Fix: 希腊长期居留申请与蓝卡续期按含费用的金额判断能否办理` | Μ.1/Μ.3 申请费与蓝卡续期的许可费、制卡费、逾期罚款计入能否办理的判断，避免把存款扣成负数（并入 1070 行的说明）。 |
+| 1072 | `Test: 希腊人生模拟 e2e` | `apps/e2e/tests/greece-game.spec.ts`（5 项）。 |
+| 1073 | `Docs: 任务 108 报告` | 本报告。 |
 
 ### 共用外壳的改动（逐条）
 
