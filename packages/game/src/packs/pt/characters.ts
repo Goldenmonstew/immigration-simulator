@@ -390,6 +390,7 @@ const worker: PtCharacter = {
   stats: { money: 9_000, mood: 64, health: 72, portuguese: 36, career: 32 },
   timeline: {
     targets: ['naturalisation', 'permanent'],
+    steps: {},
     route: 'other',
     birthDate: '1996-04-08',
     permits: [
@@ -461,6 +462,7 @@ const partner: PtCharacter = {
   stats: { money: 4_800, mood: 70, health: 68, portuguese: 92, career: 20 },
   timeline: {
     targets: ['permanent', 'partner'],
+    steps: {},
     route: 'cplp',
     birthDate: '1994-11-03',
     permits: [

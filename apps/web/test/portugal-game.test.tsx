@@ -91,20 +91,33 @@ test.each(['worker', 'partner'])(
     expect(abroad.timeline.trips).toHaveLength(1);
     const left = pt.doActivity(visit(abroad, 'station', 600), 'leave');
     expect(left.ending).toBe('left');
-    // The application each character can make, with its papers in hand.
-    const ready = on(structuredClone(opening), '2027-03-01');
-    ready.timeline.residence!.language = { kind: 'ciple' };
-    ready.timeline.residence!.criminalRecordAvailable = true;
-    ready.result = pt.ptRules.evaluate(ready);
-    const applied =
+    // Papers obtained today carry today's date and join the next quarter.
+    const ready = structuredClone(opening);
+    ready.stats.portuguese = 60;
+    const recorded = pt.doActivity(
+      visit(ready, 'ward', 1050),
+      'criminal-record',
+    );
+    const today =
       id === 'worker'
-        ? pt.doActivity(visit(ready, 'visa', 600), 'settle')
-        : pt.doActivity(
-            pt.doActivity(visit(ready, 'bureau', 600), 'declaration-papers'),
-            'declare',
-          );
+        ? pt.doActivity(visit(recorded, 'college', 1110), 'exam')
+        : recorded;
+    expect(Object.values(today.timeline.steps)).toContain(today.day.date);
+    expect(gameDraft(today).residence.criminalRecordAvailable).toBe(false);
+    // The application each character can make, with its papers in hand.
+    const filing = on(structuredClone(opening), '2027-03-01');
+    filing.timeline.steps = {
+      ciple: '2026-12-08',
+      record: '2026-12-08',
+      papers: '2026-12-08',
+    };
+    filing.result = pt.ptRules.evaluate(filing);
+    const applied = pt.doActivity(
+      visit(filing, id === 'worker' ? 'visa' : 'bureau', 600),
+      id === 'worker' ? 'settle' : 'declare',
+    );
     expect(applied.ending).toBe('settled');
-    for (const state of [opening, abroad, left, applied]) {
+    for (const state of [opening, abroad, left, today, applied]) {
       const href = ptCountry.resultHref(state);
       expect(href.startsWith('/portugal/result#s=')).toBe(true);
       const page = readPageResult(

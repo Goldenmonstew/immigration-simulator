@@ -115,6 +115,7 @@ export const festivals = ptFestivals;
 export const achievements = hooks.ptAchievements;
 export { cardNote, ptCharacters, ptFurnishingNames, ptRules };
 export {
+  answersOn,
   currentCard,
   pathwayOf,
   permanentFee,
@@ -125,5 +126,6 @@ export {
   type PtGameTarget,
   type PtOutcome,
   type PtState,
+  type PtSteps,
   type PtTimeline,
 } from './rules';

@@ -557,8 +557,8 @@ export const ptActions: Activity<PtEffect, PtFestival>[] = [
       'Request a Portuguese criminal record certificate',
     ),
     note: t(
-      '永久居留要附上无犯罪记录证明（SRC-471 DR 84/2007 art. 64）。游戏里证明免费，只花时间。',
-      'Permanent residence needs a criminal record certificate (SRC-471, DR 84/2007 art. 64). In this game the certificate is free and only takes time.',
+      '永久居留要附上无犯罪记录证明（SRC-471 DR 84/2007 art. 64）。游戏里证明免费，只花时间；证明按当天日期记录，下一季的评估起计入。',
+      'Permanent residence needs a criminal record certificate (SRC-471, DR 84/2007 art. 64). In this game the certificate is free and only takes time; it carries today’s date and joins the assessment from next quarter.',
     ),
     minutes: b.minutes.paperwork,
     effects: [{ type: 'record' }],
@@ -587,8 +587,8 @@ export const ptActions: Activity<PtEffect, PtFestival>[] = [
       'Book an appointment and sort the declaration papers',
     ),
     note: t(
-      '声明要附出生证明、婚姻登记和无犯罪记录证明（SRC-483）。游戏里只花时间。',
-      'The declaration needs birth, marriage and criminal record papers (SRC-483). In this game it only takes time.',
+      '声明要附出生证明、婚姻登记和无犯罪记录证明（SRC-483）。游戏里只花时间；材料按当天日期记录，下一季的评估起计入，之后才能递交声明。',
+      'The declaration needs birth, marriage and criminal record papers (SRC-483). In this game it only takes time; the papers carry today’s date and join the assessment from next quarter, when the declaration can go in.',
     ),
     minutes: b.minutes.paperwork,
     effects: [{ type: 'declarationPapers' }],

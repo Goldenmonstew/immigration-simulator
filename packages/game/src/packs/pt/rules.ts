@@ -21,9 +21,16 @@ const pathwayIds = {
 /** The questionnaire's routes a character is assessed on, in its own names. */
 export type PtGameTarget = keyof typeof pathwayIds;
 
+/** Papers obtained in town, each dated the day it was obtained. */
+export interface PtSteps {
+  ciple?: IsoDate;
+  record?: IsoDate;
+  papers?: IsoDate;
+}
 /** The assessed answers, as the Portuguese questionnaire stores them. */
 export type PtTimeline = Omit<PtFullRequest, 'simulationDate' | 'locale'> & {
   targets: PtGameTarget[];
+  steps: PtSteps;
 };
 export type PtFestival = 'reis' | 'cravos' | 'santos' | 'magusto';
 export type PtState = GameState<PtTimeline, CountryResult, PtFestival>;
@@ -32,9 +39,9 @@ export type PtColumn = 'pr' | 'nat';
 export type PtOutcome = CountryPathway['status'];
 
 export type PtEffect =
-  /** An in-game CIPLE pass, recorded as the certificate. */
+  /** An in-game CIPLE pass, recorded as the certificate on that day. */
   | { type: 'ciple' }
-  /** The Portuguese criminal record certificate, in hand. */
+  /** The Portuguese criminal record certificate, obtained that day. */
   | { type: 'record' }
   /** Birth, marriage and criminal record papers for the declaration. */
   | { type: 'declarationPapers' }
@@ -58,6 +65,41 @@ export function pathwayOf(
   return state.result.columns[0]?.pathways.find(
     (pathway) => pathway.id === pathwayIds[target],
   );
+}
+
+/**
+ * The questionnaire answers as they stood on the assessment date. Papers carry
+ * the day they were obtained, after the quarter's first day, so they join the
+ * assessment in the next quarter, as trips do on return.
+ */
+export function answersOn(
+  timeline: PtTimeline,
+  date: IsoDate,
+): Omit<PtTimeline, 'steps'> {
+  const { steps, ...answers } = timeline;
+  const by = (day?: IsoDate) => !!day && day <= date;
+  const ciple = { kind: 'ciple' } as const;
+  return {
+    ...answers,
+    ...(answers.nationality && {
+      nationality:
+        by(steps.ciple) && answers.nationality.language
+          ? { ...answers.nationality, language: ciple }
+          : answers.nationality,
+    }),
+    ...(answers.residence && {
+      residence: {
+        ...answers.residence,
+        ...(by(steps.ciple) && { language: ciple }),
+        ...(by(steps.record) && { criminalRecordAvailable: true }),
+      },
+    }),
+    ...(answers.partner && {
+      partner: by(steps.papers)
+        ? { ...answers.partner, documentsReady: true }
+        : answers.partner,
+    }),
+  };
 }
 
 /** The current residence card: the last permit in the record. */
@@ -148,7 +190,7 @@ export const ptRules: EvaluationAdapter<
   PtFestival
 > = {
   evaluate({ date, timeline, locale }) {
-    const { targets, ...answers } = timeline;
+    const { targets, ...answers } = answersOn(timeline, date);
     const result = evaluatePortugalFull({
       ...answers,
       simulationDate: date,
@@ -192,21 +234,20 @@ export const ptRules: EvaluationAdapter<
         addMonths(to, portugal2026_11.values.residenceRightMonths.value)
     );
   },
+  // Papers carry the day they are obtained (see answersOn).
   applyEffect(state, effect, { setFlags }) {
-    const { residence, nationality, partner } = state.timeline;
+    const { residence, steps } = state.timeline;
     switch (effect.type) {
       case 'ciple':
-        residence!.language = { kind: 'ciple' };
-        // The naturalisation questions record the same certificate.
-        if (nationality?.language) nationality.language = { kind: 'ciple' };
+        steps.ciple = state.day.date;
         setFlags(state, ['ciple-passed', 'quarter-exam-passed']);
         return true;
       case 'record':
-        residence!.criminalRecordAvailable = true;
+        steps.record = state.day.date;
         setFlags(state, ['record-ready']);
         return true;
       case 'declarationPapers':
-        partner!.documentsReady = true;
+        steps.papers = state.day.date;
         setFlags(state, ['declaration-papers']);
         return true;
       case 'feePaid':

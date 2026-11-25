@@ -4,6 +4,7 @@ import {
   portugal2026_11,
   portugalFull2026_11,
 } from '@uk-immigration/policy-data';
+import { addDays, firstWeekday } from '../src/calendar';
 import * as pt from '../src/packs/pt';
 
 type State = ReturnType<typeof pt.newGame>;
@@ -40,9 +41,11 @@ function visit(state: State, place: string, minute: number) {
     state = settle(pt.tick(state, minute - state.day.minute));
   return settle(pt.enter(state, place));
 }
-/** The game on a later assessment date, re-evaluated by the engine. */
+/** The game on a later assessment date and its workday, re-evaluated. */
 function on(state: State, date: string) {
   state.date = date;
+  if (state.day.kind === 'workday')
+    state.day.date = firstWeekday(addDays(date, 7), 2);
   state.result = pt.ptRules.evaluate(state);
   return state;
 }
@@ -164,14 +167,17 @@ test('a JSON save round trip continues the same quarter after a trip', () => {
   expect(quarterLater(restored)).toEqual(played);
 });
 
-test('CIPLE and the criminal record certificate are written into the timeline', () => {
+test('CIPLE and the criminal record certificate carry the day they are obtained and join the next quarter', () => {
   const start = settle(pt.newGame('worker', 5, 'en'));
   const loja = visit(start, 'ward', 1080);
   const record = pt.doActivity(loja, 'criminal-record');
-  expect(record.timeline.residence?.criminalRecordAvailable).toBe(true);
+  expect(record.timeline.steps).toEqual({ record: '2026-03-10' });
   expect(pt.activities(record, 'ward').map(({ id }) => id)).not.toContain(
     'criminal-record',
   );
+  // Obtained after the quarter's assessment date, so not assessed yet.
+  expect(checks(record, 'pr')['PT-B06']).toBe('NOT_MET');
+  expect(checks(on(record, '2026-06-01'), 'pr')['PT-B06']).toBe('MET');
 
   const unready = visit(start, 'college', 1080);
   const failed = pt.doActivity(unready, 'exam');
@@ -179,19 +185,39 @@ test('CIPLE and the criminal record certificate are written into the timeline', 
   expect([failed.pendingEvent, ...failed.eventQueue]).toContain(
     'system-exam-failed',
   );
-  expect(failed.timeline.residence?.language).toEqual({ kind: 'none' });
+  expect(failed.timeline.steps).toEqual({});
 
   const ready = visit(start, 'college', 1080);
   ready.stats.portuguese = 60;
   const exam = pt.activities(ready, 'college').find(({ id }) => id === 'exam')!;
   expect(exam.label.en).toContain(`€${fees.cipleFee.value}`);
+  expect(exam.note?.en).toContain('next quarter');
   const passed = pt.doActivity(ready, 'exam');
-  expect(passed.timeline.residence?.language).toEqual({ kind: 'ciple' });
-  expect(passed.timeline.nationality?.language).toEqual({ kind: 'ciple' });
-  expect(checks(passed, 'pr')['PT-B05']).toBe('MET');
+  expect(passed.timeline.steps).toEqual({ ciple: '2026-03-10' });
+  expect(passed.timeline.residence?.language).toEqual({ kind: 'none' });
+  expect(checks(passed, 'pr')['PT-B05']).toBe('NOT_MET');
   expect(pt.activities(passed, 'college').map(({ id }) => id)).not.toContain(
     'exam',
   );
+  const later = on(passed, '2026-06-01');
+  expect(checks(later, 'pr')['PT-B05']).toBe('MET');
+  const answers = pt.answersOn(later.timeline, later.date);
+  expect(answers.residence?.language).toEqual({ kind: 'ciple' });
+  expect(answers.nationality?.language).toEqual({ kind: 'ciple' });
+  expect('steps' in answers).toBe(false);
+});
+
+test('the application is not offered once the card has ended by the playable day', () => {
+  const state = settle(pt.newGame('worker', 5, 'en'));
+  state.timeline.steps = { ciple: '2026-09-08', record: '2026-09-08' };
+  on(state, '2026-12-01');
+  expect(pt.permanentFileable(state)).toBe(true);
+  // The card still runs on the assessment date but ends before the workday.
+  pt.currentCard(state).to = '2026-12-10';
+  on(state, '2026-12-01');
+  const office = visit(state, 'visa', 600);
+  expect(office.day.date).toBe('2026-12-15');
+  expect(pt.activities(office, 'visa').map(({ id }) => id)).toEqual([]);
 });
 
 test('permanent residence goes in at AIMA with only the means assessment open, and pays the fee', () => {
@@ -200,8 +226,7 @@ test('permanent residence goes in at AIMA with only the means assessment open, a
   expect(pt.activities(closed, 'visa').map(({ id }) => id)).toEqual([]);
 
   const state = structuredClone(start);
-  state.timeline.residence!.language = { kind: 'ciple' };
-  state.timeline.residence!.criminalRecordAvailable = true;
+  state.timeline.steps = { ciple: '2026-09-08', record: '2026-09-08' };
   on(state, '2026-12-01');
   expect(pt.pathwayOf(state, 'pr')?.status).toBe('UNKNOWN');
   expect(
@@ -239,8 +264,7 @@ test('permanent residence goes in at AIMA with only the means assessment open, a
 
 test('after the fee table ends the application is free in the game, as the fee is unknown', () => {
   const state = settle(pt.newGame('worker', 5, 'en'));
-  state.timeline.residence!.language = { kind: 'ciple' };
-  state.timeline.residence!.criminalRecordAvailable = true;
+  state.timeline.steps = { ciple: '2026-09-08', record: '2026-09-08' };
   on(state, fees.aimaFeeDates.value.until);
   expect(pt.permanentFee(state.date)).toBeUndefined();
   expect(checks(state, 'pr')['PT-B07-FEE']).toBe('UNKNOWN');
@@ -252,7 +276,7 @@ test('after the fee table ends the application is free in the game, as the fee i
   expect(pt.doActivity(office, 'settle').stats.money).toBe(office.stats.money);
 });
 
-test('the nationality declaration by marriage needs its papers and ends with the declaration text', () => {
+test('the nationality declaration by marriage needs papers from an earlier day and ends with the declaration text', () => {
   const start = settle(pt.newGame('partner', 5, 'en'));
   const state = on(structuredClone(start), '2027-03-01');
   expect(pt.pathwayOf(state, 'nat')?.status).toBe('MET');
@@ -261,15 +285,19 @@ test('the nationality declaration by marriage needs its papers and ends with the
     'declaration-papers',
   ]);
   const papers = pt.doActivity(registry, 'declaration-papers');
-  expect(papers.timeline.partner?.documentsReady).toBe(true);
+  expect(papers.timeline.steps).toEqual({ papers: registry.day.date });
+  // Sorted today, they are assessed from the next quarter.
+  expect(pt.activities(papers, 'bureau')).toEqual([]);
+  const next = on(papers, '2027-06-01');
+  expect(checks(next, 'nat')['PT-G06']).toBe('MET');
   const declare = pt
-    .activities(papers, 'bureau')
+    .activities(next, 'bureau')
     .find(({ id }) => id === 'declare')!;
   expect(declare.label.en).toContain(`€${fees.adultNationalityFee.value.eur}`);
-  const ended = pt.doActivity(papers, 'declare');
+  const ended = pt.doActivity(next, 'declare');
   expect(ended.ending).toBe('settled');
   expect(ended.stats.money).toBe(
-    papers.stats.money - fees.adultNationalityFee.value.eur,
+    next.stats.money - fees.adultNationalityFee.value.eur,
   );
   expect(pt.narrative(ended).at(-1)?.en).toContain('nationality declaration');
   // The worker has no declaration to make.

@@ -70,7 +70,7 @@ export function itemIcon(id: string) {
 export function gameDraft(state: PtState): PortugalDraft {
   const draft: PortugalDraft = {
     ...createPortugalDraft(),
-    ...structuredClone(state.timeline),
+    ...structuredClone(ptGame.answersOn(state.timeline, state.date)),
     simulationDate: state.date,
     completed: true,
   };

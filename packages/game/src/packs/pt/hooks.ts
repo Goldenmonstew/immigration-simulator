@@ -14,6 +14,7 @@ import type {
 import { ptBalance as b } from './balance';
 import { ptCharacters } from './characters';
 import {
+  currentCard,
   pathwayOf,
   permanentFee,
   permanentFileable,
@@ -98,32 +99,31 @@ export function actionAvailable(
   action: PtActivity,
   { affordable }: PtTools,
 ): boolean | undefined {
-  // The fee joins the effects only in actionDetails, after this check.
+  const { steps } = state.timeline;
+  // The fee joins the effects only in actionDetails, after this check. The
+  // application goes in today, so the card must still run today.
   if (action.id === 'settle')
     return (
       permanentFileable(state) &&
+      state.day.date <= currentCard(state).to! &&
       affordable(state, [
-        { type: 'money', delta: -(permanentFee(state.date) ?? 0) },
+        { type: 'money', delta: -(permanentFee(state.day.date) ?? 0) },
       ])
     );
-  if (action.id === 'criminal-record')
-    return !state.timeline.residence?.criminalRecordAvailable;
+  if (action.id === 'criminal-record') return !steps.record;
   if (action.id === 'declaration-papers')
-    return (
-      assessedFor(state, 'partner') && !state.timeline.partner?.documentsReady
-    );
+    return assessedFor(state, 'partner') && !steps.papers;
+  // The papers count once the assessment includes them (see answersOn).
   if (action.id === 'declare')
     return (
       assessedFor(state, 'partner') &&
-      !!state.timeline.partner?.documentsReady &&
+      !!steps.papers &&
+      steps.papers <= state.date &&
       pathwayOf(state, 'nat')?.status === 'MET' &&
       affordable(state, action.effects)
     );
   if (action.id === 'exam')
-    return (
-      state.timeline.residence?.language?.kind !== 'ciple' &&
-      affordable(state, action.effects)
-    );
+    return !steps.ciple && affordable(state, action.effects);
   if (
     action.id === 'class' &&
     state.day.kind === 'workday' &&
@@ -134,7 +134,7 @@ export function actionAvailable(
 
 export function actionDetails(state: PtState, action: PtActivity): void {
   if (action.id === 'settle') {
-    const fee = permanentFee(state.date);
+    const fee = permanentFee(state.day.date);
     action.label =
       fee === undefined
         ? t(
@@ -157,8 +157,8 @@ export function actionDetails(state: PtState, action: PtActivity): void {
     if (state.stats.portuguese >= b.portugueseExamScore)
       action.effects = [...action.effects, { type: 'ciple' }];
     action.note = t(
-      `游戏内葡语 ${state.stats.portuguese} / ${b.portugueseExamScore}。通过后记为 CIPLE 证书，即永久居留要求的基础葡语（${basicPortuguese}，SRC-480）。`,
-      `In-game Portuguese ${state.stats.portuguese} / ${b.portugueseExamScore}. A pass records the CIPLE certificate, the basic Portuguese (${basicPortuguese}) permanent residence asks for (SRC-480).`,
+      `游戏内葡语 ${state.stats.portuguese} / ${b.portugueseExamScore}。通过后记为当天取得的 CIPLE 证书，即永久居留要求的基础葡语（${basicPortuguese}，SRC-480），下一季的评估起计入。`,
+      `In-game Portuguese ${state.stats.portuguese} / ${b.portugueseExamScore}. A pass records the CIPLE certificate on the day, the basic Portuguese (${basicPortuguese}) permanent residence asks for (SRC-480); it joins the assessment from next quarter.`,
     );
   }
 }
