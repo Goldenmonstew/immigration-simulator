@@ -42,6 +42,7 @@ const pagesByCountry: Partial<Record<CountryId, string[]>> = {
   au: calculatorPages,
   nz: calculatorPages,
   jp: calculatorPages,
+  us: calculatorPages,
 };
 
 export const sitePagePaths = [
