@@ -200,7 +200,14 @@ test.each([
     const ended = au.doActivity(office, 'settle');
     expect(ended.ending).toBe('settled');
     expect(ended.stats.money).toBe(office.stats.money - fee);
+    // The ending is written as the 191 is lodged, in the character's words.
     expect(au.narrative(ended).at(-1)).toEqual(au.characterOf(id).settlement);
+    expect(ended.log.filter(({ kind }) => kind === 'ending')).toEqual([
+      expect.objectContaining({
+        id: 'settled',
+        text: au.characterOf(id).settlement,
+      }),
+    ]);
   },
 );
 
@@ -210,3 +217,31 @@ test('an ended visa closes the story', () => {
   for (let i = 0; i < 6 && !au.isOver(state); i++) state = nextDay(state);
   expect(state.ending).toBe('overstayed');
 });
+
+test.each([
+  ['nurse', '2029-09-01', 'AU-191-time-held'],
+  ['graduate', '2029-06-01', 'AU-191-HK-time-held'],
+] as const)(
+  'when the %s visa ends unlodged, the ending assessment shows the 191 not met',
+  (id, lastQuarter, held) => {
+    const start = settle(au.newGame(id, 5, 'en'));
+    Object.assign(start.timeline.publicInterest, {
+      health: 'cleared',
+      policeDocuments: 'supplied',
+    });
+    start.timeline.regional.assessmentYears = [2025, 2026, 2027, 2028];
+    let state = at(start, lastQuarter);
+    expect(au.pathwayOf(state.result)?.status).toBe('MET');
+    for (let i = 0; i < 6 && !au.isOver(state); i++) state = nextDay(state);
+    expect(state.ending).toBe('overstayed');
+    // The visa's end date in the timeline is its status: the engine no longer
+    // finds the qualifying visa held at lodgement (Sch 1 item 1139(3)).
+    expect(au.currentVisa(state).to! < state.date).toBe(true);
+    const pathway = au.pathwayOf(state.result)!;
+    expect(pathway.status).toBe('NOT_MET');
+    expect(pathway.checks.find((check) => check.id === held)?.status).toBe(
+      'NOT_MET',
+    );
+    expect(au.progress(state).pr.outcome).toBe('NOT_MET');
+  },
+);
