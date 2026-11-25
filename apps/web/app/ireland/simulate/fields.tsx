@@ -28,6 +28,17 @@ export function setAnswer(
   return next;
 }
 
+/** Unticking the last option returns to unanswered; "none" needs the button. */
+export function toggleOption(
+  chosen: string[] | undefined,
+  option: string,
+  checked: boolean,
+) {
+  if (checked) return [...(chosen ?? []), option];
+  const rest = chosen?.filter((item) => item !== option);
+  return rest?.length ? rest : undefined;
+}
+
 export function IrelandFieldsView(props: FieldsProps) {
   return Object.entries(props.fields).map(([name, field]) =>
     shownField(field, props.draft) ? (
@@ -240,11 +251,7 @@ function Question({
                 id={`${id}-${option}`}
                 checked={!!chosen?.includes(option)}
                 onChange={(event) =>
-                  set(
-                    event.target.checked
-                      ? [...(chosen ?? []), option]
-                      : chosen?.filter((item) => item !== option),
-                  )
+                  set(toggleOption(chosen, option, event.target.checked))
                 }
               />
               {t(key('option', `${labelName}.${option}`))}

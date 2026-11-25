@@ -6,6 +6,7 @@ import {
 } from '@uk-immigration/engine';
 import IrelandPage from '../app/ireland/page';
 import IrelandPolicyPage from '../app/ireland/policy/page';
+import { toggleOption } from '../app/ireland/simulate/fields';
 import IrelandSimulatePage from '../app/ireland/simulate/page';
 import { IrelandWhatIfControls } from '../app/ireland/whatif/controls';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
@@ -868,3 +869,13 @@ test(
   },
   slow,
 );
+
+test('clearing the last ticked option returns a multiple choice to unanswered', () => {
+  expect(toggleOption(undefined, 'prior', true)).toEqual(['prior']);
+  expect(toggleOption([], 'prior', true)).toEqual(['prior']);
+  expect(toggleOption(['continuous', 'prior'], 'prior', false)).toEqual([
+    'continuous',
+  ]);
+  // Only the "Confirm there are none" button records an empty answer.
+  expect(toggleOption(['continuous'], 'continuous', false)).toBeUndefined();
+});
