@@ -530,6 +530,25 @@ export const usEvents: UsEvent[] = [
     ],
   },
   {
+    // Queued by afterQuarter when the shared quarter end returned the short
+    // let, so the move back has a day to report from.
+    id: 'system-lease-ended',
+    channel: 'morning',
+    title: t('短租到期', 'The short let ends'),
+    text: t(
+      '账户撑不起顶层公寓的房租，押金退回来了。今天你把箱子搬回原来的三层砖楼，新地址又要报给 USCIS。',
+      'The account cannot carry the top-floor rent, so the deposit comes back. Today you carry the boxes back to the old three-flat, and USCIS needs the address again.',
+    ),
+    weight: 0,
+    choices: [
+      {
+        id: 'move-back',
+        label: t('搬回去', 'Move back'),
+        effects: [{ type: 'moved' }],
+      },
+    ],
+  },
+  {
     id: 'system-hospital',
     channel: 'morning',
     title: t('身体按下暂停', 'Your body hits pause'),

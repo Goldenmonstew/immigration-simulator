@@ -54,6 +54,7 @@ export const usGameContent: GameContentPack<
   actionFlags: hooks.actionFlags,
   afterAction: hooks.afterAction,
   afterActionAwards: hooks.afterActionAwards,
+  afterQuarter: hooks.afterQuarter,
   quarterEffects: (played) => [
     {
       type: 'stat',

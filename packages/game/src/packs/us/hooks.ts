@@ -330,6 +330,24 @@ export function afterActionAwards(
   log.text = next.outcome.text;
 }
 
+/**
+ * The shared quarter end returns a short let the money cannot carry without a
+ * move effect. The move back is queued for the first morning at home, so it
+ * carries that day and the AR-11 can go in on it.
+ */
+export function afterQuarter(state: UsState): void {
+  const ended = state.log.some(
+    (entry) =>
+      entry.id === 'brighter-home-return' &&
+      entry.year === state.year &&
+      entry.quarter === state.quarter,
+  );
+  if (ended) state.flags.push('lease-move-due');
+  if (!state.flags.includes('lease-move-due') || state.trip) return;
+  state.flags = state.flags.filter((flag) => flag !== 'lease-move-due');
+  state.eventQueue.push('system-lease-ended');
+}
+
 export function shopStock(state: UsState, place: PlaceId) {
   if (place === 'green' && state.day.festival)
     return usItems.filter(

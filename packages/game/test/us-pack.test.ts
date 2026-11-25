@@ -230,6 +230,31 @@ test('a move is offered only while the AR-11 can still be filed that day', () =>
   );
 });
 
+test('a short let that ends for lack of money is a move to report', () => {
+  const home = visit(us.newGame('engineer', 5, 'en'), 'home', 480);
+  const moved = settle(us.doActivity(home, 'rent-brighter-home'));
+  const reported = settle(
+    us.doActivity(visit(moved, 'home', 500), 'address-report'),
+  );
+  // Too little left for next quarter's rent: the let ends at quarter end.
+  reported.stats.money = 1_000;
+  const next = quarterLater(reported);
+  expect(next.flags).not.toContain('brighter-home');
+  // The move back is recorded on the first morning, with the AR-11 due.
+  expect(next.timeline.moves).toHaveLength(2);
+  expect(next.timeline.moves.at(-1)).toEqual({ movedOn: next.day.date });
+  expect(next.flags).toContain('address-report-due');
+  expect(ids(visit(next, 'home', 500), 'home')).toContain('address-report');
+  // Abroad when the let ends: the move waits for the trip home.
+  const station = visit(reported, 'station', 600);
+  station.stats.money = 4_500;
+  const back = settle(us.doActivity(station, 'travel-3'));
+  expect(back.flags).not.toContain('brighter-home');
+  const last = back.timeline.moves.at(-1)!;
+  expect(last.movedOn >= back.timeline.trips.at(-1)!.returned).toBe(true);
+  expect(back.flags).toContain('address-report-due');
+});
+
 test('the I-751 is mailed on a day inside its window and stays pending', () => {
   const answers = (state: State, pathway: 'US-SPOUSE' | 'US-TRAVEL') =>
     us.usRequest(state.timeline, pathway, us.filingDay(state.date), 'en');
