@@ -254,6 +254,14 @@ const messages = {
     '只计法定可计入的部分，不含奖金。',
     'Count only the statutory components, excluding bonuses.',
   ],
+  'ie.hint.blankNo': [
+    '只在有这种情况时选「是」。未填时按「否」核对。',
+    'Choose “Yes” only if this applies. Blank counts as “No”.',
+  ],
+  'ie.hint.sponsorIrish': [
+    '担保人是爱尔兰公民（包括已入籍）时选「是」。未填时按「否」核对，家庭许可续期与首次登记可能因此少查共同住址或保险。',
+    'Choose “Yes” if the sponsor is an Irish citizen, including by naturalisation. Blank counts as “No”, so a family permission renewal or first registration may skip the joint address or insurance checks.',
+  ],
   'ie.hint.nextRenewalOn': [
     '满足条件当天或之后最早一次线上续期的日期。',
     'The earliest online renewal on or after the day you become eligible.',

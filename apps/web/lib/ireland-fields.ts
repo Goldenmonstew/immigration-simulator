@@ -480,7 +480,7 @@ type FamilyQuestions = Omit<IrelandFamily, 'grantOn' | 'application'> & {
 const applicationSections = {
   famChannel: {
     date: date({ label: 'familyApplicationDate' }),
-    renewalInsuranceRequired: bool(),
+    renewalInsuranceRequired: bool({ hint: 'blankNo' }),
     renewalInsuranceConditionMet: bool(),
     channel: choice(
       [
@@ -594,7 +594,7 @@ const familyRelationshipFields = {
   custodyConsent: bool(),
   sponsorAdult: bool(),
   sponsorCategory: choice(['A', 'B', 'C']),
-  sponsorIrish: bool(),
+  sponsorIrish: bool({ hint: 'sponsorIrish' }),
   sponsorLawfulAndResident: bool(),
   sponsorQualifyingFrom: date(),
   protectionRelationshipFormedAfterEntry: bool(),
@@ -689,7 +689,7 @@ export const ltrFields = {
   }),
   canContinueEmployment: bool(),
   termsComplied: bool(),
-  pastBreachUnderReview: bool(),
+  pastBreachUnderReview: bool({ hint: 'blankNo' }),
   validPermission: bool({ label: 'ltrValidPermission' }),
   residenceAndApplicationEvidence: bool(),
   character,
@@ -873,7 +873,7 @@ export const treatySections = {
         addressAndStatusNotified: bool(),
         prolongedAbsenceNotified: bool(),
         publicInterest: choice(['clear', 'pending', 'restricting-order']),
-        examRequested: bool(),
+        examRequested: bool({ hint: 'blankNo' }),
         examDone: bool(),
         priorPermanentRightOn: date(),
         postGrantAbsence: group<
@@ -882,7 +882,7 @@ export const treatySections = {
           from: date({ label: 'absenceFrom', ...required }),
           returnedOn: date(),
         }),
-        extraFeeRequested: bool(),
+        extraFeeRequested: bool({ hint: 'blankNo' }),
       },
       { label: 'treatyDocument' },
     ),

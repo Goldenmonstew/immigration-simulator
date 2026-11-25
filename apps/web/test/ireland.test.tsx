@@ -1264,6 +1264,14 @@ function withAnswer(
 }
 const within = (outer: string[], inner: string[]) =>
   outer.every((key, i) => inner[i] === key);
+const saysBlankIsNo = (field: IrelandField) =>
+  !!field.hint &&
+  t(`ie.hint.${field.hint}` as TranslationKey, 'zh-CN').includes(
+    '未填时按「否」核对',
+  ) &&
+  t(`ie.hint.${field.hint}` as TranslationKey, 'en').includes(
+    'Blank counts as “No”',
+  );
 
 test(
   'stage hints list exactly the answers the engine reads as met when blank',
@@ -1608,11 +1616,19 @@ test(
               : answerAt(draft, path) !== undefined &&
                 blank([path]) === before &&
                 read({ path, field });
-        if (
-          asMet &&
-          !items.some((item) => item.paths.some((p) => within(p, path)))
-        )
+        const listedHere = items.some((item) =>
+          item.paths.some((p) => within(p, path)),
+        );
+        if (asMet && !listedHere)
           problems.push(`${id} ${hint}: ${path.join('.')} is met when blank`);
+        // A yes-or-no question read as "No" when blank says so in its own
+        // hint, unless the stage hint lists it (review99-3 risk 1).
+        const asNo =
+          field.type === 'boolean' &&
+          read({ path, field }) &&
+          blank([path]) === outcome(withAnswer(draft, path, false));
+        if (asNo && !listedHere && !saysBlankIsNo(field))
+          problems.push(`${id} ${hint}: ${path.join('.')} is no when blank`);
       }
       for (const item of items) {
         if (blank(item.paths) !== before)
