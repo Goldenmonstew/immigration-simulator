@@ -939,3 +939,10 @@
 | 1019.1 | 任务 103 审核建议（review103g-2 建议 2）：当天晚于签证到期日时，澳大利亚的 `visaStatus` 不再给 `validTo`（已没有签证在生效），共用外壳的快进警告因此改用 `au.game.fastVisaWarningNone`，文案改为"签证已到期，这一季结束时本局结束"。澳大利亚本来没有"无到期日"的签证，这条文案只在过期后出现。警告下的"去政府服务中心"按钮由共用外壳无条件显示，只改内容包去不掉，本项未改共用外壳。PROGRESS 1020–1029 已被任务 104 使用，本行起用小数号。 | apps/web/app/australia/game/shell.tsx、apps/web/i18n/countries/australia-game.ts、apps/web/test/australia-game.test.tsx |
 | 1019.2 | 任务 103：澳大利亚 e2e 英文顶栏的金额改按存档读取。第一天的早间卡可能发钱（如护士的夜班加给），写死 $15,000 会随新游戏的随机种子偶尔失败（本轮四个游戏 e2e 第一次跑时出现 1 次）；改为读存档里的余额并按 en-AU 千分位核对。 | apps/e2e/tests/australia-game.spec.ts |
 | 1019.3 | 任务 103 审核修正报告（review103g-2）：报告末尾加"审核修正（review103g-2）"一节（四段，逐条对应风险 1 与建议 1–3；建议 3 因顶栏文案由共用外壳生成、只改内容包做不到而未改，写明原因与共用改法）。 | docs/tasks/reports/103-au-game.md |
+| 1220 | 任务 116 共用游戏修正：进度条详情弹窗标题改为该路径名（原为"进入新一年前 → 进入新一年后"，与内容不符；美国、澳大利亚游戏报告提出），日本 e2e 核对弹窗名 | `apps/web/app/game-shell/game-client.tsx`、`apps/e2e/tests/japan-game.spec.ts` |
+| 1221 | 任务 116 共用游戏修正：日记申请分组加入 `naturalise`（日本递交帰化后出现"文件夹越装越厚"；德国游戏审核提出）；季末自动退租日志与日记菜地收成英文不再写英国的"明亮住处""allotment"，各国通用（澳大利亚游戏审核提出）；单测核对 | `packages/game/src/game.ts`、`packages/game/test/jp-pack.test.ts`、`packages/game/test/time-and-economy.test.ts` |
+| 1222 | 任务 116 测试稳定性：日本英文 e2e 的存款断言改为只匹配金额格式（开局卡片会花钱，种子取当前时间，约 3.75% 偶发失败）；`apps/web` 与 `packages/engine` 的 `test` 脚本照 `packages/game` 设 `--testTimeout=60000`（CI runner 慢，西班牙游戏、葡萄牙政策页等重测试超过默认 5 秒） | `apps/e2e/tests/japan-game.spec.ts`、`apps/web/package.json`、`packages/engine/package.json` |
+| 1223 | 任务 116 共用游戏修正：结局页"在模拟器里打开这条时间线"链接按钮被 `.theme.theme a` 覆盖成深绿字配绿底（对比度约 1.3:1），链接按钮恢复白字；英国 e2e 核对颜色 | `apps/web/app/uk/game/game.module.css`、`apps/e2e/tests/game.spec.ts` |
+| 1224 | AGENTS.md 记录用户 2026-11-25 决定：Gemini 周额度用完后由未参与实现的 Claude 子 agent 终审、通过即合并，Gemini 恢复后补复查 | `AGENTS.md` |
+| 1225 | 任务 116 报告 | `docs/tasks/reports/116-shared-fixes.md` |
+| 1226 | 任务 116 审核建议跟进（review116-1）：删掉 engine 希腊入籍单测的 10 秒单测超时（低于新的 60 秒默认）；`.theme.theme a.secondary` 同样恢复按钮文字色；报告措辞改准 | `packages/engine/test/greece-settlement.test.ts`、`apps/web/app/uk/game/game.module.css`、`docs/tasks/reports/116-shared-fixes.md` |

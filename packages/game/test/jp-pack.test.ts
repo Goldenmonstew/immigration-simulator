@@ -327,6 +327,9 @@ test('applying for naturalisation ends with the naturalisation text', () => {
   expect(text.zhCN).toContain('帰化申请的材料递进了法务局');
   expect(text).not.toEqual(jp.characterOf('engineer').settlement);
   expect(ended.log.find(({ kind }) => kind === 'ending')?.text).toEqual(text);
+  expect(jp.narrative(ended).map(({ zhCN }) => zhCN)).toContain(
+    '文件夹越装越厚，下一段生活逐渐有了形状。',
+  );
 });
 
 test('the diary casts a line on the Ōoka River, not at a pond', () => {
