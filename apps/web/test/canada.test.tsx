@@ -382,6 +382,32 @@ test('typed codes drop surrounding spaces and an extension asks for its date', (
   expect(html).toMatch(new RegExp(`id="${extension}"[^>]* required=""`));
 });
 
+// review95-2 suggestion 2: clearing the last detail of a group marked as
+// applying keeps the "applies" answer.
+test('an applying group stays applying when its details are cleared', () => {
+  const draft: CanadaDraft = {
+    ...ca.createDraft(),
+    step: 6,
+    simulationDate: '2026-11-24',
+    goals: ['CA-PNP'],
+    answers: {
+      pnp: {
+        stream: 'ontario-workforce',
+        // A partly filled group, as the form keeps it.
+        ontario: { recentGraduate: { fullTimeYears: 2 } as never },
+      },
+    },
+  };
+  let patch: Partial<CanadaDraft> = {};
+  form(draft, (next) => (patch = next));
+  inputs.get('ca-pnp-ontario-recentGraduate-fullTimeYears')!({
+    target: { value: '' },
+  });
+  expect(patch.answers?.pnp?.ontario).toEqual({ recentGraduate: {} });
+  const html = form({ ...draft, answers: patch.answers! });
+  expect(html).toContain(t('ca.field.fullTimeYears'));
+});
+
 // review95-1 #3 and suggestion 3: labels say what the engine counts.
 test('Quebec sponsored groups include the new group and the other labels match the form', () => {
   expect(t('ca.field.sponsoredGroups')).toContain('本次新增');

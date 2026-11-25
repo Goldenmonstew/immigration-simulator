@@ -119,14 +119,20 @@ function Question({
   const label =
     (shownLabel ?? t(`ca.field.${field.label}` as TranslationKey)) +
     (field.required ? ' *' : '');
-  const nested = (fields: CanadaField[], record: unknown, key: string) => (
+  // An emptied record falls back to `empty`, e.g. {} keeps "applies".
+  const nested = (
+    fields: CanadaField[],
+    record: unknown,
+    key: string,
+    empty?: Answers,
+  ) => (
     <CanadaFields
       fields={fields}
       values={record as Answers | undefined}
       id={key}
       errors={errors}
       draft={draft}
-      change={(next) => set(next)}
+      change={(next) => set(next ?? empty)}
     />
   );
   switch (field.type) {
@@ -325,7 +331,12 @@ function Question({
               {field.fields.some((child) => child.required) && (
                 <p className={form.hint}>{t('ca.form.optionalGroup')}</p>
               )}
-              {nested(field.fields, applies ? value : undefined, id)}
+              {nested(
+                field.fields,
+                applies ? value : undefined,
+                id,
+                field.allowFalse ? {} : undefined,
+              )}
             </>
           )}
         </fieldset>

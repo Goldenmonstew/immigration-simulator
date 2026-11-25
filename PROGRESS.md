@@ -732,3 +732,4 @@
 | 917 | 任务 95 审核修正（review95-2 问题 1 后半）。加拿大 `earliestLabel` 改为按路径的键表：只有居住义务的日期行标为“预计满足条件的日期”；普通入籍按当天签署核对全部条件，回到共用的“最早可申请日期（推算）”。 | apps/web/lib/canada-module.ts、apps/web/test/canada.test.tsx |
 | 918 | 任务 95 审核修正（review95-2 风险 1）。加拿大 PNP 投资分组加提示：持股比例按百分数填写，门槛为三分之一，恰为三分之一时请填 33.34（由参数 `pnpInvestment.minEquityShare` 换算为两位小数中最小的达标值，SRC-261 IRPR s87(5)–(6)），填该值时 CA-R45 为 `MET`。 | apps/web/lib/canada-fields.ts、apps/web/app/canada/simulate/page.tsx、apps/web/i18n/countries/canada.ts、apps/web/test/canada.test.tsx |
 | 919 | 任务 95 审核修正（review95-2 风险 3）。魁省担保群组（表 B）不再提供“确认没有记录”：新担保至少有本次新增一组；本机草稿或分享链接里该列表为空时按未答处理，CA-R78 为待确认，不再按 0 计入表 B。其他清单不变。 | apps/web/lib/canada-{fields,draft}.ts、apps/web/app/canada/simulate/fields.tsx、apps/web/test/canada.test.tsx |
+| 920 | 任务 95 审核修正（review95-2 建议 2）。加拿大“适用／不适用”分组（如安省近期毕业）选“适用”后，清空最后一个子项时仍保留“适用”（存为空记录），不再无提示退回未答、隐藏子项。 | apps/web/app/canada/simulate/fields.tsx、apps/web/test/canada.test.tsx |
