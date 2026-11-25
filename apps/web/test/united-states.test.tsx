@@ -29,6 +29,7 @@ import { unitedStatesModule as us } from '../lib/united-states-module';
 import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
 import { gapRules } from '../lib/gap-summary';
+import { pathwayDate } from '../lib/country-module';
 import { readPageResult } from '../lib/page-result';
 import { draftStorage } from '../lib/storage';
 
@@ -328,7 +329,6 @@ test('a planned return in the future gives the return date, which the comparison
     id: 'US-TRAVEL',
     status: 'FUTURE',
     earliestDate: '2026-12-20',
-    travelDate: null,
   });
   const knobs = us.whatif.initial(travelDraft());
   expect(knobs).toMatchObject({
@@ -409,33 +409,35 @@ test('naturalization with open requirements is pending and lists them with sourc
   );
 });
 
+const conditionsDraft: UsDraft = {
+  version: 1,
+  step: 13,
+  completed: true,
+  simulationDate: '2026-11-21',
+  pathway: 'US-CONDITIONS',
+  dateOfBirth: '1990-05-01',
+  permanentResident: '2025-06-01',
+  conditional: 'marriage',
+  trips: [],
+  conditions: {
+    marriage: {
+      marriedOn: '2024-01-01',
+      bonaFide: 'cleared',
+      improperConsideration: false,
+      filing: 'joint',
+      spouseJoins: true,
+      finalRemovalOrder: false,
+    },
+  },
+  fees: {
+    channel: 'online',
+    relief: 'none',
+    onlineCategoryAvailable: 'cleared',
+  },
+};
+
 test('removing conditions before the window shows the earliest filing date and the approval stage', () => {
-  const draft: UsDraft = {
-    version: 1,
-    step: 13,
-    completed: true,
-    simulationDate: '2026-11-21',
-    pathway: 'US-CONDITIONS',
-    dateOfBirth: '1990-05-01',
-    permanentResident: '2025-06-01',
-    conditional: 'marriage',
-    trips: [],
-    conditions: {
-      marriage: {
-        marriedOn: '2024-01-01',
-        bonaFide: 'cleared',
-        improperConsideration: false,
-        filing: 'joint',
-        spouseJoins: true,
-        finalRemovalOrder: false,
-      },
-    },
-    fees: {
-      channel: 'online',
-      relief: 'none',
-      onlineCategoryAvailable: 'cleared',
-    },
-  };
+  const draft = conditionsDraft;
   const pathway = pathwayOf(draft, 'en');
   expect(pathway).toMatchObject({
     status: 'FUTURE',
@@ -983,9 +985,9 @@ test('results show the approval stage and keep procedural notes out of the gaps 
     if (/^US-C4[45]-/.test(check.id))
       expect(check.kind, check.id).toBe('information');
   expect(gapRules(pathway)).toEqual([]);
-  // The return date is named as the planned return (#6).
-  expect(pathway.summary).toContain(
-    t('us.result.returnOn').replace('{date}', '2026-12-20'),
+  // The return date is named as the planned return (#6, task 93 shared fix).
+  expect(pathwayDate(pathway, us.earliestLabel)?.label).toBe(
+    'us.result.returnDate',
   );
   // Pending details use the country wording, not the UK one (#6).
   const pendingHtml = render(
@@ -1078,4 +1080,46 @@ test('opening a United States share link keeps the local draft and the skip link
     expect(html, sub).not.toContain('href="#main"');
     expect(html, sub).toMatch(/<button type="button"[^>]*>跳到主要内容/);
   }
+});
+
+test('a planned return is labelled as the return date, other pathways keep the filing date label (task 93 shared fix)', () => {
+  const future = pathwayOf(travelDraft());
+  expect(pathwayDate(future, us.earliestLabel)).toEqual({
+    label: 'us.result.returnDate',
+    date: '2026-12-20',
+  });
+  // A completed return has no date to show.
+  expect(
+    pathwayDate(pathwayOf(travelDraft('2026-11-10')), us.earliestLabel),
+  ).toBeUndefined();
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const label = t('us.result.returnDate', locale);
+    const html = render(
+      <ResultView
+        country={us}
+        result={us.run(travelDraft(), locale)}
+        draft={travelDraft()}
+      />,
+      locale,
+    );
+    // Result facts and the gap summary both name the planned return.
+    expect(html).toContain(`<dt>${label}</dt>`);
+    expect(html).toContain(
+      `${label}${locale === 'en' ? ': ' : '：'}2026-12-20`,
+    );
+    expect(html).not.toContain(t('result.earliest', locale));
+  }
+  // Filing pathways still show the earliest filing date.
+  const filing = pathwayOf(conditionsDraft);
+  expect(filing.status).toBe('FUTURE');
+  expect(pathwayDate(filing, us.earliestLabel)?.label).toBe('result.earliest');
+  expect(
+    render(
+      <ResultView
+        country={us}
+        result={us.run(conditionsDraft, 'zh-CN')}
+        draft={conditionsDraft}
+      />,
+    ),
+  ).toContain(t('result.earliest'));
 });

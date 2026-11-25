@@ -29,17 +29,10 @@ function run(draft: UsDraft, locale: Locale): UsFullResult {
         check.informational || /^US-C4[45]-/.test(check.id)
           ? 'information'
           : 'requirement';
-    // A return date is not a filing date.
-    if (pathway.id === 'US-TRAVEL') {
+    // The travel pathway's date is the planned return (earliestLabel). A
+    // completed return has none to show.
+    if (pathway.id === 'US-TRAVEL' && pathway.status !== 'FUTURE')
       pathway.travelDate = null;
-      if (pathway.status === 'FUTURE' && pathway.earliestDate)
-        pathway.summary +=
-          separator +
-          t('us.result.returnOn', locale).replace(
-            '{date}',
-            pathway.earliestDate,
-          );
-    }
     // The main status is for filing (or return). Approval is shown alongside.
     if (pathway.approvalStatus)
       pathway.summary +=
@@ -67,6 +60,7 @@ export const unitedStatesModule: CountryModule<UsDraft, UnitedStatesWhatIf> = {
   id: 'us',
   version: 1,
   scenarioLinks: true,
+  earliestLabel: { 'US-TRAVEL': 'us.result.returnDate' },
   createDraft: createUnitedStatesDraft,
   activeAnswers: activeUnitedStatesAnswers,
   validateStep: validateUnitedStatesStep,

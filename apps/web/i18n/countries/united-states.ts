@@ -33,7 +33,7 @@ export const zhCN = {
   'us.policy.change.eb5.summary':
     'I-526、I-526E、I-829 及区域中心诚信费按收件日适用新费率。',
   'us.result.approval': '核准阶段：{status}。',
-  'us.result.returnOn': '计划返美日：{date}。',
+  'us.result.returnDate': '计划返美日',
   'us.whatif.date': '评估日期',
   'us.whatif.dateHint':
     '按这一天判断能否递交或返美。改动后请核对与日期有关的答案，例如面谈和裁决日。',
@@ -102,7 +102,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.policy.change.eb5.summary':
     'New amounts apply by receipt date to Forms I-526, I-526E and I-829 and the regional center integrity fee.',
   'us.result.approval': 'Approval stage: {status}.',
-  'us.result.returnOn': 'Planned return date: {date}.',
+  'us.result.returnDate': 'Planned return date',
   'us.whatif.date': 'Assessment date',
   'us.whatif.dateHint':
     'Eligibility to file or return is tested on this date. Check date-related answers such as interview and decision dates after changing it.',
