@@ -2236,7 +2236,7 @@ SRC-100、101、103、106–108 复用已有快照。SRC-104、105 的议会材�
 
 ### SRC-410 Aufenthaltsverordnung（签发、处理、证件收费及境内申请）
 
-对应 AufenthV §§ 39、41 的境内申请条件，以及 §§ 44–53 的费率、预缴、未成年人及减免。
+对应 AufenthV §§ 39、41 的境内申请条件，以及 §§ 44–53 的费率、预缴、未成年人及减免。`§ 45 Nr. 2`：延长居留许可、欧盟蓝卡或 ICT 卡，再居留不超过 3 个月的 96 欧元（Buchst. a），超过 3 个月的 93 欧元（Buchst. b）。
 
 - `policy-sources/2026-11-23-de-aufenthv.html` → <https://www.gesetze-im-internet.de/aufenthv/BJNR294510004.html>
 

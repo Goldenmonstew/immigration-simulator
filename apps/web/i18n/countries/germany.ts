@@ -1,9 +1,11 @@
 import { deFormZh, deFormEn } from './germany-form';
 import { zhCN as moduleZh, en as moduleEn } from './germany-module';
+import { deGameZh, deGameEn } from './germany-game';
 
 export const zhCN = {
   ...deFormZh,
   ...moduleZh,
+  ...deGameZh,
   'hub.de.code': 'DE',
   'hub.de.paths': '定居许可 · 欧盟长期居留 · 入籍 · 自由流动永久居住权',
   'hub.de.desc':
@@ -35,6 +37,7 @@ export const zhCN = {
 export const en: Record<keyof typeof zhCN, string> = {
   ...deFormEn,
   ...moduleEn,
+  ...deGameEn,
   'hub.de.code': 'DE',
   'hub.de.paths':
     'Settlement permit · EU long-term · Naturalisation · Free-movement permanent right',

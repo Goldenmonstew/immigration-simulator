@@ -2,6 +2,7 @@ import {
   DE_PROCEDURE_CHECKS,
   evaluateGermanyFull,
   type CountryCheck,
+  type CountryResult,
   type Locale,
 } from '@uk-immigration/engine';
 import { t } from '../i18n';
@@ -40,6 +41,20 @@ function checkKind(
   return 'requirement';
 }
 
+/** Sets each check's display group, as the result page shows it. */
+export function classifyGermanyChecks(
+  result: CountryResult,
+  documentedTravel: boolean,
+) {
+  for (const pathway of result.columns[0].pathways)
+    for (const check of pathway.checks)
+      check.kind = checkKind(
+        check.id,
+        documentedTravel && pathway.id === 'DE-R00',
+      );
+  return result;
+}
+
 function run(draft: GermanyDraft, locale: Locale) {
   const confirmed = activeGermanyAnswers(draft);
   const result = evaluateGermanyFull({
@@ -47,11 +62,10 @@ function run(draft: GermanyDraft, locale: Locale) {
     routes: confirmed.routes.length ? confirmed.routes : undefined,
     locale,
   });
-  const documented = confirmed.mobility?.titles !== undefined;
-  for (const pathway of result.columns[0].pathways)
-    for (const check of pathway.checks)
-      check.kind = checkKind(check.id, documented && pathway.id === 'DE-R00');
-  return result;
+  return classifyGermanyChecks(
+    result,
+    confirmed.mobility?.titles !== undefined,
+  );
 }
 
 export const germanyModule: CountryModule<GermanyDraft, GermanyWhatIf> = {

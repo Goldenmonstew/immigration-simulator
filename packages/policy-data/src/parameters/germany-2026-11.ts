@@ -372,6 +372,12 @@ export const germanyFull2026_11 = {
         { srcId: 'SRC-433', locator: 'BGBl. 2026 I Nr. 31 Art. 4, 10 Abs. 1' },
       ],
     },
+    // AufenthV § 45 Nr. 2 Buchst. b: extending a residence permit or Blue
+    // Card for a further stay of more than three months.
+    extensionFee: {
+      value: 93,
+      sources: [{ srcId: 'SRC-410', locator: 'AufenthV § 45 Nr. 2 Buchst. b' }],
+    },
     expressFee: {
       value: 35,
       sources: [{ srcId: 'SRC-410', locator: '§ 45a' }],

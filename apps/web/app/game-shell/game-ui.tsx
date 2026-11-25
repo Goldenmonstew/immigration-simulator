@@ -37,6 +37,7 @@ export const iconPaths = {
   health: 'M12 21S2 15 2 8a5 5 0 0 1 10-1A5 5 0 0 1 22 8c0 7-10 13-10 13z',
   english: 'M3 3h7q2 0 2 2 0-2 2-2h7v16h-7q-2 0-2 2-0-2-2-2H3z M12 5v16',
   japanese: 'M3 3h7q2 0 2 2 0-2 2-2h7v16h-7q-2 0-2 2-0-2-2-2H3z M12 5v16',
+  german: 'M3 3h7q2 0 2 2 0-2 2-2h7v16h-7q-2 0-2 2-0-2-2-2H3z M12 5v16',
   career: 'M3 7h18v14H3z M8 7V3h8v4 M3 12q9 6 18 0 M12 12v4',
   visa: 'M5 2h14v20H5z M16 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0z M8 18h8',
   sunny:

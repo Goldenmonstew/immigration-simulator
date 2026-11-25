@@ -1,0 +1,36 @@
+// Keep the asset manifest separate from the engine and stories for the initial HTML.
+// Germany reuses the shared CC0 art; its own cast borrows existing residents.
+export const deGameArt = {
+  root: '/game',
+  town: '/assets/meadow-town',
+  banner: '/germany/town-banner.png',
+  townMap: '/germany/town.json',
+  homeMap: '/home.json',
+  defaultResident: 'skilled-worker',
+  residents: [] as string[],
+  cast: {
+    bluecard: 'ka-ning-partner',
+    spouse: 'jamie',
+    gisela: 'margaret',
+    uwe: 'dave',
+    sabine: 'maeve',
+    murat: 'rahman',
+    jonas: 'gareth',
+    trang: 'graduate',
+    emeka: 'ade',
+    leon: 'ka-ning-child',
+    lena: 'lina',
+  } as Record<string, string>,
+  shopSigns: [
+    'cafe',
+    'shop',
+    'pub',
+    'gp',
+    'library',
+    'college',
+    'visa',
+    'council',
+    'station',
+  ],
+  crops: ['potato', 'strawberry', 'tomato', 'cucumber', 'sunflower', 'turnip'],
+};
