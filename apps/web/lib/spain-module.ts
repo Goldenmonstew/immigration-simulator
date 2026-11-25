@@ -1,6 +1,7 @@
 import {
   evaluateSpainFull,
   type CountryCheck,
+  type CountryResult,
   type Locale,
 } from '@uk-immigration/engine';
 import { t } from '../i18n';
@@ -68,8 +69,12 @@ function checkKind(id: string, decides: boolean): CountryCheck['kind'] {
   return time.includes(id) ? 'time' : 'requirement';
 }
 
-function run(draft: SpainDraft, locale: Locale) {
-  const result = evaluateSpainFull({ ...spainEngineInput(draft), locale });
+/**
+ * The engine result as the result page shows it: check kinds and the date a
+ * held free-movement right was acquired. The town game shows its assessment
+ * through this too.
+ */
+export function presentSpainResult(result: CountryResult, locale: Locale) {
   for (const pathway of result.columns[0].pathways)
     for (const check of pathway.checks)
       check.kind = checkKind(
@@ -91,6 +96,12 @@ function run(draft: SpainDraft, locale: Locale) {
       );
   return result;
 }
+
+const run = (draft: SpainDraft, locale: Locale) =>
+  presentSpainResult(
+    evaluateSpainFull({ ...spainEngineInput(draft), locale }),
+    locale,
+  );
 
 export const spainModule: CountryModule<SpainDraft, SpainWhatIf> = {
   id: 'es',

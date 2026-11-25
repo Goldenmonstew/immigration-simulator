@@ -14,6 +14,10 @@ const gameClients = {
     ssr: false,
     loading: () => <GameLoading country="jp" />,
   }),
+  es: dynamic(() => import('./spain/game/game-client'), {
+    ssr: false,
+    loading: () => <GameLoading country="es" />,
+  }),
 } satisfies Record<GameCountryId, React.ComponentType>;
 
 function GameLoading({ country }: { country: GameCountryId }) {
