@@ -45,6 +45,7 @@ function residence(ctx: MyContext, until: IsoDate) {
   const counted = ['health', 'government-service'];
   return {
     prKnown: since !== undefined,
+    noPr: since === null,
     tripsKnown: req.trips !== undefined,
     passesKnown: req.passes !== undefined,
     strict: minus(
@@ -73,7 +74,9 @@ function verdict(r: Residence, ok: (spans: Span[]) => boolean) {
   return false;
 }
 
-const answered = (r: Residence) => r.prKnown && r.tripsKnown;
+// Without permanent residence nothing counts unless the Minister consents, so
+// unanswered absences cannot change the result.
+const answered = (r: Residence) => r.prKnown && (r.tripsKnown || r.noPr);
 const consentPending = (r: Residence) =>
   r.prKnown && r.tripsKnown && r.passesKnown;
 

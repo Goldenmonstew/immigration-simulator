@@ -1889,6 +1889,30 @@ describe('review113-3 risks and suggestions', () => {
       [insurance('1966-11-24'), insurance('1965-11-24')].map((c) => c.status),
     ).toEqual(['NOT_MET', 'MET']);
   });
+
+  test('no permanent residence and no passes fail the timeline whatever the absences (risk 3)', () => {
+    for (const id of [
+      'my.cit.naturalisation',
+      'my.cit.wife-registration',
+    ] as const) {
+      const at = (permanentResidentSince: string | null) => {
+        const p = path(id, {
+          simulationDate: day,
+          dateOfBirth: '1980-01-01',
+          family: { tie: 'wife-of-citizen', marriageRegistration: 'malaysia' },
+          citizenship: { permanentResidentSince },
+          passes: [],
+        });
+        return [
+          p.checks.find((c) => c.id === 'my.cit.residence')?.status,
+          p.timeStatus,
+        ];
+      };
+      expect(at(null), id).toEqual(['NOT_MET', 'NOT_MET']);
+      // With permanent residence the absences decide.
+      expect(at('2010-01-01'), id).toEqual(['UNKNOWN', 'UNKNOWN']);
+    }
+  });
 });
 
 describe('29 February birthdays (review113-1 #10)', () => {
