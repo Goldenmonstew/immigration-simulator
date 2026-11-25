@@ -7,7 +7,7 @@ import * as gr from '@uk-immigration/game/gr';
 import { grGameArt } from '@uk-immigration/game/gr/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
-import { t, withCount } from '../i18n';
+import { t, withCount, type TranslationKey } from '../i18n';
 import { greeceModule } from '../lib/greece-module';
 import { decodeDraft } from '../lib/share';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
@@ -17,6 +17,7 @@ import {
   grShell,
   itemIcon,
 } from '../app/greece/game/shell';
+import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/greece/town.json';
 
 type State = ReturnType<typeof gr.newGame>;
@@ -138,6 +139,25 @@ test.each(['zh-CN', 'en'] as const)(
     expect(columns).toBeDefined();
     if (locale === 'en') expect(hud + bars).not.toMatch(/[㐀-鿿]/);
     expect(html).toContain('town-gr.current-law-2026-11-heading');
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'Greek recipes keep their own cooking steps in %s',
+  (locale) => {
+    for (const recipe of gr.recipes) {
+      const shared = `game.prepare-${recipe.id}` as TranslationKey;
+      const own = gameKey('gr', shared);
+      expect(own, recipe.id).toBe(`gr.${shared}`);
+      expect(t(own, locale), recipe.id).not.toBe(t(shared, locale));
+    }
+    expect(
+      t(gameKey('gr', 'game.prepare-horiatiki' as TranslationKey), locale),
+    ).toBe(
+      locale === 'en'
+        ? 'Chop tomato and cucumber, top with a slab of feta'
+        : '切番茄黄瓜，放一大块菲达奶酪',
+    );
   },
 );
 

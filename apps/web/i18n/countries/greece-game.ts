@@ -1,14 +1,14 @@
-// Greece's town game: its own stat and recipes, plus `gr.game.*` wording that
+// Greece's town game: its own stat, plus `gr.game.*` recipes and wording that
 // replaces the shared game strings (see gameKey in app/game-shell/game-ui.tsx).
 export const grGameZh = {
   'game.greek': '希腊语',
-  'game.prepare-horiatiki': '切番茄黄瓜，放一大块菲达奶酪',
-  'game.prepare-gemista': '番茄挖空塞进米饭，进烤箱',
-  'game.prepare-lemon-potatoes': '淋上柠檬汁和橄榄油，烤到金黄',
-  'game.prepare-grilled-sardines': '撒盐，在炭火上烤到皮脆',
-  'game.prepare-kakavia': '鱼和土豆一锅炖，挤半个柠檬',
-  'game.prepare-spoon-sweet': '加糖慢慢熬，装进小玻璃罐',
-  'game.prepare-grilled-corn': '在炭火上翻烤，撒一点盐',
+  'gr.game.prepare-horiatiki': '切番茄黄瓜，放一大块菲达奶酪',
+  'gr.game.prepare-gemista': '番茄挖空塞进米饭，进烤箱',
+  'gr.game.prepare-lemon-potatoes': '淋上柠檬汁和橄榄油，烤到金黄',
+  'gr.game.prepare-grilled-sardines': '撒盐，在炭火上烤到皮脆',
+  'gr.game.prepare-kakavia': '鱼和土豆一锅炖，挤半个柠檬',
+  'gr.game.prepare-spoon-sweet': '加糖慢慢熬，装进小玻璃罐',
+  'gr.game.prepare-grilled-corn': '在炭火上翻烤，撒一点盐',
   'gr.game.prColumn': '长期居留',
   'gr.game.natColumn': '入籍',
   'gr.game.cardValidTo': '居留卡有效至',
@@ -44,15 +44,17 @@ export const grGameZh = {
 
 export const grGameEn: Record<keyof typeof grGameZh, string> = {
   'game.greek': 'Greek',
-  'game.prepare-horiatiki': 'Chop tomato and cucumber, top with a slab of feta',
-  'game.prepare-gemista': 'Hollow the tomatoes, fill with rice and bake',
-  'game.prepare-lemon-potatoes':
+  'gr.game.prepare-horiatiki':
+    'Chop tomato and cucumber, top with a slab of feta',
+  'gr.game.prepare-gemista': 'Hollow the tomatoes, fill with rice and bake',
+  'gr.game.prepare-lemon-potatoes':
     'Douse in lemon and olive oil, roast until golden',
-  'game.prepare-grilled-sardines': 'Salt and grill over charcoal until crisp',
-  'game.prepare-kakavia':
+  'gr.game.prepare-grilled-sardines':
+    'Salt and grill over charcoal until crisp',
+  'gr.game.prepare-kakavia':
     'Stew the fish with potatoes, squeeze in half a lemon',
-  'game.prepare-spoon-sweet': 'Simmer slowly with sugar and pour into a jar',
-  'game.prepare-grilled-corn': 'Turn over charcoal and sprinkle with salt',
+  'gr.game.prepare-spoon-sweet': 'Simmer slowly with sugar and pour into a jar',
+  'gr.game.prepare-grilled-corn': 'Turn over charcoal and sprinkle with salt',
   'gr.game.prColumn': 'Long-term residence',
   'gr.game.natColumn': 'Naturalisation',
   'gr.game.cardValidTo': 'Residence card valid to',
