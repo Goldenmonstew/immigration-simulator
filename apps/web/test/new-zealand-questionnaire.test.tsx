@@ -10,10 +10,12 @@ import { NzWhatIfControls } from '../app/new-zealand/whatif/controls';
 import { ResultView } from '../components/result-view';
 import { t, type TranslationKey } from '../i18n';
 import {
+  nzGoals,
   nzStepDefinitions,
   nzSteps,
   type NzDraft,
 } from '../lib/new-zealand-draft';
+import type { NzField } from '../lib/new-zealand-fields';
 import { newZealandModule as nz } from '../lib/new-zealand-module';
 import { newZealandPolicy } from '../lib/new-zealand-policy';
 import { gapRules } from '../lib/gap-summary';
@@ -148,6 +150,15 @@ function residentDraft(goals: NzDraft['goals']): NzDraft {
   };
 }
 
+const createBlank = (): NzDraft => ({
+  version: 1,
+  step: 0,
+  completed: false,
+  simulationDate: '2026-11-23',
+  goals: nzGoals,
+  answers: {},
+});
+
 const pathways = (draft: NzDraft) => nz.run(draft, 'zh-CN').columns[0].pathways;
 const withAnswers = (draft: NzDraft, answers: object): NzDraft => ({
   ...draft,
@@ -174,6 +185,126 @@ test('a new draft leaves the trips unanswered, so no date follows from a skipped
     withAnswers(residentDraft(['prv', 'citizenship']), { trips: [] }),
   );
   expect(confirmed.map((path) => path.status)).toEqual(['MET', 'MET']);
+});
+
+type Key = string | number;
+const getIn = (root: unknown, keys: Key[]) =>
+  keys.reduce<unknown>(
+    (value, key) => (value as Record<Key, unknown> | undefined)?.[key],
+    root,
+  );
+function setIn(root: unknown, keys: Key[], value: unknown): unknown {
+  if (!keys.length) return value;
+  const [key, ...rest] = keys;
+  if (typeof key === 'number') return [setIn(undefined, rest, value)];
+  const record = (root ?? {}) as Record<string, unknown>;
+  return { ...record, [key]: setIn(record[key], rest, value) };
+}
+
+test('removing the last row of a list leaves it unanswered, so the outcome stays to be confirmed', () => {
+  const statuses = (draft: NzDraft) =>
+    pathways(draft).map((path) => [path.status, path.earliestDate]);
+  const step = (draft: NzDraft, key: string) => ({
+    ...draft,
+    step: stepIndex(key),
+  });
+  const removeLabel = (label: string) =>
+    `${t('nz.form.remove')} · ${t(`nz.f.${label}` as TranslationKey)} 1`;
+  const addLabel = (label: string) =>
+    `${t('nz.form.add')} · ${t(`nz.f.${label}` as TranslationKey)}`;
+
+  // Trips: a resident who adds a trip and then removes it has not answered.
+  const resident = residentDraft(['prv', 'citizenship']);
+  expect(statuses(resident)).toEqual([
+    ['UNKNOWN', undefined],
+    ['UNKNOWN', undefined],
+  ]);
+  const added = form(resident, 'history');
+  added.click(addLabel('trips'));
+  const withTrip = { ...resident, ...added.updates[0] };
+  expect(withTrip.answers.trips).toEqual([{}]);
+  const removed = form(withTrip, 'history');
+  removed.click(removeLabel('trips'));
+  const tripless = step({ ...resident, ...removed.updates[0] }, 'history');
+  expect(tripless.answers).not.toHaveProperty('trips');
+  expect(
+    form(tripless, 'history').nodes.some(
+      (n) => n.text === t('nz.form.emptyConfirmed'),
+    ),
+  ).toBe(false);
+  expect(statuses(tripless)).toEqual(statuses(resident));
+
+  // Dependants: adding one and removing it leaves the family unanswered.
+  const common = { ...resident.answers.common };
+  delete common.dependants;
+  const family = withAnswers(residentDraft(['prv']), { trips: [], common });
+  expect(statuses(family)).toEqual([['UNKNOWN', undefined]]);
+  const addedDependant = form(family, 'family');
+  addedDependant.click(addLabel('dependants'));
+  const withDependant = { ...family, ...addedDependant.updates[0] };
+  const removedDependant = form(withDependant, 'family');
+  removedDependant.click(removeLabel('dependants'));
+  const noDependant = { ...family, ...removedDependant.updates[0] };
+  expect(noDependant.answers.common).not.toHaveProperty('dependants');
+  expect(statuses(noDependant)).toEqual([['UNKNOWN', undefined]]);
+  // Only the button records that there are none.
+  const confirm = form(noDependant, 'family');
+  confirm.click(t('nz.form.noRecords'));
+  const none = { ...family, ...confirm.updates[0] };
+  expect(none.answers.common?.dependants).toEqual([]);
+  expect(statuses(none)).toEqual([['MET', '2026-11-23']]);
+
+  // Every list and value list, nested ones included, behaves the same way.
+  const lists: { key: string; keys: Key[]; field: NzField }[] = [];
+  const walk = (key: string, fields: NzField[], keys: Key[]) => {
+    for (const field of fields) {
+      if (field.type === 'list' || field.type === 'numbers')
+        lists.push({ key, keys: [...keys, field.name], field });
+      if (field.type === 'group')
+        walk(key, field.fields, [...keys, field.name]);
+      if (field.type === 'list')
+        walk(key, field.fields, [...keys, field.name, 0]);
+    }
+  };
+  for (const { key, sections } of nzStepDefinitions)
+    for (const section of sections) walk(key, section.fields, section.path);
+  const checked: string[] = [];
+  for (const { key, keys, field } of lists) {
+    const row = field.type === 'list' ? {} : null;
+    const draft: NzDraft = {
+      ...createBlank(),
+      // The business investor questions show once that route is chosen.
+      answers: setIn({ family: { investment: { route: 'business' } } }, keys, [
+        row,
+      ]) as NzDraft['answers'],
+    };
+    const page = form(draft, key);
+    const id = ['nz', ...keys].join('-');
+    const text =
+      field.type === 'list'
+        ? removeLabel(field.label)
+        : `${t('nz.form.remove')} · ${t('nz.form.value').replace('{n}', '1')}`;
+    const scope = field.type === 'list' ? page.nodes : flat([page.byId(id)!]);
+    const button = scope.find((n) => n.type === 'button' && n.text === text);
+    (button!.props.onClick as Handler)({});
+    const answers = page.updates[0].answers;
+    expect(getIn(answers, keys), id).toBeUndefined();
+    checked.push(id);
+  }
+  expect(checked).toEqual(
+    expect.arrayContaining([
+      'nz-trips',
+      'nz-common-dependants',
+      'nz-common-dependants-0-prvApplication-trips',
+      'nz-common-convictions',
+      'nz-common-residenceFiling-dependentChildrenUnlawfullyInNz',
+      'nz-common-evidence-police',
+      'nz-family-parent-sponsors',
+      'nz-family-parent-incomePeriods',
+      'nz-resident-prv-includedFamilyDaysInTwoYears',
+      'nz-family-investment-business-experience',
+    ]),
+  );
 });
 
 test('clearing an English method drops its hidden answers so the group can be left blank', () => {

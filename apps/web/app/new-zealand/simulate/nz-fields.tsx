@@ -115,7 +115,15 @@ function Question({
             <button
               type="button"
               className={form.remove}
-              onClick={() => set(rows.filter((_, index) => index !== i))}
+              // Removing the last row leaves the list unanswered; only the
+              // button below confirms that there are none.
+              onClick={() =>
+                set(
+                  rows.length === 1
+                    ? undefined
+                    : rows.filter((_, index) => index !== i),
+                )
+              }
             >
               {t('nz.form.remove')} · {label} {i + 1}
             </button>
