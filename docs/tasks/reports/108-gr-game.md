@@ -111,3 +111,49 @@
 - `sw.js` 缓存版本改成 `2026-11-24-v7-gr`（`about-page.test.tsx` 同步），与其他国家的分支合并时这一行会冲突，按最后合并的版本号处理。
 - `pnpm lint` 只跑 ESLint；`apps/web` 里 `app/hub-content.tsx`、`test/japan-questionnaire.test.tsx`、`test/page.test.tsx` 三个既有文件不符合 Prettier，本任务没碰它们。
 - 中途我用 `pkill -f "node serve.ts"` 停掉自己在 4429 端口起的静态服务器；按名字匹配，若当时别的 agent 的 Playwright 也用同一命令起了服务器，可能被一并停掉（之后检查时没有看到其他同名进程）。以后应按 PID 停止。
+
+## 合入 main 与试点修正跟进
+
+brief：`brief-108c`。本分支原先建在日本试点（任务 111）与希腊页面（任务 98）的早期版本上；两者合入 main 后，本节把 main 合进来，再按试点四轮审核修正（报告 `docs/tasks/reports/111-jp-game.md` 的 review111-1 至 review111-3 与"其他国家照做的要点"）逐项核对希腊游戏。实现者：Claude Opus 5.5。PROGRESS 行号按 brief 用 942 起（提交前查过全部本地与远端分支和其他 worktree，900 以上最大到 936，942–948 未被占用）。第 1–4 节里与本节不符的说法以本节为准：住址变更与申报现按当天日期记录；结局链接改用结果页入口回读；配偶的 Ο.3 失效后不再以 `overstayed` 收场。
+
+### 1. 做了什么（按 commit）
+
+| PROGRESS | commit | 对应试点修正 | 内容 |
+|---|---|---|---|
+| — | `Merge: 合入 main`（`109e0164`） | — | 合入当时的 main（日本游戏与共用外壳的审核修正、希腊页面多轮修正、德国/美国/澳大利亚页面等）。冲突只在 `site-countries.ts`（希腊保留带 `'game'` 的一行）、`sw.js` 与 `about-page.test.tsx`（缓存版本改为 `2026-11-25-grgame`）、`PROGRESS.md`（取并集）。共用外壳、`game.ts`、`content-pack.ts` 自动取 main 的写法；本分支对外壳唯一的改动 `iconPaths.greek` 原样保留；`game-page.tsx`、`lib/game-country.ts`、`packages/game/package.json` 的国家登记自动合并为日本与希腊并存。 |
+| 942 | `Fix: 希腊菜谱做法文案改用国家前缀键` | review111-1 问题 3 | 7 道希腊菜的做法键改为 `gr.game.prepare-<菜谱 ID>`，外壳 `gameKey` 优先取用，不会被英国或别国同 ID 的 `game.prepare-*` 覆盖。 |
+| 943 | `Test: 希腊入籍与长期居留结局文案按递交的申请种类` | review111-1 问题 2 | 核对：原分支已在 `beforeAction` 记下 `applied-pr` / `applied-nat`，结局文案按它选，无需改代码。补结局日志断言：配偶递交 Μ.3 的叙事与结局日志是她的定居文案；蓝卡工程师递交入籍的叙事与结局日志是入籍文案、不是定居文案。 |
+| 944 | `Fix: 希腊结局链接按问卷当前作答范围拼草稿，单测按角色回读结果页` | review111-1 问题 1 | 网页单测改为按角色、按开局 / 出境一个月后 / 带新税年的下一年三个状态，用结果页同一入口 `readPageResult(greeceModule, 'zh-CN', 片段, 'result')` 回读。配偶失败：问卷经多轮修正后（review98-1 剔除隐藏答案）在"希腊公民家属 + 入籍"下不再保留 `residenceIncome`，回读的草稿少了这一项。`gameDraft` 改为经 `activeGreeceAnswers` 拼草稿（`residenceIncome` 只给游戏算收入，引擎这两条路径不读它）。 |
+| 945 | `Fix: 希腊住址变更按当天日期记录，评估与结局链接草稿用评估日时间线` | review111-1 风险 2、review111-2 问题 1 | 搬家与申报改记 `state.day.date`（原来记季首日期），逾期补报的罚款按当天判断。新增 `timelineOn(timeline, date)`：评估日之后的住址变更先不计入，评估日之后的申报先按未申报；`grRules.evaluate` 与 `gameDraft` 都按它取时间线，结果页草稿里没有晚于模拟日期的已发生事项。行为变化：同季的搬家与申报下一季才进入评估；跨季补报在补报当季与之后都是不满足（希腊的申报期限是两个月，下一季首日已过期限，所以当季也是不满足，不像日本那样先显示待确认）。 |
+| 946 | `Fix: 希腊居留卡过期结局反映身份失效` | review111-3 | 希腊时间线里许可"没有到期日 = 按时续期"。过了逾期补交期时，`grRules.expired` 把当前许可的 `to` 写为卡到期日，即身份不再有效、也没有按时续期；季末结局评估与结局链接打开的结果页不再把之后的时间算作合法居留。蓝卡 2029-09-14 到期未续：修前 2030-03-01 的 `overstayed` 结局里 Μ.1 仍为满足，修后 `LT-TIME-RESIDENCE`、`NAT-TIME-RESIDENCE` 与两条路径都为未满足。 |
+| 947 | `Fix: 希腊配偶 Ο.3 失效后仍可递交 Μ.3，不以过期收场` | review111-3（配偶） | 引擎判断希腊公民家属 Μ.3 不看 Ο.3 卡是否有效（SRC-087 arts. 28、93Α：卡到期后实际居留中断不超过 `gfPeriods.interruptionYears` 仍保留转换权，卡到期满 `gfPeriods.lateFeeAfterYears` 后递交加收 `gfPeriods.lateFee`）。原来配偶过了逾期补交期就以 `overstayed` 收场，结局评估却显示 Μ.3 满足，许可写为失效也改变不了这一点。改为：配偶的许可同样在卡到期日截止（入籍不再计入之后的时间），但游戏不因卡失效结束，仍可在移民局递交 Μ.3；卡到期满一年后递交按引擎加收逾期费，标签写明。 |
+| — | `Merge: 合入 main`（`69b4760d`） | — | 合入期间 main 又进了新西兰与葡萄牙完整版页面；冲突同样只在 `site-countries.ts`（每国一行，希腊带 `'game'`）、`sw.js` 与 `about-page.test.tsx`（保留 `2026-11-25-grgame`）。 |
+| 948 | `Docs: 任务 108 合入 main 与试点修正跟进报告` | — | 本节与 PROGRESS。 |
+
+### 2. 怎么验证的
+
+- 每项先写回归测试并确认失败，再改：
+  - 942：网页单测「Greek recipes keep their own cooking steps」，修前 `gameKey('gr', 'game.prepare-horiatiki')` 返回不带前缀的键。
+  - 943：内容包单测补结局日志断言；把 `beforeAction` 临时换回 `actionFlags` 写法时，入籍用例失败（结局文案是蓝卡的定居文案），换回后通过。
+  - 944：网页单测「the ending link opens the same %s timeline」，修前配偶回读的草稿缺 `residenceIncome`、不等于 `gameDraft(state)`。
+  - 945：内容包单测「address changes carry the day and join the assessment next quarter」，修前记为 `2026-03-01`；网页单测「the ending link opens after %s moves and reports mid-quarter」（两位角色，同季搬家未申报、同季搬家并申报、跨季补报后各自离开），修前草稿里有晚于模拟日期的变更与申报。
+  - 946：内容包单测「a lapsed Blue Card ends the story with both routes unmet」，修前许可没有截止日、Μ.1 为满足；网页单测「a lapsed Blue Card ending shows both routes unmet」，修前结局为 `['MET', 'NOT_MET']`（临时撤回 `rules.ts` 改动复现）。
+  - 947：内容包单测「the spouse keeps the Μ.3 right after her Ο.3 card lapses」，修前 2028-12-01 已以 `overstayed` 结束；网页单测「the spouse plays on after her Ο.3 lapses」。
+  - 每个 commit 前跑了 game 与 web 的 typecheck、受影响文件的 ESLint 与 Prettier 检查、两个希腊测试文件。
+- 完整验收（HEAD `69b4760d`，即第二次合入 main 后、报告提交前）：`export VITEST_MAX_WORKERS=2` 后 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整条命令退出码 0。error-report 2、policy-data 23、engine 6,006（既有 1 项按默认跳过）、game 1,376（希腊内容包单测 12 → 14）、web 1,034（希腊网页单测 8 → 14）项通过；构建生成 58 个静态页面，`apps/web/out/greece/game.html` 已导出。（第一次合入后跑的整链在 engine 测试阶段因 main 又有新提交被我中止，没有失败用例；之后重新合入并整链重跑。）
+- 浏览器 e2e（上述静态构建）：确认 4482 端口空闲后 `cd apps/e2e && E2E_PORT=4482 npx playwright test tests/game.spec.ts tests/life.spec.ts tests/japan-game.spec.ts tests/greece-game.spec.ts --project=desktop --reporter=line`，31 项全部通过（英国 21、日本 5、希腊 5），退出码 0；服务由 Playwright 自行起停，跑完端口已释放，删除了 `apps/e2e/test-results`。
+- 视觉检查：用临时 Playwright 脚本无头截图（脚本放 scratchpad，跑时临时复制进 `apps/e2e/tests`，跑完删除，未入库）。厨房里拌希腊农夫沙拉，第 3 步显示「切番茄黄瓜，放一大块菲达奶酪」（前缀键生效）；配偶存档改到 2029-09-01、许可截止 2028-06-19 后，移民局的 Μ.3 标签为「申请费 €0、制卡 €16、逾期 €50」，费用 −€66，顶栏「居留卡剩余 0 个月」标红，长期居留条「已满足条件」、入籍条「未满足条件」。
+
+### 3. 没做或没验证的
+
+- 947 是规则语义上的取舍，需要统筹确认：配偶不再有 `overstayed` 结局。依据是引擎对希腊公民家属 Μ.3 的判断（卡到期后的保留与逾期费），游戏没有另加规则；如果更希望保留"卡失效即结束"，结局评估里 Μ.3 会与结局矛盾（引擎仍判满足）。配偶卡失效后顶栏剩余月数为 0、快进前仍有到期提醒，不能出境（出境须在卡有效期内），只能递交 Μ.3、离开或等到时间结束。
+- 日本 review111-1 风险 2 的另一半没有照做：希腊的申报期限是两个月，周末或节日搬家后，若下一季首个工作日已过期限，补报必然收罚款。游戏没有像日本那样只在"当天还能申报"时提供搬家（原分支同样如此，日期改为当天后结果不变）。
+- 试点其他修正（review111-1 建议 1 的厨房提示、结局家具名、抛竿地点，建议 4 的进度条措辞）不在本 brief 的五项里，没有改，见第 4 段。
+- 英国 e2e 截图基线未在本机比对（本机 Playwright 忽略截图）；没有跑 a11y spec 和 mobile project。
+- 第二次合入后 main 又合入了西班牙完整版页面（`3f9dae44`），本分支没有再合。`git merge-tree` 试合只在 `sw.js` 与 `about-page.test.tsx` 的缓存版本一行冲突，开 PR 前合入时按最后合并的版本号处理即可。
+
+### 4. 发现与建议（范围外，未实现）
+
+- 希腊仍用共用的英国语境文案：没有设 `GameCountry.furnishingNames`，离开或结局时"一点点布置的家"会显示英国家具名，而希腊商店卖的是阳台藤椅、木百叶窗、台灯；没有 `gr.game.kitchenNoIngredients`（空厨房提示仍说池塘与河鲈）；内容包没有 `fishingSpot`（日记写"池塘抛竿"，希腊是防波堤）。照日本 review111-1 建议 1 各加一项即可。
+- 希腊进度条 `FUTURE` 用的是 `country.status.FUTURE`「最早 X 满足条件」。希腊路径的 `FUTURE` 是整条路径的状态（其他条件都满足、只差日期），这句话是准确的；日本改措辞是因为日本用的是时间条件的 `timeStatus`。可以保留，但审核时可能会被问到。
+- 周末或节日搬家必然逾期的问题（第 3 段）：可在 `actionAvailable` 里只在移民局当天开门、或下一个可玩工作日仍在期限内时提供搬家与退租。
