@@ -188,14 +188,17 @@ export const grRules: EvaluationAdapter<
     income.netEur = Math.round(income.netEur! * multiplier);
     return true;
   },
-  // Past the late renewal period the card has lapsed and this story ends.
-  // The permit ends on its expiry date, so the ending's assessment counts no
-  // lawful residence after it.
+  // Past the late renewal period the card has lapsed: the permit ends on its
+  // expiry date, so no time after it counts as lawful residence, and the Blue
+  // Card story ends. The engine assesses a Greek citizen's family member's
+  // Μ.3 right apart from the card (SRC-087 arts. 28, 93Α: only a residence
+  // break over gfPeriods.interruptionYears ends it, and late filing adds
+  // gfPeriods.lateFee), so the spouse can still apply.
   expired(state) {
     const expiry = state.timeline.currentCardExpiresOn;
     if (renewalWindow(expiry).late >= state.date) return false;
     state.timeline.permits.at(-1)!.to ??= expiry;
-    return true;
+    return isBlueCard(state);
   },
   applyEffect(state, effect, { setFlags }) {
     const { timeline } = state;

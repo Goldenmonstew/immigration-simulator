@@ -107,11 +107,20 @@ function renewalFees(state: GrState) {
     late,
   };
 }
+/** Μ.3 filed over a year after the Ο.3 expired (SRC-087 art. 93Α(2)–(3)). */
+const lateGreekFamilyFee = (state: GrState) => {
+  const gf = values.gfPeriods.value;
+  const expiry = state.timeline.greekFamily!.priorCardExpiry!;
+  return state.date > addMonths(expiry, gf.lateFeeAfterYears * 12)
+    ? gf.lateFee
+    : 0;
+};
 const settleFees = (state: GrState) =>
   isBlueCard(state)
     ? values.longTermCard.value.initialFee + values.longTermCard.value.cardFee
     : values.gfPeriods.value.applicationFee +
-      values.cardFormalities.value.printFee;
+      values.cardFormalities.value.printFee +
+      lateGreekFamilyFee(state);
 const lateReport = (state: GrState) =>
   state.timeline.changes.some(
     (change) =>
@@ -175,8 +184,8 @@ export function actionDetails(state: GrState, action: GrActivity): void {
           `Apply for EU long-term residence Μ.1 (application and card ${euro(fee)}, ${src(values.longTermCard)})`,
         )
       : t(
-          `申请希腊公民家属永久居留卡 Μ.3（申请费 ${euro(values.gfPeriods.value.applicationFee)}、制卡 ${euro(values.cardFormalities.value.printFee)}，${src(values.gfPeriods)}）`,
-          `Apply for the permanent card for a Greek citizen’s family, Μ.3 (application ${euro(values.gfPeriods.value.applicationFee)}, card ${euro(values.cardFormalities.value.printFee)}, ${src(values.gfPeriods)})`,
+          `申请希腊公民家属永久居留卡 Μ.3（申请费 ${euro(values.gfPeriods.value.applicationFee)}、制卡 ${euro(values.cardFormalities.value.printFee)}${lateGreekFamilyFee(state) ? `、逾期 ${euro(lateGreekFamilyFee(state))}` : ''}，${src(values.gfPeriods)}）`,
+          `Apply for the permanent card for a Greek citizen’s family, Μ.3 (application ${euro(values.gfPeriods.value.applicationFee)}, card ${euro(values.cardFormalities.value.printFee)}${lateGreekFamilyFee(state) ? `, late filing ${euro(lateGreekFamilyFee(state))}` : ''}, ${src(values.gfPeriods)})`,
         );
     action.effects = [{ type: 'money', delta: -fee }, ...action.effects];
   }

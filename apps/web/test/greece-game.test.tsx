@@ -174,6 +174,23 @@ test('a lapsed Blue Card ending shows both routes unmet on the result page', () 
   expect(view(page.result!)).toEqual(view(state.result));
 });
 
+test('the spouse plays on after her Ο.3 lapses and the link shows the same routes', () => {
+  let state = settle(gr.newGame('spouse', 7, 'zh-CN'));
+  state.date = '2028-09-01';
+  for (let i = 0; i < 12 && state.date === '2028-09-01'; i++)
+    state = settle(gr.sleep(state));
+  expect([state.date, gr.isOver(state)]).toEqual(['2028-12-01', false]);
+  const page = openResult(state);
+  expect(page.correction).toBeUndefined();
+  expect(page.draft).toEqual(gameDraft(state));
+  expect(page.draft!.permits?.at(-1)?.to).toBe('2028-06-19');
+  expect(view(page.result!).map(({ status }) => status)).toEqual([
+    'MET',
+    'NOT_MET',
+  ]);
+  expect(view(page.result!)).toEqual(view(state.result));
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak Greek residence in %s',
   (locale) => {

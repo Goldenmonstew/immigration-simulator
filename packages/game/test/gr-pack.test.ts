@@ -190,6 +190,37 @@ test('a lapsed Blue Card ends the story with both routes unmet', () => {
   ]);
 });
 
+test('the spouse keeps the Μ.3 right after her Ο.3 card lapses', () => {
+  const gf = values.gfPeriods.value;
+  const printFee = values.cardFormalities.value.printFee;
+  let state = settle(gr.newGame('spouse', 9, 'en'));
+  state.date = '2028-09-01';
+  state.result = gr.grRules.evaluate({ ...state, locale: 'en' });
+  state = nextQuarter(state);
+  // Past the late renewal period of the card that expired on 2028-06-19.
+  expect(state.date).toBe('2028-12-01');
+  expect(gr.isOver(state)).toBe(false);
+  expect(state.timeline.permits.at(-1)?.to).toBe('2028-06-19');
+  expect(gr.pathwayOf(state.result, 'pr')?.status).toBe('MET');
+  expect(gr.pathwayOf(state.result, 'nat')?.status).toBe('NOT_MET');
+  const office = visit(state, 'visa', 600);
+  expect(gr.doActivity(office, 'settle').stats.money).toBe(
+    office.stats.money - gf.applicationFee - printFee,
+  );
+  // A year after expiry the Μ.3 filing carries the late fee.
+  const lateState = structuredClone(state);
+  lateState.date = '2029-09-01';
+  lateState.result = gr.grRules.evaluate({ ...lateState, locale: 'en' });
+  const late = visit(lateState, 'visa', 600);
+  const action = gr.activities(late, 'visa').find(({ id }) => id === 'settle')!;
+  expect(action.label.en).toContain(`late filing €${gf.lateFee}`);
+  const settled = gr.doActivity(late, 'settle');
+  expect(settled.ending).toBe('settled');
+  expect(settled.stats.money).toBe(
+    late.stats.money - gf.applicationFee - printFee - gf.lateFee,
+  );
+});
+
 test('Easter is the spring festival on the square, with tsoureki and a diary flag', () => {
   expect(
     [2026, 2027, 2028, 2029, 2030].map((year) => gr.orthodoxEaster(year)),
