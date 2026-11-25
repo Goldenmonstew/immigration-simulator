@@ -4,13 +4,15 @@
 
 2026-11-23 起（用户决定，第 20 阶段）：Codex 与 agy 的模型负责实现；Fable（Claude Code）只做分工统筹、写 brief、跑门禁与 e2e、做视觉验收、开 PR 与合并。代码审核仍由 Codex（gpt-6.2-sol）只读进行，页面设计评审由 agy 的 Gemini 模型进行。（2026-11-16 至 11-23 曾由 Fable 实现、Codex 只审核。）
 
+2026-11-24 起（用户决定）：Codex 额度用完暂停，agy Gemini 额度不够实现用；改由 Fable（Claude Code，可开 Claude 子 agent 在各自 worktree 并行）实现，agy 的 Gemini 模型只读审核代码与页面设计。Gemini 额度用完期间，由未参与实现的 Claude 子 agent 先做只读审核与复审，合并前最后一轮仍由 Gemini 审核（用户 2026-11-25 决定）。
+
 main 受分支保护：所有改动走 PR。CI 的 `check` 与 `e2e` 通过、Codex 审核意见处理完后才合并；合并后自动走预发、冒烟、正式发布。
 
 ## 角色与边界
 
 - 实现者（Codex gpt-6.2-astra / gpt-6.2-sol，agy 的 Claude、GPT-OSS、Gemini 模型）：在各自的 worktree / 分支上按 brief 实现，规则语义改动须附 SRC 定位与测试，每个逻辑改动更新 `PROGRESS.md` 一行（用 brief 分配的行号段）。agy 可以自己 commit；Codex 的沙箱写不了 `.git`，按 brief 在报告里分组列出改动，由 Fable 代为提交。
-- Fable（Claude Code）：拆任务、写 brief、分配编号段、跑门禁与 e2e、在浏览器里做视觉验收、推分支、开 PR、处理合并冲突、合并、核对线上。不写业务代码。
-- 审核者（Codex gpt-6.2-sol 只读；agy Gemini 只评审页面设计、布局与风格）：按"问题 / 风险 / 建议"列出意见，不改文件、不提交。
+- Fable（Claude Code）：拆任务、写 brief、分配编号段、跑门禁与 e2e、在浏览器里做视觉验收、推分支、开 PR、处理合并冲突、合并、核对线上。2026-11-24 起也负责实现。
+- 审核者（Codex gpt-6.2-sol 只读，暂停中；agy Gemini 只读审核代码与页面设计）：按"问题 / 风险 / 建议"列出意见，不改文件、不提交。
 - 每个任务只做约定的范围。范围外的问题写进报告的"发现与建议"，不要擅自实现。
 - 审核者不要修改 `PROGRESS.md`、`AGENTS.md`、`CLAUDE.md`。
 
