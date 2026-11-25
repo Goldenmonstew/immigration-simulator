@@ -314,9 +314,13 @@ export function assessMm2h(ctx: MyContext): MyPathway {
     check(
       'my.pass.medical-insurance',
       L('体检与健康保险', 'Medical examination and health insurance'),
-      years !== undefined && years > screening.insuranceMaxAge
-        ? true
-        : m.healthInsurance,
+      // Insurance meets it at any age; without it the age decides.
+      m.healthInsurance ||
+        (years === undefined
+          ? undefined
+          : years > screening.insuranceMaxAge
+            ? true
+            : m.healthInsurance),
       [
         ref('SRC-517', '健康检查 p5'),
         ref('SRC-520', 'p12（印刷 p22–23）、p26'),
@@ -324,7 +328,13 @@ export function assessMm2h(ctx: MyContext): MyPathway {
       L(
         `获批后主申请人与受养人须到旅游部指定诊所体检；${screening.insuranceMaxAge} 岁及以下须有马来西亚或外国保险公司承保、全球保障的健康保险，原文未写最低保额。`,
         `After approval the main applicant and dependants have a medical at a ministry panel clinic; those aged ${screening.insuranceMaxAge} or under need health insurance with worldwide cover from a Malaysian or foreign insurer. No minimum cover is written.`,
-      ),
+      ) +
+        (m.healthInsurance === false && years === undefined
+          ? L(
+              `所填没有健康保险，未填生日，无法确认是否 ${screening.insuranceMaxAge} 岁及以下而须投保。`,
+              ` No health insurance is reported and no date of birth is entered, so whether the applicant is ${screening.insuranceMaxAge} or under and needs it is unknown.`,
+            )
+          : ''),
     ),
     info(
       'my.pass.work',

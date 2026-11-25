@@ -1874,6 +1874,21 @@ describe('review113-3 risks and suggestions', () => {
       ]),
     ).toEqual(['FUTURE', '2028-02-01', 0]);
   });
+
+  test('MM2H insurance without a birth date is open (risk 1)', () => {
+    // SRC-520 p12: insurance "for applicants aged 60 and below".
+    const insurance = (dateOfBirth?: string) =>
+      cond('my.pass.mm2h', 'my.pass.medical-insurance', {
+        simulationDate: day,
+        dateOfBirth,
+        mm2h: { healthInsurance: false },
+      });
+    expect(insurance().status).toBe('UNKNOWN');
+    expect(insurance().explanation).toContain('未填生日');
+    expect(
+      [insurance('1966-11-24'), insurance('1965-11-24')].map((c) => c.status),
+    ).toEqual(['NOT_MET', 'MET']);
+  });
 });
 
 describe('29 February birthdays (review113-1 #10)', () => {
