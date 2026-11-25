@@ -96,6 +96,20 @@ export const extensionPending = (state: {
   date: IsoDate;
 }) => !!currentPermit(state).renewing;
 
+/**
+ * The date to show for the card: its own end date, except while an
+ * extension is pending and that date falls before the next quarter, when the
+ * card continues under § 81 Abs. 4 and no date applies.
+ */
+export function cardValidTo(state: DeState) {
+  const to = currentPermit(state).to;
+  return extensionPending(state) &&
+    to &&
+    to < addMonths(state.date, b.monthsPerQuarter)
+    ? undefined
+    : to;
+}
+
 /** Months to the end of the current permit, rounded down. */
 function visaMonthsLeft(state: DeState): number {
   const to = currentPermit(state).to;
@@ -217,6 +231,9 @@ export const deRules: EvaluationAdapter<
   progress,
   route: (state) => state.timeline.routes[0],
   visaMonthsLeft,
+  // Play resumes at the first quarter start on or after the return. Until an
+  // application is in, that quarter's workday, when the Ausländerbehörde is
+  // open, must still fall before the card ends.
   canTravel: (state, through) => {
     const to = currentPermit(state).to;
     if (!to || through > to) return false;
@@ -235,9 +252,6 @@ export const deRules: EvaluationAdapter<
       nonTemporary: false,
       exception: 'none',
     });
-  // Play resumes at the first quarter start on or after the return. Until an
-  // application is in, that quarter's workday, when the Ausländerbehörde is
-  // open, must still fall before the card ends.
   },
   earnings(state) {
     const card = state.timeline.mobility.blueCard;

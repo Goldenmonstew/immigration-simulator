@@ -181,12 +181,28 @@ test('the ending link opens after a Blue Card extension is filed and naturalisat
   const naturalised = de.doActivity(visit(later, 'bureau', 600), 'naturalise');
   expect(naturalised.ending).toBe('settled');
   for (const ending of [filed, next, naturalised]) reopen(ending);
-  // The status bar shows the pending application rather than a new date.
+  // While the card's own date is beyond this quarter it is shown, so the
+  // fast-forward notice stays quiet; in its last quarter the pending notice
+  // takes over (de.game.fastVisaWarningNone).
   expect(deCountry.visaStatus(next)).toEqual({
     months: 7,
     renewed: true,
+    validTo: '2029-01-14',
+  });
+  const lastQuarter = structuredClone(next);
+  lastQuarter.date = '2028-12-01';
+  expect(deCountry.visaStatus(lastQuarter)).toEqual({
+    months: 1,
+    renewed: true,
     validTo: undefined,
   });
+  // The progress detail says naturalisation can go in after five years.
+  const detail = render(
+    <>{deCountry.progressDetail(next, 'nat', (key) => t(key))}</>,
+  );
+  expect(detail).toContain(
+    t('de.game.pendingNaturalisation').replace('{years}', '5'),
+  );
   expect(deCountry.placeNote!(next, 'visa')?.zhCN).toContain('2028-03-14');
 });
 

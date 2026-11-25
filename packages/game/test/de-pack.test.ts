@@ -418,6 +418,18 @@ test('without an application in, no trip skips the last workday before the card 
   expect(trips(onWorkday('2027-09-14', 'spouse'))).toEqual(['travel-1']);
 });
 
+test('the lapse ending mentions the Blue Card extension only for Jiahe', () => {
+  const ending = (id: string) => {
+    let state = settle(de.newGame(id, 5, 'zh-CN'));
+    de.currentPermit(state).to = '2026-04-30';
+    for (let i = 0; i < 6 && !de.isOver(state); i++) state = nextDay(state);
+    return de.narrative(state).at(-1)!;
+  };
+  expect(ending('bluecard').zhCN).toContain('递交蓝卡延期申请');
+  expect(ending('bluecard').en).toContain('extend your Blue Card');
+  expect(ending('spouse').zhCN).not.toContain('蓝卡');
+});
+
 test('the annual review never lowers the Blue Card salary', () => {
   const review = (gross: number) => {
     const state = settle(de.newGame('bluecard', 5, 'en'));

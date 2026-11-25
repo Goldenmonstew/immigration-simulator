@@ -13,6 +13,8 @@ export const deGameZh = {
   'de.game.natColumn': '入籍',
   'de.game.timeDate': '时间条件推算日期',
   'de.game.timeFuture': '时间条件最早 {date} 满足',
+  'de.game.pendingNaturalisation':
+    '蓝卡延期审理中：审理期间按合法居留计入，满 {years} 年后即可到入籍科递交入籍申请；入籍时的持证情况由入籍机关核对（PD-124）。',
   'de.game.entry': '玩一局 · 林登岸生活',
   'de.game.entryDesc':
     '在柏林运河边的像素街区上班、钓鱼、逛节日集市，看看日常选择怎样影响定居许可与入籍的时间线。',
@@ -58,6 +60,8 @@ export const deGameEn: Record<keyof typeof deGameZh, string> = {
   'de.game.natColumn': 'Naturalisation',
   'de.game.timeDate': 'Projected date for the time conditions',
   'de.game.timeFuture': 'Time requirement met from {date}',
+  'de.game.pendingNaturalisation':
+    'Your Blue Card extension is pending. The waiting period counts as lawful residence, so after {years} years you can apply for naturalisation; the office checks the title you hold on the day (PD-124).',
   'de.game.entry': 'Play a round · Life in Lindenufer',
   'de.game.entryDesc':
     'Work, fish and visit the festival markets in a pixel-art canal-side Kiez in Berlin, and see how everyday choices shape your settlement and naturalisation timeline.',

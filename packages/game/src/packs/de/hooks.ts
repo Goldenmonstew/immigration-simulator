@@ -377,10 +377,15 @@ export function endingText(state: DeState, ending: EndingId): Text {
       '行李箱合上，S 线驶过运河上的桥。你选择离开德国，这局生活到这里收好。',
       'The suitcase closes and the S-Bahn crosses the canal bridge. You chose to leave Germany, ending this game.',
     ),
-    overstayed: t(
-      '居留许可到期了，申请还没有递出去，这段林登岸生活在这里结束。\n下一局可以留意顶栏的剩余月数，到期前去外管局递交定居申请，或去入籍科递交入籍申请。',
-      'Your residence permit ended before you applied, ending this game.\nNext time, watch the months left in the top bar and apply for settlement or naturalisation before it ends.',
-    ),
+    overstayed: state.timeline.mobility.blueCard
+      ? t(
+          '蓝卡到期了，申请还没有递出去，这段林登岸生活在这里结束。\n下一局可以留意顶栏的剩余月数，到期前去外管局递交蓝卡延期申请或定居申请，或去入籍科递交入籍申请。',
+          'Your Blue Card ended before you applied, ending this game.\nNext time, watch the months left in the top bar and, before it ends, extend your Blue Card or apply for settlement at the Ausländerbehörde, or apply for naturalisation.',
+        )
+      : t(
+          '居留许可到期了，申请还没有递出去，这段林登岸生活在这里结束。\n下一局可以留意顶栏的剩余月数，到期前去外管局递交定居申请，或去入籍科递交入籍申请。',
+          'Your residence permit ended before you applied, ending this game.\nNext time, watch the months left in the top bar and apply for settlement or naturalisation before it ends.',
+        ),
     criminal: t(
       '一项记录让审查停了下来，故事在这里停笔。',
       'A record halts the review, and the story stops here.',

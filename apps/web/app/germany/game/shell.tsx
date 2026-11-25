@@ -8,6 +8,7 @@ import type {
   DeState,
   DeTimeline,
 } from '@uk-immigration/game/de';
+import { germanyFull2026_11 } from '@uk-immigration/policy-data';
 import { CountryAssessmentColumns } from '../../../components/result-view';
 import { isDecisionOutcome, pathwayTitle } from '../../../lib/country-module';
 import {
@@ -75,6 +76,10 @@ export function gameDraft(state: DeState): GermanyDraft {
   };
 }
 
+/** Years of lawful habitual residence for ordinary naturalisation (SRC-101 § 10 Abs. 1). */
+const naturalisationYears =
+  germanyFull2026_11.values.naturalisationYears.value.general;
+
 /** The assessment with the result page's display groups. */
 const classified = (state: DeState) =>
   classifyGermanyChecks(structuredClone(state.result), true);
@@ -114,16 +119,15 @@ export const deCountry: GameCountry<DeKinds> = {
       .map((check) => check.title);
     return titles?.length ? [...new Set(titles)] : undefined;
   },
-  // A pending extension has no new date: no countdown warning or reminder,
-  // and the fast-forward notice says the card continues (de.game.*).
-  visaStatus: (state) =>
-    deGame.extensionPending(state)
-      ? { months: deGame.visaMonthsLeft(state), renewed: true }
-      : {
-          months: deGame.visaMonthsLeft(state),
-          renewed: false,
-          validTo: deGame.currentPermit(state).to,
-        },
+  // A pending extension has no new date: no countdown warning or reminder.
+  // The card's own date is shown while it lies beyond this quarter; after
+  // that the fast-forward notice says the card continues (de.game.*). The
+  // shared notice keeps its style and button (no visaNotice hook here).
+  visaStatus: (state) => ({
+    months: deGame.visaMonthsLeft(state),
+    renewed: deGame.extensionPending(state),
+    validTo: deGame.cardValidTo(state),
+  }),
   placeNote: (state, place) =>
     place === 'visa' && deGame.extensionPending(state)
       ? {
@@ -179,6 +183,14 @@ export const deCountry: GameCountry<DeKinds> = {
             <dd>{pathway.earliestDate ?? t('result.undetermined')}</dd>
           </div>
         </dl>
+        {id === 'nat' && deGame.extensionPending(state) && (
+          <p>
+            {t('de.game.pendingNaturalisation').replace(
+              '{years}',
+              String(naturalisationYears),
+            )}
+          </p>
+        )}
       </>
     );
   },
