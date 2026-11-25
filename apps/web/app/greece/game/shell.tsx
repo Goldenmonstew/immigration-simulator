@@ -11,6 +11,7 @@ import type {
 import { CountryAssessmentColumns } from '../../../components/result-view';
 import { isDecisionOutcome, pathwayTitle } from '../../../lib/country-module';
 import {
+  activeGreeceAnswers,
   createGreeceDraft,
   greeceSteps,
   type GreeceDraft,
@@ -82,7 +83,11 @@ export function gameDraft(state: GrState): GreeceDraft {
     tripsComplete: true,
     completed: true,
   };
-  return { ...draft, step: greeceSteps(draft).at(-1)!.step };
+  // The questionnaire keeps only the answers its pathways ask for.
+  return activeGreeceAnswers({
+    ...draft,
+    step: greeceSteps(draft).at(-1)!.step,
+  });
 }
 
 export const grCountry: GameCountry<GrKinds> = {

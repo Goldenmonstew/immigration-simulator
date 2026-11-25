@@ -2,14 +2,14 @@ import { existsSync } from 'node:fs';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
-import type { Locale } from '@uk-immigration/engine';
+import type { CountryResult, Locale } from '@uk-immigration/engine';
 import * as gr from '@uk-immigration/game/gr';
 import { grGameArt } from '@uk-immigration/game/gr/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount, type TranslationKey } from '../i18n';
 import { greeceModule } from '../lib/greece-module';
-import { decodeDraft } from '../lib/share';
+import { readPageResult } from '../lib/page-result';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
 import {
   gameDraft,
@@ -58,46 +58,63 @@ test('Greece has a game page, entries and its own save and sound keys', () => {
   expect(storage.get('gr-immigration-life-muted')).toBe('false');
 });
 
+const view = (result: CountryResult) =>
+  result.columns[0].pathways.map((pathway) => ({
+    id: pathway.id,
+    status: pathway.status,
+    earliestDate: pathway.earliestDate,
+    checks: pathway.checks.map((check) => [check.id, check.status]),
+  }));
+/** Open the ending link the way the Greece result page reads it. */
+function openResult(state: State) {
+  vi.stubGlobal('localStorage', {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  });
+  const href = grCountry.resultHref(state);
+  expect(href.startsWith('/greece/result#s=')).toBe(true);
+  return readPageResult(greeceModule, 'zh-CN', href.split('#s=')[1], 'result');
+}
+function visit(state: State, place: string, minute: number) {
+  state = settle(state);
+  if (state.day.minute < minute)
+    state = settle(gr.tick(state, minute - state.day.minute));
+  return settle(gr.enter(state, place));
+}
+
 test.each(['bluecard', 'spouse'])(
-  'the ending link restores the same %s timeline on the Greece result page',
+  'the ending link opens the same %s timeline on the Greece result page',
   (id) => {
-    let state = settle(gr.newGame(id, 4, 'en'));
-    // A recorded trip and tax year travel with the timeline.
-    state.timeline.trips.push({
-      departed: '2025-07-01',
-      returned: '2025-07-20',
-    });
-    state.date = '2027-03-01';
-    state.timeline.nationality.incomeByTaxYear[2026] = {
+    const opening = settle(gr.newGame(id, 7, 'zh-CN'));
+    const abroad = settle(
+      gr.doActivity(visit(opening, 'station', 600), 'travel-1'),
+    );
+    expect(abroad.timeline.trips).toHaveLength(1);
+    // A later year with a declared tax year travels with the timeline.
+    let later = structuredClone(abroad);
+    later.date = '2027-03-01';
+    later.timeline.nationality.incomeByTaxYear[2026] = {
       taxableEur: 30_000,
       dependants: 0,
     };
-    state = {
-      ...state,
-      result: gr.grRules.evaluate({ ...state, locale: 'en' }),
+    later = {
+      ...later,
+      result: gr.grRules.evaluate({ ...later, locale: 'zh-CN' }),
     };
-    const href = grCountry.resultHref(state);
-    expect(href.startsWith('/greece/result#s=')).toBe(true);
-    const draft = decodeDraft(greeceModule, href.split('#s=')[1], true)!;
-    expect(draft.completed).toBe(true);
-    expect(draft.simulationDate).toBe(state.date);
-    expect(draft.pathways).toEqual(state.timeline.pathways);
-    expect(draft.nationality?.incomeYears).toContainEqual({
+    for (const state of [opening, abroad, later]) {
+      const page = openResult(state);
+      expect(page.correction).toBeUndefined();
+      expect(page.draft).toEqual(gameDraft(state));
+      expect(page.draft!.simulationDate).toBe(state.date);
+      expect(view(page.result!)).toEqual(view(state.result));
+    }
+    expect(openResult(later).draft!.nationality?.incomeYears).toContainEqual({
       year: 2026,
       taxableEur: 30_000,
       dependants: 0,
     });
-    const shown = greeceModule.run(draft, 'en').columns[0].pathways;
-    expect(
-      shown.map(({ id, status, earliestDate }) => [id, status, earliestDate]),
-    ).toEqual(
-      state.result.columns[0].pathways.map(({ id, status, earliestDate }) => [
-        id,
-        status,
-        earliestDate,
-      ]),
-    );
-    expect(gameDraft(state).step).toBe(id === 'bluecard' ? 4 : 6);
+    expect(gameDraft(opening).step).toBe(id === 'bluecard' ? 4 : 6);
   },
 );
 
