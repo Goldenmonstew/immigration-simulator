@@ -216,3 +216,62 @@
 2. 引擎 `packages/engine/src/new-zealand-checks.ts` 把 OET 门槛写死在代码里：主申 `C+`、家属 `C`、ESOL 中档费用 `D`。这些门槛没有放进 `packages/policy-data` 参数，不符合“不硬编码门槛”的约定，建议另开规则任务迁移并附 SRC-241 定位。
 3. 共用 `ResultView` 按 `decidedBy` 拆出“其他路径的条件（可看这些路径为何未被采用）”折叠区，这套写法是给英国用的。西班牙引擎（`spain-full*.ts`）也输出 `decidedBy`，接入页面时会遇到同样的问题，可参照本节的做法：设 kind，再去掉 `decidedBy`。
 4. 首页文案 `nz.intro` 仍说“查看最早可以申请的日期”。按路径设日期标签后，可以一并统一措辞。全站 `hub.intro`、`hub.privacy` 仍待十国完成后统一修改。
+
+## 审核修正（review94-2）
+
+审核意见：独立 Claude 子 agent（Claude Opus 5.5）只读审核，问题 1 项、风险 2 项、建议 4 项，结论“需要修改”。先合入 main（美国完整版页面 #86，带来按路径的 `earliestLabel`），再逐项先写回归测试、确认改前失败，然后修改。
+
+### 1. 做了什么
+
+| PROGRESS | commit | 对应审核编号 | 文件（网页文件相对 `apps/web/`） |
+|---|---|---|---|
+| — | `c4db2c9f Merge: 合入 main（美国完整版页面 #86）` | 前置 | 冲突三处：`components/site-shell.tsx` 取 main 的写法（国家列表），列表里保留新西兰（`jp`、`au`、`nz`、`us`）；`public/sw.js` 与 `test/about-page.test.tsx` 的缓存版本改为 `2026-11-25-nz2`。`lib/site-countries.ts`、`i18n/{zh-CN,en}.ts`、`PROGRESS.md` 自动合并，两边都保留 |
+| 553 | `4f0807db Fix: 新西兰名单删除最后一行时回到未回答（review94-2 问题 1）` | 问题 1；建议 4 | `app/new-zealand/simulate/nz-fields.tsx`，`test/new-zealand-questionnaire.test.tsx` |
+| 554 | `48822965 Fix: 新西兰递交时所持签证与宗教、投资者工签回答矛盾时提示（review94-2 风险 1）` | 风险 1 | `lib/new-zealand-draft.ts`，`i18n/countries/new-zealand-form.ts`，`test/new-zealand-questionnaire.test.tsx` |
+| 555 | `94d5022c Fix: 新西兰只有旅行条件路径的日期标为预计满足条件的日期（review94-2 风险 2）` | 风险 2 | `lib/new-zealand-module.ts`，`test/new-zealand.test.tsx`，`apps/e2e/tests/new-zealand.spec.ts` |
+| 556 | `d410a8eb Fix: 新西兰主申英语证明只对技术类路径询问（review94-2 建议 1）` | 建议 1 | `lib/new-zealand-draft.ts`，`test/new-zealand-questionnaire.test.tsx` |
+| 557 | `Docs: 任务 94 第二轮审核修正报告（review94-2）` | — | 本节、`PROGRESS.md` |
+
+逐条说明：
+
+- **问题 1**：名单删除最后一行时写入 `undefined`（未回答），不再写入 `[]`。“已确认没有”只能由“确认没有”按钮写入，与本页数值列表、多选和日本试点的做法一致。名单控件只有一个组件，嵌套名单（如随行家属里的出境记录）用的是同一段代码。核对口径：
+  - 回归测试复现审核的两个场景：2020 年获签、其余条件满足、出境记录未答时，永居、入籍为待确认；添加一条出境记录再删除后，`trips` 不存在，页面不显示“已确认没有。”，两条路径仍为待确认且没有日期。只选永居、出境记录为 `[]`、随行家属未答时，添加一位随行家属再删除，结果仍为待确认；点“确认没有”后才写入 `[]`，永居在 2026-11-23 满足。
+  - 同一测试遍历问卷全部步骤里的名单与数值列表，共 20 个：14 个名单（`trips`、绿名单与护理运输的 `periods`、父母的 `children`/`sponsors`/`incomePeriods`、Business Investor 的 `experience`、`dependentChildrenUnlawfullyInNz`、`convictions`、`police`、`dependants`，以及随行家属里的 `convictions`、`police`、`prvApplication.trips`）和 6 个数值列表（两处 `includedFamilyDaysInTwoYears`、`citizenNzMonthsPerYear`、`nzDaysInEachPriorYear`、`irdIncomePerSponsor`、`annualNzDays`）。逐个放一行、点删除，结果都是未回答。数值列表与多选原本就是这样，只有名单需要改。
+- **风险 1**：第 14 步“递交时持有的签证”选了具体签证（工作签证与“其他”除外）时，引擎按这个签证判定 `NZ-P10-1`、`NZ-P9-3`，忽略前面的“持有符合条件的宗教工作者工签”和“持有 Business Investor 工签”。两者不一致时，在“递交时持有的签证”提示“与前面……的回答不一致，请修改其中一项”。例如宗教工作者选“否”而签证选宗教工作者工签，或选“是”而签证选关键用途工签、无签证；Business Investor 同理。选工作签证、“其他”或留空时，引擎按前面的回答判定，不提示。只比较当前显示的步骤；完成的草稿与分享链接同样经过这项检查。
+- **风险 2**：`earliestLabel` 改为按路径的键表 `{ 'NZ-TRAVEL': 'nz.result.earliest' }`。旅行条件路径的日期是首次居民入境日，仍标为“预计满足条件的日期”；永居、入籍、技术与家庭路径回到共用的“最早可申请日期（推算）”，事实表、“还差什么”和对比页都按路径读取。与对比页的“假设在这一天递交”和首页的“最早可以申请的日期”措辞一致。e2e 的入籍对比改读共用标签。
+- **建议 1**：第 16 步主申英语证明分节（`common.english`）只对技术与工作类路径（SMC、绿名单、护理或运输行业）显示。引擎只在这三条路径的 `NZ-C3` 读取主申的 `common.english`；伴侣路径不读，父母、投资者、宗教工作者的主申英语在各自步骤询问。只选家庭类路径时，第 16 步只问“是否被要求参加考试”，不显示“这一组可以整组留空”，旧草稿里的 `common.english` 也不参与评估和分享。
+- **建议 2**（Tier 1 特定时薪表按数值重排）：未改，见第 3 节。
+- **建议 3**（`site-shell.tsx` 按模块的 `scenarioLinks` 判断并改名）：未改，见第 3 节。
+- **建议 4**：并入问题 1 的回归测试。
+
+### 2. 怎么验证的
+
+- **合入 main**：解决冲突后先跑 `pnpm --filter web typecheck`（退出码 0），再跑新西兰、美国、澳大利亚与 `about-page` 的单测（5 个文件、122 项通过），然后提交合并。
+- **回归测试先失败**：
+  - 553：改前失败于“添加一条出境记录再删除后，`trips` 变成 `[]`”；改后通过。遍历 20 个名单与数值列表的部分同样在改前失败。
+  - 554：改前失败于宗教工作者选“否”、签证选宗教工作者工签时没有提示（得到 `{}`）。
+  - 555：改前旅行条件部分已通过，永居、入籍部分失败于没有“最早可申请日期（推算）”（事实表仍为“预计满足条件的日期”）。
+  - 556：改前失败于只选伴侣时第 16 步仍显示“英语证明方式”。
+  - 每个 commit 前单跑 `test/new-zealand{,-questionnaire}.test.tsx`，并对改动文件跑 `eslint`、`prettier --check` 和 `tsc --noEmit`，均通过。
+- **回放第一轮**：`test/new-zealand-questionnaire.test.tsx` 里 review94-1 及合入 main 一节加入的回归测试（新草稿出境记录未答、清除英语方式后可留空、安家承诺确认无家属、对比页时薪与 OET 与返回日、已持 PRV 不显示日期、分组、政策页分支来源、跨步矛盾、必填数值列表、读屏说明、只选入籍、主申英语、职业代码去空格）全部通过，没有回归。
+- **完整验收**：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，退出码 0。
+  - 测试：error-report 2 项、policy-data 23 项、engine 6,006 项通过（1 项既有文案导出测试按开关跳过）、game 1,348 项、web 940 项（47 个文件）。
+  - 构建：预渲染 44 个页面和路由；`apps/web/out/new-zealand{,/simulate,/result,/whatif,/policy}.html` 都已生成；`out/sw.js` 含 `2026-11-25-nz2`。
+- **浏览器 e2e**：先用 `lsof -nP -iTCP:4467 -sTCP:LISTEN` 确认端口空闲，再运行 `cd apps/e2e && E2E_PORT=4467 npx playwright test tests/new-zealand.spec.ts tests/united-states.spec.ts tests/australia.spec.ts --project=desktop --reporter=line`，6 项全部通过。新西兰入籍对比按共用标签读到 `2027-06-12→2027-05-29`。跑完已删除 `apps/e2e/test-results`。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR。
+- **建议 2**（Tier 1 特定时薪表按 ANZSCO 代码数值升序显示，而非 SRC-237 Appendix 13 的分组顺序）：未改。键是纯数字字符串，JavaScript 对象在运行时就按数值排序，展示层拿不到来源顺序；要保持来源顺序须把参数改为数组，并同步改引擎的查表，涉及 `packages/policy-data` 与引擎，不属低成本的页面改动。内容本身正确。
+- **建议 3**（`site-shell.tsx` 按模块的 `scenarioLinks` 判断并改名）：未改。站点外壳在每个页面都会加载，直接读各国模块会把所有国家的模块和引擎打进外壳；改为在 `site-countries.ts` 登记标记又会与模块里的 `scenarioLinks` 重复。这是共用组件，其他并行分支也在改这一行，适合单独的共用任务处理。
+- **风险 1 的附带说明**：第 14 步签证留空时，引擎用宗教与投资者的工签回答推导 `currentVisa`，并用于同时选择的 SMC、绿名单、护理运输路径的递交资格。这不是两处回答矛盾，属引擎的旧兼容推导，按 brief 没有改引擎，见第 4 节。
+- e2e 只跑了 brief 指定的三个文件、`desktop` 项目；`mobile` 项目和截图基线没有跑。没有在浏览器里人工走查新提示与标签的视觉效果。
+- 没有改引擎、参数和其他国家页面；共用组件只按合并规则保留了 `site-shell.tsx` 的国家登记。
+
+### 4. 发现与建议（范围外，未实现）
+
+1. 澳大利亚问卷有同样的问题：`apps/web/app/australia/simulate/evidence-fields.tsx:172`（名单）和 `:292`（逐年数值）删除最后一行时写入 `[]`，页面随即显示“已确认没有”。日本（`japan/simulate/evidence-fields.tsx:174`）与美国（`united-states/simulate/fields.tsx:356`）已按 `rows.length === 1 ? undefined : …` 处理，建议另开任务修正澳大利亚并补同类回归测试。
+2. 引擎 `packages/engine/src/new-zealand-full.ts:41-54` 在第 14 步签证留空时，先取 Business Investor 工签、再取宗教工作者工签推导 `currentVisa`。两项都答“是”时推导为 Business Investor 工签，宗教工作者的 `NZ-P10-1` 因此按不满足计；推导出的签证还会用于同时选择的 SMC、绿名单、护理运输路径。建议另议：引擎不再从这两个回答推导递交签证，或问卷在答了其中一项时要求填写“递交时持有的签证”。
+3. 日期标签按路径 id 设置。Active Investor Plus 选“获签后的投资条件”时，`NZ-P9` 的日期是满足投资条件的评估日，不是递交日，现在也显示为“最早可申请日期（推算）”。若要区分，需要该目标使用单独的路径 id，或让共用 `earliestLabel` 能按路径内容取标签。
+4. Tier 1 特定时薪若要按来源顺序展示，可在下一次 Tier 1 参数更新时把 `tierOneEmployeeRates`、`tierOneContractRates` 改为数组（附 SRC-237 Appendix 13 定位），并同步改引擎查表。
+5. `site-shell.tsx` 的场景路径列表现在有日本、澳大利亚、新西兰、美国四国，建议在共用任务里改为按国家登记表的标记判断，并把 `isJapanScenario` 改名。
