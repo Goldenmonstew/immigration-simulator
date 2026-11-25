@@ -131,13 +131,17 @@ const settleFees = (state: GrState) =>
     : values.gfPeriods.value.applicationFee +
       values.cardFormalities.value.printFee +
       lateGreekFamilyFee(state);
-const lateReport = (state: GrState) =>
-  state.timeline.changes.some(
-    (change) =>
-      !change.reportedOn &&
-      addMonths(change.occurredOn, values.changeReporting.value.months) <
-        state.day.date,
-  );
+/** The fine for reporting changes late today; a repeat costs more. */
+function lateReport(state: GrState) {
+  const { months, firstFine, repeatFine } = values.changeReporting.value;
+  const late = ({ occurredOn, reportedOn }: GrTimeline['changes'][number]) =>
+    addMonths(occurredOn, months) < (reportedOn ?? state.day.date);
+  const { changes } = state.timeline;
+  if (!changes.some((change) => !change.reportedOn && late(change)))
+    return undefined;
+  const repeat = changes.some((change) => change.reportedOn && late(change));
+  return { fine: repeat ? repeatFine : firstFine, repeat };
+}
 
 const visaHours = grPlaces.find((place) => place.id === 'visa')!.hours!;
 /**
@@ -255,11 +259,12 @@ export function actionDetails(state: GrState, action: GrActivity): void {
       `File the ${year} tax return (E1)`,
     );
   }
-  if (action.id === 'report-change' && lateReport(state)) {
-    const fine = values.changeReporting.value.firstFine;
+  const late = action.id === 'report-change' && lateReport(state);
+  if (late) {
+    const { fine, repeat } = late;
     action.label = t(
-      `补报新住址（已超过 ${values.changeReporting.value.months} 个月，罚款 ${euro(fine)}，${src(values.changeReporting)}）`,
-      `Report your new address late (over ${values.changeReporting.value.months} months; fine ${euro(fine)}, ${src(values.changeReporting)})`,
+      `补报新住址（已超过 ${values.changeReporting.value.months} 个月，${repeat ? '再次逾期' : ''}罚款 ${euro(fine)}，${src(values.changeReporting)}）`,
+      `Report your new address late (over ${values.changeReporting.value.months} months; ${repeat ? 'repeat ' : ''}fine ${euro(fine)}, ${src(values.changeReporting)})`,
     );
     action.effects = [{ type: 'money', delta: -fine }, ...action.effects];
   }

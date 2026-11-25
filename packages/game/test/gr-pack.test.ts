@@ -367,6 +367,43 @@ test('address changes carry the day and join the assessment next quarter', () =>
   expect(c06(nextQuarter(lateReported))).toBe('NOT_MET');
 });
 
+/** Report a change at the migration office, with the action as offered. */
+function report(state: State) {
+  const office = visit(state, 'visa', 600);
+  const action = gr
+    .activities(office, 'visa')
+    .find(({ id }) => id === 'report-change');
+  return {
+    office,
+    action,
+    after: settle(gr.doActivity(office, 'report-change')),
+  };
+}
+const movedOnDayOne = () =>
+  settle(
+    gr.doActivity(
+      visit(gr.newGame('bluecard', 5, 'en'), 'home', 480),
+      'rent-brighter-home',
+    ),
+  );
+
+test('a second late address report pays the repeat fine', () => {
+  const { firstFine, repeatFine } = values.changeReporting.value;
+  const first = report(nextQuarter(movedOnDayOne()));
+  expect(first.action!.label.en).toContain(`fine €${firstFine}`);
+  expect(first.after.stats.money).toBe(first.office.stats.money - firstFine);
+  // Moved out the same day, then again reported a quarter late.
+  const left = settle(
+    gr.doActivity(
+      visit(first.after, 'home', first.after.day.minute),
+      'leave-brighter-home',
+    ),
+  );
+  const second = report(nextQuarter(left));
+  expect(second.action!.label.en).toContain(`fine €${repeatFine}`);
+  expect(second.after.stats.money).toBe(second.office.stats.money - repeatFine);
+});
+
 test('a JSON save round trip continues the same quarter after a trip', () => {
   const station = visit(gr.newGame('spouse', 21, 'en'), 'station', 600);
   const state = settle(gr.doActivity(station, 'travel-1'));
