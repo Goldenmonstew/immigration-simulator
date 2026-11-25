@@ -1825,6 +1825,94 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
       }
     }
   });
+
+  test('citizenship is "not met" only when nothing entered can ever count, and then stays so (review113-4 #1)', () => {
+    // Without permanent residence, time on a pass counts only with the
+    // Minister's consent (SRC-500 Second Schedule Part III s.20(2)(c) p373),
+    // so a later day the passes entered could meet is open, not unmet. With
+    // permanent residence the strict reading gives the date.
+    const cit = [
+      ['my.cit.naturalisation', 'employment'],
+      ['my.cit.wife-registration', 'ltsvp-spouse'],
+    ] as const;
+    // Every third history keeps the day-by-day searches quick.
+    histories
+      .filter((_, i) => i % 3 === 0)
+      .forEach((h) => {
+        const end = h[h.length - 1].to;
+        const since = addDays(h[0].from, rand(4000));
+        const away = addDays(since, rand(3000));
+        const variants: {
+          since: string | null;
+          trips: MyFullRequest['trips'];
+        }[] = [
+          { since: null, trips: [] },
+          { since: null, trips: undefined },
+          { since, trips: [] },
+          {
+            since,
+            trips: [
+              {
+                departed: away,
+                returned: addDays(away, 183 + rand(365)),
+                reason: 'other',
+              },
+            ],
+          },
+        ];
+        const dates = [
+          ...datesFor(h),
+          addDays(end, 400),
+          addDays(end, 4000),
+        ].sort();
+        for (const [id, kind] of cit)
+          for (const { since: permanentResidentSince, trips } of variants) {
+            const at = (simulationDate: string) => {
+              const p = path(id, {
+                simulationDate,
+                dateOfBirth: '1960-01-01',
+                family: {
+                  tie: 'wife-of-citizen',
+                  marriageRegistration: 'malaysia',
+                  separatedOrDivorced: false,
+                },
+                citizenship: { permanentResidentSince },
+                passes: h.map((s) => ({ kind, from: s.from, to: s.to })),
+                trips,
+              });
+              return {
+                residence: p.checks.find((c) => c.id === 'my.cit.residence')!
+                  .status,
+                time: p.timeStatus,
+                date: p.timeEarliestDate,
+              };
+            };
+            let previous: string | undefined;
+            for (const d of dates) {
+              const now = at(d);
+              const label = `${id} ${permanentResidentSince} ${JSON.stringify(trips)} ${d} ${JSON.stringify(h)}`;
+              expect(now.time === 'MET', label).toBe(now.residence === 'MET');
+              if (now.time === 'NOT_MET')
+                expect(now.residence, label).toBe('NOT_MET');
+              // "Not met" is "never on the facts entered": it cannot turn
+              // into "unknown" or a date later.
+              if (previous === 'NOT_MET')
+                expect(now.time, label).toBe('NOT_MET');
+              previous = now.time;
+              if (now.time !== 'FUTURE') continue;
+              expect(at(now.date!), label).toEqual({
+                residence: 'MET',
+                time: 'MET',
+                date: now.date,
+              });
+              expect(at(addDays(now.date!, -1)), label).toMatchObject({
+                time: 'FUTURE',
+                date: now.date,
+              });
+            }
+          }
+      });
+  }, 20_000);
 });
 
 describe('review113-3 risks and suggestions', () => {
@@ -1959,6 +2047,102 @@ describe('review113-3 risks and suggestions', () => {
         undefined,
       ]);
     }
+  });
+});
+
+describe('review113-4', () => {
+  type Base = Omit<MyFullRequest, 'simulationDate'>;
+  const residenceAt = (
+    id: 'my.cit.naturalisation' | 'my.cit.wife-registration',
+    req: Base,
+    simulationDate: string,
+  ) => {
+    const p = path(id, { ...req, simulationDate });
+    return [
+      p.checks.find((c) => c.id === 'my.cit.residence')!.status,
+      p.timeStatus,
+      p.timeEarliestDate,
+    ];
+  };
+
+  test('passes that reach the years only with the Minister’s consent leave the date open (#1)', () => {
+    // SRC-500 Art. 15(1)(a) p39: two years before applying; Second Schedule
+    // Part III s.20(2)(c) p373: time on a pass counts only with the
+    // Minister's consent. Two years on the pass are complete on 2027-06-01.
+    const reg = {
+      family: {
+        tie: 'wife-of-citizen',
+        marriedOn: '2025-03-01',
+        marriageRegistration: 'malaysia',
+        separatedOrDivorced: false,
+      },
+      citizenship: { permanentResidentSince: null },
+      passes: [{ kind: 'ltsvp-spouse', from: '2025-06-01', to: '2030-05-31' }],
+      trips: [],
+    } satisfies Base;
+    const wifeAt = (req: Base, d: string) =>
+      residenceAt('my.cit.wife-registration', req, d);
+    expect(wifeAt(reg, day)).toEqual(['NOT_MET', 'UNKNOWN', undefined]);
+    expect(wifeAt(reg, '2027-05-31')).toEqual([
+      'NOT_MET',
+      'UNKNOWN',
+      undefined,
+    ]);
+    expect(wifeAt(reg, '2027-06-01')).toEqual([
+      'UNKNOWN',
+      'UNKNOWN',
+      undefined,
+    ]);
+    expect(wifeAt({ ...reg, trips: undefined }, day)).toEqual([
+      'NOT_MET',
+      'UNKNOWN',
+      undefined,
+    ]);
+    expect(
+      cond('my.cit.wife-registration', 'my.cit.residence', {
+        ...reg,
+        simulationDate: day,
+      }).explanation,
+    ).toContain('以后只有经部长同意');
+    // The pass entered ends on 2030-05-31; once the two years before the
+    // date leave it, nothing entered could count.
+    expect(wifeAt(reg, '2030-06-01')).toEqual([
+      'UNKNOWN',
+      'UNKNOWN',
+      undefined,
+    ]);
+    expect(wifeAt(reg, '2030-06-02')).toEqual([
+      'NOT_MET',
+      'NOT_MET',
+      undefined,
+    ]);
+
+    // Art. 19(3) p46: ten of the twelve years, including the last twelve
+    // months. Ten years on the Employment Pass are complete on 2028-01-01
+    // (3652 days from 2018-01-01).
+    const nat = {
+      dateOfBirth: '1980-01-01',
+      citizenship: { permanentResidentSince: null },
+      passes: [{ kind: 'employment', from: '2018-01-01', to: '2030-12-31' }],
+      trips: [],
+    } satisfies Base;
+    const natAt = (req: Base, d: string) =>
+      residenceAt('my.cit.naturalisation', req, d);
+    expect(natAt(nat, day)).toEqual(['NOT_MET', 'UNKNOWN', undefined]);
+    expect(natAt(nat, '2027-12-31')).toEqual(['NOT_MET', 'UNKNOWN', undefined]);
+    expect(natAt(nat, '2028-01-01')).toEqual(['UNKNOWN', 'UNKNOWN', undefined]);
+    // A pass that ends before ten years never reaches them.
+    expect(
+      natAt(
+        {
+          ...nat,
+          passes: [
+            { kind: 'employment', from: '2018-01-01', to: '2025-12-31' },
+          ],
+        },
+        day,
+      ),
+    ).toEqual(['NOT_MET', 'NOT_MET', undefined]);
   });
 });
 

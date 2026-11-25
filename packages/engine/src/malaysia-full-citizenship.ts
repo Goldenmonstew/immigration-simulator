@@ -104,7 +104,38 @@ function firstDay(
   return undefined;
 }
 
-function residenceText(ctx: MyContext, r: Residence) {
+/**
+ * The first day from `from` to `to` that `ok` is met on the strict reading;
+ * undefined while answers are missing, or when only time the Minister may
+ * count (on a pass, or long absences) would meet it on some day; null when
+ * nothing entered ever would. Permanent residence always meets it by `to`
+ * (see `horizon`), and without it the strict reading counts nothing. No day
+ * before `years` after the first day counted can meet it.
+ */
+function earliestResidence(
+  r: Residence,
+  from: IsoDate,
+  to: IsoDate,
+  years: number,
+  ok: (spans: Span[], d: IsoDate) => boolean,
+) {
+  if (!answered(r)) return undefined;
+  const search = (spans: Span[], end: IsoDate) => {
+    const after = addYears(spans[0].start, years);
+    return firstDay(after > from ? after : from, end, (d) => ok(spans, d));
+  };
+  if (r.strict.length) return search(r.strict, to);
+  if (!r.passesKnown) return undefined;
+  const last = r.withConsent[r.withConsent.length - 1];
+  return last && search(r.withConsent, last.end) ? undefined : null;
+}
+
+function residenceText(
+  ctx: MyContext,
+  r: Residence,
+  met: boolean | undefined,
+  earliest: IsoDate | null | undefined,
+) {
   const { req, L } = ctx;
   const since = req.citizenship?.permanentResidentSince;
   return (
@@ -128,6 +159,12 @@ function residenceText(ctx: MyContext, r: Residence) {
           '未填出境记录，无法确认居住是否连续。',
           ' No absences were entered, so continuous residence cannot be confirmed.',
         )) +
+    (met === false && earliest === undefined && answered(r)
+      ? L(
+          '按已录入的准证，以后只有经部长同意计入准证期间才可能满足。',
+          ' On the passes entered, it could be met later only if the Minister consents to counting time on a pass.',
+        )
+      : '') +
     (r.passesKnown
       ? ''
       : L(
@@ -238,16 +275,12 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
   const start = adult && adult > date ? adult : date;
   const until = horizon(ctx, start, n.windowYears);
   const r = residence(ctx, addDays(until, 1));
-  const test = (d: IsoDate) =>
-    verdict(
-      r,
-      (s) =>
-        daysIn(s, addYears(d, -n.windowYears), d) >=
-          daysBetween(addYears(d, -n.residenceYears), d) &&
-        fullyCovered(s, addMonths(d, -n.recentMonths), d),
-    );
-  const met = test(date);
-  const first = answered(r) ? firstDay(start, until, test) : undefined;
+  const ok = (s: Span[], d: IsoDate) =>
+    daysIn(s, addYears(d, -n.windowYears), d) >=
+      daysBetween(addYears(d, -n.residenceYears), d) &&
+    fullyCovered(s, addMonths(d, -n.recentMonths), d);
+  const met = verdict(r, (s) => ok(s, date));
+  const first = earliestResidence(r, start, until, n.residenceYears, ok);
   const residenceCheck = check(
     'my.cit.residence',
     L('居住年限', 'Residence period'),
@@ -262,7 +295,7 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
       `At least ${n.residenceYears} years’ residence in the ${n.windowYears} years before applying, including the ${n.recentMonths} months immediately before.`,
     ) +
       residenceRules(ctx) +
-      residenceText(ctx, r),
+      residenceText(ctx, r, met, first),
     consentPending(r) ? ['PD-413', 'PD-429'] : [],
   );
 
@@ -440,15 +473,7 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
     {
       discretionary: true,
       // Without a birth date the age, and so the date, is unknown.
-      time: timing(
-        latest(
-          adult,
-          answered(r)
-            ? (first ?? (met === undefined ? undefined : null))
-            : undefined,
-        ),
-        date,
-      ),
+      time: timing(latest(adult, first), date),
       assumptions:
         adult && first && first > date
           ? [
@@ -486,10 +511,10 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
   );
   const until = horizon(ctx, date, w.residenceYears);
   const r = residence(ctx, addDays(until, 1));
-  const test = (d: IsoDate) =>
-    verdict(r, (s) => fullyCovered(s, addYears(d, -w.residenceYears), d));
-  const met = test(date);
-  const first = answered(r) ? firstDay(date, until, test) : undefined;
+  const ok = (s: Span[], d: IsoDate) =>
+    fullyCovered(s, addYears(d, -w.residenceYears), d);
+  const met = verdict(r, (s) => ok(s, date));
+  const first = earliestResidence(r, date, until, w.residenceYears, ok);
   const residenceCheck = check(
     'my.cit.residence',
     L('居住年限', 'Residence period'),
@@ -504,7 +529,7 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
       `Residence in Malaysia throughout the ${w.residenceYears} years before applying. The Constitution does not require permanent residence first; the registration checklist marks the permanent resident identity card "mandatori", which its note 5 defines as required if the person has held one.`,
     ) +
       residenceRules(ctx) +
-      residenceText(ctx, r),
+      residenceText(ctx, r, met, first),
     consentPending(r) ? ['PD-413', 'PD-418', 'PD-429'] : [],
   );
   const intent = req.citizenship?.intendsToResidePermanently;
@@ -598,12 +623,7 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
     ),
     checks,
     {
-      time: timing(
-        answered(r)
-          ? (first ?? (met === undefined ? undefined : null))
-          : undefined,
-        date,
-      ),
+      time: timing(first, date),
       assumptions:
         first && first > date
           ? [
