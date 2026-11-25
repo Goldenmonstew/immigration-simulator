@@ -5,6 +5,7 @@ import type {
   JpNaturalisationEvidence,
   JpPrCommonEvidence,
 } from '@uk-immigration/engine';
+import { jpBalance as b } from './balance';
 import type { JpEffect, JpFestival, JpTimeline } from './rules';
 
 type JpCharacter = Character<JpTimeline, JpEffect, JpFullResult, JpFestival>;
@@ -109,7 +110,7 @@ const renewalFolder = (id: string): JpEvent[] => [
     ),
     weight: 3,
     once: true,
-    when: [{ visaMonthsLeftMax: 12 }],
+    when: [{ visaMonthsLeftMax: b.renewalWindowMonths }],
     choices: [
       {
         id: 'plan',
