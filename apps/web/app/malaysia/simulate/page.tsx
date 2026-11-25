@@ -15,6 +15,7 @@ import {
 } from '../../../lib/malaysia-draft';
 import {
   MY_TARGETS,
+  fieldShown,
   myTargetGroups,
   scopeOf,
   type MyTarget,
@@ -81,9 +82,21 @@ function MalaysiaStep(props: StepProps) {
   const { t } = useTranslation();
   return (
     <>
-      {draft.step === 0 && <p className={form.hint}>{t('my.form.intro')}</p>}
+      {draft.step === 0 && (
+        <>
+          <p className={form.hint}>{t('my.form.intro')}</p>
+          <Targets {...props} />
+        </>
+      )}
       {visibleSections(draft, draft.step).map((section) => {
         const values = readPath(draft, section.path) ?? {};
+        // A section whose questions the answers hide has no heading either.
+        if (
+          !section.fields.some((field) =>
+            fieldShown(field, values, scopeOf(draft)),
+          )
+        )
+          return null;
         const fields = (
           <EvidenceFields
             fields={section.fields}
@@ -125,7 +138,6 @@ function MalaysiaStep(props: StepProps) {
           </section>
         );
       })}
-      {draft.step === 0 && <Targets {...props} />}
     </>
   );
 }

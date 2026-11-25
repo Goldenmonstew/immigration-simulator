@@ -589,6 +589,37 @@ test('the REP relation shows the marriage and child questions it needs', () => {
 // review114-2 risk 1: the tie and the REP relation share one set of
 // marriage and child answers; the questionnaire says so, and flags answers
 // that disagree. The assessment is unchanged.
+// review114-2 suggestions 1 and 2: a section with no question shown has no
+// heading, and the routes come first on the first step.
+test('empty sections are not shown and the routes lead the first step', () => {
+  const rep = (relation?: MalaysiaDraft['rep']['relation']) =>
+    step({
+      ...my.createDraft(),
+      step: 2,
+      targets: ['pr-rep'],
+      rep: { relation },
+    });
+  for (const relation of [undefined, 'none'] as const) {
+    expect(rep(relation)).toContain('id="my-rep-relation"');
+    expect(rep(relation)).not.toContain('my-section-family');
+  }
+  expect(rep('wife')).toContain('id="my-section-family"');
+  expect(rep('wife')).toContain('id="my-family-marriedOn"');
+  const first = step({ ...my.createDraft(), targets: ['pr-was'] });
+  expect(first.indexOf('id="my-targets"')).toBeLessThan(
+    first.indexOf('id="my-simulationDate"'),
+  );
+  expect(first.indexOf('id="my-targets"')).toBeLessThan(
+    first.indexOf('id="my-nationality"'),
+  );
+  // The first error to take focus is the routes, as they come first.
+  expect(
+    Object.keys(
+      my.validateStep({ ...my.createDraft(), simulationDate: '' }),
+    )[0],
+  ).toBe('my-targets');
+});
+
 test('the family step notes answers shared with the REP route and flags conflicts', () => {
   const family = (
     targets: MyTarget[],

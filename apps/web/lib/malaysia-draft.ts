@@ -374,6 +374,9 @@ function checkStep(draft: MalaysiaDraft, step: number, submitting: boolean) {
     submitting && validDate(draft.simulationDate)
       ? draft.simulationDate
       : undefined;
+  // The routes lead the first step, so their error takes focus first.
+  if (step === 0 && submitting && !draft.targets.length)
+    errors['my-targets'] = 'my.form.routeError';
   for (const section of visibleSections(draft, step))
     checkFields(
       section.fields,
@@ -384,8 +387,6 @@ function checkStep(draft: MalaysiaDraft, step: number, submitting: boolean) {
       errors,
       asOf,
     );
-  if (step === 0 && submitting && !draft.targets.length)
-    errors['my-targets'] = 'my.form.routeError';
   return errors;
 }
 
