@@ -466,17 +466,20 @@ export const workFields: Fields<IrelandWorkUpgrade> = {
   ...workSections.workPermit,
 };
 
-type Application = NonNullable<IrelandFamily['application']>;
+// The registration stage is asked as familyStage.
+type Application = Omit<
+  NonNullable<IrelandFamily['application']>,
+  'registrationStage'
+>;
 type Housing = NonNullable<Application['housing']>;
 // Family facts; the sponsor's permission grant date (grantOn) is not read by the engine.
-type FamilyQuestions = Omit<IrelandFamily, 'grantOn'>;
+type FamilyQuestions = Omit<IrelandFamily, 'grantOn' | 'application'> & {
+  application?: Application;
+};
 
 const applicationSections = {
   famChannel: {
     date: date({ label: 'familyApplicationDate' }),
-    registrationStage: choice(['first', 'renewal'], {
-      label: 'familyRegistrationStage',
-    }),
     renewalInsuranceRequired: bool(),
     renewalInsuranceConditionMet: bool(),
     channel: choice(
@@ -896,6 +899,7 @@ export const treatyFields: Fields<Treaty> = {
  */
 export interface IrelandStages {
   workStage?: 'first' | 'renewal';
+  familyStage?: 'first' | 'renewal';
   stamp5Stage?: 'renewal';
   ltrStage?: 'renewal';
   euStage?: 'renewal';
@@ -904,7 +908,7 @@ export interface IrelandStages {
 const stage = (
   options: readonly string[],
   paths: readonly IrelandFullPathwayId[],
-  // Each hint names the answers that a renewal reads as yes when left blank.
+  // Each hint lists the answers the chosen stage reads as met when blank.
   hint: string,
 ) => choice(options, { hint, blank: 'new', paths });
 
@@ -938,6 +942,7 @@ export const topFields = {
     paths: NATURALISATION_PATHS,
   }),
   work: group<IrelandWorkUpgrade>(workFields, { paths: WORK_PATHS }),
+  familyStage: stage(['first', 'renewal'], FAMILY_PATHS, 'familyStage'),
   family: group<FamilyQuestions>(familyFields, { paths: FAMILY_PATHS }),
   stamp5Stage: stage(['renewal'], ['IE-STAMP5'], 'stamp5Stage'),
   stamp5: group<IrelandWcatt>(stamp5Fields, { paths: ['IE-STAMP5'] }),

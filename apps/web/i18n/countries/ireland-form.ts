@@ -41,8 +41,8 @@ const messages = {
     'The work upgrade counts from the date you started work in Ireland on the permit. Complete the permit application section only if you are also checking a new or renewed employment permit.',
   ],
   'ie.form.intro4': [
-    '家庭团聚、独立 Stamp 4 与爱尔兰公民伴侣的 Stamp 4 共用这些问题。涉及家庭暴力时只问是否适用及已有的许可或认定，不需要描述案情。',
-    'These questions are shared by family reunification, independent Stamp 4 and Stamp 4 for partners of Irish citizens. For domestic abuse only whether it applies and any permission or finding is asked; no details of what happened are needed.',
+    '家庭团聚、独立 Stamp 4 与爱尔兰公民伴侣的 Stamp 4 共用这些问题。只评估家庭团聚转独立 Stamp 4 时，「申请日期与渠道」「担保人收入与福利」「材料、品格、签证与保险」「住房」四节请留空：其中填了任何一题，转独立路径也会核对整套家庭申请条件。涉及家庭暴力时只问是否适用及已有的许可或认定，不需要描述案情。',
+    'These questions are shared by family reunification, independent Stamp 4 and Stamp 4 for partners of Irish citizens. If you only check the change from family reunification to independent Stamp 4, leave the four sections “Application date and channel”, “Sponsor income and welfare”, “Documents, character, visa and insurance” and “Accommodation” blank: any answer there also adds the full family application checks to that pathway. For domestic abuse only whether it applies and any permission or finding is asked; no details of what happened are needed.',
   ],
   'ie.form.intro5': [
     '按所选路径填写 Stamp 5（Without Condition As To Time）或 Long Term Residency 的条件。',
@@ -112,8 +112,8 @@ const messages = {
     'Existing family permission and changes',
   ],
   'ie.form.section.famChannel': [
-    '申请渠道与登记阶段',
-    'Application channel and registration stage',
+    '申请日期与渠道',
+    'Application date and channel',
   ],
   'ie.form.section.famFinances': [
     '担保人收入与福利',
@@ -210,6 +210,10 @@ const messages = {
     '一般保持「升级为 Stamp 4 的申请」。只有已获批要办首次登记，或要续期现有许可时才改选；改选后核对登记或续期清单，不再计算升级日期。',
     'Usually keep “An application to upgrade to Stamp 4”. Change it only to check the first registration after a grant or the renewal of current permission; the result then checks that registration or renewal instead of the upgrade date.',
   ],
+  'ie.hint.familyStage': [
+    '一般保持「申请家庭许可或转独立 Stamp 4」；在家庭许可续期时一并转为独立 Stamp 4 的，也选这一项。只有获准入境后要办首次登记，或只续期现有家庭许可时才改选。选「续期」只核对现有家庭许可的普通续期，不再评估转独立或家庭申请。选「首次登记」只核对获准入境后的首次登记清单，申请渠道须为普通家庭团聚、境外 de facto 申请或爱尔兰公民配偶直接登记（后者不改选也按首次登记核对）；此时下列题目未填写时按满足核对，请如实填写：与担保人的关系（家庭团聚转独立 Stamp 4 未填时按非 de facto 核对，不查共同住址）。',
+    'Usually keep “An application for family permission or a change to independent Stamp 4”, also when you change to independent Stamp 4 at a family permission renewal. Change it only to check the first registration after being granted entry, or only the renewal of current family permission. Renewal checks only the ordinary renewal of current family permission, not the change to independent Stamp 4 or a family application. First registration checks only the first registration checklist and needs the ordinary family reunification, overseas de facto or direct registration as an Irish citizen’s spouse channel (the last is checked as a first registration even if you keep the default). These answers then count as met when blank, so answer them as they are: relationship to the sponsor (for independent Stamp 4 from family reunification, blank is checked as not de facto, without joint address).',
+  ],
   'ie.hint.stamp5Stage': [
     '选「续办」时改为核对续期清单与线上续期窗口，不再计算合格许可时间。此时 IRP 登记里的有效许可，以及本步的已获批、护照与 IRP 材料、遵守许可条件、就业或求职、最长出境月数未填写时都按「是」核对，请如实填写。',
     'Choosing renewal checks the renewal checklist and online renewal window instead of the qualifying period. Blank answers on valid permission in the IRP section, and on the grant, passport and IRP evidence, compliance, work or job seeking and longest time abroad on this step, then count as “yes”, so answer them as they are.',
@@ -300,6 +304,10 @@ const messages = {
   'ie.field.workStage': [
     '就业类 Stamp 4：本次评估的是',
     'Work Stamp 4: what to assess',
+  ],
+  'ie.field.familyStage': [
+    '家庭路径：本次评估的是',
+    'Family pathways: what to assess',
   ],
   'ie.field.stamp5Stage': ['Stamp 5：本次评估的是', 'Stamp 5: what to assess'],
   'ie.field.ltrStage': [
@@ -821,10 +829,6 @@ const messages = {
   ],
   'ie.field.application': ['家庭申请', 'Family application'],
   'ie.field.familyApplicationDate': ['申请日期', 'Application date'],
-  'ie.field.familyRegistrationStage': [
-    '首次登记还是续期',
-    'First registration or renewal',
-  ],
   'ie.field.renewalInsuranceRequired': [
     '批准信对续期附加了医疗保险条件',
     'The permission letter requires insurance on renewal',
@@ -1438,8 +1442,18 @@ const messages = {
     '部长指示须登记',
     'Registration directed by the Minister',
   ],
-  'ie.option.familyRegistrationStage.first': ['首次登记', 'First registration'],
-  'ie.option.familyRegistrationStage.renewal': ['续期', 'Renewal'],
+  'ie.option.familyStage.new': [
+    '申请家庭许可或转独立 Stamp 4',
+    'An application for family permission or a change to independent Stamp 4',
+  ],
+  'ie.option.familyStage.first': [
+    '已获准入境，评估首次登记',
+    'Granted entry: first registration',
+  ],
+  'ie.option.familyStage.renewal': [
+    '现有家庭许可普通续期（不评估转独立）',
+    'Ordinary renewal of current family permission (not the change to independent Stamp 4)',
+  ],
   'ie.option.workStage.new': [
     '升级为 Stamp 4 的申请',
     'An application to upgrade to Stamp 4',

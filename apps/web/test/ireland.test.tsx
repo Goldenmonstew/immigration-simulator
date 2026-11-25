@@ -603,6 +603,16 @@ test(
             ...draft.registration,
             stage: request.registration?.stage,
           },
+          family: request.family?.application?.registrationStage
+            ? {
+                ...draft.family,
+                application: {
+                  ...draft.family?.application,
+                  registrationStage:
+                    request.family.application.registrationStage,
+                },
+              }
+            : draft.family,
           pathways: [id],
           locale: 'en',
         }).columns[0].pathways[0];
@@ -751,6 +761,105 @@ test('first registration and renewal are chosen on each pathway’s own step', (
     );
     for (const name of names) expect(html).toContain(`id="ie-${name}"`);
   }
+});
+
+test('the family step asks what to assess, and a renewal answer does not replace the change to independent Stamp 4', () => {
+  // review99-2 problem 1: independent Stamp 4 from family reunification.
+  const family: IrelandDraft = {
+    ...workDraft,
+    step: 4,
+    pathways: ['IE-STAMP4-INDEPENDENT-FAMILY'],
+    permissions: [{ kind: 'stamp4', from: '2019-01-01' }],
+    family: {
+      relationship: 'spouse',
+      establishedFamilyPermission: true,
+      sponsorLawfulAndResident: true,
+      dependentPeriods: [{ from: '2019-01-01' }],
+      nextRenewalOn: '2026-12-20',
+    },
+  };
+  const id = 'IE-STAMP4-INDEPENDENT-FAMILY';
+  const independent = pathway(family, id);
+  expect(independent).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2026-12-20',
+    title: '家庭团聚转独立 Stamp 4',
+  });
+  expect(independent.checks.map((c) => c.id)).toEqual(
+    expect.arrayContaining(['IE-B11', 'IE-B12']),
+  );
+  // A stage answer kept in the family application from before is ignored.
+  const stale: IrelandDraft = {
+    ...family,
+    family: { ...family.family, application: { registrationStage: 'renewal' } },
+  };
+  expect(pathway(stale, id)).toEqual(independent);
+  const irish: IrelandDraft = {
+    ...family,
+    pathways: ['IE-STAMP4-IRISH-FAMILY'],
+    family: { relationship: 'spouse', sponsorIrish: true },
+  };
+  expect(
+    pathway(
+      {
+        ...irish,
+        family: {
+          ...irish.family,
+          application: { registrationStage: 'renewal' },
+        },
+      },
+      'IE-STAMP4-IRISH-FAMILY',
+    ),
+  ).toEqual(pathway(irish, 'IE-STAMP4-IRISH-FAMILY'));
+
+  // The family step asks it first; unanswered is the application or change.
+  expect(topFields.familyStage).toMatchObject({
+    blank: 'new',
+    hint: 'familyStage',
+  });
+  const html = render(
+    IrelandSimulatePage().props.children({
+      draft: family,
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(html).toContain('id="ie-familyStage"');
+  expect(html.indexOf('id="ie-familyStage"')).toBeLessThan(
+    html.indexOf(t('ie.form.section.famRelationship')),
+  );
+  expect(html).toContain(t('ie.option.familyStage.new'));
+  expect(html).not.toContain('registrationStage');
+  for (const key of ['ie.hint.familyStage', 'ie.form.intro4'] as const)
+    expect(t(key)).toContain('转独立');
+
+  // Renewal and first registration are chosen here.
+  const renewal = pathway({ ...family, familyStage: 'renewal' }, id);
+  expect(renewal.title).toBe('现有家庭许可续期');
+  expect(renewal.checks.map((c) => c.id)).not.toContain('IE-B12');
+  const first: IrelandDraft = {
+    ...family,
+    familyStage: 'first',
+    family: { ...family.family, application: { channel: 'ordinary' } },
+  };
+  expect(pathway(first, id).title).toBe('首次登记');
+  expect(ie.validateStep(first)).toEqual({});
+  // A first registration needs a channel that has one; otherwise the answer
+  // would quietly assess the application instead.
+  for (const channel of [
+    undefined,
+    'spouse-in-state',
+    'de-facto-in-state',
+  ] as const)
+    expect(
+      ie.validateStep({
+        ...first,
+        family: { ...first.family, application: { channel } },
+      }),
+    ).toEqual({ 'ie-familyStage': 'ie.error.familyFirstChannel' });
+  expect(t('ie.error.familyFirstChannel')).toContain(
+    t('ie.form.section.famChannel'),
+  );
 });
 
 test('renewal hints name only the answers the engine reads as yes when blank', () => {
@@ -983,26 +1092,16 @@ test(
       { ...empty, workStage: 'first' },
       // Family renewal and first registration, and a spouse whose posting is
       // not yet confirmed (review99-1).
+      { ...empty, familyStage: 'renewal', family: { relationship: 'child' } },
       {
         ...empty,
-        family: {
-          relationship: 'child',
-          application: { registrationStage: 'renewal' },
-        },
+        familyStage: 'renewal',
+        family: { relationship: 'spouse', sponsorIrish: true },
       },
       {
         ...empty,
-        family: {
-          relationship: 'spouse',
-          sponsorIrish: true,
-          application: { registrationStage: 'renewal' },
-        },
-      },
-      {
-        ...empty,
-        family: {
-          application: { channel: 'ordinary', registrationStage: 'first' },
-        },
+        familyStage: 'first',
+        family: { application: { channel: 'ordinary' } },
       },
       {
         ...empty,

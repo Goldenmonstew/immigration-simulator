@@ -72,6 +72,8 @@ export const zhCN = {
   'ie.error.fraction': '请填写 0 到 1 之间的比例，例如 0.25 表示 25%。',
   'ie.error.order': '这个日期不能早于开始的日期。',
   'ie.error.pathways': '请至少选择一条要核对的路径。',
+  'ie.error.familyFirstChannel':
+    '评估首次登记时，请在「申请日期与渠道」一节选择普通家庭团聚、境外 de facto 申请或爱尔兰公民配偶直接登记。',
   'ie.whatif.date': '模拟（递交）日期',
   'ie.whatif.dateHint':
     '改动日期只影响对比。所填材料在新日期是否仍然有效，需要另行确认。',
@@ -149,6 +151,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Enter a fraction from 0 to 1, for example 0.25 for 25%.',
   'ie.error.order': 'This date cannot be before the start date.',
   'ie.error.pathways': 'Select at least one pathway to check.',
+  'ie.error.familyFirstChannel':
+    'To check a first registration, choose ordinary family reunification, an overseas de facto application or direct registration as an Irish citizen’s spouse under “Application date and channel”.',
   'ie.whatif.date': 'Simulation (filing) date',
   'ie.whatif.dateHint':
     'Changing the date only affects the comparison. Check separately whether your documents would still be valid then.',

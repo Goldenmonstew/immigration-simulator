@@ -85,6 +85,7 @@ const directFields: Record<number, string[]> = {
   1: ['permissions', 'trips'],
   2: ['marriedOn'],
   3: ['workStage', 'employmentStart'],
+  4: ['familyStage'],
   5: ['stamp5Stage', 'ltrStage'],
   6: ['euStage', 'waStage'],
 };

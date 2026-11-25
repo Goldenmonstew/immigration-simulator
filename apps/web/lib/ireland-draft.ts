@@ -73,7 +73,11 @@ const steps: {
     fields: ['workStage', 'employmentStart', 'work'],
     paths: WORK_PATHS,
   },
-  { title: 'ie.form.step4', fields: ['family'], paths: FAMILY_PATHS },
+  {
+    title: 'ie.form.step4',
+    fields: ['familyStage', 'family'],
+    paths: FAMILY_PATHS,
+  },
   {
     title: 'ie.form.step5',
     fields: ['stamp5Stage', 'stamp5', 'ltrStage', 'ltr'],
@@ -112,8 +116,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-// Remove answers to questions the selected pathways do not show. EU residence
-// does not use the Withdrawal Agreement scope.
+// Remove answers to questions the selected pathways do not show, and groups
+// left with no answers, as the questionnaire saves them. EU residence does
+// not use the Withdrawal Agreement scope.
 function prune(
   fields: IrelandFields,
   record: Record<string, unknown>,
@@ -123,9 +128,10 @@ function prune(
   for (const [name, value] of Object.entries(record)) {
     const field = fields[name];
     if (!field || !shownField(field, draft)) continue;
-    if (field.type === 'group' && isRecord(value))
-      next[name] = prune(field.fields, value, draft);
-    else if (field.type === 'list' && Array.isArray(value))
+    if (field.type === 'group' && isRecord(value)) {
+      const answers = prune(field.fields, value, draft);
+      if (Object.keys(answers).length) next[name] = answers;
+    } else if (field.type === 'list' && Array.isArray(value))
       next[name] = value.map((row) =>
         isRecord(row) ? prune(field.fields, row, draft) : row,
       );
@@ -171,6 +177,7 @@ export function irelandRequest(
     'step',
     'completed',
     'workStage',
+    'familyStage',
     'stamp5Stage',
     'ltrStage',
     'euStage',
@@ -178,6 +185,8 @@ export function irelandRequest(
   ] as const)
     delete request[key];
   const stage = registrationStage(active, pathway);
+  // The family registration stage is read from the family application.
+  const familyStage = active.familyStage;
   return {
     ...(request as Omit<IrelandDraft, keyof CountryDraft>),
     simulationDate: active.simulationDate,
@@ -187,6 +196,15 @@ export function irelandRequest(
     registration: stage
       ? { ...active.registration, stage }
       : active.registration,
+    family: familyStage
+      ? {
+          ...active.family,
+          application: {
+            ...active.family?.application,
+            registrationStage: familyStage,
+          },
+        }
+      : active.family,
   };
 }
 
@@ -214,6 +232,11 @@ function registrationStage(
 }
 
 type Errors = Record<string, TranslationKey>;
+const FIRST_REGISTRATION_CHANNELS = [
+  'ordinary',
+  'spouse-registration',
+  'de-facto-overseas',
+] as const;
 const datetime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/;
 // Later dates in a record must not come before the earlier ones.
 const ordered = [
@@ -358,6 +381,17 @@ function checkStep(draft: IrelandDraft, step: number, submit: boolean) {
   );
   if (step === 0 && submit && !draft.pathways.length)
     errors['ie-pathways'] = 'ie.error.pathways';
+  // Only these channels have a first registration after a grant; with any
+  // other the engine would assess the application instead.
+  if (
+    step === 4 &&
+    submit &&
+    draft.familyStage === 'first' &&
+    !FIRST_REGISTRATION_CHANNELS.includes(
+      draft.family?.application?.channel as never,
+    )
+  )
+    errors['ie-familyStage'] = 'ie.error.familyFirstChannel';
   return errors;
 }
 
