@@ -55,7 +55,9 @@ export const zhCN = {
   'gr.whatif.incomeYear':
     '日期改到其他年份时，仍按这里的金额作为上一纳税年度的收入。',
   'gr.whatif.yearCounts':
-    '问卷里按年数填写的居住或持卡年限只对应问卷日期。改到其他日期时，相关条件显示为待确认；在问卷里填写起始日，即可随日期推算。',
+    '问卷里按年数填写的居住、持卡或担保人合法居留年限只对应问卷日期。改到其他日期时，用问卷日期减去所填年数作为起始日推算，即假设这段时间一直持续。',
+  'gr.whatif.blueCardYears':
+    '持蓝卡年数只对应问卷日期。改到其他日期时不再使用这一年数，“蓝卡就业中断与续期保护”可能显示为待确认。',
   'gr.whatif.asAnswered': '按问卷答案',
   'gr.whatif.salary': '税前年薪（€）',
   'gr.whatif.payMonthly': '税前月薪（€）',
@@ -126,7 +128,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'gr.whatif.incomeYear':
     'If the date moves to another year, this amount is still used as the income for the previous tax year.',
   'gr.whatif.yearCounts':
-    'Years of residence or on a card entered as a number apply only on the questionnaire date. On another date the conditions that use them are shown as to be confirmed. Enter the start date in the questionnaire to count from it.',
+    'Years of residence, on a card or of the sponsor’s lawful residence entered as a number apply only on the questionnaire date. On another date they are counted from a start date that many years before the questionnaire date, assuming the period continued.',
+  'gr.whatif.blueCardYears':
+    'Years on the Blue Card apply only on the questionnaire date. On another date they are not used, so “Protection during an interruption of Blue Card employment” may be shown as to be confirmed.',
   'gr.whatif.asAnswered': 'As answered in the questionnaire',
   'gr.whatif.salary': 'Gross annual salary (€)',
   'gr.whatif.payMonthly': 'Gross monthly pay (€)',

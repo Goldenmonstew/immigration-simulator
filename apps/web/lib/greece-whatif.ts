@@ -1,3 +1,4 @@
+import { addMonths } from '@uk-immigration/engine';
 import { greeceFull2026_11 } from '@uk-immigration/policy-data';
 import { GreeceWhatIfControls } from '../app/greece/whatif/controls';
 import type { TranslationKey } from '../i18n';
@@ -39,7 +40,8 @@ export interface GreeceWhatIf {
     language: boolean;
     exam: boolean;
     // Some periods were given as years on the questionnaire date.
-    yearCounts: boolean;
+    familyYears: boolean;
+    blueCardYears: boolean;
   };
 }
 
@@ -140,34 +142,42 @@ function withoutAbsences(draft: GreeceDraft): GreeceDraft {
   };
 }
 
-type FamilyTcn = NonNullable<GreeceDraft['familyTcn']>;
 // Years counted up to the questionnaire date, with the start date the engine
 // prefers. Residence before a sponsor's death does not move with the date.
-const familyYearCounts: [keyof FamilyTcn, keyof FamilyTcn][] = [
+const familyYearCounts = [
   ['sponsorLawfulYears', 'sponsorLawfulFrom'],
   ['familyResidenceYears', 'familyResidenceFrom'],
   ['yearsSinceFirstFamilyPermit', 'firstFamilyPermitIssuedOn'],
   ['blueFamilyYearsInEU', 'blueFamilyResidenceFrom'],
-];
+] as const;
 function yearCounts(draft: GreeceDraft) {
   const family = draft.familyTcn ?? {};
+  const work = draft.work;
   return {
-    work: draft.work?.blueCardYears !== undefined,
-    family: familyYearCounts.flatMap(([years, from]) =>
-      family[years] !== undefined &&
-      !family[from] &&
-      !(
-        years === 'familyResidenceYears' &&
-        family.autonomousBasis === 'bereavement'
-      )
-        ? [years]
-        : [],
+    // The engine reads Blue Card years only for a renewal after unemployment.
+    work:
+      work?.permit === 'E1' &&
+      work.stage === 'renewal' &&
+      work.blueRenewalInterruption === 'unemployment' &&
+      work.blueCardYears !== undefined,
+    family: familyYearCounts.filter(
+      ([years, from]) =>
+        family[years] !== undefined &&
+        !family[from] &&
+        !(
+          years === 'familyResidenceYears' &&
+          family.autonomousBasis === 'bereavement'
+        ),
     ),
   };
 }
 
-// On another date such a count is unknown, as it would be on the questionnaire.
-function withoutYearCounts(draft: GreeceDraft): GreeceDraft {
+// On another date a count of family years becomes the start date it implies,
+// so the period runs on as an entered start date would. Part months are
+// dropped, which never brings a date forward. The engine would otherwise infer
+// these periods from the card history. Blue Card years have no start date and
+// are left unknown.
+function withStartDates(draft: GreeceDraft, answeredOn: string): GreeceDraft {
   const counts = yearCounts(draft);
   const next = { ...draft };
   if (counts.work) {
@@ -175,8 +185,12 @@ function withoutYearCounts(draft: GreeceDraft): GreeceDraft {
     delete next.work.blueCardYears;
   }
   if (counts.family.length) {
-    next.familyTcn = { ...draft.familyTcn };
-    for (const key of counts.family) delete next.familyTcn[key];
+    const family = { ...draft.familyTcn };
+    for (const [years, from] of counts.family) {
+      family[from] = addMonths(answeredOn, -Math.floor(family[years]! * 12));
+      delete family[years];
+    }
+    next.familyTcn = family;
   }
   return next;
 }
@@ -196,7 +210,8 @@ export const greeceWhatIf: CountryWhatIf<GreeceDraft, GreeceWhatIf> = {
     const answered = {
       language: !!integration?.basis && integration.basis !== 'language',
       exam: !!exam && exam !== 'certificate' && exam !== 'not-passed',
-      yearCounts: counts.work || counts.family.length > 0,
+      familyYears: counts.family.length > 0,
+      blueCardYears: counts.work,
     };
     return {
       simulationDate: draft.simulationDate,
@@ -230,7 +245,7 @@ export const greeceWhatIf: CountryWhatIf<GreeceDraft, GreeceWhatIf> = {
       simulationDate: knobs.simulationDate,
     };
     if (knobs.simulationDate !== base.simulationDate)
-      draft = withoutYearCounts(draft);
+      draft = withStartDates(draft, base.simulationDate);
     if (knobs.noTrips) draft = withoutAbsences(draft);
     if (knobs.greekLevel !== base.greekLevel && knobs.greekLevel !== asAnswered)
       draft.integration = knobs.greekLevel

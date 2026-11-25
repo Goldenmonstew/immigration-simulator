@@ -391,7 +391,12 @@ test('what-if knobs change a copy of the draft and point conditions at controls'
     sponsorPersonalNetEur: undefined,
     sponsorEvidence: undefined,
     qualifyingValueEur: undefined,
-    answered: { language: false, exam: false, yearCounts: false },
+    answered: {
+      language: false,
+      exam: false,
+      familyYears: false,
+      blueCardYears: false,
+    },
   });
   expect(gr.whatif.apply(draft, knobs)).toEqual(draft);
 
@@ -926,15 +931,15 @@ test('assuming no time outside Greece clears each whole absence summary (review9
   }
 });
 
-test('moving the date drops year counts taken on the questionnaire date (review98-1 item 3)', () => {
+test('moving the date counts year answers from the start date they imply (review98-1 item 3)', () => {
   const later = (draft: GreeceDraft, simulationDate: string) =>
     gr.whatif.apply(draft, { ...gr.whatif.initial(draft), simulationDate });
-  // Ordinary sponsor: one year on 2026-11-24 says nothing about 2029.
+  // Ordinary sponsor: one year on 2026-11-24 means lawful residence since 2025-11-24.
   expect(checkOf(sponsorDraft, 'FT-01')?.status).toBe('NOT_MET');
   const moved = later(sponsorDraft, '2029-01-01');
   expect(moved.familyTcn).not.toHaveProperty('sponsorLawfulYears');
-  expect(checkOf(moved, 'FT-01')?.status).toBe('UNKNOWN');
-  // A start date moves with the comparison date.
+  expect(moved.familyTcn?.sponsorLawfulFrom).toBe('2025-11-24');
+  // The count then gives what the start date it implies gives.
   const dated = {
     ...sponsorDraft,
     familyTcn: {
@@ -944,16 +949,44 @@ test('moving the date drops year counts taken on the questionnaire date (review9
     },
   };
   expect(checkOf(dated, 'FT-01')?.explanation).toContain('2027-11-24');
-  expect(checkOf(later(dated, '2029-01-01'), 'FT-01')?.status).toBe('MET');
+  for (const [date, status] of [
+    ['2025-06-01', 'NOT_MET'],
+    ['2027-01-01', 'NOT_MET'],
+    ['2029-01-01', 'MET'],
+  ]) {
+    expect(checkOf(later(sponsorDraft, date), 'FT-01')?.status, date).toBe(
+      status,
+    );
+    expect(checkOf(later(dated, date), 'FT-01')?.status, date).toBe(status);
+  }
+  expect(
+    checkOf(later(sponsorDraft, '2027-01-01'), 'FT-01')?.explanation,
+  ).toContain('2027-11-24');
 
-  // Ο.2 residence: both year counts are as of the questionnaire date.
-  expect(checkOf(autonomousDraft, 'FT-07')?.status).toBe('NOT_MET');
-  const autonomous = later(autonomousDraft, '2028-12-01');
-  expect(autonomous.familyTcn).not.toHaveProperty('familyResidenceYears');
-  expect(autonomous.familyTcn).not.toHaveProperty(
+  // Ο.2 residence: both year counts are as of the questionnaire date. Part
+  // months are dropped, so the start date is never earlier than the answer.
+  const autonomous = {
+    ...autonomousDraft,
+    familyTcn: {
+      ...autonomousDraft.familyTcn,
+      otherResidencePermitGranted: false,
+      yearsSinceFirstFamilyPermit: 4.99,
+    },
+  };
+  expect(checkOf(autonomous, 'FT-07')?.status).toBe('NOT_MET');
+  const autonomousLater = later(autonomous, '2028-12-01');
+  expect(autonomousLater.familyTcn).toMatchObject({
+    familyResidenceFrom: '2022-11-24',
+    firstFamilyPermitIssuedOn: '2021-12-24',
+  });
+  expect(autonomousLater.familyTcn).not.toHaveProperty('familyResidenceYears');
+  expect(autonomousLater.familyTcn).not.toHaveProperty(
     'yearsSinceFirstFamilyPermit',
   );
-  expect(checkOf(autonomous, 'FT-07')?.status).toBe('UNKNOWN');
+  expect(checkOf(autonomousLater, 'FT-07')?.status).toBe('MET');
+  expect(checkOf(later(autonomous, '2027-11-23'), 'FT-07')?.status).toBe(
+    'NOT_MET',
+  );
   // Residence before the sponsor's death does not change with the date.
   const bereaved = {
     ...autonomousDraft,
@@ -964,15 +997,90 @@ test('moving the date drops year counts taken on the questionnaire date (review9
     },
   };
   expect(later(bereaved, '2028-12-01').familyTcn?.familyResidenceYears).toBe(4);
+  // Blue Card years have no start date. The engine reads them only for a
+  // renewal after unemployment, so only then are they left unknown.
   const blue = routeDraft({
     pathways: ['GR-WORK'],
-    work: { permit: 'E1', stage: 'renewal', blueCardYears: 1 },
+    work: {
+      permit: 'E1',
+      stage: 'renewal',
+      blueRenewalInterruption: 'unemployment',
+      blueCardYears: 1,
+    },
   });
   expect(later(blue, '2028-12-01').work).not.toHaveProperty('blueCardYears');
+  for (const work of [
+    { ...blue.work, blueRenewalInterruption: undefined },
+    { ...blue.work, permit: 'E4' as const },
+    { ...blue.work, stage: 'initial' as const },
+  ]) {
+    const kept = { ...blue, work };
+    expect(later(kept, '2028-12-01').work?.blueCardYears).toBe(1);
+    expect(whatIfControls(kept)).not.toContain(t('gr.whatif.blueCardYears'));
+  }
   // The questionnaire date keeps every answer, and the knob explains the rule.
   expect(later(sponsorDraft, '2026-11-24')).toEqual(sponsorDraft);
   expect(whatIfControls(sponsorDraft)).toContain(t('gr.whatif.yearCounts'));
+  expect(whatIfControls(sponsorDraft)).not.toContain(
+    t('gr.whatif.blueCardYears'),
+  );
   expect(whatIfControls(dated)).not.toContain(t('gr.whatif.yearCounts'));
+  expect(whatIfControls(blue)).toContain(t('gr.whatif.blueCardYears'));
+  expect(whatIfControls(blue)).not.toContain(t('gr.whatif.yearCounts'));
+});
+
+test('a moved date does not fall back to the card history behind year counts (review98-2 risk 1)', () => {
+  const later = (draft: GreeceDraft, simulationDate: string) =>
+    gr.whatif.apply(draft, { ...gr.whatif.initial(draft), simulationDate });
+  // Three years of residence on 2026-11-24, although a family card runs from 2020.
+  const card = (issuedOn: string) => ({
+    kind: 'regular' as const,
+    purpose: 'family-reunification' as const,
+    from: issuedOn,
+    to: '2028-01-01',
+    issuedOn,
+  });
+  const residence = routeDraft({
+    pathways: ['GR-FAMILY-TCN'],
+    permits: [card('2020-01-01')],
+    permitHistoryComplete: true,
+    familyTcn: {
+      stage: 'autonomous',
+      sponsor: 'ordinary',
+      member: 'spouse',
+      autonomousBasis: 'residence',
+      previousFamilyCard: true,
+      familyResidenceYears: 3,
+    },
+  });
+  for (const draft of [
+    residence,
+    { ...residence, trips: [], tripsComplete: true },
+  ]) {
+    expect(checkOf(draft, 'FT-07')?.status).toBe('NOT_MET');
+    for (const date of ['2025-06-01', '2026-11-25', '2028-11-23'])
+      expect(checkOf(later(draft, date), 'FT-07')?.status, date).not.toBe(
+        'MET',
+      );
+    // Counted from 2023-11-24, five years are complete on 2028-11-24.
+    expect(checkOf(later(draft, '2028-11-24'), 'FT-07')?.status).toBe('MET');
+  }
+
+  // Two years since the first family permit, although the history shows 2019.
+  const permit = routeDraft({
+    ...residence,
+    permits: [card('2019-01-01')],
+    familyTcn: {
+      ...residence.familyTcn,
+      familyResidenceYears: undefined,
+      familyResidenceFrom: '2019-01-01',
+      yearsSinceFirstFamilyPermit: 2,
+    },
+  });
+  expect(checkOf(permit, 'FT-07')?.status).toBe('NOT_MET');
+  for (const date of ['2025-06-01', '2026-11-25', '2029-11-23'])
+    expect(checkOf(later(permit, date), 'FT-07')?.status, date).not.toBe('MET');
+  expect(checkOf(later(permit, '2029-11-24'), 'FT-07')?.status).toBe('MET');
 });
 
 test('the comparison marks a date before birth and explains the income year (review98-1 risks)', () => {

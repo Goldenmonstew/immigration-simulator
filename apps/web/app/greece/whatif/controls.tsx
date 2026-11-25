@@ -86,13 +86,19 @@ export function GreeceWhatIfControls({
           onChange={(e) => update({ simulationDate: e.target.value })}
           aria-invalid={errors.date ? true : undefined}
           aria-describedby={describedBy(
-            knobs.answered.yearCounts && `${ids.date}-hint`,
+            knobs.answered.familyYears && `${ids.date}-hint`,
+            knobs.answered.blueCardYears && `${ids.date}-blue-card-hint`,
             errors.date && 'date-error',
           )}
         />
-        {knobs.answered.yearCounts && (
+        {knobs.answered.familyYears && (
           <p id={`${ids.date}-hint`} className={styles.hint}>
             {t('gr.whatif.yearCounts')}
+          </p>
+        )}
+        {knobs.answered.blueCardYears && (
+          <p id={`${ids.date}-blue-card-hint`} className={styles.hint}>
+            {t('gr.whatif.blueCardYears')}
           </p>
         )}
         {error('date')}
