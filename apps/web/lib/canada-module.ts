@@ -68,6 +68,7 @@ function run(draft: CanadaDraft, locale: Locale): CountryResult {
 export const canadaModule: CountryModule<CanadaDraft, CanadaWhatIf> = {
   id: 'ca',
   version: CANADA_DRAFT_VERSION,
+  scenarioLinks: true,
   createDraft: createCanadaDraft,
   activeAnswers: activeCanadaAnswers,
   validateStep: validateCanadaStep,

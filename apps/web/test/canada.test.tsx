@@ -8,6 +8,7 @@ import { GET as offlinePages } from '../app/offline-pages.json/route';
 import Home from '../app/page';
 import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';
 import { t, type TranslationKey } from '../i18n';
 import { en } from '../i18n/en';
@@ -20,8 +21,10 @@ import {
   type CanadaField,
 } from '../lib/canada-fields';
 import { canadaModule as ca } from '../lib/canada-module';
+import { readPageResult } from '../lib/page-result';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { sourceUrls } from '../lib/sources';
+import { draftStorage } from '../lib/storage';
 import { ukModule } from '../lib/uk-module';
 
 const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
@@ -30,6 +33,12 @@ const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
       {node}
     </LocaleContext>,
   );
+
+const navigation = vi.hoisted(() => ({ pathname: null as string | null }));
+vi.mock('next/navigation', async (original) => ({
+  ...(await original<typeof import('next/navigation')>()),
+  usePathname: () => navigation.pathname,
+}));
 
 // Keep each rendered input's change handler so a test can type into it.
 type Change = (event: { target: { value: string } }) => void;
@@ -904,4 +913,45 @@ test('the policy page lists Canadian routes, all conditions and only Canadian so
   const english = render(<CanadaPolicyPage />, 'en');
   expect(english).toContain('Physical residency baseline');
   expect(english).toContain(t('ca.goal.CA-AIP', 'en'));
+});
+
+// review95-1 risk 3: a scenario link opens without replacing the draft on
+// this device, and result, edit and comparison links carry the scenario.
+test('opening a Canadian share link keeps the local draft', () => {
+  expect(ca.scenarioLinks).toBe(true);
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local: CanadaDraft = {
+    ...ca.createDraft(),
+    simulationDate: '2026-10-01',
+    goals: ['CA-FAMILY'],
+  };
+  draftStorage(ca, local);
+  const page = readPageResult(ca, 'zh-CN', encodeDraft(ca, residencyDraft()));
+  expect(page.shared).toBe(true);
+  expect(page.draft?.simulationDate).toBe('2026-11-24');
+  expect(JSON.parse(storage.get('ca-immigration-draft-v1')!)).toEqual(local);
+  expect(draftStorage(ca).draft).toEqual(local);
+  vi.unstubAllGlobals();
+});
+
+test('skipping to the main content keeps the scenario fragment on Canadian scenario pages', () => {
+  const shell = (pathname: string) => {
+    navigation.pathname = pathname;
+    return render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    );
+  };
+  for (const page of ['simulate', 'result', 'whatif']) {
+    const html = shell(`/canada/${page}`);
+    expect(html, page).toMatch(/<button[^>]*>跳到主要内容<\/button>/);
+    expect(html, page).not.toContain('href="#main"');
+  }
+  expect(shell('/canada/policy')).toContain('href="#main"');
+  navigation.pathname = null;
 });
