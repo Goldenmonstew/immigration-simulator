@@ -44,6 +44,8 @@ export const iconPaths = {
   cloudy: 'M7 19a5 5 0 1 1 0-10 7 7 0 0 1 13 2 4 4 0 0 1-1 8z',
   rain: 'M7 15a4 4 0 1 1 0-8 6 6 0 0 1 11 1 3.5 3.5 0 0 1 0 7z M7 18l-1 3 M12 18l-1 3 M17 18l-1 3',
   snow: 'M12 2v20 M3 7l18 10 M3 17L21 7 M9 3l3 3 3-3 M9 21l3-3 3 3 M3 10l4-1-1-4 M18 19l-1-4 4-1 M3 14l4 1-1 4 M18 5l-1 4 4 1',
+  // A koru, the unfurling fern frond, for New Zealand's te reo.
+  tereo: 'M12 21c-5 0-9-4-9-9s4-9 9-9c4 0 7 3 7 7 0 3-2 5-5 5-2 0-4-2-4-4 0-1 1-2 2-2',
 };
 export function GameIcon({ name }: { name: keyof typeof iconPaths }) {
   return (

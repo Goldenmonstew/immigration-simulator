@@ -1,7 +1,9 @@
 import { nzFormEn, nzFormZh } from './new-zealand-form';
+import { nzGameEn, nzGameZh } from './new-zealand-game';
 
 export const zhCN = {
   ...nzFormZh,
+  ...nzGameZh,
   'nz.name': '新西兰',
   'hub.nz.code': 'NZ',
   'hub.nz.paths':
@@ -49,6 +51,7 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   ...nzFormEn,
+  ...nzGameEn,
   'nz.name': 'New Zealand',
   'hub.nz.code': 'NZ',
   'hub.nz.paths':
