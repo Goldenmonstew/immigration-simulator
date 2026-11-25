@@ -696,3 +696,4 @@
 | 649.3 | 任务 97 第二轮审核修正（review97-2 建议 1）。自由流动永久居留由提前途径或“已取得”决定时，普通年限 ES-U04 标为时间条件、取得前资格期 ES-U05 标为申请条件，不再各自标为“可选依据（满足其一即可）”；普通途径须两项同时满足。 | apps/web/lib/spain-module.ts、apps/web/test/spain.test.tsx |
 | 649.4 | 任务 97 第二轮审核修正（review97-2 建议 2）。西班牙政策页 ES-F01–F04 引用的 SRC-345 Hoja 52 带上与引擎 familyGuide 相同的专属链接，不再跳到 Hoja 51。 | apps/web/lib/spain-policy-rules.ts、apps/web/test/spain.test.tsx |
 | 649.5 | 任务 97 第二轮审核修正（review97-2 建议 3）。问卷“在西出生路径的离境已获认可”英文去掉直接写入的“3 years”，与中文一致，不再在翻译里硬编码政策年限。 | apps/web/i18n/countries/spain-form.ts、apps/web/test/spain-questionnaire.test.tsx |
+| 649.6 | 任务 97 第二轮审核修正（review97-2）报告：逐条对应问题 1、风险 1–2、建议 1–4，附对比页旋钮显示条件核对表、先失败后通过、第一轮对比用例回放、完整验收、e2e 与视觉核对结果；建议 5 未做的理由。 | docs/tasks/reports/97-es-pages.md、PROGRESS.md |

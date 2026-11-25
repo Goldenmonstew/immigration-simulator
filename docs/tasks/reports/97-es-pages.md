@@ -188,3 +188,65 @@ brief 第 2 项“结果日期不是最早可申请日期的路径设 `earliestL
 - `site-shell.tsx` 里判断场景路径的变量仍叫 `isJapanScenario`，现在已列出日本、澳大利亚、西班牙三国。它其实可以直接读国家模块的 `scenarioLinks`，以后新国家就不必再改这个共用文件。brief 没要求改共用命名，这里没动。
 - 西班牙的嵌套参数是对象，政策页把它显示成一行“名称 值、名称 值”。`retirementTable`、`euDocument` 这类字段多的参数在窄屏上偏长。改成行数组就能自动显示为表格。
 - 原报告第 4 段的两条（`SRC-345` Hoja 52 链接、问卷文案里直接写的政策数字）本次未处理，仍然有效。
+
+## 审核修正（review97-2）
+
+修正者：Claude Opus 5.5，尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。PROGRESS 接着 647 编：648、649 之后，650–717 已被其他任务（本机或远端分支）占用，所以沿用已有的 `752.1` 写法，编为 649.1–649.6。问题 1 先写回归测试，在旧代码上失败后再改；风险与建议的回归测试也都在旧代码上确认过失败。
+
+### 1. 做了什么
+
+| PROGRESS | Commit | 审核编号 | 内容 |
+|---|---|---|---|
+| 648 | `f7cc3bce` Fix: 西班牙对比页随迁家属医保旋钮按主申请人目的显示与作用 | 问题 1 | 引擎只在主申请人为非营利目的时读取 `ES-F04`（家属本人保单，或主申请人保单且覆盖家属）。对比页给 F 写医保、决定是否显示医保旋钮，都改看 `draft.mobility.purpose` 本身（原来用 `spainMobilityPurpose`，没选 M 时恒为空）。选“否”时，即使主申请人保单没填，也写入 `coversFamilyMember: false`。只填家属本人保单的草稿选“否”后，`ES-F04` 与 `ES-F` 都是未满足，同选 E、F 时也一样。F 为受雇、自雇或没答目的时不显示医保旋钮；同时选了 E 或 R-E 时照常显示，只作用于读取它的路径。 |
+| 649 | `07e830bf` Fix: 西班牙对比页改日期后是／否旋钮显示新日期状态，可假设证明仍有效 | 风险 1 | 是／否旋钮（DELE、CCSE、医保、品格审查）分两种状态。没改过的旋钮不改写事实，下拉框显示对比结果里对应条件的状态（新增 `spainAnswers`，按对比副本计算）。用户选过的答案才写入副本，“不确定”记为 `null`，与“没改过”区分。改日期后，CCSE 证书和医保按问卷填的日期计算有效期，旋钮随之显示新日期下的状态：过期的 CCSE 显示“不确定”，到期的医保显示“否”。这时选“是”，就写入在新日期有效的证明，条件为满足。日期输入框下加了说明，并用 `aria-describedby` 关联。`spain.test.tsx` 原对比用例改用 `spainAnswers` 核对起始状态。 |
+| 649.1 | `8a65b58f` Fix: 西班牙对比页 DELE、CCSE 旋钮说明两门考试共用的免试 | 风险 2 | 引擎里 ESO 学历、全部免试和司法免试共用一个 `examRelief`，同时决定 `ES-N11`、`ES-N12`（`exempt = any(minor, relief)`），`ES-N13` 也读它。要让一门考试为“未满足”，只能取消这项共用免试，没法只作用于一门：`examRelief` 未答时成年人的 `exempt` 为待确认，`ES-N11` 最多是待确认。因此按 brief 的第二种方式处理：在 CCSE 下拉框下加一句说明，两个下拉框都关联它，写明任一考试选“否”或“不确定”时，一并假设没有这些免试，另一门考试和社会融合条件可能随之改变。有了 649，没改过的另一门考试旋钮会显示对比结果里的新状态，连带变化直接出现在旋钮上。 |
+| 649.2 | `640fa43b` Fix: 西班牙对比页家庭人数与月收入只在各路径一致时显示起始值 | 建议 4 | 起始值要求每条读取该值的所选路径（E、F、M 非营利）都已填写且数值相同。有路径未填或各路径不同时，输入框为空，输入的值写入每条路径。原来 E 填 1000、M 非营利未填时，输入框显示 1000，再输入 1000 不起作用。两个输入框关联同一句说明。 |
+| 649.3 | `9fc98bbf` Fix: 西班牙自由流动普通年限与取得前资格期不再标为可选依据 | 建议 1 | 普通途径是 `all(ordinaryTime, historical)`，两项须同时满足。由提前途径或“已取得”决定路径时，`ES-U04` 标为时间条件，`ES-U05` 标为申请条件，不再各标“满足其一即可”。两项仍不在 `decidedBy` 中，不进“还差什么”。`ES-U06`–`ES-U11` 仍为可选依据。 |
+| 649.4 | `9bcf58b6` Fix: 西班牙政策页随迁家属条件链接到 SRC-345 Hoja 52 | 建议 2 | `ES-F01`–`ES-F04` 的 SRC-345（Hoja 52）带上与引擎 `familyGuide` 相同的 URL。`sourceUrls` 里 SRC-345 整体仍指向 Hoja 51，`docs/SOURCES.md` 登记了两个 URL。 |
+| 649.5 | `d0eca9eb` Fix: 西班牙问卷在西出生路径连续性问题中英文一致，不写死年限 | 建议 3 | 英文去掉“in the 3 years before filing”，与中文一致。年限来自参数 `spanishBornResidenceYears`，翻译里不再写数字。 |
+| 649.6 | 本节 `Docs` 提交 | — | 报告。 |
+
+本轮途中发现 649 的提交漏改 `spain.test.tsx` 里依赖旧起始值的用例（提交前只跑了 `spain-whatif.test.tsx`）。三个提交都还没推送，于是从 648 重新拣选，把用例修改并入 649，再拣选 649.1、649.2；文件内容与修正前逐字相同，只有这一处测试不同。上表是重建后的哈希。
+
+#### 旋钮显示条件核对
+
+按引擎实际读取的字段逐个核对。`activeSpainAnswers` 只把所选路径的答案送进引擎，下表“读取”指送进引擎后有条件用到。
+
+| 旋钮 | 写入的答案 | 读取它的路径与条件 | 显示条件（本轮后） | 结论 |
+|---|---|---|---|---|
+| 模拟日期 `#es-whatif-date` | `simulationDate` | 全部路径 | 始终 | 一致 |
+| 假设无出境 `#es-whatif-trips` | 顶层 `trips`；`residence.tripDetails`；`longTermCard.absences`、`outsideSpainPeriods`；`freeMovement.trips`、`longestPostAcquisitionAbsence`、`workerResidenceEvidence.trips` | N（`ES-N01` 等）；L（`ES-L01`、`ES-L02`）；E（`ES-E-TIME` 等）；U（`ES-U04`、`ES-U04-retention`）；L、E、M 的卡件 `ES-T02` | 选了 N、L、E、U 或 M | 一致。F、R-N、R-E 不读出境记录 |
+| 入籍年限类别 `#es-whatif-nat-route` | `route` | N（含一般年限对照路径） | 选了 N | 一致 |
+| DELE `#es-whatif-dele` | `nationality` 的 `deleEvidence`、`deleLevel`、`documentedNationalities`、`examRelief` | N：`ES-N11`，经共用免试连带 `ES-N12`、`ES-N13` | 选了 N | 一致，连带影响见风险 2 |
+| CCSE `#es-whatif-ccse` | `nationality.ccse`、`examRelief` | N：`ES-N12`，连带 `ES-N11`、`ES-N13` | 选了 N | 一致 |
+| 家庭人数 `#es-whatif-family-size` | `residence.resources.familySize`；`family.resources.familySize`；`holder.nonWorking.dependants` | E：`ES-E05`；F：`ES-F03`（任何目的）；M 非营利：`ES-M02` | 选了 E 或 F，或选了 M 且目的为非营利 | 一致 |
+| 月收入 `#es-whatif-income` | 两处 `eligibleMonthlyIncome`；`holder.nonWorking.monthlyNonWorkIncome` | 同上 | 同上 | 一致。R-E 的 `ES-R06`、U 的 `ES-U05` 没有数额，上一轮已不显示 |
+| 年薪 `#es-whatif-salary` | `holder.employment.annualGrossSalary` | M 受雇：`ES-M04` | 选了 M 且目的为受雇 | 一致 |
+| 医保 `#es-whatif-insurance` | `residence.insurance`；`recovery.insurance`；`holder.healthCover`；`family.healthCover` 与 `holder.healthCover.coversFamilyMember` | E：`ES-E06`；R-E：`ES-R07`；M 非营利：`ES-M03`；F 且主申请人非营利：`ES-F04` | 选了 E 或 R-E，或选了 M、F 且目的为非营利 | 本轮修正。原来只要选了 F 就显示 |
+| 品格审查 `#es-whatif-conduct` | `nationality.conductAndSecurityDecision`、`criminalRecords`；`residence.securityDecision`、`criminalCertificatesWhereRequired`；`holder.securityDecision`、`noRefusalAlert`、`noReturnBar`；`recovery.publicOrderAndSecurityCleared`、`publicHealthCleared`、`clearRecordsInAllCountries`；`freeMovement.noOfficialRestriction` | N：`ES-N10`、`ES-N10-RECORDS`；L：`ES-L12`、`ES-L12-CERT`；E：`ES-E08`、`ES-E08-CERT`；M（任何目的）：`ES-M08`；R-N、R-E：`ES-R04`、`ES-R05`；U：`ES-U12` | 选了 N、L、E、M、R-N、R-E 或 U | 一致，F 不读 |
+
+结果页的旋钮跳转（`focusForRule`）也逐个核对过：映射到旋钮的条件出现时，对应旋钮都会显示。只有一处例外：F 没答居留目的时，引擎仍列出 `ES-F04`（恒为待确认），这时“去对比页试试”能跳到对比页，但没有医保旋钮可以聚焦，见第 3 段。
+
+### 2. 怎么验证的
+
+- **先失败后通过**：问题 1 的用例先写好，在旧代码上运行失败：`ES-F04` 得到 `UNKNOWN` 而不是 `NOT_MET`；只换回旧 `controls.tsx` 时，受雇目的下仍渲染 `#es-whatif-insurance`。风险 1 的改日期用例放回旧源文件运行，CCSE 旋钮仍显示 `true`，失败。建议 4 的用例在旧 `agreed` 下起始值为 1000，失败。建议 1、2、3 的用例在改动前分别失败：`ES-U04` 为 `alternative`；政策页 `ES-F01` 没有 Hoja 52 链接；英文标签含数字。改动后全部通过。
+- **第一轮对比页回归用例回放**：`test/spain-whatif.test.tsx` 中 review97-1 的用例全部保留并通过，包括：L+N 只有 L 已审查、L 与 M 安全审查 `pending`、E/M/F/R-E 过期或未确认的保单、只缺签发日的 CCSE 与登记等效 DELE、E 与 F 资源不同且 E 缺 `stable` 时打开即“与当前情景相同”；改后日期测出保单到期；是／否改回待确认（现用 `null`）及 DELE、CCSE 选“否”排除免试；医保与品格审查作用于每条所选路径；年薪、人数、收入只作用于读取它的路径；U 的“无出境”清除取得后最长离境；对比副本分享回读；家庭人数下限。`spain.test.tsx` 的旧对比用例（人数、收入、日期、CCSE 过期、无出境）也通过。e2e 第一个用例从结果页跳到 DELE 旋钮，两条路径都显示“与当前情景相同”。
+- **西班牙单测**：`VITEST_MAX_WORKERS=2 pnpm --filter web exec vitest run test/spain.test.tsx test/spain-whatif.test.tsx test/spain-links.test.tsx test/spain-questionnaire.test.tsx` 中，`spain-whatif` 12 项、`spain` 17 项、`spain-questionnaire` 10 项、`spain-links` 4 项通过。
+- **完整验收**：在 `d0eca9eb` 上运行 `(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，退出码 0。6 个包 lint、typecheck 通过；测试 error-report 2 项、policy-data 23 项、engine 6,006 项通过（1 项既有测试跳过）、game 1,348 项、web 901 项（49 个文件）全部通过；构建生成 40 个静态页面，含西班牙五页。
+- **浏览器 e2e**：先确认 4463 端口空闲，再运行 `cd apps/e2e && E2E_PORT=4463 npx playwright test tests/spain.spec.ts --project=desktop --reporter=line`，2 项通过，退出码 0；随后删除了 `apps/e2e/test-results`。
+- **视觉核对**：用导出的静态站打开 `/spain/whatif#draft=…`（N、E、F，非营利；CCSE 签发于 2023-01-01，E 的医保到期日为 2027-01-01），分别在 1280px 与 375px 宽度截取控件区。打开时 DELE、CCSE、医保显示“是”。日期改为 2027-06-01 后，CCSE 变为“不确定”；医保变为“不确定”，因为 E 不满足、F 满足，两条路径不一致。再选 CCSE“是”后保持“是”。三处说明都显示在相关输入框下，两种宽度下 `scrollWidth` 都等于 `clientWidth`。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR，按 brief 留给 Fable。
+- 建议 5（`site-shell.tsx` 的 `isJapanScenario` 改名或改读 `scenarioLinks`）没有做。它是各国共用的文件，其他国家分支正在往同一名单里加国家，现在改名容易和并行分支冲突；改读模块的 `scenarioLinks` 还要让页头引入各国模块。适合在所有国家合入后统一处理。
+- F 没答居留目的时，结果页 `ES-F04` 的“去对比页试试”会跳到对比页，但医保旋钮不显示，没有控件可聚焦（只是聚焦不到，页面照常）。`focusForRule` 只收到条件编号和路径编号，按目的区分需要改共用的 `GapSummary` 与接口，本轮没改。
+- 是／否旋钮在各路径状态不一致时显示“不确定”（如上面截图里 E 的医保到期、F 的医保有效）。这是上一轮起始值的口径，本轮只是让它随日期更新，没有改成按路径分别显示。
+- 中间提交只跑了受影响的西班牙测试文件，完整验收只在最后一个代码提交 `d0eca9eb` 上跑。e2e 只跑了 brief 指定的 desktop 项目。
+- 截图结束后，用 `pkill -f "node serve.ts"` 停掉了临时静态服务。这条命令按名字匹配，如果当时别的 worktree 也在用 `serve.ts` 跑 e2e，会被一并停掉；事后查看没有其他 `serve.ts` 进程，也没有监听 4xxx 端口的服务。
+
+### 4. 发现与建议
+
+- 引擎 `spain-residence.ts` 的 `familyResourcesCheck` 给 `ES-F03` 引的 SRC-345 “Hoja 52, medios económicos” 也没带 Hoja 52 的 URL，结果页上这条链接仍跳到 Hoja 51。修法与 649.4 相同（引擎里补 `url`），但属于引擎来源数据，本轮未改。
+- 对比页标签 `es.whatif.dele` 中英文都写死了“A2”，这是参数 `nationalityDeleMinimum`。建议改为从参数生成，与问卷文案里其他写死的数字一起处理。
+- 若要让 DELE、CCSE 真正各自作用，需要把 `examRelief` 拆成按考试区分的免试，或单独加一个“免试”旋钮，让两门考试的旋钮不再碰它。前者是规则语义改动，需要 SRC 定位与审核。
