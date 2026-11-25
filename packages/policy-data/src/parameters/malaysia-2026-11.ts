@@ -481,7 +481,7 @@ export const malaysiaFull2026_11 = {
           srcId: 'SRC-528',
           locator: 'v11 Section A Q4、Q7–Q10 p2、Q13、Q16 p3',
         },
-        { srcId: 'SRC-528', locator: 'v11 Section B Q3 p4' },
+        { srcId: 'SRC-528', locator: 'v11 Section B Q3 p4–5' },
         { srcId: 'SRC-528', locator: 'v11 Section D Q1 p14' },
       ],
     },

@@ -9,7 +9,6 @@ import {
   birthday,
   check,
   heldRun,
-  inapplicable,
   info,
   marriageSubsists,
   planned,
@@ -277,11 +276,13 @@ export function assessMm2h(ctx: MyContext): MyPathway {
     check(
       'my.pass.minimum-stay',
       L('每年在马天数', 'Days in Malaysia each year'),
-      years === undefined
-        ? undefined
-        : years >= stay.exemptAge
-          ? atLeast(m.daysPerYear, stay.days) || undefined
-          : atLeast(m.daysPerYear, stay.days),
+      // Enough days meet the stay at any age.
+      atLeast(m.daysPerYear, stay.days) ||
+        (years === undefined
+          ? undefined
+          : years >= stay.exemptAge
+            ? undefined
+            : atLeast(m.daysPerYear, stay.days)),
       v.mm2hStay.sources,
       L(
         `每年须累计在马 ${stay.days} 天，${stay.exemptAge} 岁以下由主申请人或受养人满足即可。官网写 ${stay.exemptAge} 岁及以上不设要求，资格条件原文未写这一豁免，${stay.exemptAge} 岁及以上未达 ${stay.days} 天时待确认。`,
@@ -645,33 +646,41 @@ export function assessDeRantau(ctx: MyContext): MyPathway {
         ? tech
         : income.nonTech;
   const years = age(req.dateOfBirth, date);
-  let employer = check(
+  const freelancer = d.workType === 'freelancer';
+  const contractOld =
+    d.contractStart === undefined
+      ? undefined
+      : d.contractStart <= addMonths(date, -p.contractMonths);
+  const employer = check(
     'my.pass.remote-employer',
-    L('远程雇主与合同', 'Remote employer and contract'),
+    L(
+      '远程雇主或境外客户与合同',
+      'Remote employer or foreign clients, and contracts',
+    ),
     d.workType === undefined
       ? undefined
       : all(
-          d.employerRegisteredInMalaysia === undefined
-            ? undefined
-            : !d.employerRegisteredInMalaysia,
-          d.contractStart === undefined
-            ? undefined
-            : d.contractStart <= addMonths(date, -p.contractMonths),
+          freelancer
+            ? d.foreignClients
+            : d.employerRegisteredInMalaysia === undefined
+              ? undefined
+              : !d.employerRegisteredInMalaysia,
+          contractOld,
         ),
-    [ref('SRC-528', 'v11 Section B Q3 p4')],
-    L(
-      `远程雇员的雇主不得在马来西亚注册，雇佣合同须在递交前至少 ${p.contractMonths} 个月开始。`,
-      `A remote employee’s employer must not be registered in Malaysia, and the contract must have started at least ${p.contractMonths} months before applying.`,
-    ),
+    [
+      ref('SRC-528', 'v11 Section B Q3 p4–5'),
+      ref('SRC-528', 'v11 Section B Q4 p5'),
+    ],
+    freelancer
+      ? L(
+          `自由职业者须与境外客户签约，所有合同须在递交前至少 ${p.contractMonths} 个月开始，另交近 ${p.contractMonths} 个月的发票、收款与银行记录。没有客户合同、收入来自数码内容平台的内容创作者改交平台收入证明。`,
+          `Freelancers work under contracts with foreign clients, every contract started at least ${p.contractMonths} months before applying, with invoices, payments and bank statements for the last ${p.contractMonths} months. Digital content creators without client contracts instead prove their income from the platform.`,
+        )
+      : L(
+          `远程雇员的雇主不得在马来西亚注册，雇佣合同须在递交前至少 ${p.contractMonths} 个月开始。`,
+          `A remote employee’s employer must not be registered in Malaysia, and the contract must have started at least ${p.contractMonths} months before applying.`,
+        ),
   );
-  if (d.workType === 'freelancer')
-    employer = inapplicable(
-      employer,
-      L(
-        '自由职业者改交合同、发票与收款记录。',
-        'Freelancers provide contracts, invoices and payment records instead.',
-      ),
-    );
   const checks: MyCheck[] = [
     check(
       'my.pass.nationality',

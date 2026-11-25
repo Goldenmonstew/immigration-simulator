@@ -1716,6 +1716,16 @@ describe('long-term passes', () => {
     ).toContain('tidak bekerja atau tidak berkahwin di Malaysia');
   });
 
+  test('MM2H 90 days a year meet the stay at any age (review113-2 risk 6)', () => {
+    // SRC-517 p3: 90 days a year; only the exemption from 50 is in doubt.
+    const stay = (daysPerYear: number) =>
+      cond('my.pass.mm2h', 'my.pass.minimum-stay', {
+        ...m({ daysPerYear }),
+        dateOfBirth: undefined,
+      }).status;
+    expect([stay(90), stay(89)]).toEqual(['MET', 'UNKNOWN']);
+  });
+
   test('MM2H system fee only from August 2025', () => {
     expect(
       cond('my.pass.mm2h', 'my.pass.system-fee', {
@@ -1866,13 +1876,6 @@ describe('long-term passes', () => {
     expect(
       cond(
         'my.pass.de-rantau',
-        'my.pass.remote-employer',
-        n({ workType: 'freelancer' }),
-      ).applicable,
-    ).toBe(false);
-    expect(
-      cond(
-        'my.pass.de-rantau',
         'my.pass.passport',
         n({}, { passportExpiry: '2028-01-24' }),
       ).status,
@@ -1887,6 +1890,31 @@ describe('long-term passes', () => {
     expect(cond('my.pass.de-rantau', 'my.pass.fees', nomad).fee?.amount).toBe(
       1_620,
     );
+  });
+
+  test('DE Rantau freelancers need foreign clients and contracts three months old (review113-2 risk 7)', () => {
+    // SRC-528 v11 Section B Q3 p4–5: contracts with foreign clients, and
+    // every contract started at least three months before applying.
+    const freelancer = (
+      patch: Partial<NonNullable<MyFullRequest['deRantau']>>,
+    ) =>
+      cond(
+        'my.pass.de-rantau',
+        'my.pass.remote-employer',
+        n({
+          workType: 'freelancer',
+          employerRegisteredInMalaysia: undefined,
+          foreignClients: true,
+          ...patch,
+        }),
+      );
+    const met = freelancer({});
+    expect([met.status, met.applicable]).toEqual(['MET', undefined]);
+    expect(met.explanation).toContain('境外客户');
+    expect(met.explanation).toContain('内容创作者');
+    expect(freelancer({ contractStart: '2026-08-25' }).status).toBe('NOT_MET');
+    expect(freelancer({ foreignClients: false }).status).toBe('NOT_MET');
+    expect(freelancer({ foreignClients: undefined }).status).toBe('UNKNOWN');
   });
 
   test('DE Rantau security bond when MDEC sponsors (review113-1 suggestion 11)', () => {

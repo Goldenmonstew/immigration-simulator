@@ -174,6 +174,9 @@ export interface MyFullRequest {
     annualIncomeUsd?: number;
     workType?: 'remote-employee' | 'freelancer';
     employerRegisteredInMalaysia?: boolean;
+    /** Freelancers: the client contracts are with foreign-based clients. */
+    foreignClients?: boolean;
+    /** The employment contract, or for a freelancer the latest client contract. */
     contractStart?: IsoDate;
     dependants?: number;
   };
