@@ -667,3 +667,4 @@
 | # | 改动描述 | 涉及文件 |
 |---|---|---|
 | 790 | 任务 98 审核修正（review98-1）对比旋钮：WK-04 跳到按月／按日的税前工资旋钮，WK-01 不再关联（模拟年无公布门槛时恒待确认，年薪旋钮只在公布年度显示），FT-02 续期改为税保凭证旋钮；“假设没有离境”把部分填写的离境汇总整组置 0，并清零 Ο.3 到期后的居留中断；改日期时去掉没有起始日的年数快照并提示改填起始日；早于出生日的日期标在日期旋钮上；收入旋钮说明跨年口径；语言、考试旋钮可保留“按问卷答案”。 | apps/web/lib/greece-whatif.ts、apps/web/app/greece/whatif/controls.tsx、apps/web/i18n/countries/greece.ts、apps/web/test/greece.test.tsx |
+| 791 | 任务 98 审核修正（review98-1）政策目录：时间汇总条件另用带许可历史的探测补齐，目录增加 `GR-NATIONALITY-TIME`（PD-106、PD-109，共 103 项），带日期或年限标题的六个时间条件仍用静态标题；删去引擎不会附上的 GF-08→PD-314、EF-02→PD-315、WK-09→PD-319；新增测试确认各路径、阶段和历史组合的结果条件都在目录中。 | apps/web/lib/greece-policy.ts、apps/web/test/greece.test.tsx |

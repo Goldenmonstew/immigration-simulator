@@ -15,6 +15,7 @@ import {
   activeGreeceAnswers,
   createGreeceDraft,
   decodeGreeceDraft,
+  GR_PATHWAYS,
   greeceRequest,
   greeceSteps,
   type GreeceDraft,
@@ -739,6 +740,13 @@ const greekFamilyDraft = routeDraft({
     interruptionAfterExpiryYears: 3,
   },
 });
+const nationalityDraft = routeDraft({
+  pathways: ['GR-NATIONALITY'],
+  route: 'general',
+  permits: [{ kind: 'regular', from: '2018-01-01' }],
+  trips: [],
+  nationality: { stage: 'application' },
+});
 
 test('each knob changes the answer its linked conditions read (review98-1 item 1)', () => {
   // Ε.4: WK-04 compares monthly or daily pay with the minimum wage.
@@ -965,4 +973,80 @@ test('the comparison marks a date before birth and explains the income year (rev
   });
   expect(whatIfControls(draft, knobs)).toContain('aria-invalid="true"');
   expect(whatIfControls(draft)).toContain(t('gr.whatif.incomeYear'));
+});
+
+test('the policy catalogue lists every condition a result shows (review98-1 item 4)', () => {
+  const id = gr.policy.displayedRuleSets[0].id;
+  const rules = new Map(gr.policy.rules[id].map((rule) => [rule.id, rule]));
+  expect(rules.get('GR-NATIONALITY-TIME')).toMatchObject({
+    pendingDetails: ['PD-106', 'PD-109'],
+  });
+  expect(rules.size).toBe(103);
+  // The engine attaches PD-314 to GF-03, PD-315 to EF-03 and PD-319 to C-02
+  // and FT-01, never to GF-08, EF-02 or WK-09.
+  for (const id of ['GF-08', 'EF-02', 'WK-09'])
+    expect(rules.get(id)?.pendingDetails, id).toEqual([]);
+
+  const stages = {
+    longTerm: ['initial', 'renewal', 'reacquisition'],
+    tenYear: ['initial', 'renewal'],
+    nationality: ['application', 'oath'],
+    goldenVisa: ['initial', 'renewal'],
+    greekFamily: ['initial', 'renewal', 'permanent', 'retained', 'maintain'],
+    euFamily: [
+      'initial',
+      'renewal',
+      'permanent',
+      'permanent-renewal',
+      'retained',
+      'maintain',
+    ],
+    work: ['initial', 'renewal'],
+    familyTcn: ['initial', 'renewal', 'autonomous'],
+  };
+  const histories: Partial<GreeceDraft>[] = [
+    {},
+    { permits: [{ kind: 'regular', from: '2018-01-01' }], trips: [] },
+    {
+      permits: [{ kind: 'investor', from: '2019-03-01', to: '2026-02-28' }],
+      trips: [{ departed: '2023-01-01', returned: '2023-03-01' }],
+      tripsComplete: true,
+    },
+  ];
+  const drafts: GreeceDraft[] = [
+    longTermDraft(),
+    nationalityDraft,
+    e4Draft,
+    sponsorDraft,
+    autonomousDraft,
+    euFamilyDraft,
+    greekFamilyDraft,
+  ];
+  for (const history of histories)
+    for (let i = 0; i < 6; i++) {
+      const pick = (list: string[]) => list[i % list.length] as never;
+      drafts.push(
+        routeDraft({
+          ...history,
+          pathways: GR_PATHWAYS,
+          route: 'general',
+          longTerm: { stage: pick(stages.longTerm) },
+          tenYear: { stage: pick(stages.tenYear), basis: 'residence' },
+          nationality: { stage: pick(stages.nationality) },
+          goldenVisa: { stage: pick(stages.goldenVisa) },
+          greekFamily: { stage: pick(stages.greekFamily) },
+          euFamily: { stage: pick(stages.euFamily) },
+          work: {
+            permit: i % 2 ? 'E1' : 'E4',
+            stage: pick(stages.work),
+            admission: 'ordinary',
+          },
+          familyTcn: { stage: pick(stages.familyTcn), sponsor: 'ordinary' },
+        }),
+      );
+    }
+  for (const draft of drafts)
+    for (const pathway of gr.run(draft, 'zh-CN').columns[0].pathways)
+      for (const check of pathway.checks)
+        expect(rules.has(check.id), `${pathway.id} ${check.id}`).toBe(true);
 });
