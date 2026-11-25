@@ -151,7 +151,7 @@ function Question({
           >
             {t('de.form.add')} · {label}
           </button>
-          {!rows.length && (
+          {!rows.length && (value !== undefined || !field.noEmptyAnswer) && (
             <button
               type="button"
               className={form.copyRow}

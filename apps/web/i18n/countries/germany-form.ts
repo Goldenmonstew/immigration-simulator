@@ -41,7 +41,7 @@ export const deFormZh = {
     '每张许可填一行，续期或换发的接着填下一张；新许可生效后之前的许可即结束（即使卡上的到期日更晚）；到期日留空表示一直延续到下一张生效。到期前已申请续期、新卡晚于旧卡到期才发的，请选「是」，否则中间空档按中断计；还在等待决定的也选「是」。毕业、研究或培训后的求职许可（§ 20）与机会卡（§ 20a）有法定最长期限，到期日必填；定居许可和欧盟长期居留无期限，无需填到期日。',
   'de.form.tripsHint': '每次离开德国填一行，计划中的出行也可以填。',
   'de.form.titlesHint':
-    '对当前依赖的居留文书（或多张并存文书）核查 § 51 存续条件。生效日期填与上方居留许可相同的日期即可自动关联同一份文书。',
+    '对当前依赖的居留文书（或多张并存文书）核查 § 51 存续条件。生效日期填与上方居留许可相同的日期即可自动关联同一份文书。留空时，「本路径所依赖的许可仍有效」通常为待确认（蓝卡定居另看决定日是否持有蓝卡）；要得到确定结论，请为当前许可填写一份。',
   'de.form.blueCardEmploymentHint':
     '可逐段填写符合 § 18g 标准的就业与工资月份（模拟日前已结束的月份才计入已确认缴费月；同一工作调薪可分两行并填相同的实际入职日与岗位标识），或在上方直接填写已核定的合格就业并缴费总月数。',
   'de.form.commonIdentity': '身份、护照、入境签证、安全核查与住址登记',
@@ -1011,7 +1011,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
   'de.form.tripsHint':
     'Add a row for each trip outside Germany. Planned trips can also be included.',
   'de.form.titlesHint':
-    'Review § 51 retention conditions for the residence document you rely on (or concurrent documents). Entering the same start date as a permit row above links the facts to that document.',
+    'Review § 51 retention conditions for the residence document you rely on (or concurrent documents). Entering the same start date as a permit row above links the facts to that document. If left blank, “The title relied on for this route remains effective” usually stays pending (Blue Card settlement uses whether you hold the card on the decision date); add your current permit here for a definite answer.',
   'de.form.blueCardEmploymentHint':
     'You can itemise qualifying § 18g employment and payroll months below (only payroll months closed before the simulation date count as confirmed months; for a pay change on the same job, use two rows with the same start date and job ID), or enter a single confirmed total of qualifying employment months above.',
   'de.form.commonIdentity':

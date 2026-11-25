@@ -1521,3 +1521,45 @@ test('assuming no trips leaves an earliest period outside the EU as it is, with 
     'NOT_MET',
   );
 });
+
+test('the per-document review cannot be confirmed empty, which would mark every permit-based route unmet (review100-2 risk 2)', () => {
+  // The engine reads an empty document list as holding no document.
+  const empty = { ...sampleDraft(), mobility: { titles: [] } };
+  expect(
+    condition(de.run(empty, 'zh-CN'), 'DE-R02', 'DE-C63-current')?.status,
+  ).toBe('NOT_MET');
+  expect(
+    condition(
+      de.run({ ...sampleDraft(), mobility: {} }, 'zh-CN'),
+      'DE-R02',
+      'DE-C63-current',
+    )?.status,
+  ).toBe('UNKNOWN');
+
+  const step1 = (draft: Partial<GermanyDraft>) =>
+    renderToStaticMarkup(
+      <LocaleContext value={{ locale: 'zh-CN', setLocale: () => {} }}>
+        {GermanySimulatePage().props.children({
+          draft: {
+            ...createGermanyDraft(),
+            routes: ['R01'],
+            step: 1,
+            ...draft,
+          },
+          errors: {},
+          update: () => {},
+        })}
+      </LocaleContext>,
+    );
+  const titles = (html: string) => html.slice(html.indexOf('id="de-titles"'));
+  const unanswered = step1({});
+  expect(unanswered.split('确认无此项记录').length - 1).toBe(2);
+  expect(titles(unanswered)).not.toContain('确认无此项记录');
+  expect(titles(unanswered)).toContain(
+    '留空时，「本路径所依赖的许可仍有效」通常为待确认',
+  );
+  // A list confirmed empty by an earlier version can still be reset.
+  const legacy = titles(step1({ mobility: { titles: [] } }));
+  expect(legacy).toContain('已确认为无记录。');
+  expect(legacy).toContain('恢复为待确认');
+});

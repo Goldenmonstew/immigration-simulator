@@ -26,6 +26,8 @@ export type GermanyField = {
   when?: (record: Record<string, unknown>) => boolean;
   /** Wording for options whose shared text does not fit this question. */
   optionLabels?: Partial<Record<string, GermanyOption>>;
+  /** A list the user cannot confirm empty: the engine reads none as not held. */
+  noEmptyAnswer?: true;
 } & (
   | {
       type:
@@ -279,7 +281,8 @@ export const titleReviewFields: GermanyField[] = [
 export const historyFields: GermanyField[] = [
   list('permits', permitFields, 'permitsHint'),
   list('trips', tripFields, 'tripsHint'),
-  list('titles', titleReviewFields, 'titlesHint'),
+  // No documents would make every permit-based route unmet (§ 51).
+  { ...list('titles', titleReviewFields, 'titlesHint'), noEmptyAnswer: true },
 ];
 
 export const householdFields: GermanyField[] = [
