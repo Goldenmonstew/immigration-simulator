@@ -28,11 +28,10 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const cleanPath = (pathname ?? '/').replace(/\/+$/, '') || '/';
   const isGame = cleanPath === '/game' || cleanPath.endsWith('/game');
-  const isJapanScenario = ['result', 'simulate', 'whatif'].some(
-    (page) =>
-      cleanPath === countryPath('jp', page) ||
-      cleanPath === countryPath('au', page) ||
-      cleanPath === countryPath('pt', page),
+  const isJapanScenario = ['result', 'simulate', 'whatif'].some((page) =>
+    (['jp', 'au', 'us', 'pt'] as const).some(
+      (id) => cleanPath === countryPath(id, page),
+    ),
   );
   const firstSegment = cleanPath.split('/')[1] ?? '';
   const currentCountry = siteCountries.find(
