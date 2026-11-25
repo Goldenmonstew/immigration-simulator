@@ -87,13 +87,15 @@ export const jpCountry: GameCountry<JpKinds> = {
     { id: 'pr', label: 'jp.game.prColumn' },
     { id: 'nat', label: 'jp.game.natColumn' },
   ],
+  // FUTURE only says when the time requirement is met, as the detail does.
   outcomeLabel: ({ outcome, earliestDate }, t) =>
     isDecisionOutcome(outcome)
       ? t(`outcome.${outcome}`)
-      : t(`country.status.${outcome}`).replace(
-          '{date}',
-          earliestDate ?? t('result.undetermined'),
-        ),
+      : t(
+          outcome === 'FUTURE'
+            ? 'jp.game.timeFuture'
+            : `country.status.${outcome}`,
+        ).replace('{date}', earliestDate ?? t('result.undetermined')),
   missingRules(state, id) {
     const titles = jpGame
       .pathwayOf(state.result, id)

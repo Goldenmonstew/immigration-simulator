@@ -113,9 +113,15 @@ test.each(['zh-CN', 'en'] as const)(
       locale,
     );
     expect(bars).toContain(t('jp.game.prColumn', locale));
+    // Only the time requirement has a date; the bar does not claim the rest.
     expect(bars).toContain(
+      t('jp.game.timeFuture', locale).replace('{date}', '2034-04-01'),
+    );
+    expect(bars).not.toContain(
       t('country.status.FUTURE', locale).replace('{date}', '2034-04-01'),
     );
+    expect(jp.progress(state).nat.outcome).toBe('NOT_MET');
+    expect(bars).toContain(t('country.status.NOT_MET', locale));
     const office = settle(jp.enter(settle(state), 'council'));
     let menu: React.ReactNode;
     function Probe() {

@@ -12,6 +12,7 @@ export const jpGameZh = {
   'jp.game.prColumn': '永住許可',
   'jp.game.natColumn': '帰化',
   'jp.game.timeDate': '时间条件最早满足',
+  'jp.game.timeFuture': '时间条件最早 {date} 满足',
   'jp.game.entry': '玩一局 · 港坂生活',
   'jp.game.entryDesc':
     '在横滨的像素小镇上班、钓鱼、逛祭典，看看日常选择怎样影响永住与帰化的时间线。',
@@ -53,6 +54,7 @@ export const jpGameEn: Record<keyof typeof jpGameZh, string> = {
   'jp.game.prColumn': 'Permanent residence',
   'jp.game.natColumn': 'Naturalisation',
   'jp.game.timeDate': 'Time requirement met from',
+  'jp.game.timeFuture': 'Time requirement met from {date}',
   'jp.game.entry': 'Play a round · Life in Minatozaka',
   'jp.game.entryDesc':
     'Work, fish and join the festivals in a pixel-art corner of Yokohama, and see how everyday choices shape your permanent residence and naturalisation timeline.',
