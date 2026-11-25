@@ -1375,3 +1375,49 @@ test('case-by-case pending details are not presented as details awaiting a gover
   expect(html).not.toContain(t('result.pendingDetails'));
   expect(html).not.toContain(t('gap.pending'));
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'policy parameters keep calendar years ungrouped and need no relabelling (%s)',
+  (locale) => {
+    const html = render(<GreecePolicyPage />, locale);
+    const row = (name: string) =>
+      html.match(new RegExp(`data-parameter="${name}">(.*?)</tr>`))![1];
+    const list = locale === 'en' ? ', ' : '、';
+    expect(row('workBlueSalary')).toContain(
+      `lastPublishedYear 2024${list}lastPublishedEur 31,918.83`,
+    );
+    expect(row('naturalisationIncome')).toContain(
+      [
+        'firstYear 2009',
+        'reducedFrom 2012',
+        'restoredFrom 2019',
+        'lastYear 2022',
+        'standard 7,500',
+      ].join(list),
+    );
+    // Amounts keep their grouping, including one that looks like a year.
+    expect(row('gvFees')).toContain('main 2,000');
+    // Every parameter is a single value or one level of named values, so the
+    // page shows no bare arrays and Greece needs no displayParameter.
+    expect(gr.policy.displayParameter).toBeUndefined();
+    for (const [name, { value }] of Object.entries(
+      gr.policy.parameters[gr.policy.displayedRuleSets[0].id].values,
+    ))
+      expect(
+        typeof value !== 'object' ||
+          (!Array.isArray(value) &&
+            Object.values(value).every((entry) => typeof entry !== 'object')),
+        name,
+      ).toBe(true);
+  },
+);
+
+test('the result date is the projected filing date, so Greece keeps the default label', () => {
+  const draft = longTermDraft();
+  const html = render(
+    <ResultView country={gr} result={gr.run(draft, 'zh-CN')} draft={draft} />,
+  );
+  expect(gr.earliestLabel).toBeUndefined();
+  expect(html).toContain(`<dt>${t('result.earliest')}</dt>`);
+  expect(html).toContain(`${t('result.earliest')}：2027-06-01`);
+});

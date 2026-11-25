@@ -686,3 +686,4 @@
 | 794 | 任务 98 审核修正（review98-1）报告：逐条对应问题 1–4、风险与建议，记录验收与 e2e 结果及未处理的罕见映射。 | docs/tasks/reports/98-gr-pages.md |
 | 795 | 任务 98 合入 main 后接入共用选项：希腊模块设 `scenarioLinks`，结果、编辑、对比链接带场景片段，打开分享链接不覆盖本机草稿；`site-shell.tsx` 的场景路径加入希腊，“跳到主要内容”不洗掉 `#s=`。 | apps/web/lib/greece-module.ts、apps/web/components/site-shell.tsx、apps/web/test/greece.test.tsx |
 | 796 | 任务 98 合入 main 后接入共用选项：希腊检查项设 `kind`。`-TIME` 汇总、续期递交窗口 `C-07-window`、驳回后等待期 `NAT-11` 为时间条件；Β.5 正常续期与逾期续期两项为可选依据；变更申报 `C-06`（漏报只罚款、不阻止递交）为办理提示；费用项（FT-06、GF-06、GV-07、NAT-10、TY-06、WK-09）满足时为费用预算，入籍宣誓 `NAT-12` 满足时为批准后事项，未满足时仍阻止递交、按申请条件列入“还差什么”。设了 kind 后个案待定项显示“待定细节”。 | apps/web/lib/greece-module.ts、apps/web/test/greece.test.tsx |
+| 797 | 任务 98 合入 main 后核对共用选项：希腊政策页的年份（`lastPublishedYear`、入籍收入表的 `firstYear`／`reducedFrom`／`restoredFrom`／`lastYear`）按 main 的规则不加千分位，金额照常分组；希腊参数只有单值或一层具名值，没有裸数组，不需要 `displayParameter`；结果日期是引擎核对过的候选递交日，沿用默认的“最早可申请日期（推算）”，不设 `earliestLabel`。只加测试，源码不改。 | apps/web/test/greece.test.tsx |
