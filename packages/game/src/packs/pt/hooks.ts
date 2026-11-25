@@ -1,0 +1,409 @@
+import type { CountryResult } from '@uk-immigration/engine';
+import { addDays, addMonths, firstWeekday } from '../../calendar';
+import type { GameTools } from '../../content-pack';
+import type {
+  Achievement,
+  Activity,
+  EndingId,
+  IsoDate,
+  LogEntry,
+  Outcome,
+  PlaceId,
+  Text,
+} from '../../model';
+import { ptBalance as b } from './balance';
+import { ptCharacters } from './characters';
+import {
+  pathwayOf,
+  permanentFee,
+  permanentFileable,
+  type PtEffect,
+  type PtFestival,
+  type PtState,
+  type PtTimeline,
+} from './rules';
+import {
+  basicPortuguese,
+  festivalFoods,
+  ptFish,
+  ptItems,
+  ptNotices,
+} from './town';
+
+type PtTools = GameTools<PtTimeline, CountryResult, PtEffect, PtFestival>;
+type PtActivity = Activity<PtEffect, PtFestival>;
+const t = (zhCN: string, en: string): Text => ({ zhCN, en });
+const eur = (value: number) =>
+  `€${value.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`;
+
+export const characterOf = (id: string) => {
+  const character = ptCharacters.find((item) => item.id === id);
+  if (!character) throw new Error(`Unknown character: ${id}`);
+  return character;
+};
+
+// Customary dates, not policy (see ptFestivals). The June arraial is held on
+// the Saturday after 19 June.
+function festivalDate(festival: PtFestival, year: number): IsoDate {
+  if (festival === 'reis') return `${year}-01-06`;
+  if (festival === 'cravos') return `${year}-04-25`;
+  if (festival === 'santos') return firstWeekday(`${year}-06-19`, 6);
+  return `${year}-11-11`;
+}
+const quarterFestival: Record<1 | 2 | 3 | 4, PtFestival> = {
+  1: 'reis',
+  2: 'cravos',
+  3: 'santos',
+  4: 'magusto',
+};
+export function calendar(state: PtState) {
+  const festival = quarterFestival[state.quarter];
+  const end = addMonths(state.date, b.monthsPerQuarter);
+  for (
+    let year = Number(state.date.slice(0, 4));
+    year <= Number(end.slice(0, 4));
+    year++
+  ) {
+    const date = festivalDate(festival, year);
+    if (date >= state.date && date < end) return { date, festival };
+  }
+  return { date: addDays(end, -1), festival };
+}
+
+const festivalResults: Record<PtFestival, Text> = {
+  reis: t(
+    '你跟在手鼓后面唱完了第三家，嗓子有点哑。法蒂玛奶奶塞给你一大块国王蛋糕。',
+    'Three doors in behind the tambourine, your voice is going. Dona Fátima presses a thick slice of bolo-rei on you.',
+  ),
+  cravos: t(
+    '花贩把一朵红康乃馨别在你的衣襟上。乐队走过广场，杜阿尔特举着花在前面跑。',
+    'A flower seller pins a red carnation on you. The band crosses the square with Duarte running ahead, flower held high.',
+  ),
+  santos: t(
+    '沙丁鱼的油滴在面包上，手风琴拉到第五首，你终于跟上了街坊的舞步。',
+    'Sardine oil soaks into the bread. By the fifth accordion tune you finally keep step with the neighbours.',
+  ),
+  magusto: t(
+    '栗子烫得在两只手之间来回倒。若阿金大叔说，剥得满手黑才算过了圣马丁。',
+    'The chestnuts are too hot to hold for long. Sr. Joaquim says it isn’t São Martinho until your hands are black.',
+  ),
+};
+
+/** Whether this game has the routes behind an action. */
+const assessedFor = (state: PtState, target: PtTimeline['targets'][number]) =>
+  state.timeline.targets.includes(target);
+
+export function actionAvailable(
+  state: PtState,
+  action: PtActivity,
+  { affordable }: PtTools,
+): boolean | undefined {
+  // The fee joins the effects only in actionDetails, after this check.
+  if (action.id === 'settle')
+    return (
+      permanentFileable(state) &&
+      affordable(state, [
+        { type: 'money', delta: -(permanentFee(state.date) ?? 0) },
+      ])
+    );
+  if (action.id === 'criminal-record')
+    return !state.timeline.residence?.criminalRecordAvailable;
+  if (action.id === 'declaration-papers')
+    return (
+      assessedFor(state, 'partner') && !state.timeline.partner?.documentsReady
+    );
+  if (action.id === 'declare')
+    return (
+      assessedFor(state, 'partner') &&
+      !!state.timeline.partner?.documentsReady &&
+      pathwayOf(state, 'nat')?.status === 'MET' &&
+      affordable(state, action.effects)
+    );
+  if (action.id === 'exam')
+    return (
+      state.timeline.residence?.language?.kind !== 'ciple' &&
+      affordable(state, action.effects)
+    );
+  if (
+    action.id === 'class' &&
+    state.day.kind === 'workday' &&
+    state.day.minute < 1050
+  )
+    return false;
+}
+
+export function actionDetails(state: PtState, action: PtActivity): void {
+  if (action.id === 'settle') {
+    const fee = permanentFee(state.date);
+    action.label =
+      fee === undefined
+        ? t(
+            '递交永久居留申请（评估日没有已归档的 AIMA 费表，PD-398，游戏不收费）',
+            'Apply for permanent residence (no archived AIMA fee table for the assessment date, PD-398; the game charges nothing)',
+          )
+        : t(
+            `递交永久居留申请（审理费与首张永久卡 ${eur(fee)}，SRC-476）`,
+            `Apply for permanent residence (analysis and first permanent card ${eur(fee)}, SRC-476)`,
+          );
+    if (pathwayOf(state, 'pr')?.status !== 'MET')
+      action.note = t(
+        `评估里只剩「稳定生计」待确认：月净收入够不够由 AIMA 按个案核对（PD-385），游戏不预设结论。${action.note!.zhCN}`,
+        `Only stable means is pending in the assessment: AIMA checks the net income case by case (PD-385), and the game does not assume the answer. ${action.note!.en}`,
+      );
+    if (fee !== undefined)
+      action.effects = [{ type: 'money', delta: -fee }, ...action.effects];
+  }
+  if (action.id === 'exam') {
+    if (state.stats.portuguese >= b.portugueseExamScore)
+      action.effects = [...action.effects, { type: 'ciple' }];
+    action.note = t(
+      `游戏内葡语 ${state.stats.portuguese} / ${b.portugueseExamScore}。通过后记为 CIPLE 证书，即永久居留要求的基础葡语（${basicPortuguese}，SRC-480）。`,
+      `In-game Portuguese ${state.stats.portuguese} / ${b.portugueseExamScore}. A pass records the CIPLE certificate, the basic Portuguese (${basicPortuguese}) permanent residence asks for (SRC-480).`,
+    );
+  }
+}
+
+const applicationFlags: Record<string, string> = {
+  settle: 'applied-pr',
+  declare: 'applied-nat',
+};
+// Before the effects run: the ending text reads which application was made.
+export function beforeAction(state: PtState, action: PtActivity): void {
+  const flag = applicationFlags[action.id];
+  if (flag && !state.flags.includes(flag)) state.flags.push(flag);
+}
+
+const festivalActions = ['janeiras', 'carnation', 'arraial', 'magusto'];
+export function afterAction(
+  state: PtState,
+  next: PtState & { outcome: Outcome },
+  action: PtActivity,
+  log: LogEntry,
+  { applyEffects, setFlags }: PtTools,
+): void {
+  if (action.id === 'board') {
+    const posted = ptNotices.filter((notice) =>
+      next.flags.includes(`quarter-board-${notice.id}`),
+    );
+    if (posted.length)
+      next.outcome.text = {
+        zhCN: posted.map((notice) => notice.text.zhCN).join('\n'),
+        en: posted.map((notice) => notice.text.en).join('\n'),
+      };
+  }
+  if (action.id === 'criminal-record')
+    next.outcome.text = t(
+      '鲁伊在窗口后面敲了几下键盘，打印机吐出一张盖着电子章的证明。',
+      'Rui taps at his keyboard behind the counter and the printer slides out a certificate with an electronic seal.',
+    );
+  if (action.id === 'declaration-papers')
+    next.outcome.text = t(
+      '职员核对了出生证明、婚姻登记和无犯罪记录证明，在预约单上写下日期。',
+      'The clerk checks the birth certificate, marriage record and criminal record certificate, and writes a date on the appointment slip.',
+    );
+  const festival = next.day.festival;
+  if (
+    festival &&
+    (action.id === 'festival' || festivalActions.includes(action.id))
+  ) {
+    setFlags(next, [`visited-festival:${festival}`]);
+    if (action.id !== 'festival') {
+      const food = festivalFoods[festival];
+      applyEffects(next, [{ type: 'item', item: food, delta: 1 }]);
+      next.outcome.items = { [food]: 1 };
+      next.outcome.text = festivalResults[festival];
+    }
+  }
+}
+
+export function afterActionAwards(
+  state: PtState,
+  next: PtState & { outcome: Outcome },
+  action: PtActivity,
+  log: LogEntry,
+): void {
+  if (action.id !== 'exam') return;
+  if (state.stats.portuguese >= b.portugueseExamScore) {
+    next.outcome.text = t(
+      'CIPLE 通过了。证书收进文件夹，和社保缴费记录放在一起。',
+      'You passed CIPLE. The certificate goes into the folder beside the social security record.',
+    );
+  } else {
+    next.eventQueue.unshift('system-exam-failed');
+    next.outcome.text = t(
+      `CIPLE 还差一点（游戏内葡语 ${state.stats.portuguese} / ${b.portugueseExamScore}）。`,
+      `Not quite there yet (in-game Portuguese ${state.stats.portuguese} / ${b.portugueseExamScore}).`,
+    );
+  }
+  log.text = next.outcome.text;
+}
+
+export function shopStock(state: PtState, place: PlaceId) {
+  if (place === 'green' && state.day.festival)
+    return ptItems.filter(
+      (item) => item.id === festivalFoods[state.day.festival!],
+    );
+  if (place !== 'shop') return [];
+  return ptItems.filter(
+    (item) =>
+      item.price !== undefined &&
+      (item.grows
+        ? item.grows.seasons.includes(state.quarter)
+        : ['bica', 'pastel-de-nata', 'pao-de-lo', 'flowers'].includes(item.id)),
+  );
+}
+
+export function catchItem(state: PtState, { random }: PtTools) {
+  // Mullet are always about; sea bass like the cooler months, bream the warm.
+  const fish = ptFish.map(([id]) => id as string);
+  const choices =
+    state.day.weather === 'rain'
+      ? ['tainha', 'carapau']
+      : state.quarter === 1
+        ? ['tainha', 'robalo', 'carapau']
+        : ['tainha', 'dourada', 'robalo', 'carapau'];
+  const junk = random(state) < b.fishingJunkChance;
+  const available = junk
+    ? ['old-boot', 'shopping-trolley']
+    : choices.filter((id) => fish.includes(id));
+  return {
+    item: available[Math.floor(random(state) * available.length)],
+    junk,
+  };
+}
+
+export function routine(
+  state: () => PtState,
+  run: (id: string, place: PlaceId, minute: number) => void,
+): void {
+  if (state().day.kind === 'workday') {
+    run('work', 'work', 540);
+    if (state().pendingEvent) return;
+    if (!state().day.done.includes('auto-evening')) {
+      const evening =
+        state().stats.portuguese < b.portugueseExamScore &&
+        state().stats.money >= b.classCost
+          ? 'class'
+          : state().stats.mood < b.routineMoodTarget
+            ? 'relax'
+            : 'bench';
+      run(
+        evening,
+        evening === 'class' ? 'college' : evening === 'relax' ? 'pub' : 'bench',
+        1080,
+      );
+      if (
+        state().day.done.includes(evening) ||
+        state().day.done.includes(`auto-${evening}`)
+      )
+        state().day.done.push('auto-evening');
+    }
+  } else if (state().day.kind === 'weekend') {
+    run('rest', 'home', b.wakeMinute);
+    if (state().pendingEvent) return;
+    if (state().stats.health < b.routineHealthTarget) run('nap', 'home', 600);
+    if (state().pendingEvent) return;
+    if (state().stats.mood < b.routineMoodTarget) run('bench', 'bench', 660);
+  } else
+    run(
+      'festival',
+      'green',
+      state().day.festival === 'santos' ? b.arraialStart : b.festivalStart,
+    );
+}
+
+export function endingText(state: PtState, ending: EndingId): Text {
+  const character = characterOf(state.characterId);
+  const texts: Record<EndingId, Text> = {
+    settled: state.flags.includes('applied-nat')
+      ? t(
+          '国籍声明递进了登记处。审理还要一段时间，可你早已把燕子街区叫作家了。',
+          'The nationality declaration is with the registry. It will take a while, but you already call Andorinhas home.',
+        )
+      : character.settlement,
+    left: t(
+      '行李箱合上，地铁开往机场。你选择离开葡萄牙，这局生活到这里收好。',
+      'The suitcase closes and the Metro heads for the airport. You chose to leave Portugal, ending this game.',
+    ),
+    overstayed: t(
+      '居留卡到期，之后的居留权也过了期限，这段燕子街区的生活在这里结束。\n下一局可以留意顶栏的剩余月数，在到期前递交申请。',
+      'Your card expired and the residence right after it has run out too, ending this game.\nNext time, watch the months left in the top bar and file before the card ends.',
+    ),
+    criminal: t(
+      '一项记录让审查停了下来，故事在这里停笔。',
+      'A record halts the review, and the story stops here.',
+    ),
+    timeout: t(
+      '申请材料还在抽屉里。这局走到了时间尽头，燕子街区的日记在这里合上。',
+      'The application is still in the drawer. This game has reached its time limit, and the Andorinhas diary closes here.',
+    ),
+  };
+  return texts[ending];
+}
+
+export function ledgerText(state: PtState): Text {
+  return t(
+    `账户最后是 ${eur(Math.round(state.stats.money))}，还有记不进账本的牵挂。`,
+    `The account ends at ${eur(Math.round(state.stats.money))}, alongside things it cannot count.`,
+  );
+}
+
+export const ptAchievements: Achievement<
+  PtTimeline,
+  CountryResult,
+  PtFestival
+>[] = [
+  {
+    id: 'pt-arraial',
+    name: t('六月的晚上', 'A June night'),
+    description: t(
+      '在圣人节晚会吃过烤沙丁鱼。',
+      'Ate sardines at the Santos arraial.',
+    ),
+    check: (state) => state.flags.includes('visited-festival:santos'),
+  },
+  {
+    id: 'pt-four-festivals',
+    name: t('四季的节日', 'Festivals of four seasons'),
+    description: t(
+      '三王节、康乃馨日、圣人节、圣马丁节都去过。',
+      'Joined Dia de Reis, Carnation Day, the Santos and São Martinho.',
+    ),
+    check: (state) =>
+      (['reis', 'cravos', 'santos', 'magusto'] as const).every((festival) =>
+        state.flags.includes(`visited-festival:${festival}`),
+      ),
+  },
+  {
+    id: 'pt-ciple',
+    name: t('能用葡语办事了', 'Getting things done in Portuguese'),
+    description: t(
+      '通过游戏里的 CIPLE 考试。',
+      'Passed the in-game CIPLE exam.',
+    ),
+    check: (state) => state.flags.includes('ciple-passed'),
+  },
+  {
+    id: 'pt-fado',
+    name: t('灯灭以后', 'When the lights go down'),
+    description: t(
+      '在街角小酒馆听过一场法朵。',
+      'Heard fado at the Tasca da Esquina.',
+    ),
+    check: (state) =>
+      state.log.some((entry) => entry.kind === 'action' && entry.id === 'fado'),
+  },
+  {
+    id: 'pt-sea-bass',
+    name: t('河口来的狼鲈', 'Sea bass from the estuary'),
+    description: t('在特茹河岸钓到狼鲈。', 'Caught a sea bass on the Tagus.'),
+    check: (state) =>
+      !!state.lifeRecords?.fish.some((record) => record.itemId === 'robalo'),
+  },
+  {
+    id: 'pt-regular',
+    name: t('小酒馆的常客', 'A tasca regular'),
+    description: t('和若阿金成为老朋友。', 'Became good friends with Joaquim.'),
+    check: (state) => (state.friendship.joaquim ?? 0) >= 500,
+  },
+];
