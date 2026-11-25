@@ -369,11 +369,11 @@ export function assessMm2h(ctx: MyContext): MyPathway {
     withFee(
       info(
         'my.pass.pass-fees',
-        L('移民条例准证费', 'Immigration pass fees'),
+        L('签发处理费', 'Processing fee per issue'),
         v.mm2hPassFeesRm.sources,
         L(
-          `每次签发主申请人 RM${f.principalIssuance}、每名受养人 RM${f.dependantIssuance}；另每人每年 RM${f.principalPerYear}。各项费用分别收取，未列总额。`,
-          `Each issue costs RM${f.principalIssuance} for the main applicant and RM${f.dependantIssuance} per dependant, plus RM${f.principalPerYear} a year each. The fees are charged separately; no total is published.`,
+          `移民条例准证费的处理费部分：每次签发主申请人 RM${f.principalIssuance}、每名受养人 RM${f.dependantIssuance}，金额为主申请人与所填受养人之和。年费、参与费、系统处理费另列，官方未列总额。`,
+          `The processing part of the immigration pass fee: RM${f.principalIssuance} per issue for the main applicant and RM${f.dependantIssuance} per dependant, summed for the dependants entered. The annual fee, participation fee and system fee are separate, and no total is published.`,
         ),
         dependants !== undefined,
         ['PD-422'],
@@ -381,6 +381,22 @@ export function assessMm2h(ctx: MyContext): MyPathway {
       dependants === undefined
         ? undefined
         : f.principalIssuance + dependants * f.dependantIssuance,
+    ),
+    withFee(
+      info(
+        'my.pass.annual-fee',
+        L('准证年费', 'Annual pass fee'),
+        v.mm2hPassFeesRm.sources,
+        L(
+          `移民条例准证费的申请费部分：主申请人与每名受养人每年或不足一年各 RM${f.principalPerYear}，金额为一年的合计。`,
+          `The application part of the immigration pass fee: RM${f.principalPerYear} a year or part of a year for the main applicant and each dependant; the amount is one year for everyone entered.`,
+        ),
+        dependants !== undefined,
+        ['PD-422'],
+      ),
+      dependants === undefined
+        ? undefined
+        : f.principalPerYear + dependants * f.dependantPerYear,
     ),
     withFee(
       info(
@@ -401,8 +417,8 @@ export function assessMm2h(ctx: MyContext): MyPathway {
       L('可携受养人', 'Dependants'),
       v.mm2hDependants.sources,
       L(
-        `可带配偶、${v.mm2hDependants.value.childUnconditionalAge} 岁以下子女（含继、养子女）、${v.mm2hDependants.value.childMaxAge} 岁及以下未婚且不在马工作的子女、经医学认证的残障子女、父母或公婆；Platinum 另可带外籍女佣。另一份官方表格写子女上限 ${v.mm2hDependants.value.childMaxAgeOther} 岁。`,
-        `Dependants are a spouse, children under ${v.mm2hDependants.value.childUnconditionalAge} (including step and adopted), unmarried children not working in Malaysia up to ${v.mm2hDependants.value.childMaxAge}, medically certified disabled children, and parents or parents-in-law; Platinum may add a foreign domestic helper. Another official table gives ${v.mm2hDependants.value.childMaxAgeOther} as the child limit.`,
+        `可带配偶、${v.mm2hDependants.value.childUnconditionalAge} 岁以下子女（含继、养子女）、${v.mm2hDependants.value.childUnconditionalAge} 至 ${v.mm2hDependants.value.childMaxAge} 岁且"tidak bekerja atau tidak berkahwin di Malaysia"（不在马来西亚工作或未在马来西亚结婚）的子女、经医学认证的残障子女、父母或公婆；Platinum 另可带外籍女佣。另一份官方表格写子女上限 ${v.mm2hDependants.value.childMaxAgeOther} 岁。`,
+        `Dependants are a spouse, children under ${v.mm2hDependants.value.childUnconditionalAge} (including step and adopted), children aged ${v.mm2hDependants.value.childUnconditionalAge} to ${v.mm2hDependants.value.childMaxAge} who are "tidak bekerja atau tidak berkahwin di Malaysia" (not working or not married in Malaysia), medically certified disabled children, and parents or parents-in-law; Platinum may add a foreign domestic helper. Another official table gives ${v.mm2hDependants.value.childMaxAgeOther} as the child limit.`,
       ),
       false,
       ['PD-421'],

@@ -189,6 +189,12 @@ export const malaysiaFull2026_11 = {
       value: { residenceYears: 2, dissolutionYears: 2 },
       sources: [constitution('Art. 15(1) p39'), constitution('Art. 26(2) p54')],
     },
+    // Article 18(1): anyone registered at this age or over takes the First
+    // Schedule oath first.
+    registrationOathAge: {
+      value: 18,
+      sources: [constitution('Art. 18(1) p42')],
+    },
     // Article 15(2) and 15A: under this age on the application date.
     childRegistration: {
       value: { underAge: 21 },
@@ -221,17 +227,20 @@ export const malaysiaFull2026_11 = {
         constitution('Art. 25(2) p54'),
       ],
     },
-    // Act A1752: assented and gazetted, not yet in force on `asOf`.
+    // Act A1752: assented and gazetted, not yet in force on `asOf`. New
+    // Article 18(1a): a minor registered takes the oath within `oathMonths`
+    // of turning 18.
     constitutionAmendment2025: {
       value: {
         royalAssent: '2025-03-07',
         gazetted: '2025-03-20',
         newMinAge: 18,
+        oathMonths: 48,
       },
       sources: [
         {
           srcId: 'SRC-501',
-          locator: 's.1(2) p3、ss.2–3 p3–4、s.6 p5、s.8 p6、s.12 p8',
+          locator: 's.1(2) p3、ss.2–3 p3–4、s.5 p4、s.6 p5、s.8 p6、s.12 p8',
         },
         { srcId: 'SRC-502', locator: '修订表 A1752 COMMENCEMENTREMARK' },
       ],

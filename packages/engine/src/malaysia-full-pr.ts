@@ -58,7 +58,7 @@ const sponsorParagraph = {
   wife: '§5.1(f) p18',
   husband: '§5.2(f) p19',
   child: '§5.3(e) p20',
-  was: '§5.4 p21',
+  was: '附录 C3 第 4–5 项 p61',
 } as const;
 const blacklistParagraph = {
   wife: '§5.1(e) p18',

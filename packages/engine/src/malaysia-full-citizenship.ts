@@ -7,6 +7,7 @@ import {
   check,
   daysIn,
   fullyCovered,
+  inapplicable,
   info,
   latest,
   minus,
@@ -123,25 +124,47 @@ const residenceRules = (ctx: MyContext) =>
     ` Absences under ${v.shortAbsenceMonths.value} months and those for health or federal or state service count. Time on a pass counts only with the Minister’s consent, and longer absences for education or any other reason only if the Minister approves or prescribes them, so permanent residence is used and the result needs confirmation when only those periods would meet it.`,
   );
 
-function oath(ctx: MyContext): MyCheck {
-  const { req, L } = ctx;
+/** First Schedule oath: Article 19(9) for naturalisation, 18(1) for registration. */
+function oath(ctx: MyContext, registration: boolean): MyCheck {
+  const { req, date, L } = ctx;
   const answer = req.citizenship?.renounceOtherNationality;
-  return check(
+  const c = check(
     'my.cit.renunciation-oath',
     L('宣誓与放弃原国籍', 'Oath and giving up other nationality'),
     answer === undefined || answer === 'unsure' ? undefined : answer === 'yes',
     [
-      fc('Art. 19(9) p46'),
+      registration ? v.registrationOathAge.sources[0] : fc('Art. 19(9) p46'),
       fc('附表一 p359'),
       fc('Art. 24(1) p49'),
       ref('SRC-516', 'p3'),
     ],
-    L(
-      '获证前须宣誓放弃对任何外国的一切效忠；宪法不承认双重国籍，自愿取得外国国籍可被褫夺。放弃原国籍的期限与证明方式未公布。',
-      'Before the certificate is granted the applicant swears to renounce all allegiance to any other country. The Constitution does not recognise dual citizenship, and voluntarily acquiring another may lead to deprivation. No deadline or proof for renouncing the old nationality is published.',
-    ),
+    (registration
+      ? L(
+          `年满 ${v.registrationOathAge.value} 岁者须先宣誓才能登记，`,
+          `Anyone aged ${v.registrationOathAge.value} or over is registered only after taking the oath, which`,
+        )
+      : L(
+          '获证前须宣誓，',
+          'Before the certificate is granted the applicant takes the oath, which',
+        )) +
+      L(
+        '誓词放弃对任何外国的一切效忠；宪法不承认双重国籍，自愿取得外国国籍可被褫夺。放弃原国籍的期限与证明方式未公布。',
+        ' renounces all allegiance to any other country. The Constitution does not recognise dual citizenship, and voluntarily acquiring another may lead to deprivation. No deadline or proof for renouncing the old nationality is published.',
+      ),
     ['PD-418'],
   );
+  const years = age(req.dateOfBirth, date);
+  return registration &&
+    years !== undefined &&
+    years < v.registrationOathAge.value
+    ? inapplicable(
+        c,
+        L(
+          `未满 ${v.registrationOathAge.value} 岁的登记不须宣誓。`,
+          `No oath is needed to register someone under ${v.registrationOathAge.value}.`,
+        ),
+      )
+    : c;
 }
 
 function amendmentInfo(ctx: MyContext, change: string): MyCheck {
@@ -352,8 +375,8 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
     L('归化后的维持', 'Keeping citizenship after naturalisation'),
     v.deprivation.sources,
     L(
-      `获证后 ${d.withinYears} 年内在任何国家被判监禁不少于 ${d.prisonMonths} 个月或罚款不少于 RM${d.fineRm} 且未获赦免，或通常在境外连续居住 ${d.abroadYears} 年而未每年向领馆登记，政府可褫夺公民身份。`,
-      `Citizenship may be removed for a prison sentence of at least ${d.prisonMonths} months or a fine of at least RM${d.fineRm} in any country within ${d.withinYears} years of the grant without a free pardon, or for ${d.abroadYears} continuous years living abroad without registering yearly at a consulate.`,
+      `获证后 ${d.withinYears} 年内在任何国家被判监禁不少于 ${d.prisonMonths} 个月或罚款不少于 RM${d.fineRm} 且未获赦免，或通常在境外连续居住 ${d.abroadYears} 年、期间从未为联邦或其参加的国际组织服务且未每年向领馆登记保留公民身份的意向，政府可褫夺公民身份。`,
+      `Citizenship may be removed for a prison sentence of at least ${d.prisonMonths} months or a fine of at least RM${d.fineRm} in any country within ${d.withinYears} years of the grant without a free pardon, or for ${d.abroadYears} continuous years living abroad without ever serving the Federation or an international organisation it belongs to and without registering yearly at a consulate an intention to keep citizenship.`,
     ),
   );
 
@@ -364,7 +387,7 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
     character,
     language,
     referees,
-    oath(ctx),
+    oath(ctx, false),
     documents,
     discretion,
     special,
@@ -457,8 +480,8 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
       ref('SRC-513', '清单第 2(a) 项及注 5'),
     ],
     L(
-      `申请日前 ${w.residenceYears} 年须一直在马来西亚居住。宪法未写须先取得永久居留，但登记局清单把永久居留身份证列为必交。`,
-      `Residence in Malaysia throughout the ${w.residenceYears} years before applying. The Constitution does not require permanent residence first, but the registration checklist lists the permanent resident identity card as mandatory.`,
+      `申请日前 ${w.residenceYears} 年须一直在马来西亚居住。宪法未写须先取得永久居留；登记局清单把永久居留身份证列为"mandatori"，清单注 5 把"mandatori"定义为曾持有者须交。`,
+      `Residence in Malaysia throughout the ${w.residenceYears} years before applying. The Constitution does not require permanent residence first; the registration checklist marks the permanent resident identity card "mandatori", which its note 5 defines as required if the person has held one.`,
     ) +
       residenceRules(ctx) +
       residenceText(ctx, r),
@@ -498,7 +521,7 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
           : ''),
       ['PD-415'],
     ),
-    oath(ctx),
+    oath(ctx, true),
     info(
       'my.cit.entitlement',
       L('登记的性质', 'Nature of registration'),
@@ -605,6 +628,7 @@ export function assessChildRegistration(ctx: MyContext): MyPathway {
           ? L(`须在 ${deadline} 之前递交。`, ` Apply before ${deadline}.`)
           : ''),
     ),
+    oath(ctx, true),
     info(
       'my.cit.applicant',
       L('由谁申请', 'Who applies'),
@@ -655,8 +679,8 @@ export function assessChildRegistration(ctx: MyContext): MyPathway {
     amendmentInfo(
       ctx,
       L(
-        `生效后年龄上限由 ${under} 岁降为 ${amendment.value.newMinAge} 岁，登记的未成年人成年后须宣誓。`,
-        ` Once in force, the age limit falls from ${under} to ${amendment.value.newMinAge}, and a minor registered must take the oath on reaching adulthood.`,
+        `生效后年龄上限由 ${under} 岁降为 ${amendment.value.newMinAge} 岁；未满 ${amendment.value.newMinAge} 岁登记者须在满 ${amendment.value.newMinAge} 岁后 ${amendment.value.oathMonths} 个月内宣誓，否则丧失公民身份。`,
+        ` Once in force, the age limit falls from ${under} to ${amendment.value.newMinAge}, and anyone registered under ${amendment.value.newMinAge} must take the oath within ${amendment.value.oathMonths} months of turning ${amendment.value.newMinAge} or cease to be a citizen.`,
       ),
     ),
   ];

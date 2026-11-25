@@ -483,6 +483,14 @@ describe('permanent residence: fully foreign national', () => {
     expect([p.timeStatus, p.timeEarliestDate]).toEqual(['MET', '2024-04-01']);
   });
 
+  test('the sponsor cites the WAS checklist (review113-1 suggestion 2)', () => {
+    expect(cond('my.pr.was', 'my.pr.sponsor', was).sources).toEqual([
+      { srcId: 'SRC-505', locator: '附录 C3 第 4–5 项 p61' },
+      { srcId: 'SRC-505', locator: '§2.6 p12' },
+      { srcId: 'SRC-505', locator: '§3.10 p14' },
+    ]);
+  });
+
   test('recognition evidence is pending when absent', () => {
     const c = cond('my.pr.was', 'my.pr.field-recognition', { ...was, was: {} });
     expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', ['PD-408']]);
@@ -999,6 +1007,50 @@ describe('citizenship by registration', () => {
       young.checks.find((c) => c.id === 'my.cit.certificate-fee')?.fee?.amount,
     ).toBe(100);
   });
+
+  test('registration oaths cite Article 18(1); a child of 18 to 20 takes it (review113-1 suggestion 1)', () => {
+    const oath = (id: MyPathwayId, req: MyFullRequest) =>
+      cond(id, 'my.cit.renunciation-oath', req);
+    expect(oath('my.cit.wife-registration', reg).sources[0]).toEqual({
+      srcId: 'SRC-500',
+      locator: 'Art. 18(1) p42',
+    });
+    expect(
+      oath('my.cit.naturalisation', { ...reg, family: { tie: 'none' } })
+        .sources[0],
+    ).toEqual({ srcId: 'SRC-500', locator: 'Art. 19(9) p46' });
+    // SRC-500 Art. 18(1) p42: no one aged 18 or over is registered before the oath.
+    const child = (dateOfBirth: string, renounceOtherNationality?: 'no') =>
+      oath('my.cit.child-registration', {
+        simulationDate: day,
+        dateOfBirth,
+        family: { tie: 'child-of-citizen' },
+        citizenship: { renounceOtherNationality },
+      });
+    expect(child('2008-11-24', 'no').status).toBe('NOT_MET');
+    expect(child('2008-11-25').applicable).toBe(false);
+  });
+
+  test('wife registration explains the MyPR "mandatori" note (review113-1 suggestion 7)', () => {
+    expect(
+      cond('my.cit.wife-registration', 'my.cit.residence', reg).explanation,
+    ).toContain('注 5');
+  });
+
+  test('the amendment notes the 48-month oath and Article 25(2) has both limbs (review113-1 suggestions 8, 9)', () => {
+    const amendment = cond(
+      'my.cit.child-registration',
+      'my.cit.constitution-amendment',
+      { simulationDate: day },
+    );
+    expect(amendment.explanation).toContain('48 个月');
+    expect(amendment.sources[0].locator).toContain('s.5 p4');
+    expect(
+      cond('my.cit.naturalisation', 'my.cit.after-grant', {
+        simulationDate: day,
+      }).explanation,
+    ).toContain('国际组织');
+  });
 });
 
 describe('29 February birthdays (review113-1 #10)', () => {
@@ -1187,6 +1239,19 @@ describe('long-term passes', () => {
         m({ healthInsurance: false }),
       ).status,
     ).toBe('NOT_MET');
+  });
+
+  test('MM2H issue and annual pass fees are separate (review113-1 suggestions 3, 6)', () => {
+    const issue = cond('my.pass.mm2h', 'my.pass.pass-fees', mm2h);
+    // P.U. (A) 56/2022: RM5,000 + 2 × RM2,500 per issue.
+    expect([issue.title, issue.fee?.amount]).toEqual(['签发处理费', 10_000]);
+    // RM500 a year each for the main applicant and two dependants.
+    expect(cond('my.pass.mm2h', 'my.pass.annual-fee', mm2h).fee?.amount).toBe(
+      1_500,
+    );
+    expect(
+      cond('my.pass.mm2h', 'my.pass.dependants', mm2h).explanation,
+    ).toContain('tidak bekerja atau tidak berkahwin di Malaysia');
   });
 
   test('MM2H system fee only from August 2025', () => {
