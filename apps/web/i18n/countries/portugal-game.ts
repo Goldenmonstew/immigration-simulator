@@ -24,11 +24,12 @@ export const ptGameZh = {
   'pt.game.visaUrgent': '居留卡即将到期',
   'pt.game.visaReminderTitle': '新一季，看看居留卡',
   'pt.game.visaReminder':
-    '居留卡还剩 {count} 个月。游戏不办理续期，到期前可去 AIMA 递交永久居留，或到民事登记处递交国籍声明。',
+    '居留卡还剩 {count} 个月。去 AIMA 窗口看看眼下能办什么：续期只能在续期窗口内申请；身份条件满足时，也可以递交你自己的申请。',
   'pt.game.fastVisaWarning':
-    '居留卡到 {date} 为止。快进会直接过完这一季、跨过这一天，先去 AIMA 窗口看看吧。',
+    '居留卡的到期日是 {date}。快进会直接过完这一季，先去 AIMA 窗口看看吧。',
   'pt.game.fastVisaWarningNone':
-    '当前没有有效的居留卡记录。快进会直接过完这一季，先去 AIMA 窗口看看吧。',
+    '续期申请审理中，递交回执与居留卡效力相同（art. 78 n.º 7）。快进会直接过完这一季。',
+  'pt.game.renewedThisSeason': '本季已递交续期申请，正等待 AIMA 决定。',
   'pt.game.visaVisit': '去 AIMA 窗口',
   'pt.game.noVisaActions': '眼下这里没有可办的居留手续。',
   'pt.game.councilDetails': '去移民支援中心看详情',
@@ -69,11 +70,13 @@ export const ptGameEn: Record<keyof typeof ptGameZh, string> = {
   'pt.game.visaUrgent': 'Residence card ending soon',
   'pt.game.visaReminderTitle': 'A new quarter: check your residence card',
   'pt.game.visaReminder':
-    'Your residence card has {count} month{count:s} left. The game does not renew it: before it ends, apply for permanent residence at AIMA or make a nationality declaration at the civil registry.',
+    'Your residence card has {count} month{count:s} left. See what you can do at the AIMA office: a renewal can only be applied for in its window, and once your own route qualifies you can file for it.',
   'pt.game.fastVisaWarning':
-    'Your residence card runs until {date}. Fast-forwarding runs past that date to the end of the quarter, so visit the AIMA office first.',
+    'Your residence card ends on {date}. Fast-forwarding runs to the end of the quarter, so visit the AIMA office first.',
   'pt.game.fastVisaWarningNone':
-    'No current residence card is recorded. Fast-forwarding runs to the end of the quarter, so visit the AIMA office first.',
+    'Your renewal application is pending, and its receipt has the card’s effects (art. 78(7)). Fast-forwarding runs to the end of the quarter.',
+  'pt.game.renewedThisSeason':
+    'You applied to renew this season; the application awaits AIMA’s decision.',
   'pt.game.visaVisit': 'Visit the AIMA office',
   'pt.game.noVisaActions':
     'No residence procedures are available here right now.',

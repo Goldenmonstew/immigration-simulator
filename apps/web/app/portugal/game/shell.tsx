@@ -66,12 +66,16 @@ export function itemIcon(id: string) {
   return ptAsset(files[id] ?? '/assets/indoor/item.png');
 }
 
-/** The game timeline as a completed questionnaire for the result page. */
+/**
+ * The game timeline as a completed questionnaire for the result page, on the
+ * date the game assesses (the day being played once the card has ended).
+ */
 export function gameDraft(state: PtState): PortugalDraft {
+  const date = ptGame.assessedOn(state);
   const draft: PortugalDraft = {
     ...createPortugalDraft(),
-    ...structuredClone(ptGame.answersOn(state.timeline, state.date)),
-    simulationDate: state.date,
+    ...structuredClone(ptGame.answersOn(state.timeline, date)),
+    simulationDate: date,
     completed: true,
   };
   return { ...draft, step: portugalStepList(draft).at(-1)!.step };
@@ -100,8 +104,8 @@ export function PortugalAssessment({
   return (
     <CountryAssessmentColumns
       country={portugalModule}
-      result={resultView(state.result, locale)}
-      simulationDate={state.date}
+      result={resultView(ptGame.currentResult(state), locale)}
+      simulationDate={ptGame.assessedOn(state)}
       idPrefix={idPrefix}
     />
   );
@@ -147,11 +151,16 @@ export const ptCountry: GameCountry<PtKinds> = {
         .map((check) => check.title);
     return titles?.length ? [...new Set(titles)] : undefined;
   },
-  visaStatus: (state) => ({
-    months: ptGame.visaMonthsLeft(state),
-    renewed: false,
-    validTo: ptGame.currentCard(state).to,
-  }),
+  // A pending renewal has no new end date: the shell then shows the
+  // "pending" wording instead of a date (pt.game.fastVisaWarningNone).
+  visaStatus: (state) =>
+    ptGame.renewalPending(state)
+      ? { months: ptGame.visaMonthsLeft(state), renewed: true }
+      : {
+          months: ptGame.visaMonthsLeft(state),
+          renewed: false,
+          validTo: ptGame.currentCard(state).to,
+        },
   absences: (state) =>
     state.timeline.trips.map((trip) => ({
       from: trip.departed,
@@ -196,7 +205,17 @@ export const ptCountry: GameCountry<PtKinds> = {
       </>
     );
   },
-  placeNote: (state, place) => (place === 'visa' ? ptGame.cardNote : undefined),
+  placeNote(state, place) {
+    if (place === 'council') return ptGame.reviewsNote;
+    if (place !== 'visa') return undefined;
+    const filed = state.timeline.steps.renewal;
+    return filed
+      ? {
+          zhCN: `续期申请已于 ${filed} 递交，正等待 AIMA 决定。递交回执与居留卡效力相同（SRC-123 art. 78 n.º 7），游戏不模拟审批。`,
+          en: `Your renewal application went in on ${filed} and awaits AIMA's decision. The receipt has the card's effects (SRC-123 art. 78(7)); the game does not decide the application.`,
+        }
+      : ptGame.cardNote;
+  },
   loadTownCanvas: () => import('./town-canvas'),
 };
 

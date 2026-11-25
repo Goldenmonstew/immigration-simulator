@@ -2,12 +2,15 @@ import type {
   CountryResult,
   PtResidenceEvidence,
 } from '@uk-immigration/engine';
+import { portugal2026_11 } from '@uk-immigration/policy-data';
 import type { Character, CharacterProfile, GameEvent, Text } from '../../model';
 import type { PtEffect, PtFestival, PtTimeline } from './rules';
 
 type PtCharacter = Character<PtTimeline, PtEffect, CountryResult, PtFestival>;
 type PtEvent = GameEvent<PtEffect, PtFestival>;
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
+/** Years of temporary residence before permanent residence (SRC-123 art. 80(1)(a)). */
+const permanentYears = portugal2026_11.values.permanentYears.value;
 
 // Fictional individual facts below (dates, income, household), not policy
 // thresholds. Official reviews start clear; the criminal record certificate
@@ -39,8 +42,8 @@ export const workerProfile: CharacterProfile = {
   id: 'worker',
   name: t('沈知夏', 'Zhixia Shen'),
   intro: t(
-    '知夏来自杭州，2021 年秋天持学习居留来里斯本读设计硕士。毕业后她在旧瓷砖厂改成的共享办公楼做界面设计，持工作类临时居留许可，居留卡到 2028-09-19。人物与事件均为虚构。',
-    'Zhixia from Hangzhou came to Lisbon in autumn 2021 on a study permit for a design master’s. She now designs apps at a coworking hub in an old tile works, on a work-based temporary residence permit; her card runs to 2028-09-19. All characters and events are fictional.',
+    '知夏来自杭州，2021 年秋天持学习居留来里斯本读设计硕士。毕业后她在旧瓷砖厂改成的共享办公楼做界面设计，持工作类临时居留许可，居留卡到 2028-08-31。人物与事件均为虚构。',
+    'Zhixia from Hangzhou came to Lisbon in autumn 2021 on a study permit for a design master’s. She now designs apps at a coworking hub in an old tile works, on a work-based temporary residence permit; her card runs to 2028-08-31. All characters and events are fictional.',
   ),
   sprite: 'urban/yao-flatmate.png',
 };
@@ -73,10 +76,10 @@ const workerEvents: PtEvent[] = [
     id: 'zx-five-years',
     channel: 'npc:thiago',
     speaker: 'thiago',
-    title: t('满五年那天', 'The five-year mark'),
+    title: t(`满 ${permanentYears} 年那天`, `The ${permanentYears}-year mark`),
     text: t(
-      '蒂亚戈一边给你的自行车打气一边说：「学习居留也算临时居留。满五年就能去 AIMA 递永久居留，先把葡语证书和无犯罪记录证明准备好。」',
-      'Pumping up your bike tyre, Thiago says: “Study permits count as temporary residence too. At five years you can file for permanent residence at AIMA. Get the Portuguese certificate and the criminal record certificate ready first.”',
+      `蒂亚戈一边给你的自行车打气一边说：「学习居留也算临时居留，你已经持满 ${permanentYears} 年了。可以去 AIMA 递永久居留，先把葡语证书和无犯罪记录证明准备好。」`,
+      `Pumping up your bike tyre, Thiago says: “Study permits count as temporary residence too, and you’ve held it for ${permanentYears} years now. You can file for permanent residence at AIMA. Get the Portuguese certificate and the criminal record certificate ready first.”`,
     ),
     weight: 3,
     once: true,
@@ -394,10 +397,10 @@ const worker: PtCharacter = {
     route: 'other',
     birthDate: '1996-04-08',
     permits: [
-      { kind: 'study', from: '2021-09-20', to: '2022-09-19' },
-      { kind: 'study', from: '2022-09-20', to: '2023-09-19' },
-      { kind: 'temporary', from: '2023-09-20', to: '2025-09-19' },
-      { kind: 'temporary', from: '2025-09-20', to: '2028-09-19' },
+      { kind: 'study', from: '2021-09-01', to: '2022-08-31' },
+      { kind: 'study', from: '2022-09-01', to: '2023-08-31' },
+      { kind: 'temporary', from: '2023-09-01', to: '2025-08-31' },
+      { kind: 'temporary', from: '2025-09-01', to: '2028-08-31' },
     ],
     trips: [],
     nationality: {

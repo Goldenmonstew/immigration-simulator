@@ -70,8 +70,8 @@ test('each character opens on their own spring morning in Andorinhas', () => {
     career: 32,
   });
   expect(pt.resolve(worker, 'walk').stats.mood).toBe(68);
-  // The card runs to 2028-09-19.
-  expect(pt.visaMonthsLeft(worker)).toBe(30);
+  // The card runs to 2028-08-31, counted from the first day played.
+  expect(pt.visaMonthsLeft(worker)).toBe(29);
 
   const partner = pt.newGame('partner', 5, 'en');
   expect(pt.currentEvent(partner)?.id).toBe('opening-partner');
@@ -98,13 +98,13 @@ test('the Portuguese rules engine assesses each route and sets the progress bars
     ['PT-NATURALISATION', 'PT-PERMANENT'].includes(id),
   );
   expect(worker.result.columns[0].pathways).toEqual(direct);
-  // Five years of temporary residence (study included) from 2021-09-20
+  // Five years of temporary residence (study included) from 2021-09-01
   // (SRC-123 art. 80(1)(a)); other conditions are still open.
   expect(pt.pathwayOf(worker, 'pr')?.status).toBe('NOT_MET');
   expect(pt.progress(worker).pr).toEqual({
     outcome: 'FUTURE',
-    earliestDate: '2026-09-21',
-    percent: 89,
+    earliestDate: '2026-09-02',
+    percent: 90,
   });
   expect(pt.progress(worker).nat.outcome).toBe('NOT_MET');
 
@@ -308,7 +308,9 @@ test('the nationality declaration by marriage needs papers from an earlier day a
   expect(ended.stats.money).toBe(
     next.stats.money - fees.adultNationalityFee.value.eur,
   );
-  expect(pt.narrative(ended).at(-1)?.en).toContain('nationality declaration');
+  expect(pt.narrative(ended).at(-1)).toEqual(
+    pt.characterOf('partner').settlement,
+  );
   expect(JSON.stringify(pt.narrative(ended))).toContain('paperwork folder');
   // The worker has no declaration to make.
   const worker = visit(
@@ -348,4 +350,168 @@ test('the diary casts a line on the Tagus, not at a pond', () => {
   const diary = pt.narrative(state);
   expect(JSON.stringify(diary)).toContain('特茹河岸抛竿 1 次');
   expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
+});
+
+// review112g-1
+const time = portugal2026_11.values;
+
+test('the characters’ cards follow art. 75 n.º 1: two years, then three per renewal', () => {
+  expect([
+    fees.temporaryPermitYears.value,
+    fees.temporaryRenewalYears.value,
+  ]).toEqual([2, 3]);
+  for (const id of ['worker', 'partner']) {
+    const cards = pt
+      .newGame(id, 5, 'en')
+      .timeline.permits.filter(({ kind }) => kind === 'temporary');
+    const years = cards.map(
+      ({ from, to }) =>
+        Number(addDays(to!, 1).slice(0, 4)) - Number(from.slice(0, 4)),
+    );
+    expect(years, id).toEqual([
+      fees.temporaryPermitYears.value,
+      fees.temporaryRenewalYears.value,
+    ]);
+  }
+});
+
+test('a renewal goes in on a workday in its window and only records the filing and fee', () => {
+  const early = visit(settle(pt.newGame('worker', 5, 'en')), 'visa', 600);
+  expect(pt.activities(early, 'visa').map(({ id }) => id)).not.toContain(
+    'extend',
+  );
+  const state = on(settle(pt.newGame('worker', 5, 'en')), '2028-06-01');
+  const card = pt.currentCard(state).to!;
+  expect(state.day.date).toBe('2028-06-13');
+  expect(state.day.date >= addDays(card, -time.renewalWindowDays.value)).toBe(
+    true,
+  );
+  expect(state.day.date <= addDays(card, -time.renewalDeadlineDays.value)).toBe(
+    true,
+  );
+  const office = visit(state, 'visa', 600);
+  const extend = pt
+    .activities(office, 'visa')
+    .find(({ id }) => id === 'extend')!;
+  const fee =
+    fees.aimaOrdinaryFees.value.analysis[0] +
+    fees.aimaOrdinaryFees.value.renew[0];
+  // No fee table is archived for 2028 (PD-398): the game charges nothing.
+  expect(pt.renewalFee(office.day.date)).toBeUndefined();
+  expect(pt.renewalFee('2026-06-09')).toBe(fee);
+  expect(extend.label.en).toContain('PD-398');
+  expect(extend.note?.en).toContain('does not decide');
+  const filed = pt.doActivity(office, 'extend');
+  expect(filed.timeline.steps.renewal).toBe('2028-06-13');
+  expect(pt.currentCard(filed).to).toBe(card);
+  expect(pt.renewalPending(filed)).toBe(true);
+  expect(pt.activities(filed, 'visa').map(({ id }) => id)).not.toContain(
+    'extend',
+  );
+});
+
+test('the renewal fee is shown to the cent', () => {
+  const state = on(settle(pt.newGame('worker', 5, 'en')), '2026-06-01');
+  // A card ending 2026-09-05 puts the 2026-06-09 workday in its window.
+  pt.currentCard(state).to = '2026-09-05';
+  const office = visit(state, 'visa', 600);
+  const extend = pt
+    .activities(office, 'visa')
+    .find(({ id }) => id === 'extend')!;
+  expect(extend.label.en).toContain('€247.30');
+  const filed = pt.doActivity(office, 'extend');
+  expect(filed.stats.money).toBeCloseTo(office.stats.money - 247.3);
+});
+
+test('a pending renewal keeps the story going past the residence right, and only AIMA’s checks stay open', () => {
+  let state = on(settle(pt.newGame('worker', 5, 'en')), '2028-06-01');
+  state.timeline.steps = { ciple: '2026-09-08', record: '2026-09-08' };
+  state = pt.doActivity(visit(state, 'visa', 600), 'extend');
+  while (state.date < '2029-09-01' && !pt.isOver(state)) state = nextDay(state);
+  expect(state.ending).toBeUndefined();
+  expect(state.date).toBe('2029-09-01');
+  // Within the six months after the card, the holding period is pending.
+  const grace = on(structuredClone(state), '2028-12-01');
+  expect(checks(grace, 'pr')['PT-B01']).toBe('UNKNOWN');
+  const apply = pt
+    .activities(visit(grace, 'visa', 600), 'visa')
+    .find(({ id }) => id === 'settle')!;
+  expect(apply.note?.en).toContain('renewal');
+});
+
+test('the cancellation risk note does not hold back permanent residence, and the note says why it matters', () => {
+  const state = settle(pt.newGame('worker', 5, 'en'));
+  state.timeline.trips = [
+    { departed: '2026-03-10', returned: '2026-09-10' },
+    { departed: '2026-12-15', returned: '2027-03-15' },
+  ];
+  state.timeline.steps = { ciple: '2027-06-15', record: '2027-06-15' };
+  on(state, '2027-09-01');
+  expect(checks(state, 'pr')['PT-B01-CANCELLATION-RISK']).not.toBe('MET');
+  expect(pt.permanentFileable(state)).toBe(true);
+  const apply = pt
+    .activities(visit(state, 'visa', 600), 'visa')
+    .find(({ id }) => id === 'settle')!;
+  expect(apply.note?.en).toContain('cancel');
+});
+
+test('on a day after the card has ended, the top bar, assessment and applications use that day', () => {
+  const state = on(settle(pt.newGame('partner', 5, 'en')), '2028-09-01');
+  state.day = { ...state.day, index: 2, kind: 'special', date: '2028-11-11' };
+  expect(pt.visaMonthsLeft(state)).toBe(0);
+  expect(pt.assessedOn(state)).toBe('2028-11-11');
+  expect(pt.currentResult(state)).not.toBe(state.result);
+  expect(pt.progress(state).pr.outcome).not.toBe('FUTURE');
+  const before = on(settle(pt.newGame('partner', 5, 'en')), '2028-09-01');
+  expect(pt.assessedOn(before)).toBe('2028-09-01');
+  expect(pt.visaMonthsLeft(before)).toBe(1);
+});
+
+test('a trip is not offered if it would miss the only renewal workday', () => {
+  const state = on(settle(pt.newGame('worker', 5, 'en')), '2028-06-01');
+  const station = visit(state, 'station', 600);
+  expect(pt.activities(station, 'station').map(({ id }) => id)).not.toContain(
+    'travel-1',
+  );
+  const spring = visit(settle(pt.newGame('worker', 5, 'en')), 'station', 600);
+  expect(pt.activities(spring, 'station').map(({ id }) => id)).toContain(
+    'travel-1',
+  );
+});
+
+test('Thiago’s tip waits for the five years and reads them from policy-data', () => {
+  const early = settle(pt.newGame('worker', 5, 'en'));
+  const tip = pt
+    .characterOf('worker')
+    .events.find(({ id }) => id === 'zx-five-years')!;
+  const years = String(time.permanentYears.value);
+  expect(tip.title.zhCN).toContain(years);
+  expect(tip.text.en).not.toMatch(/five/);
+  expect(pt.ptGameContent.eventAvailable!(early, tip)).toBe(false);
+  expect(pt.ptGameContent.eventAvailable!(on(early, '2026-12-01'), tip)).toBe(
+    true,
+  );
+});
+
+test('the permanent residence bar stays full once the time requirement is met', () => {
+  const state = on(settle(pt.newGame('worker', 5, 'en')), '2026-12-01');
+  expect(pt.progress(state).pr).toMatchObject({ percent: 100 });
+  expect(pt.progress(state).pr.earliestDate).toBeDefined();
+});
+
+test('Celeste’s endings use her own declaration text and explain the lapse', () => {
+  const partner = settle(pt.newGame('partner', 5, 'en'));
+  const state = on(structuredClone(partner), '2027-06-01');
+  state.timeline.steps = { papers: '2027-03-09' };
+  state.result = pt.ptRules.evaluate(state);
+  const ended = pt.doActivity(visit(state, 'bureau', 600), 'declare');
+  expect(pt.narrative(ended).at(-1)).toEqual(
+    pt.characterOf('partner').settlement,
+  );
+  const lapsed = settle(pt.newGame('partner', 5, 'en'));
+  pt.currentCard(lapsed).to = '2026-03-31';
+  let next = lapsed;
+  while (!pt.isOver(next)) next = nextDay(next);
+  expect(next.ending).toBe('overstayed');
+  expect(pt.narrative(next).at(-1)?.en).toContain('marriage');
 });

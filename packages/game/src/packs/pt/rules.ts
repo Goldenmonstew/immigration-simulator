@@ -9,9 +9,9 @@ import {
   portugal2026_11,
   portugalFull2026_11,
 } from '@uk-immigration/policy-data';
-import { addMonths } from '../../calendar';
+import { addDays, addMonths, firstWeekday } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
-import type { GameState, IsoDate, Progress } from '../../model';
+import type { GameState, IsoDate, Locale, Progress } from '../../model';
 
 const pathwayIds = {
   naturalisation: 'PT-NATURALISATION',
@@ -26,6 +26,8 @@ export interface PtSteps {
   ciple?: IsoDate;
   record?: IsoDate;
   papers?: IsoDate;
+  /** A renewal application, filed in its window and not decided in the game. */
+  renewal?: IsoDate;
 }
 /** The assessed answers, as the Portuguese questionnaire stores them. */
 export type PtTimeline = Omit<PtFullRequest, 'simulationDate' | 'locale'> & {
@@ -47,24 +49,84 @@ export type PtEffect =
   | { type: 'declarationPapers' }
   /** The AIMA fee, paid with the application. */
   | { type: 'feePaid' }
+  /** A temporary residence renewal application, filed that day. */
+  | { type: 'renewal' }
   | { type: 'salary'; monthlyEur: number };
 
 const fees = portugalFull2026_11.values;
+const time = portugal2026_11.values;
 
-/** The pathway behind a progress column. */
-export function pathwayOf(
-  state: { timeline: PtTimeline; result: CountryResult },
-  column: PtColumn,
-) {
+/** What an assessment reads: a game state, or a new game before its first day. */
+type Assessed = {
+  date: IsoDate;
+  timeline: PtTimeline;
+  locale: Locale;
+  result: CountryResult;
+  day?: { date: IsoDate };
+};
+
+/**
+ * The date the game assesses on: the quarter's start, unless the card has
+ * ended before the day being played. Then that day counts, so a festival
+ * after the card's end does not show the card or the routes as still in
+ * effect.
+ */
+export function assessedOn(state: Omit<Assessed, 'locale' | 'result'>) {
+  const day = state.day?.date;
+  return day && day > state.date && currentCard(state).to! < day
+    ? day
+    : state.date;
+}
+
+/** The assessment for the day being played. */
+export const currentResult = (state: Assessed): CountryResult =>
+  assessedOn(state) === state.date
+    ? state.result
+    : ptRules.evaluate({
+        date: assessedOn(state),
+        timeline: state.timeline,
+        locale: state.locale,
+      });
+
+/** The pathway behind a progress column, as assessed for the day being played. */
+export function pathwayOf(state: Assessed, column: PtColumn) {
   const target: PtGameTarget =
     column === 'pr'
       ? 'permanent'
       : state.timeline.targets.includes('partner')
         ? 'partner'
         : 'naturalisation';
-  return state.result.columns[0]?.pathways.find(
+  return currentResult(state).columns[0]?.pathways.find(
     (pathway) => pathway.id === pathwayIds[target],
   );
+}
+
+/** A renewal application has gone in and waits for AIMA's decision. */
+export const renewalPending = (state: { timeline: PtTimeline }) =>
+  !!state.timeline.steps.renewal;
+
+/**
+ * The renewal window for the current card: from 90 to 30 days before it ends
+ * (SRC-123 art. 78(1); DR 84/2007 art. 63(16), PD-149).
+ */
+export function renewalWindow(state: { timeline: PtTimeline }) {
+  const to = currentCard(state).to!;
+  return {
+    opens: addDays(to, -time.renewalWindowDays.value),
+    closes: addDays(to, -time.renewalDeadlineDays.value),
+  };
+}
+
+/**
+ * The first workday on or after a date. Play comes back at the first quarter
+ * start on or after it, from that quarter's workday, the first Tuesday after
+ * its first week (game.ts beginDay); AIMA opens only on workdays.
+ */
+export function workdayAfter(state: { date: IsoDate }, date: IsoDate) {
+  let quarter = state.date;
+  while (firstWeekday(addDays(quarter, 7), 2) < date)
+    quarter = addMonths(quarter, 3);
+  return firstWeekday(addDays(quarter, 7), 2);
 }
 
 /**
@@ -107,70 +169,87 @@ export const currentCard = (state: { timeline: PtTimeline }) =>
   state.timeline.permits.at(-1)!;
 
 /**
- * The AIMA fees for a first permanent card (analysis and card, standard
- * column), when the archived fee table covers the assessment date (SRC-476,
- * SRC-477); otherwise the amount is not known (PD-398).
+ * The AIMA fees for an application on a date, standard column: analysis plus
+ * the card, when the archived fee table covers that date (SRC-476, SRC-477);
+ * otherwise the amount is not known (PD-398).
  */
-export function permanentFee(date: IsoDate): number | undefined {
+function aimaFee(date: IsoDate, card: 'permanent' | 'renew') {
   const { from, until } = fees.aimaFeeDates.value;
   if (date < from || date >= until) return undefined;
-  const { analysis, permanent } = fees.aimaOrdinaryFees.value;
-  return analysis[0] + permanent[0];
+  const table = fees.aimaOrdinaryFees.value;
+  return Math.round((table.analysis[0] + table[card][0]) * 100) / 100;
 }
+/** A first permanent card (analysis and card). */
+export const permanentFee = (date: IsoDate) => aimaFee(date, 'permanent');
+/** A temporary residence renewal (analysis and renewed card). */
+export const renewalFee = (date: IsoDate) => aimaFee(date, 'renew');
 /** The nationality procedure fee for an adult (SRC-488). */
 export const declarationFee = fees.adultNationalityFee.value.eur;
 /** The CIPLE exam price (SRC-482). */
 export const cipleFee = fees.cipleFee.value;
 
 /**
+ * The result page's budget and information items: the fee and the absence
+ * risk note do not decide the pathway's status, so they are not gaps.
+ */
+const notes = new Set(['PT-B07-FEE', 'PT-B01-CANCELLATION-RISK']);
+/**
  * Permanent residence can go in when every assessed condition is met, or when
- * only AIMA's case-by-case means assessment (PD-385) is open and the fee is
- * paid with the application.
+ * only AIMA's own checks are open: the case-by-case means assessment (PD-385)
+ * and, while a renewal is pending, the holding period after the card ends
+ * (PD-145, PD-433).
  */
 export function permanentFileable(state: PtState) {
   const pathway = pathwayOf(state, 'pr');
+  const open = (id: string) =>
+    id === 'PT-B03' || (id === 'PT-B01' && renewalPending(state));
   return (
     pathway?.status === 'MET' ||
     (pathway?.status === 'UNKNOWN' &&
       pathway.checks.every(
         (check) =>
+          notes.has(check.id) ||
           check.status === 'MET' ||
-          check.id === 'PT-B07-FEE' ||
-          (check.id === 'PT-B03' && check.status === 'UNKNOWN'),
+          (check.status === 'UNKNOWN' && open(check.id)),
       ))
   );
 }
 
-/** Months to the end of the current card, rounded down. */
+/** Months from the day being played to the end of the card, rounded down. */
 function visaMonthsLeft(state: PtState): number {
   const to = currentCard(state).to;
-  if (!to || to < state.date) return 0;
+  const today = state.day.date;
+  if (!to || to < today) return 0;
   let months = 0;
-  while (addMonths(state.date, months + 1) <= to) months++;
+  while (addMonths(today, months + 1) <= to) months++;
   return months;
 }
 
 function progress(state: PtState): Progress<PtColumn, PtOutcome> {
   const start = Date.parse(state.timeline.permits[0].from);
+  const date = assessedOn(state);
   // The full engine dates a pathway only once its other conditions are met;
-  // the time-only assessment dates the residence periods on their own.
-  const time = evaluatePortugal({
+  // the time-only assessment dates the residence periods on their own, and
+  // gives the assessment date once they are met.
+  const timeOnly = evaluatePortugal({
     ...state.timeline,
-    simulationDate: state.date,
+    simulationDate: date,
   }).pathways;
   const entry = (column: PtColumn) => {
     const pathway = pathwayOf(state, column);
-    const timing = time.find((item) => item.id === pathway?.id);
+    const timing = timeOnly.find((item) => item.id === pathway?.id);
     const waiting = pathway?.status === 'FUTURE' || timing?.status === 'FUTURE';
     const earliestDate =
       pathway?.earliestDate ??
-      (timing?.status === 'FUTURE' ? timing.earliestDate : undefined);
+      (timing?.status === 'FUTURE' || timing?.status === 'MET'
+        ? timing.earliestDate
+        : undefined);
     const target = earliestDate && Date.parse(earliestDate);
     const percent =
       pathway?.status === 'MET'
         ? 100
         : target && target > start
-          ? ((Date.parse(state.date) - start) / (target - start)) * 100
+          ? ((Date.parse(date) - start) / (target - start)) * 100
           : 0;
     return {
       outcome: waiting ? ('FUTURE' as const) : (pathway?.status ?? 'UNKNOWN'),
@@ -208,8 +287,18 @@ export const ptRules: EvaluationAdapter<
   progress,
   route: (state) => state.timeline.route,
   visaMonthsLeft,
-  canTravel: (state, through) =>
-    !!currentCard(state).to && through <= currentCard(state).to!,
+  // Back for a workday while the card still runs, and, until a renewal has
+  // gone in, for a workday in its window if one is still ahead: a trip may
+  // not make the player miss a filing that can only be made in Portugal.
+  canTravel(state, through) {
+    const back = workdayAfter(state, through);
+    if (back > currentCard(state).to!) return false;
+    if (renewalPending(state)) return true;
+    const { opens, closes } = renewalWindow(state);
+    const inWindow = (from: IsoDate) =>
+      workdayAfter(state, from < opens ? opens : from) <= closes;
+    return !inWindow(state.day.date) || inWindow(back);
+  },
   recordAbsence(state, trip) {
     state.timeline.trips.push({ departed: trip.from, returned: trip.to });
   },
@@ -223,15 +312,17 @@ export const ptRules: EvaluationAdapter<
     );
     return true;
   },
-  // The right of residence runs on for some months after a card expires
-  // (SRC-126); once that has passed too, this story ends. The engine then
-  // finds no permit for the permanent residence period.
+  // The right of residence runs on for some months after a card expires for
+  // those who have not applied to renew (SRC-126); once that has passed too,
+  // this story ends, and the engine finds no permit for the permanent
+  // residence period. A pending renewal keeps it going: its receipt has the
+  // card's effects (SRC-123 art. 78(7)), and the game does not decide it.
   expired(state) {
     const to = currentCard(state).to;
     return (
       !!to &&
-      state.date >
-        addMonths(to, portugal2026_11.values.residenceRightMonths.value)
+      !renewalPending(state) &&
+      state.date > addMonths(to, time.residenceRightMonths.value)
     );
   },
   // Papers carry the day they are obtained (see answersOn).
@@ -249,6 +340,11 @@ export const ptRules: EvaluationAdapter<
       case 'declarationPapers':
         steps.papers = state.day.date;
         setFlags(state, ['declaration-papers']);
+        return true;
+      // Only the filing: no decision and no new expiry date.
+      case 'renewal':
+        steps.renewal = state.day.date;
+        setFlags(state, ['renewal-filed', 'quarter-visa-renewed']);
         return true;
       case 'feePaid':
         residence!.fees = { ...residence!.fees, paid: true };

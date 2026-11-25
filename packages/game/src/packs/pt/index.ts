@@ -16,6 +16,7 @@ import {
 } from './rules';
 import {
   cardNote,
+  reviewsNote,
   ptActions,
   ptFestivals,
   ptFurnishingNames,
@@ -51,6 +52,7 @@ export const ptGameContent: GameContentPack<
   balance: b,
   rules: ptRules,
   endingText: hooks.endingText,
+  eventAvailable: hooks.eventAvailable,
   calendar: hooks.calendar,
   actionAvailable: hooks.actionAvailable,
   actionDetails: hooks.actionDetails,
@@ -113,13 +115,18 @@ export const items = ptItems;
 export const recipes = ptRecipes;
 export const festivals = ptFestivals;
 export const achievements = hooks.ptAchievements;
-export { cardNote, ptCharacters, ptFurnishingNames, ptRules };
+export { cardNote, ptCharacters, ptFurnishingNames, ptRules, reviewsNote };
 export {
   answersOn,
+  assessedOn,
   currentCard,
+  currentResult,
   pathwayOf,
   permanentFee,
   permanentFileable,
+  renewalFee,
+  renewalPending,
+  renewalWindow,
   type PtColumn,
   type PtEffect,
   type PtFestival,

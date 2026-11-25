@@ -20,8 +20,12 @@ import {
 } from './rules';
 
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
-const eur = (value: number) =>
-  `€${value.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`;
+/** Euros, to the cent when there are cents. */
+export const eur = (value: number) =>
+  `€${value.toLocaleString('en-GB', {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
 const time = portugal2026_11.values;
 const basicPortuguese = portugalFull2026_11.values.basicPortuguese.value;
 
@@ -371,13 +375,28 @@ export const ptFurnishingNames: Record<string, Text> = {
 };
 
 const {
+  renewalDeadlineDays,
+  renewalWindowDays,
   residenceRightMonths,
   temporaryAbsenceMonths,
   temporaryAbsenceTotalMonths,
 } = time;
+const { renewalReceiptDays, temporaryRenewalYears } =
+  portugalFull2026_11.values;
+/** The AIMA office's standing note: renewals, and what happens after a card ends. */
 const cardNote = t(
-  `游戏不办理临时居留续期：参数表没有续期后新卡的有效期。居留卡到期后还有 ${residenceRightMonths.value} 个月居留权（SRC-126），这段时间过去后这一局结束。`,
-  `The game does not renew temporary residence: the parameter tables have no validity for a renewed card. The right of residence runs ${residenceRightMonths.value} months after a card expires (SRC-126); when that has passed, this game ends.`,
+  `居留卡到期前 ${renewalWindowDays.value} 至 ${renewalDeadlineDays.value} 天可以在这里申请续期（SRC-123 art. 78 n.º 1；DR 84/2007 art. 63 n.º 16，PD-149）。没有申请续期的，卡到期后还有 ${residenceRightMonths.value} 个月居留权（SRC-126），这段时间过去后，这一局在下一季开始时结束。`,
+  `You can apply here to renew your card from ${renewalWindowDays.value} to ${renewalDeadlineDays.value} days before it ends (SRC-123 art. 78(1); DR 84/2007 art. 63(16), PD-149). Without a renewal application, the right of residence runs ${residenceRightMonths.value} months after the card ends (SRC-126); when that has passed, this game ends at the start of the next quarter.`,
+);
+/** The renewal: only the filing is recorded, as the game does not decide it. */
+const renewalNote = t(
+  `获批的话，新卡按 art. 75 n.º 1 每次 ${temporaryRenewalYears.value} 年。游戏只记递交和缴费，不模拟 AIMA 的决定，也不写新的到期日。递交回执在 ${renewalReceiptDays.value} 天内与居留卡效力相同、可续（art. 78 n.º 7），已申请续期的人不受卡到期后居留权期限的限制（SRC-126），所以待决期间这一局不会因卡到期结束。卡到期后永久居留仍按卡面日期评估，持有期限由 AIMA 核对（PD-145、PD-433）。`,
+  `If granted, a renewed card lasts ${temporaryRenewalYears.value} years at a time (art. 75(1)). The game records only the filing and the fee: it does not decide the application or write a new expiry date. The receipt has the card's effects for ${renewalReceiptDays.value} days and can be renewed (art. 78(7)), and the residence-right limit after a card ends applies only to those who have not applied (SRC-126), so this game does not end at the card's end while the renewal is pending. After the card's end, permanent residence is still assessed on the card's dates, and AIMA checks the holding period (PD-145, PD-433).`,
+);
+/** The opening reviews are part of each fictional character. */
+const reviewsNote = t(
+  '评估里刑事记录、国家安全、限制措施、一般拒绝事由与许可注销各项按角色设定为无异议，这是虚构角色的设定，不是游戏替主管机关作出的结论。',
+  'In the assessment, criminal record, national security, restrictive measures, general refusal grounds and permit cancellation are set as clear for these fictional characters. That is a character setting, not a conclusion the game draws for the authorities.',
 );
 
 export const ptActions: Activity<PtEffect, PtFestival>[] = [
@@ -572,10 +591,17 @@ export const ptActions: Activity<PtEffect, PtFestival>[] = [
     effects: [{ type: 'stat', key: 'mood', delta: b.boardMood }],
   },
   {
+    id: 'extend',
+    place: 'visa',
+    label: t('申请临时居留续期', 'Apply to renew your temporary residence'),
+    note: renewalNote,
+    minutes: b.minutes.paperwork,
+    effects: [{ type: 'renewal' }],
+  },
+  {
     id: 'settle',
     place: 'visa',
     label: t('递交永久居留申请', 'Apply for permanent residence'),
-    note: cardNote,
     minutes: b.minutes.paperwork,
     effects: [{ type: 'feePaid' }, { type: 'ending', ending: 'settled' }],
   },
@@ -614,8 +640,8 @@ export const ptActions: Activity<PtEffect, PtFestival>[] = [
       `Visit home for ${months} month${months === 1 ? '' : 's'}`,
     ),
     note: t(
-      `须在居留卡到期前回来。每张临时许可期内连续出境 ${temporaryAbsenceMonths.value} 个月、或累计 ${temporaryAbsenceTotalMonths.value} 个月，许可可能被注销（SRC-123 art. 85）。`,
-      `Come back before your card expires. An absence of ${temporaryAbsenceMonths.value} months in a row, or ${temporaryAbsenceTotalMonths.value} months in all, during a temporary permit may lead to its cancellation (SRC-123 art. 85).`,
+      `回来后要赶得上居留卡到期前的一个工作日（AIMA 只在工作日开门）；还没申请续期时，也要赶得上续期窗口里的一个工作日。会错过的行程不提供。每张临时许可期内连续出境 ${temporaryAbsenceMonths.value} 个月、或累计 ${temporaryAbsenceTotalMonths.value} 个月，许可可能被注销（SRC-123 art. 85）。`,
+      `You must be back for a workday before your card ends (AIMA opens only on workdays) and, until you have applied to renew, for a workday in the renewal window. Trips that would miss them are not offered. An absence of ${temporaryAbsenceMonths.value} months in a row, or ${temporaryAbsenceTotalMonths.value} months in all, during a temporary permit may lead to its cancellation (SRC-123 art. 85).`,
     ),
     minutes: 0,
     effects: [
@@ -717,4 +743,4 @@ export const ptActions: Activity<PtEffect, PtFestival>[] = [
   })),
 ];
 
-export { basicPortuguese, cardNote };
+export { basicPortuguese, cardNote, reviewsNote };

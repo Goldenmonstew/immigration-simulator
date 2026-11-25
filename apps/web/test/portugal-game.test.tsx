@@ -43,8 +43,16 @@ const visit = (state: State, place: string, minute: number) => {
     state = settle(pt.tick(state, minute - state.day.minute));
   return settle(pt.enter(state, place));
 };
+// The quarter's workday: the first Tuesday after its first week.
+const workdays: Record<string, string> = {
+  '2028-06-01': '2028-06-13',
+  '2028-09-01': '2028-09-12',
+  '2028-12-01': '2028-12-12',
+};
 const on = (state: State, date: string) => {
   state.date = date;
+  if (state.day.kind === 'workday' && workdays[date])
+    state.day.date = workdays[date];
   state.result = pt.ptRules.evaluate(state);
   return state;
 };
@@ -153,10 +161,10 @@ test.each(['zh-CN', 'en'] as const)(
     expect(bars).toContain(t('pt.game.natColumn', locale));
     // Only the time requirement has a date; the bar does not claim the rest.
     expect(bars).toContain(
-      t('pt.game.timeFuture', locale).replace('{date}', '2026-09-21'),
+      t('pt.game.timeFuture', locale).replace('{date}', '2026-09-02'),
     );
     expect(bars).not.toContain(
-      t('country.status.FUTURE', locale).replace('{date}', '2026-09-21'),
+      t('country.status.FUTURE', locale).replace('{date}', '2026-09-02'),
     );
     expect(bars).toContain(t('country.status.NOT_MET', locale));
     const office = settle(pt.enter(settle(state), 'council'));
@@ -266,3 +274,71 @@ test('the town map has every place, schedule stop and garden plot', () => {
   expect([spawn.x, spawn.y - 16]).toEqual([home.x, home.y]);
   expect([home.x / 16, home.y / 16 - 1]).toEqual([5, 10]);
 });
+
+// review112g-1
+test.each(['worker', 'partner'])(
+  'the ending link reads the day being played when %s’s card has ended, and while a renewal is pending',
+  (id) => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    });
+    const opening = settle(pt.newGame(id, 7, 'zh-CN'));
+    const card = pt.currentCard(opening).to!;
+    // A festival day after the card's end, in the quarter it ended.
+    const festival = on(structuredClone(opening), '2028-09-01');
+    festival.day = {
+      ...festival.day,
+      index: 2,
+      kind: 'special',
+      date: '2028-11-11',
+    };
+    expect(card < festival.day.date).toBe(true);
+    expect(pt.assessedOn(festival)).toBe('2028-11-11');
+    // A renewal filed in its window, then a quarter after the card's end.
+    const window = pt.renewalWindow(opening);
+    const filing = on(
+      structuredClone(opening),
+      id === 'worker' ? '2028-06-01' : '2028-09-01',
+    );
+    expect(filing.day.date >= window.opens).toBe(true);
+    const pending = pt.doActivity(visit(filing, 'visa', 600), 'extend');
+    expect(ptCountry.visaStatus(pending)).toEqual({
+      months: pt.visaMonthsLeft(pending),
+      renewed: true,
+    });
+    expect(ptCountry.placeNote?.(pending, 'visa')?.en).toContain(
+      pending.timeline.steps.renewal,
+    );
+    const later = on(structuredClone(pending), '2028-12-01');
+    for (const state of [festival, later]) {
+      const page = readPageResult(
+        portugalModule,
+        'zh-CN',
+        ptCountry.resultHref(state).split('#s=')[1],
+        'result',
+      );
+      expect(page.correction).toBeUndefined();
+      expect(page.draft).toEqual(gameDraft(state));
+      expect(page.draft!.simulationDate).toBe(pt.assessedOn(state));
+      expect(view(page.result!)).toEqual(view(pt.currentResult(state)));
+    }
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'the card reminders hold for both characters and any day, and the reviews are named as a character setting (%s)',
+  (locale) => {
+    const reminder = t(gameKey('pt', 'game.visaReminder'), locale);
+    expect(reminder).not.toMatch(/国籍声明|nationality declaration/);
+    expect(t(gameKey('pt', 'game.fastVisaWarning'), locale)).not.toMatch(
+      /跨过这一天|past that date/,
+    );
+    expect(t(gameKey('pt', 'game.fastVisaWarningNone'), locale)).toMatch(
+      /续期|renewal/,
+    );
+    const state = settle(pt.newGame('worker', 4, locale));
+    expect(ptCountry.placeNote?.(state, 'council')).toEqual(pt.reviewsNote);
+  },
+);

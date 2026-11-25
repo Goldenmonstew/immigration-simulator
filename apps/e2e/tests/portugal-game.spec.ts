@@ -58,8 +58,8 @@ test('a new resident walks up to the miradouro and watches the river', async ({
   page,
 }) => {
   await startPortugalGame(page);
-  // The card runs to 2028-09-19 (pt-pack.test.ts).
-  await expect(page.getByText('居留卡剩余 30 个月').first()).toBeVisible();
+  // The card runs to 2028-08-31: 29 months from 2026-03-10 (pt-pack.test.ts).
+  await expect(page.getByText('居留卡剩余 29 个月').first()).toBeVisible();
   const miradouro = await walkTo(page, '观景台');
   await miradouro.getByRole('button', { name: /坐在观景台看河/ }).click();
   await expect
@@ -101,7 +101,7 @@ test('the English interface shows the residence card and Portuguese study', asyn
 }) => {
   await startPortugalGame(page, characters[0].en, 'en');
   const hud = page.locator('header').filter({ hasText: 'Zhixia Shen' });
-  await expect(hud.getByText('Residence card: 30 months left')).toBeVisible();
+  await expect(hud.getByText('Residence card: 29 months left')).toBeVisible();
   await expect(hud.getByText('Portuguese', { exact: true })).toBeVisible();
   // Starts at €9,000; a morning card may already have cost a euro or two.
   await expect(hud.getByText(/^€\d,\d{3}$/)).toBeVisible();

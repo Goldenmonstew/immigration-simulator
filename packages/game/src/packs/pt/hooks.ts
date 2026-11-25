@@ -5,6 +5,7 @@ import type {
   Achievement,
   Activity,
   EndingId,
+  GameEvent,
   IsoDate,
   LogEntry,
   Outcome,
@@ -18,6 +19,9 @@ import {
   pathwayOf,
   permanentFee,
   permanentFileable,
+  renewalFee,
+  renewalPending,
+  renewalWindow,
   type PtEffect,
   type PtFestival,
   type PtState,
@@ -25,6 +29,7 @@ import {
 } from './rules';
 import {
   basicPortuguese,
+  eur,
   festivalFoods,
   ptFish,
   ptItems,
@@ -33,9 +38,8 @@ import {
 
 type PtTools = GameTools<PtTimeline, CountryResult, PtEffect, PtFestival>;
 type PtActivity = Activity<PtEffect, PtFestival>;
+type PtEvent = GameEvent<PtEffect, PtFestival>;
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
-const eur = (value: number) =>
-  `€${value.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`;
 
 export const characterOf = (id: string) => {
   const character = ptCharacters.find((item) => item.id === id);
@@ -100,16 +104,25 @@ export function actionAvailable(
   { affordable }: PtTools,
 ): boolean | undefined {
   const { steps } = state.timeline;
-  // The fee joins the effects only in actionDetails, after this check. The
-  // application goes in today, so the card must still run today.
+  const today = state.day.date;
+  // Fees join the effects only in actionDetails, after this check. An
+  // application goes in today, so the card (or a pending renewal's receipt,
+  // SRC-123 art. 78(7)) must still run today.
   if (action.id === 'settle')
     return (
       permanentFileable(state) &&
-      state.day.date <= currentCard(state).to! &&
-      affordable(state, [
-        { type: 'money', delta: -(permanentFee(state.day.date) ?? 0) },
-      ])
+      (today <= currentCard(state).to! || renewalPending(state)) &&
+      affordable(state, [{ type: 'money', delta: -(permanentFee(today) ?? 0) }])
     );
+  if (action.id === 'extend') {
+    const { opens, closes } = renewalWindow(state);
+    return (
+      !renewalPending(state) &&
+      today >= opens &&
+      today <= closes &&
+      affordable(state, [{ type: 'money', delta: -(renewalFee(today) ?? 0) }])
+    );
+  }
   if (action.id === 'criminal-record') return !steps.record;
   if (action.id === 'declaration-papers')
     return assessedFor(state, 'partner') && !steps.papers;
@@ -132,24 +145,72 @@ export function actionAvailable(
     return false;
 }
 
+const noFeeTable = t(
+  '办理当天没有已归档的 AIMA 费表，PD-398，游戏不收费',
+  'no archived AIMA fee table for today, PD-398; the game charges nothing',
+);
 export function actionDetails(state: PtState, action: PtActivity): void {
-  if (action.id === 'settle') {
-    const fee = permanentFee(state.day.date);
+  const today = state.day.date;
+  if (action.id === 'extend') {
+    const fee = renewalFee(today);
     action.label =
       fee === undefined
         ? t(
-            '递交永久居留申请（评估日没有已归档的 AIMA 费表，PD-398，游戏不收费）',
-            'Apply for permanent residence (no archived AIMA fee table for the assessment date, PD-398; the game charges nothing)',
+            `申请临时居留续期（${noFeeTable.zhCN}）`,
+            `Apply to renew your temporary residence (${noFeeTable.en})`,
+          )
+        : t(
+            `申请临时居留续期（审理费与续卡 ${eur(fee)}，SRC-476）`,
+            `Apply to renew your temporary residence (analysis and renewed card ${eur(fee)}, SRC-476)`,
+          );
+    if (fee !== undefined)
+      action.effects = [{ type: 'money', delta: -fee }, ...action.effects];
+  }
+  if (action.id === 'settle') {
+    const fee = permanentFee(today);
+    action.label =
+      fee === undefined
+        ? t(
+            `递交永久居留申请（${noFeeTable.zhCN}）`,
+            `Apply for permanent residence (${noFeeTable.en})`,
           )
         : t(
             `递交永久居留申请（审理费与首张永久卡 ${eur(fee)}，SRC-476）`,
             `Apply for permanent residence (analysis and first permanent card ${eur(fee)}, SRC-476)`,
           );
-    if (pathwayOf(state, 'pr')?.status !== 'MET')
-      action.note = t(
-        `评估里只剩「稳定生计」待确认：月净收入够不够由 AIMA 按个案核对（PD-385），游戏不预设结论。${action.note!.zhCN}`,
-        `Only stable means is pending in the assessment: AIMA checks the net income case by case (PD-385), and the game does not assume the answer. ${action.note!.en}`,
+    const checks = Object.fromEntries(
+      (pathwayOf(state, 'pr')?.checks ?? []).map(({ id, status }) => [
+        id,
+        status,
+      ]),
+    );
+    const notes: Text[] = [];
+    if (checks['PT-B03'] === 'UNKNOWN')
+      notes.push(
+        t(
+          '「稳定生计」待确认：月净收入够不够由 AIMA 按个案核对（PD-385），游戏不预设结论。',
+          'Stable means is pending: AIMA checks the net income case by case (PD-385), and the game does not assume the answer.',
+        ),
       );
+    if (checks['PT-B01'] === 'UNKNOWN')
+      notes.push(
+        t(
+          '临时居留的持有期限待确认：续期仍待 AIMA 决定，卡到期后的时间能否算作持有许可由 AIMA 核对（PD-145、PD-433）。',
+          'The temporary residence holding period is pending: the renewal still awaits AIMA, and AIMA checks whether the time after the card ended counts as holding a permit (PD-145, PD-433).',
+        ),
+      );
+    if (checks['PT-B01-CANCELLATION-RISK'] !== 'MET')
+      notes.push(
+        t(
+          '评估提示出境时间可能让许可被注销（SRC-123 art. 85）。这一项不影响路径状态，结果页也只作提示；是否注销由 AIMA 决定。',
+          'The assessment notes that your time abroad may lead to the permit being cancelled (SRC-123 art. 85). It does not change the pathway status and the result page shows it as a note; AIMA decides on any cancellation.',
+        ),
+      );
+    if (notes.length)
+      action.note = {
+        zhCN: notes.map((note) => note.zhCN).join(''),
+        en: notes.map((note) => note.en).join(' '),
+      };
     if (fee !== undefined)
       action.effects = [{ type: 'money', delta: -fee }, ...action.effects];
   }
@@ -312,23 +373,49 @@ export function routine(
     );
 }
 
+/**
+ * Thiago's tip waits until the temporary residence period is met, as the
+ * engine assesses it for the day being played.
+ */
+export function eventAvailable(state: PtState, event: PtEvent) {
+  if (event.id !== 'zx-five-years') return true;
+  return (
+    pathwayOf(state, 'pr')?.checks.find(({ id }) => id === 'PT-B01')?.status ===
+    'MET'
+  );
+}
+
 export function endingText(state: PtState, ending: EndingId): Text {
   const character = characterOf(state.characterId);
+  const partner = state.timeline.targets.includes('partner');
+  const declared = state.flags.includes('applied-nat');
   const texts: Record<EndingId, Text> = {
-    settled: state.flags.includes('applied-nat')
-      ? t(
-          '国籍声明递进了登记处。审理还要一段时间，可你早已把燕子街区叫作家了。',
-          'The nationality declaration is with the registry. It will take a while, but you already call Andorinhas home.',
-        )
-      : character.settlement,
+    // Each character's own text is for their own route's application.
+    settled:
+      partner === declared
+        ? character.settlement
+        : declared
+          ? t(
+              '国籍声明递进了登记处。审理还要一段时间，可你早已把燕子街区叫作家了。',
+              'The nationality declaration is with the registry. It will take a while, but you already call Andorinhas home.',
+            )
+          : t(
+              'AIMA 的窗口收下了永久居留申请，回执上盖了章。审理还要一段时间。',
+              'The AIMA window takes your permanent residence application and stamps the receipt. Review takes a while.',
+            ),
     left: t(
       '行李箱合上，地铁开往机场。你选择离开葡萄牙，这局生活到这里收好。',
       'The suitcase closes and the Metro heads for the airport. You chose to leave Portugal, ending this game.',
     ),
-    overstayed: t(
-      '居留卡到期，之后的居留权也过了期限，这段燕子街区的生活在这里结束。\n下一局可以留意顶栏的剩余月数，在到期前递交申请。',
-      'Your card expired and the residence right after it has run out too, ending this game.\nNext time, watch the months left in the top bar and file before the card ends.',
-    ),
+    overstayed: partner
+      ? t(
+          '居留卡到期，之后的居留权也过了期限，这段燕子街区的生活在这里结束。\n婚姻取得国籍不看居留：条件满足后，声明本来可以在居留期限内去登记处递交。下一局可以留意顶栏的剩余月数，及时续期或递交。',
+          'Your card expired and the residence right after it has run out too, ending this game.\nNationality by marriage does not depend on residence: once it was met, the declaration could have gone to the registry while you were still resident. Next time, watch the months left in the top bar and renew or file in time.',
+        )
+      : t(
+          '居留卡到期，之后的居留权也过了期限，这段燕子街区的生活在这里结束。\n下一局可以留意顶栏的剩余月数，在续期窗口里申请续期，或在到期前递交申请。',
+          'Your card expired and the residence right after it has run out too, ending this game.\nNext time, watch the months left in the top bar: renew in the renewal window or file before the card ends.',
+        ),
     criminal: t(
       '一项记录让审查停了下来，故事在这里停笔。',
       'A record halts the review, and the story stops here.',
