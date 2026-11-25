@@ -117,11 +117,18 @@ export const grCountry: GameCountry<GrKinds> = {
           earliestDate ?? t('result.undetermined'),
         ),
   missingRules(state, id) {
-    // Timing shows in the bar itself. A FUTURE route only waits for dates.
+    // Timing shows in the bar itself. A FUTURE route only waits for dates, a
+    // MET route lacks nothing, and a reporting fine (C-06) does not bar filing.
     const pathway = grGame.pathwayOf(state.result, id);
-    if (pathway?.status === 'FUTURE') return undefined;
+    if (pathway?.status === 'FUTURE' || pathway?.status === 'MET')
+      return undefined;
     const titles = pathway?.checks
-      .filter((check) => check.status !== 'MET' && !check.id.includes('TIME'))
+      .filter(
+        (check) =>
+          check.status !== 'MET' &&
+          !check.id.includes('TIME') &&
+          check.id !== 'C-06',
+      )
       .map((check) => check.title);
     return titles?.length ? [...new Set(titles)] : undefined;
   },

@@ -339,6 +339,32 @@ test('the Blue Card holder sees the missing integration requirement', () => {
   ]);
 });
 
+test('a late address report does not show as missing, as it does not bar filing', () => {
+  const state = gr.newGame('bluecard', 4, 'en');
+  state.date = '2029-12-01';
+  state.timeline.currentCardExpiresOn = '2032-09-14';
+  state.timeline.changes = [
+    { kind: 'ordinary', occurredOn: '2026-03-14', reportedOn: '2026-06-09' },
+  ];
+  const check = (id: string) =>
+    gr.pathwayOf(state.result, 'pr')!.checks.find((c) => c.id === id)!.status;
+  state.result = gr.grRules.evaluate({ ...state, locale: 'en' });
+  expect([gr.pathwayOf(state.result, 'pr')!.status, check('C-06')]).toEqual([
+    'NOT_MET',
+    'NOT_MET',
+  ]);
+  expect(grCountry.missingRules(state, 'pr')).toEqual([
+    'Greek language, history and culture',
+  ]);
+  state.timeline.integration = { basis: 'a2', a2Certificate: true };
+  state.result = gr.grRules.evaluate({ ...state, locale: 'en' });
+  expect([gr.pathwayOf(state.result, 'pr')!.status, check('C-06')]).toEqual([
+    'MET',
+    'NOT_MET',
+  ]);
+  expect(grCountry.missingRules(state, 'pr')).toBeUndefined();
+});
+
 test('every item, character and townsperson has existing art', () => {
   const art = (path: string) =>
     existsSync(new URL(`../public${path}`, import.meta.url));
