@@ -332,9 +332,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.uk.desc':
     'Assess settlement across Skilled Worker, BN(O), Global Talent, family, protection and Long Residence routes, comparing current Immigration Rules with announced reforms.',
   'hub.es.code': 'ES',
-  'hub.es.paths': 'Long-term residence · Citizenship by residence',
+  'hub.es.paths':
+    'Citizenship · National and EU long-term residence · EU mobility and family · Recovery · Free movement',
   'hub.es.desc':
-    'Check residence periods for national long-term residence and citizenship by residence (10-, 5-, 2- and 1-year tracks) using your permits, stays for study and travel record.',
+    'Check residence periods, absence continuity, DELE and CCSE exams, IPREM household means, SMI salary, health cover, conduct and post-grant steps across eight pathways. Compare scenarios, share links and inspect official sources.',
   'hub.ie.code': 'IE',
   'hub.ie.paths': 'Stamp 4 / 5 · Naturalisation · Spouse route',
   'hub.ie.desc':
