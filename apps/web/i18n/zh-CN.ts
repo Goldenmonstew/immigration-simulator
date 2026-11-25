@@ -306,10 +306,6 @@ export const zhCN = {
   'hub.uk.paths': '定居 ILR · 现行法律与改革对比',
   'hub.uk.desc':
     '评估 Skilled Worker、BN(O)、Global Talent、家庭、保护与 10 年长居等路线的定居条件，并排对比现行 Immigration Rules 与已公布改革。',
-  'hub.ca.code': 'CA',
-  'hub.ca.paths': '永居居住义务 · 入籍',
-  'hub.ca.desc':
-    '核对维持永久居民身份所需的居住天数，以及入籍所需的在加拿大天数。入籍计算包含可计入的永居前在境时间。',
   'hub.es.code': 'ES',
   'hub.es.paths':
     '按居住入籍 · 国内与欧盟长期居留 · 跨境迁居与家属 · 恢复长居 · 欧盟自由流动永居',
