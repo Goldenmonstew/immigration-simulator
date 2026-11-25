@@ -53,6 +53,7 @@ function run(draft: NzDraft, locale: Locale) {
 export const newZealandModule: CountryModule<NzDraft, NzWhatIf> = {
   id: 'nz',
   version: 1,
+  scenarioLinks: true,
   createDraft: createNzDraft,
   activeAnswers: activeNzAnswers,
   validateStep: validateNzStep,

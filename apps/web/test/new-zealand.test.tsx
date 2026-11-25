@@ -1,14 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { ReactNode } from 'react';
-import { expect, test } from 'vitest';
+import { usePathname } from 'next/navigation';
+import { afterEach, expect, test, vi } from 'vitest';
 import NewZealandPage from '../app/new-zealand/page';
 import NewZealandPolicyPage from '../app/new-zealand/policy/page';
 import NewZealandSimulatePage from '../app/new-zealand/simulate/page';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';
+import site from '../app/site.module.css';
 import { t, type TranslationKey } from '../i18n';
 import { nzFormZh } from '../i18n/countries/new-zealand-form';
 import { LocaleContext } from '../i18n/locale';
@@ -21,8 +24,15 @@ import {
 import type { NzField } from '../lib/new-zealand-fields';
 import { newZealandModule as nz } from '../lib/new-zealand-module';
 import { readPageResult } from '../lib/page-result';
-import { decodeDraft, encodeDraft } from '../lib/share';
+import { decodeDraft, encodeDraft, linkedResultDraft } from '../lib/share';
+import { draftStorage } from '../lib/storage';
 import { ukModule } from '../lib/uk-module';
+
+vi.mock('next/navigation', () => ({ usePathname: vi.fn() }));
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.resetAllMocks();
+});
 
 const render = (node: ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
   renderToStaticMarkup(
@@ -447,4 +457,37 @@ test('the policy page lists every pathway and condition with New Zealand sources
   expect(t('nz.policy.pageTitle' as TranslationKey, 'en')).toBe(
     'Policy basis for New Zealand',
   );
+});
+
+test('opening a New Zealand share link keeps the local draft, and skipping to the content keeps the link', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local: NzDraft = { ...nz.createDraft(), simulationDate: '2026-10-01' };
+  draftStorage(nz, local);
+  const shared = citizenshipDraft();
+  const page = readPageResult(nz, 'zh-CN', encodeDraft(nz, shared));
+  expect(page.shared).toBe(true);
+  expect(page.draft?.simulationDate).toBe('2026-11-23');
+  expect(JSON.parse(storage.get('nz-immigration-draft-v1')!)).toEqual(local);
+  expect(draftStorage(nz).draft).toEqual(local);
+  // Edit and comparison links carry the assessed answers.
+  expect(
+    linkedResultDraft(nz, '#draft=' + encodeDraft(nz, shared))?.draft,
+  ).toMatchObject({ simulationDate: '2026-11-23' });
+
+  for (const sub of ['result', 'simulate', 'whatif']) {
+    vi.mocked(usePathname).mockReturnValue(`/new-zealand/${sub}`);
+    const html = render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    );
+    expect(html, sub).not.toContain('href="#main"');
+    expect(html, sub).toContain(
+      `<button type="button" class="${site.skip}">${t('site.skip')}</button>`,
+    );
+  }
 });

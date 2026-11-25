@@ -531,6 +531,7 @@
 | 545 | 任务 94 审核修正（review94-1）：新西兰对比页。时薪旋钮改关联真正比较时薪的 NZ-P4-3/4/5、NZ-P5-2、NZ-P5-3-JOB、NZ-P6-1/2，移除 NZ-P4-2；原问卷为 OET 时英语分数按线下 IELTS 模拟；有出境记录时最近返回日为空或无效报日期错误、早于离境日才报顺序错误；数字旋钮忽略未输完的值。 | apps/web/{lib/new-zealand-whatif.ts,app/new-zealand/whatif/controls.tsx,i18n/countries/new-zealand.ts,test/new-zealand-questionnaire.test.tsx} |
 | 546 | 任务 94 审核修正（review94-1）：新西兰结果与政策页。费用、移民征费、入籍宣誓与投资者购房提示标为办理提示；已持 PRV 而不适用的路径不显示最早可申请日期；政策页补评旧制 SMC 邀请、奶农品格例外、入境管制区递交与同表永居预测日待定四个分支的来源与 PD。 | apps/web/{lib/new-zealand-{module,policy}.ts,test/new-zealand-questionnaire.test.tsx} |
 | 547 | 任务 94 审核修正（review94-1）：报告补「审核修正」一节，逐条对应问题 1–5、风险 1–5、建议 1–4，列出验证结果与待任务 93 共用修正解决的条目。 | docs/tasks/reports/94-nz-pages.md |
+| 548 | 任务 94 合入 main 后接入共用选项：新西兰模块设 `scenarioLinks`，打开分享链接不再覆盖本机草稿，结果、编辑与对比之间的链接带场景；站点外壳把新西兰的问卷、结果、对比页加入场景路径，“跳到主要内容”不再把 `#s=` 改成 `#main`。 | apps/web/{lib/new-zealand-module.ts,components/site-shell.tsx,test/new-zealand.test.tsx} |
 | 560 | 任务 85：归档加拿大完整版的官方快照，登记 SRC-260–279、PD-240–259 及组内原文链接。 | policy-sources/*-ca-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 561 | 任务 85：在加拿大参数文件增加完整版门槛、费表、适用日期与逐项来源，登记 ca.current-law-2026-11；保留旧参数版本。 | packages/policy-data/src/{types,index,parameters/{canada-2026-11,index}}.ts |
 | 562 | 任务 85：新增加拿大十条路径、80 项条件、双语结果与边界及组合测试，记录各条件来源及页面问卷交接。 | packages/engine/src/{index.ts,canada-full/}、packages/engine/test/canada-*-full.test.ts、docs/tasks/reports/85-ca-rules.md |

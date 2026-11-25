@@ -31,7 +31,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const isJapanScenario = ['result', 'simulate', 'whatif'].some(
     (page) =>
       cleanPath === countryPath('jp', page) ||
-      cleanPath === countryPath('au', page),
+      cleanPath === countryPath('au', page) ||
+      cleanPath === countryPath('nz', page),
   );
   const firstSegment = cleanPath.split('/')[1] ?? '';
   const currentCountry = siteCountries.find(
