@@ -37,6 +37,9 @@ export const germanyModule: CountryModule<GermanyDraft, GermanyWhatIf> = {
     return t('de.result.finishQuestionnaire', locale);
   },
   run,
+  // The time conditions are projected; other conditions are assessed on the
+  // simulation date. It is not a date from which one may apply.
+  earliestLabel: 'de.result.earliest',
   whatif: germanyWhatIf,
   policy: germanyPolicy,
 };

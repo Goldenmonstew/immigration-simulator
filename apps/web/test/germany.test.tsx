@@ -9,6 +9,7 @@ import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
 import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';
+import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
 import {
   activeGermanyAnswers,
@@ -1261,3 +1262,32 @@ test('skipping to the main content keeps the scenario fragment on Germany scenar
   }
   expect(render('/germany/policy')).toContain('href="#main"');
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'the projected date is labelled as meeting the assessed requirements in results, gaps and comparisons (%s)',
+  (locale) => {
+    const draft = sampleDraft();
+    const result = de.run(draft, locale);
+    expect(
+      result.columns[0].pathways.find((p) => p.id === 'DE-R01'),
+    ).toMatchObject({ status: 'FUTURE', earliestDate: '2027-05-23' });
+    const render = (node: React.ReactNode) =>
+      renderToStaticMarkup(
+        <LocaleContext value={{ locale, setLocale: () => {} }}>
+          {node}
+        </LocaleContext>,
+      );
+    const label = t('de.result.earliest', locale);
+    const html = render(
+      <ResultView country={de} result={result} draft={draft} />,
+    );
+    expect(html).toContain(`<dt>${label}</dt>`);
+    expect(html).toContain(
+      label + (locale === 'en' ? ': ' : '：') + '2027-05-23',
+    );
+    expect(html).not.toContain(t('result.earliest', locale));
+    const whatIf = render(<WhatIfView country={de} draft={draft} />);
+    expect(whatIf).toContain(`<dt>${label}</dt>`);
+    expect(whatIf).not.toContain(t('result.earliest', locale));
+  },
+);

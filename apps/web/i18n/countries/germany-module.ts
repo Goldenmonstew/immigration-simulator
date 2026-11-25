@@ -44,6 +44,7 @@ export const zhCN = {
   'de.whatif.invalidSalary': '请填写不小于 0 的年薪金额（欧元）。',
   'de.result.finishQuestionnaire':
     '请返回问卷，完成所选路径的必填项目后再查看结果。',
+  'de.result.earliest': '预计满足评估条件的日期',
 } as const;
 
 export const en: Record<keyof typeof zhCN, string> = {
@@ -103,6 +104,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Enter an annual salary amount in EUR of 0 or more.',
   'de.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields for your selected pathways to see your result.',
+  'de.result.earliest': 'Projected date the assessed requirements are met',
 };
 
 export const germanyConditionTitles = {
