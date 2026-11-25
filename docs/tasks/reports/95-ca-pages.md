@@ -137,3 +137,53 @@
 - 魁省担保群组列表仍提供“确认没有记录”，但新担保至少有本次新增一组；可考虑对该列表隐藏这个按钮。
 - 日期先后检查只覆盖期间与证件效期；`signingDate`/`grantDate`、`eoi`/`invited` 等流程先后没有检查。
 - `travelDate: null` 借用了“旅行日期”字段来隐藏日期行；任务 93 若提供按路径的日期标签或隐藏选项，可改用它。居住义务 `NOT_MET` 时仍显示“最早可申请日期：尚无法确定”。
+
+## 合入 main 与共用选项接入
+
+澳大利亚页面（任务 93，#81）合入 main 后，按其报告“其他国家怎么接入”一表接入共用选项，并逐条处理上文标为“待任务 93 的共用修正合入后解决”的条目。每项先写回归测试（均在 `apps/web/test/canada.test.tsx`），确认失败后再改。
+
+### 1. 做了什么（按 commit）
+
+| 进度 | commit message | 对应条目 | 文件 |
+|---|---|---|---|
+| — | `Merge: 合入 main（澳大利亚完整版页面 #81）` | brief 第 1 节；review95-1 问题 7 | `components/policy-page.tsx` 取 main；`lib/site-countries.ts` 保留 au、ca；`public/sw.js` 与 `test/about-page.test.tsx` 缓存版本 `2026-11-25-ca`；`PROGRESS.md` 两边的行都保留 |
+| 587 | `Fix: 加拿大分享与结果链接带场景，不覆盖本机草稿（review95-1 风险 3）` | review95-1 风险 3；第一轮“发现与建议”第 1 条 | `lib/canada-module.ts`、`components/site-shell.tsx` |
+| 588 | `Fix: 加拿大结果日期标签与检查项分组接入共用选项` | brief 第 2 节日期标签与 kind；第一轮“发现与建议”第 4 条；review95-1 修正“发现与建议”最后一条（`travelDate: null`） | `lib/canada-module.ts`、`i18n/countries/canada.ts`、`apps/e2e/tests/canada.spec.ts` |
+| 589 | `Fix: 加拿大政策页按含义展示嵌套参数` | brief 第 2 节政策页嵌套参数与年份 | `lib/canada-policy.ts`、`i18n/countries/canada.ts` |
+| — | `Docs: 任务 95 合入 main 与共用选项接入报告` | 本节 | 本报告 |
+
+网页文件均相对 `apps/web/`。三个修正 commit 各带 `PROGRESS.md` 一行（587–589）；590 起已由任务 86 使用，所以报告 commit 不另占行号，做法同此前只改报告的 Docs commit。
+
+逐条说明：
+
+- **review95-1 问题 7（`PolicyPage` 缺 `country.id` 时标题为空）**：合入时 `components/policy-page.tsx` 取 main 的版本。没有 `country.id`、为 `uk` 或该国未登记 `<国家>.policy.pageTitle` 时回退到 `policyPage.title`；本分支 `c7a64514` 在同处的改动（以及按“是否英国”决定千分位）由 main 的写法取代。main 的 `country-views.test.tsx` 覆盖回退，加拿大政策页标题仍为“加拿大政策依据 / Policy basis for Canada”。与 main 相比，本分支在共用组件里只改了 `site-shell.tsx` 的一行（见下一条）。
+- **review95-1 风险 3（打开分享覆盖本机草稿、跨标签页读到别的情景）与第一轮“发现与建议”第 1 条**：模块设 `scenarioLinks: true`。结果页的“修改输入”“对比”与缺口里的对比链接带 `#draft=` 或 `#s=`，问卷与对比页按片段还原并监听片段变化，打开分享链接时本机已有草稿不被覆盖，未完成的草稿不显示分享按钮。`site-shell.tsx` 的场景路径判断加上加拿大问卷、结果、对比三页，“跳到主要内容”改为按钮，不洗掉片段。回归：本机已有草稿时打开分享，结果显示分享的情景，`ca-immigration-draft-v1` 原样保留；三页的跳转为按钮，政策页仍是 `#main` 链接。
+- **日期标签（第一轮“发现与建议”第 4 条）**：设 `earliestLabel: 'ca.result.earliest'`，“预计满足条件的日期 / Projected date the requirements are met”。结果页日期行、“还差什么”的日期项和对比页同时改用它。main 的 `earliestLabel` 是全模块一个键：居住义务的日期是满足居住义务的日期，不是申请日；普通入籍的日期按当天签署核对其他条件，也是“满足条件”的日期，所以两条路径共用这个标签。
+- **`travelDate: null`（review95-1 修正“发现与建议”最后一条）**：逐处核对后，能改的只有标签。`earliestLabel` 只换日期行的标签，`kind` 只决定检查项分组和是否进缺口，二者都不能去掉日期行；`CountryPathway.travelDate` 的类型注释写明 `null` 表示“没有适用的日期”，日本引擎（`japan-full-reentry.ts`）和美国分支也这样用。因此未成年人入籍、七条初次 PR 路径（引擎从不推算日期），以及已满足或不适用的路径，仍设 `travelDate: null`，只把注释改成说明这一含义。原来“居住义务日期行写成‘最早可申请日期’”的问题由 `earliestLabel` 解决：居住义务 `NOT_MET`、`UNKNOWN` 时显示“预计满足条件的日期：尚无法确定”，与该路径的含义一致。
+- **检查项 `kind`**：按引擎的 `advisory` 与条件编号设置。CA-R03（认可的境外日、执法截点及人道裁量）与 CA-R08（实际居住及例外）为 `time`；联邦费用 CA-R27、R28，安省申请费 CA-R54，魁省 PSTQ 甄选费 CA-R70，魁省家庭担保费用 CA-R80 为 `budget`；未填授予日时引擎标为 advisory 的 CA-R16（宣誓与授予时资格）为 `afterApproval`；CA-R37（安排就业与适用豁免，可代替资金、技工证或加分）为 `alternative`；其余 advisory 项（CA-R02 实地天数基线、R04 PR card、R05 PRTD、R18 无收入住房门槛说明）为 `information`；其他条件为 `requirement`。只有 `requirement` 与 `time` 进“还差什么”。填了授予日时 CA-R16 计入路径结论，仍为 `requirement`。CA-R17（入籍费用）由引擎计入普通入籍的结论（未缴即 `UNKNOWN` 或 `NOT_MET`），设成 `budget` 会让结论失去在缺口里的原因，所以保持 `requirement`，见“发现与建议”。回归：全部路径的每项都有 kind，上述各项的分组；填授予日后 CA-R16 为 `requirement`；FSW 的缺口含 CA-R20，不含 CA-R27、R37；结果页显示“费用预算”“可选依据（满足其一即可）”。
+- **政策页嵌套参数**：设 `displayParameter`，只处理按位置排列的数组，其余键名与 main 的参数表一致（参数名本身也按代码键显示）。`familyIncomeTable`、`eeFunds.amounts`、`atlanticFunds.amounts`、`familyQuebecIncome.own`（魁省表 A）显示为“家庭人数—金额（CAD）”，超出表格的每人增加额仍在各自的 `familyIncomeExtra`、`additional`、`ownExtra`；`fswSelection.work` 显示为“工作年数—分数”，末行 `6+`，与引擎 `work[min(floor(年数), 6)]` 一致；魁省表 B `familyQuebecIncome.groups` 按成年人数 0–2 分行、儿童 0–2 人分列，并把按行取值的 `extraChild` 并为“每增加 1 名儿童”一列（与引擎 `quebecGroupIncome` 一致）；`quebecSelection2026.single`、`couple` 按随行未成年子女人数 0–3 分行；`familyQcIntakeSchedule` 的列名改为“开始收件 / 本档信件截止”。NOC 代码清单是无序的代码集合，照原样列出。年份按 main 的键名规则自动生效：`federalMedical.referenceYear` 显示 2026，`fiveYearCost` 等金额照常分组。回归：两种语言下各表的行列与取值；任何参数显示时都不再留有数字或嵌套的裸数组；页面列名、`referenceYear 2026` 与 `fiveYearCost 144,390`。
+
+### 2. 怎么验证的
+
+- 每项先写回归测试并确认失败：`scenarioLinks` 未设时分享打开后本机草稿被替换、加拿大三页的“跳到主要内容”仍是 `#main` 链接；`earliestLabel` 未设、CA-R03 的 kind 仍为 `requirement`；政策页 `familyIncomeTable` 仍是裸数组。修后通过。每个 commit 前运行 `pnpm --filter web typecheck`、改动文件的 eslint 与 prettier，以及 `pnpm --filter web exec vitest run test/canada.test.tsx`（最终 33 项，比上一轮多 7 项；另改了 2 项既有断言：CA-R03 的 kind 改为 `time`，“不显示日期行”按 `<dt>` 判断，因为检查项上的“时间条件”分组标签与时间条件行同名）。
+- 合并后先跑 `pnpm --filter web typecheck` 与 `vitest run test/{canada,australia,country-views,policy-page,about-page,page}.test.tsx`（91 项通过）再提交合并。
+- 完整验收：`export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0：error-report 2、policy-data 23、engine 6,006（1 项既有用例跳过）、game 1,348、web 891 项（46 个文件）通过，构建生成静态页面 40/40。
+- 确认 4457 端口无监听后运行 `cd apps/e2e && E2E_PORT=4457 npx playwright test tests/canada.spec.ts tests/australia.spec.ts tests/japan.spec.ts tests/site.spec.ts --project=desktop --reporter=line`：21 项全部通过（35.8 s），随后删除 `apps/e2e/test-results`。加拿大 e2e 只改了对比页日期行的标签（`ca.result.earliest`）；分享还原、缺口跳到对比页并聚焦 `#ca-whatif-date`、改日期后 `FUTURE → MET` 在带场景片段的链接下照常通过。
+- 视觉检查：用 `apps/e2e/serve.ts` 在 4457 端口起导出站，在内置浏览器查看。政策页（1280 px 与 375 px，中英文）：七个参数的表格列名为“家庭人数 / 金额（CAD）”“工作年数 / 分数”“成年人数 / 儿童 0–2 人 / 每增加 1 名儿童”“随行未成年子女人数 / 金额（CAD）”“开始收件 / 本档信件截止”，375 px 下每张表都在单元格内，参数区 `scrollWidth` 等于 `clientWidth`，页面无横向滚动。结果页（375 px，居住义务加 FSW，注入本机草稿）：缺口与日期行显示“预计满足条件的日期：2027-06-01”，CA-R03 标“时间条件”，CA-R27 标“费用预算”，对比、修改与缺口链接都带 `#draft=`，“跳到主要内容”为按钮；点缺口的对比链接后对比页聚焦 `#ca-whatif-date`，日期行“预计满足条件的日期 2027-06-01→2027-06-01”，无横向滚动。检查后清除了浏览器里的本机草稿，停止了服务。
+- `git diff --check` 通过。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR。
+- 日期标签按 main 现有的单键接入，普通入籍也显示“预计满足条件的日期”。美国分支（任务 96）合并后 `earliestLabel` 可按路径给键表，届时建议改为只给 `CA-RESIDENCY` 设本国标签，普通入籍回到共用的“最早可申请日期（推算）”（其日期已按当天签署核对全部条件）。
+- `storage.ts` 的 `resultDeviceDay`（按设备日期缓存结果）仍只对日本开启，brief 没有要求，加拿大未接入。
+- CA-R17 入籍费用未归入“费用预算”，原因见上文与“发现与建议”。
+- e2e 只跑了 brief 指定的四个文件、desktop 项目；mobile 项目与其他国家的 e2e 未跑。视觉检查只看了政策页、居住义务加 FSW 的结果页与对比页，没有逐步点完问卷，也没有跑 Axe（canada.spec 的英文手机用例里含 Axe 检查，已通过）。
+
+### 4. 发现与建议
+
+- CA-R17（入籍费用）在引擎里不是 advisory：未答为 `UNKNOWN`、未缴为 `NOT_MET`，并决定普通入籍与未成年人入籍的结论。若希望它与其他费用一样只作预算，需要在引擎侧标为 advisory（规则语义改动，须走 SRC 定位与审核），页面再改为 `budget`。
+- CA-R02（实地居住天数基线）是参考计算，共用 kind 里没有“参考”一类，仍标“办理提示”；未满足时它与 CA-R03 同列在“未满足”下。可考虑共用组件增加参考类，或引擎在 R03 已给出结论时不再输出 R02 的状态。
+- 共用文案里，检查项的 `country.check.time` 与结果页的时间条件行 `country.timeConditions` 都是“时间条件”，含义不同（一项条件的分组 / 仅按时间推算的整体状态）。可考虑把其中一个改名。
+- `site-shell.tsx` 的 `isJapanScenario` 已列出日本、澳大利亚、加拿大三国；问卷编辑中的提示仍读 `jp.form.editResult`。可在各国接入后改为按模块的 `scenarioLinks` 判断并改用通用键名（共用命名改动，未做）。
+- 原第一轮“发现与建议”中的其他条目（已持 PR 时初次 PR 路径仍附全部条件、CA-R08 说明以空格开头、PNP 持股恰好三分之一无法精确输入、魁省担保群组的“确认没有记录”）不属于本次共用接入，状态不变。
