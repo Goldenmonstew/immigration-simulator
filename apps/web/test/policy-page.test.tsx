@@ -9,11 +9,13 @@ import {
   ROUTE_GROUP_SOURCES,
 } from '@uk-immigration/policy-data';
 import { esIndividualD } from '../../../packages/policy-data/fixtures/es-individual-d-public-funds';
+import AustraliaPolicyPage from '../app/australia/policy/page';
 import JapanPolicyPage from '../app/japan/policy/page';
 import PolicyPage from '../app/uk/policy/page';
 import { ResultView } from '../components/result-view';
 import { SiteShell } from '../components/site-shell';
 import { LocaleContext } from '../i18n/locale';
+import { australiaModule } from '../lib/australia-module';
 import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
 import { ukModule } from '../lib/uk-module';
@@ -203,4 +205,21 @@ test('the Japan policy catalogue includes every citation in residence, naturalis
   );
   expect(result).toContain('SRC-461');
   expectResultSourcesListed(result, renderToStaticMarkup(<JapanPolicyPage />));
+});
+
+test('the Australia policy catalogue includes every citation in all eleven pathways without non-Australian sources', () => {
+  const draft = australiaModule.createDraft();
+  draft.simulationDate = '2026-11-23';
+  const result = renderToStaticMarkup(
+    <ResultView
+      country={australiaModule}
+      result={australiaModule.run(draft, 'zh-CN')}
+      draft={draft}
+    />,
+  );
+  const policyHtml = renderToStaticMarkup(<AustraliaPolicyPage />);
+  expect(result).toContain('SRC-200');
+  expectResultSourcesListed(result, policyHtml);
+  expect(policyHtml).not.toContain('data-source="SRC-001"');
+  expect(policyHtml).not.toContain('data-source="SRC-110"');
 });
