@@ -165,7 +165,7 @@ test('Canadian residency questionnaire shows conditions, saves, shares and compa
   await gaps.locator('a[href*="?focus=date"]').click();
   await expect(page.locator('#ca-whatif-date')).toBeFocused();
   const comparison = assessment(page, zhCN)
-    .getByText(zhCN['result.earliest'], { exact: true })
+    .getByText(zhCN['ca.result.earliest'], { exact: true })
     .locator('xpath=following-sibling::dd[1]');
   await expect(comparison).toHaveText('2027-06-01→2027-06-01');
   await page.locator('#ca-whatif-trip-from').fill('2026-12-01');
@@ -206,7 +206,7 @@ test('English mobile Canada pages fit the screen and show Canadian policy source
     .first()
     .click();
   const comparison = assessment(page, en)
-    .getByText(en['result.earliest'], { exact: true })
+    .getByText(en['ca.result.earliest'], { exact: true })
     .locator('xpath=following-sibling::dd[1]');
   await expect(comparison).toHaveText('2027-06-01→2027-06-01');
   await page.locator('#ca-whatif-date').fill('2027-12-31');

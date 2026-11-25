@@ -1,12 +1,17 @@
 import {
   evaluateCanadaFull,
   type CaFullRequest,
+  type Locale,
   type RuleMeta,
 } from '@uk-immigration/engine';
 import { canadaFull2026_11 as ca } from '@uk-immigration/policy-data';
 import { t, type TranslationKey } from '../i18n';
 import { canadaGoals } from './canada-fields';
-import { withPolicySources, type PolicyRuleSet } from './policy';
+import {
+  withPolicySources,
+  type PolicyParameterValue,
+  type PolicyRuleSet,
+} from './policy';
 
 function title(key: TranslationKey) {
   return { 'zh-CN': t(key), en: t(key, 'en') };
@@ -26,11 +31,31 @@ const set: PolicyRuleSet = {
   ],
 };
 
+// A PR date one residence window before the policy date.
+const windowBefore =
+  String(Number(ca.asOf.slice(0, 4)) - v.prWindowYears.value) +
+  ca.asOf.slice(4);
+
 // Each branch of the engine reports the conditions it assesses. Together
 // these branches reach every condition, with its sources and pending details.
-const branches: Omit<CaFullRequest, 'simulationDate' | 'locale'>[] = [
+const branches: (Omit<CaFullRequest, 'simulationDate' | 'locale'> & {
+  simulationDate?: string;
+})[] = [
   {},
   { permanentResident: ca.asOf, trips: [], temporaryPeriods: [] },
+  // Rolling windows (PD-089, PD-090) and a 29 February date (PD-091).
+  {
+    simulationDate: '2028-02-29',
+    permanentResident: windowBefore,
+    trips: [],
+    temporaryPeriods: [],
+  },
+  // From the next federal fee adjustment neither the published schedule nor
+  // the current Québec income table applies (PD-258).
+  {
+    simulationDate: v.federalFees.value.nextAdjustment,
+    family: { quebec: true },
+  },
   {
     residence: {
       caf: { route: 'pr-member' },
@@ -55,7 +80,7 @@ const branches: Omit<CaFullRequest, 'simulationDate' | 'locale'>[] = [
 function conditions() {
   const rules = new Map<string, RuleMeta>();
   for (const branch of branches) {
-    const request = { ...branch, simulationDate: ca.asOf };
+    const request = { simulationDate: ca.asOf, ...branch };
     const zh = evaluateCanadaFull(request).columns[0].pathways;
     const en = evaluateCanadaFull({ ...request, locale: 'en' }).columns[0]
       .pathways;
@@ -78,7 +103,11 @@ function conditions() {
             )
           )
             rule.sources.push(source);
-        for (const pending of check.pendingDetails ?? [])
+        // The time baseline's details belong to the condition that shows it.
+        for (const pending of [
+          ...(check.pendingDetails ?? []),
+          ...(check.timeBaseline?.pendingDetails ?? []),
+        ])
           if (!rule.pendingDetails.includes(pending))
             rule.pendingDetails.push(pending);
         rules.set(check.id, rule);
@@ -90,6 +119,77 @@ function conditions() {
   );
 }
 
+// Tables indexed by family size, years of work or household make-up are
+// shown with labelled rows and columns.
+function displayParameter(
+  name: string,
+  locale: Locale,
+): PolicyParameterValue | undefined {
+  const label = (key: TranslationKey) => t(key, locale);
+  const bySize = (amounts: readonly number[]) =>
+    amounts.map((amount, i) => ({
+      [label('ca.policy.familySize')]: i + 1,
+      [label('ca.policy.amount')]: amount,
+    }));
+  const byChildren = (amounts: readonly number[]) =>
+    amounts.map((amount, i) => ({
+      [label('ca.policy.minorChildren')]: i,
+      [label('ca.policy.amount')]: amount,
+    }));
+  switch (name) {
+    case 'familyIncomeTable':
+      return bySize(v.familyIncomeTable.value);
+    case 'eeFunds':
+    case 'atlanticFunds':
+      return { ...v[name].value, amounts: bySize(v[name].value.amounts) };
+    case 'fswSelection': {
+      const { work } = v.fswSelection.value;
+      return {
+        ...v.fswSelection.value,
+        // The last entry applies to that many years or more.
+        work: work.map((points, i) => ({
+          [label('ca.policy.workYears')]:
+            i === work.length - 1 ? `${i}+` : String(i),
+          [label('ca.policy.points')]: points,
+        })),
+      };
+    }
+    case 'familyQuebecIncome': {
+      // Table B: adults by row, children by column, with each further
+      // child priced by the row.
+      const { extraChild, ...table } = v.familyQuebecIncome.value;
+      const children = (n: number) =>
+        label('ca.policy.children').replace('{n}', String(n));
+      return {
+        ...table,
+        own: bySize(table.own),
+        groups: table.groups.map((amounts, adults) => ({
+          [label('ca.field.adults')]: adults,
+          ...Object.fromEntries(
+            amounts.map((amount, n) => [children(n), amount]),
+          ),
+          [label('ca.policy.extraChild')]: extraChild[adults],
+        })),
+      };
+    }
+    case 'quebecSelection2026': {
+      const rates = v.quebecSelection2026.value;
+      return {
+        ...rates,
+        single: byChildren(rates.single),
+        couple: byChildren(rates.couple),
+      };
+    }
+    case 'familyQcIntakeSchedule':
+      return v.familyQcIntakeSchedule.value.map(
+        ({ opens, lettersThrough }) => ({
+          [label('ca.policy.intakeOpens')]: opens,
+          [label('ca.policy.lettersThrough')]: lettersThrough,
+        }),
+      );
+  }
+}
+
 export const canadaPolicy = withPolicySources({
   ruleSets: [set],
   displayedRuleSets: [set],
@@ -99,6 +199,7 @@ export const canadaPolicy = withPolicySources({
   })),
   parameters: { [set.id]: ca },
   rules: { [set.id]: conditions() },
+  displayParameter,
   changelog: [
     {
       date: v.citRightFeeFrom.value,

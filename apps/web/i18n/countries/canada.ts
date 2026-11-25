@@ -40,7 +40,10 @@ export const zhCN = {
     '每次离开加拿大填一行，计划中的出行也可以填。没有出境时请点“确认没有记录”，否则居住天数无法计算。',
   'ca.form.periodsHint':
     '在加拿大以访客、学生、工作者或受保护人身份合法停留的期间，每段一行。没有身份或等待难民申请决定的时间不要填。',
-  'ca.form.taxYearsHint': '按签署日前的日历年列出，未列出的年份不影响结果。',
+  'ca.form.taxYearsHint':
+    '按签署日（未填时按模拟日期）之前的计算期间列出日历年；签署日不是 1 月 1 日时也列出签署当年。未列出的年份不影响结果。',
+  'ca.form.equityShareHint':
+    '持股比例按百分数填写。门槛为三分之一，百分数写不出恰好三分之一，持股恰为三分之一时请填 {percent}。',
   'ca.form.tupleHint': '请填写全部数值，或全部留空。',
   'ca.form.add': '添加',
   'ca.form.remove': '删除',
@@ -80,8 +83,22 @@ export const zhCN = {
   'ca.whatif.invalidDates':
     '请填写有效日期；回到加拿大的日期不能早于离开的日期。',
   'ca.whatif.invalidNumber': '请填写有效的非负数值。',
+  'ca.whatif.tripNeedsRecord':
+    '问卷还没有出境记录。只加一趟不能代表完整行程，请先在问卷里填写出境记录，或确认没有记录。',
+  'ca.whatif.crsNeedsRound':
+    '问卷还没有填写邀请轮次。请先在问卷的 Express Entry 步骤填写轮次日期，再比较 CRS 分数。',
+  'ca.result.earliest': '预计满足条件的日期',
   'ca.policy.title': '加拿大现行法律',
   'ca.policy.pageTitle': '加拿大政策依据',
+  'ca.policy.familySize': '家庭人数',
+  'ca.policy.amount': '金额（CAD）',
+  'ca.policy.workYears': '工作年数',
+  'ca.policy.points': '分数',
+  'ca.policy.children': '儿童 {n} 人',
+  'ca.policy.extraChild': '每增加 1 名儿童',
+  'ca.policy.minorChildren': '随行未成年子女人数',
+  'ca.policy.intakeOpens': '开始收件',
+  'ca.policy.lettersThrough': '本档信件截止',
   'ca.policy.feeChange': '联邦永居申请费调整',
   'ca.policy.feeSummary':
     '永居处理费、永久居留权费、担保费和生物识别费按该日起的费表核对，下一次调整日为 {date}。',
@@ -137,7 +154,9 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ca.form.periodsHint':
     'Add a row for each period you were in Canada lawfully as a visitor, student, worker or protected person. Do not include time without status or waiting on a refugee claim.',
   'ca.form.taxYearsHint':
-    'Calendar years before the signing date. Years not listed do not affect the result.',
+    'Calendar years in the period before the signing date (or the simulation date if none), including the signing year unless you sign on 1 January. Years not listed do not affect the result.',
+  'ca.form.equityShareHint':
+    'Enter the equity share as a percentage. The threshold is one third, which a percentage cannot state exactly, so for a share of exactly one third enter {percent}.',
   'ca.form.tupleHint': 'Fill in every value, or leave them all blank.',
   'ca.form.add': 'Add',
   'ca.form.remove': 'Remove',
@@ -181,8 +200,22 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ca.whatif.invalidDates':
     'Enter valid dates. The date you come back cannot be before the date you leave.',
   'ca.whatif.invalidNumber': 'Enter a valid number of zero or more.',
+  'ca.whatif.tripNeedsRecord':
+    'Your answers have no travel record yet. One extra trip cannot stand for your full history, so first add your trips in the questionnaire or confirm you have none.',
+  'ca.whatif.crsNeedsRound':
+    'Your answers have no invitation round yet. Add the round date in the Express Entry step of the questionnaire before comparing CRS scores.',
+  'ca.result.earliest': 'Projected date the requirements are met',
   'ca.policy.title': 'Current Canadian law',
   'ca.policy.pageTitle': 'Policy basis for Canada',
+  'ca.policy.familySize': 'Family size',
+  'ca.policy.amount': 'Amount (CAD)',
+  'ca.policy.workYears': 'Years of work',
+  'ca.policy.points': 'Points',
+  'ca.policy.children': 'Children: {n}',
+  'ca.policy.extraChild': 'Each additional child',
+  'ca.policy.minorChildren': 'Accompanying minor children',
+  'ca.policy.intakeOpens': 'Intake opens',
+  'ca.policy.lettersThrough': 'Letter cutoff',
   'ca.policy.feeChange': 'Federal permanent residence fees adjusted',
   'ca.policy.feeSummary':
     'Processing, right of permanent residence, sponsorship and biometrics fees are checked against the schedule from this date. The next adjustment is on {date}.',

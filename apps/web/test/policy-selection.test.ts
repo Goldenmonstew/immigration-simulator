@@ -28,7 +28,9 @@ async function select(
       ...Object.fromEntries(extra.map((set) => [set.id, set])),
     },
   }));
-  vi.doMock('@uk-immigration/policy-data', () => ({
+  // Other exports stay real: country wording reads its own parameters on load.
+  vi.doMock('@uk-immigration/policy-data', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@uk-immigration/policy-data')>()),
     RULE_SET_IDS: order,
     PARAMETERS: {
       ...PARAMETERS,

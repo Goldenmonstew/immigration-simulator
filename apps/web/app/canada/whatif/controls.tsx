@@ -3,23 +3,16 @@
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import type { CanadaDraft } from '../../../lib/canada-draft';
-import { canadaSteps } from '../../../lib/canada-fields';
+import { canadaSteps, maxLevel } from '../../../lib/canada-fields';
 import {
   canadaFocusControls as ids,
+  canadaNumberKnobs,
   type CanadaWhatIf,
 } from '../../../lib/canada-whatif';
 import type { WhatIfControlsProps } from '../../../lib/whatif';
 import styles from '../../uk/whatif/whatif.module.css';
 
-type NumberKnob =
-  | 'citizenshipLevel'
-  | 'eeLanguage'
-  | 'crs'
-  | 'eeFunds'
-  | 'aipFunds'
-  | 'qcFunds'
-  | 'qcFrench'
-  | 'income';
+type NumberKnob = keyof typeof canadaNumberKnobs;
 
 const testOutcomes = [
   'passed',
@@ -48,6 +41,16 @@ export function CanadaWhatIfControls({
         {t(errors[field])}
       </p>
     );
+  // A control whose answers are missing explains what to add first, and
+  // still receives focus from a condition link.
+  const missing = (id: string, label: TranslationKey, note: TranslationKey) => (
+    <div className={styles.field}>
+      <strong>{t(label)}</strong>
+      <p id={id} tabIndex={-1} className={styles.hint}>
+        {t(note)}
+      </p>
+    </div>
+  );
   const amount = (field: NumberKnob, label: TranslationKey) => (
     <div className={styles.field}>
       <label htmlFor={ids[field]}>{t(label)}</label>
@@ -55,7 +58,8 @@ export function CanadaWhatIfControls({
         id={ids[field]}
         type="number"
         min="0"
-        step="1"
+        max={'max' in canadaNumberKnobs[field] ? maxLevel : undefined}
+        step={'integer' in canadaNumberKnobs[field] ? 1 : 'any'}
         value={knobs[field] ?? ''}
         onChange={(event) =>
           update({
@@ -87,34 +91,37 @@ export function CanadaWhatIfControls({
         </p>
         {error('date')}
       </div>
-      {(goals.includes('CA-RESIDENCY') || goals.includes('CA-CITIZENSHIP')) && (
-        <fieldset className={styles.income}>
-          <legend>{t('ca.whatif.trip')}</legend>
-          <div className={styles.field}>
-            <label htmlFor={ids.trip}>{t('ca.whatif.tripFrom')}</label>
-            <input
-              id={ids.trip}
-              type="date"
-              value={knobs.tripFrom}
-              onChange={(event) => update({ tripFrom: event.target.value })}
-              aria-invalid={errors.trip ? true : undefined}
-              aria-describedby={describedBy('trip')}
-            />
-          </div>
-          <div className={styles.field}>
-            <label htmlFor="ca-whatif-trip-to">{t('ca.whatif.tripTo')}</label>
-            <input
-              id="ca-whatif-trip-to"
-              type="date"
-              value={knobs.tripTo}
-              onChange={(event) => update({ tripTo: event.target.value })}
-              aria-invalid={errors.trip ? true : undefined}
-              aria-describedby={describedBy('trip')}
-            />
-          </div>
-          {error('trip')}
-        </fieldset>
-      )}
+      {(goals.includes('CA-RESIDENCY') || goals.includes('CA-CITIZENSHIP')) &&
+        (!afterDraft.answers.trips ? (
+          missing(ids.trip, 'ca.whatif.trip', 'ca.whatif.tripNeedsRecord')
+        ) : (
+          <fieldset className={styles.income}>
+            <legend>{t('ca.whatif.trip')}</legend>
+            <div className={styles.field}>
+              <label htmlFor={ids.trip}>{t('ca.whatif.tripFrom')}</label>
+              <input
+                id={ids.trip}
+                type="date"
+                value={knobs.tripFrom}
+                onChange={(event) => update({ tripFrom: event.target.value })}
+                aria-invalid={errors.trip ? true : undefined}
+                aria-describedby={describedBy('trip')}
+              />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="ca-whatif-trip-to">{t('ca.whatif.tripTo')}</label>
+              <input
+                id="ca-whatif-trip-to"
+                type="date"
+                value={knobs.tripTo}
+                onChange={(event) => update({ tripTo: event.target.value })}
+                aria-invalid={errors.trip ? true : undefined}
+                aria-describedby={describedBy('trip')}
+              />
+            </div>
+            {error('trip')}
+          </fieldset>
+        ))}
       {goals.includes('CA-CITIZENSHIP') && (
         <>
           {amount('citizenshipLevel', 'ca.whatif.citizenshipLevel')}
@@ -146,7 +153,9 @@ export function CanadaWhatIfControls({
       {express && (
         <>
           {amount('eeLanguage', 'ca.whatif.eeLanguage')}
-          {afterDraft.answers.express?.round && amount('crs', 'ca.whatif.crs')}
+          {afterDraft.answers.express?.round
+            ? amount('crs', 'ca.whatif.crs')
+            : missing(ids.crs, 'ca.whatif.crs', 'ca.whatif.crsNeedsRound')}
           {amount('eeFunds', 'ca.whatif.eeFunds')}
         </>
       )}

@@ -337,10 +337,19 @@ export const jpNotices: { id: string; text: Text; season?: Quarter }[] = [
   },
 ];
 
+const { deemedMonths, transitionOn } =
+  japanFull2026_11.values.longestPeriod.value;
 const renewalNote = t(
-  '游戏把这次续签当作按时递交并获准最长在留期间（SRC-440 別表第2）。现实中能否获准、何时可以提前递交及手续费，以入管公告为准；本游戏未收录续签手续费。',
-  'The game treats this as a timely renewal granted for the longest period of stay for your status (SRC-440, Appended Table II). Whether it is granted, how early you may file and the fee follow the Immigration Services Agency; this game does not charge a renewal fee.',
+  `游戏把这次更新当作按时递交并获准，新期间按 ${deemedMonths} 个月记录：永住指南在 ${transitionOn} 前把这一期间视为最长（SRC-114 第2の5(6) 注4）。实际批几年由入管决定，游戏无法预知；${transitionOn} 以后永住要求持有该资格的最长在留期间（SRC-440 別表第2），所以评估里这一项显示待确认，递交永住时由入管核对。本游戏未收录更新手续费与可提前递交的期间。`,
+  `The game treats this as a timely renewal that is granted, recorded as ${deemedMonths} months: the permanent residence guideline treats that period as the longest until ${transitionOn} (SRC-114 2-5(6) note 4). The immigration office decides the actual period, which the game cannot predict. After ${transitionOn}, permanent residence needs the longest period of stay for your status (SRC-440, Appended Table II), so the assessment shows that requirement as pending and the office checks it when you apply. This game does not charge a renewal fee or model how early you may file.`,
 );
+
+/** The shared furniture, as Minatozaka's shop sells it. */
+export const jpFurnishingNames: Record<string, Text> = {
+  'reading-chair': t('和室座椅', 'Floor chair'),
+  'warm-curtains': t('遮光窗帘', 'Blackout curtains'),
+  'desk-lamp': t('台灯', 'Desk lamp'),
+};
 
 export const jpActions: Activity<JpEffect, JpFestival>[] = [
   {
@@ -383,8 +392,8 @@ export const jpActions: Activity<JpEffect, JpFestival>[] = [
       `Move to a south-facing flat (${yen(b.housingDeposit)} deposit, ${yen(b.housingMoveCost)} moving, +${yen(b.housingRent)}/quarter; ongoing mood and health; a low balance ends the lease and returns the deposit)`,
     ),
     note: t(
-      `搬家后 ${japanFull2026_11.values.immigrationDuties.value.addressDays} 天内到区役所申报新住址（SRC-110 第19条の7–9）。`,
-      `Report the new address at the ward office within ${japanFull2026_11.values.immigrationDuties.value.addressDays} days of moving (SRC-110 art. 19-7 to 19-9).`,
+      `搬家后 ${japanFull2026_11.values.immigrationDuties.value.addressDays} 天内到区役所申报新住址（SRC-110 第19条の7–9）。游戏里的日子之间会跳过一段时间，所以只在区役所当天还能受理时提供搬家，搬完当天就去申报。`,
+      `Report the new address at the ward office within ${japanFull2026_11.values.immigrationDuties.value.addressDays} days of moving (SRC-110 art. 19-7 to 19-9). The game skips ahead between days, so moving is offered only while the ward office can still take the notice; report it the same day.`,
     ),
     minutes: b.minutes.paperwork,
     effects: [
@@ -482,24 +491,16 @@ export const jpActions: Activity<JpEffect, JpFestival>[] = [
     ],
   },
   ...[
-    [
-      'reading-chair',
-      '和室座椅（每季心情、健康各加一点）',
-      'Floor chair (+1 mood and health/quarter)',
-    ],
-    [
-      'warm-curtains',
-      '遮光窗帘（每季心情加一点）',
-      'Blackout curtains (+1 mood/quarter)',
-    ],
-    ['desk-lamp', '台灯（每季健康加一点）', 'Desk lamp (+1 health/quarter)'],
+    ['reading-chair', '每季心情、健康各加一点', '+1 mood and health/quarter'],
+    ['warm-curtains', '每季心情加一点', '+1 mood/quarter'],
+    ['desk-lamp', '每季健康加一点', '+1 health/quarter'],
   ].map(([id, zhCN, en]): Activity<JpEffect, JpFestival> => ({
     id: `furnish-${id}`,
     place: 'shop',
     minutes: b.minutes.buy,
     label: t(
-      `添置${zhCN} · ${yen(b.furnishings[id].price)}，限一件`,
-      `Buy a ${en} · ${yen(b.furnishings[id].price)}, one per home`,
+      `添置${jpFurnishingNames[id].zhCN}（${zhCN}） · ${yen(b.furnishings[id].price)}，限一件`,
+      `Buy a ${jpFurnishingNames[id].en} (${en}) · ${yen(b.furnishings[id].price)}, one per home`,
     ),
     effects: [{ type: 'money', delta: -b.furnishings[id].price }],
   })),
@@ -534,8 +535,8 @@ export const jpActions: Activity<JpEffect, JpFestival>[] = [
     id: 'extend',
     place: 'visa',
     label: t(
-      '办理在留期间更新（本情景预设获批）',
-      'Renew your period of stay (assumed granted in this scenario)',
+      `办理在留期间更新（本情景按获批 ${deemedMonths} 个月记录）`,
+      `Renew your period of stay (recorded as granted for ${deemedMonths} months in this scenario)`,
     ),
     note: renewalNote,
     minutes: b.minutes.paperwork,

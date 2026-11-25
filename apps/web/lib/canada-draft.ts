@@ -44,7 +44,58 @@ export function canadaRequest(
   draft: CanadaDraft,
   locale: Locale,
 ): CaFullRequest {
-  return { ...draft.answers, simulationDate: draft.simulationDate, locale };
+  const { answers } = activeCanadaAnswers(draft);
+  const { pnp } = answers;
+  return {
+    ...answers,
+    // The form asks for a percentage; the engine compares a fraction with
+    // the one-third share in IRPR s87(5)–(6) (SRC-261).
+    ...(pnp?.equityShare !== undefined && {
+      pnp: { ...pnp, equityShare: pnp.equityShare / 100 },
+    }),
+    simulationDate: draft.simulationDate,
+    locale,
+  };
+}
+
+function activeRecord(fields: CanadaField[], record: Answers, goals: string[]) {
+  const active: Answers = {};
+  for (const field of fields) {
+    const value = activeValue(field, record[field.name], goals);
+    if (value !== undefined) active[field.name] = value;
+  }
+  return active;
+}
+
+function activeValue(field: CanadaField, value: unknown, goals: string[]) {
+  if (field.type === 'group' && isRecord(value))
+    return activeRecord(field.fields, value, goals);
+  if (field.type === 'list' && Array.isArray(value))
+    return value.map((row: Answers) => activeRecord(field.fields, row, goals));
+  if (field.type === 'routes' && isRecord(value)) {
+    const routes: Answers = {};
+    for (const route of goals)
+      if (value[route] !== undefined)
+        routes[route] = activeValue(field.field, value[route], goals);
+    return Object.keys(routes).length ? routes : undefined;
+  }
+  return value;
+}
+
+// The questionnaire keeps answers on steps, groups and routes the user has
+// since hidden. Only the visible answers are assessed, checked and shared.
+export function activeCanadaAnswers(draft: CanadaDraft): CanadaDraft {
+  let answers: Answers = {};
+  for (const step of canadaStepsFor(draft))
+    for (const section of visibleSections(step, draft)) {
+      const source = answersAt(draft.answers, section.path);
+      if (source === undefined) continue;
+      answers = withAnswersAt(answers, section.path, {
+        ...answersAt(answers, section.path),
+        ...activeRecord(section.fields, source, draft.goals),
+      });
+    }
+  return { ...draft, answers };
 }
 
 export function answersAt(answers: object, path: string[]) {
@@ -91,13 +142,35 @@ function checkNumber(field: CanadaField, value: unknown) {
   if (max !== undefined && value > max) return 'ca.error.range';
 }
 
+// A set of numbers with every entry blank is no answer.
+const blankTuple = (field: CanadaField, value: unknown) =>
+  field.type === 'tuple' &&
+  Array.isArray(value) &&
+  value.every((item) => item === null);
+
+// Periods and documents: the second date cannot be before the first.
+const orderedDates = [
+  ['from', 'to'],
+  ['from', 'until'],
+  ['departed', 'returned'],
+  ['issued', 'expires'],
+  ['nominationIssued', 'nominationExpires'],
+  ['certificateIssued', 'certificateExpires'],
+  ['principalCsqIssued', 'principalCsqExpires'],
+] as const;
+
 function checkField(
   field: CanadaField,
   value: unknown,
   id: string,
   errors: Errors,
 ) {
-  if (value === undefined || value === null || value === '') {
+  if (
+    value === undefined ||
+    value === null ||
+    value === '' ||
+    blankTuple(field, value)
+  ) {
     if (field.required) errors[id] = 'ca.error.required';
     return;
   }
@@ -135,25 +208,9 @@ function checkField(
       if (isRecord(value)) checkFields(field.fields, value, id, errors);
       return;
     case 'list':
-      (value as Answers[]).forEach((row, index) => {
-        const rowId = `${id}-${index}`;
-        checkFields(field.fields, row, rowId, errors);
-        for (const [start, end] of [
-          ['from', 'to'],
-          ['departed', 'returned'],
-        ]) {
-          const first = row[start] as string | undefined;
-          const last = row[end] as string | undefined;
-          if (
-            first &&
-            last &&
-            validDate(first) &&
-            validDate(last) &&
-            last < first
-          )
-            errors[`${rowId}-${end}`] = 'ca.error.order';
-        }
-      });
+      (value as Answers[]).forEach((row, index) =>
+        checkFields(field.fields, row, `${id}-${index}`, errors),
+      );
       return;
     case 'routes':
       for (const [route, answer] of Object.entries(value as Answers))
@@ -170,6 +227,13 @@ function checkFields(
 ) {
   for (const field of fields)
     checkField(field, record?.[field.name], `${id}-${field.name}`, errors);
+  for (const [start, end] of orderedDates) {
+    if (!fields.some(({ name }) => name === end)) continue;
+    const first = record?.[start] as string | undefined;
+    const last = record?.[end] as string | undefined;
+    if (first && last && validDate(first) && validDate(last) && last < first)
+      errors[`${id}-${end}`] = 'ca.error.order';
+  }
 }
 
 export function validateCanadaStep(draft: CanadaDraft): Errors {
@@ -181,10 +245,11 @@ export function validateCanadaStep(draft: CanadaDraft): Errors {
       errors['ca-simulationDate'] = 'ca.error.date';
     if (!draft.goals.length) errors['ca-goals'] = 'ca.error.goals';
   }
+  const { answers } = activeCanadaAnswers(draft);
   for (const section of visibleSections(step, draft))
     checkFields(
       section.fields,
-      answersAt(draft.answers, section.path),
+      answersAt(answers, section.path),
       sectionId(section.path),
       errors,
     );
@@ -218,11 +283,13 @@ function cleanField(field: CanadaField, value: unknown): unknown {
         ? value
         : invalid();
     case 'tuple':
-      return Array.isArray(value) &&
-        value.length === field.size &&
-        value.every((item) => item === null || typeof item === 'number')
-        ? value
-        : invalid();
+      if (
+        !Array.isArray(value) ||
+        value.length !== field.size ||
+        !value.every((item) => item === null || typeof item === 'number')
+      )
+        invalid();
+      return blankTuple(field, value) ? undefined : value;
     case 'dates':
       return Array.isArray(value) &&
         value.every((item) => typeof item === 'string')
@@ -243,9 +310,10 @@ function cleanField(field: CanadaField, value: unknown): unknown {
       if (value === false && field.allowFalse) return false;
       return cleanRecord(field.fields, value);
     case 'list':
-      return Array.isArray(value)
-        ? value.map((row) => cleanRecord(field.fields, row))
-        : invalid();
+      if (!Array.isArray(value)) invalid();
+      return field.nonEmpty && !value.length
+        ? undefined
+        : value.map((row) => cleanRecord(field.fields, row));
     case 'routes': {
       if (!isRecord(value)) invalid();
       const routes: Answers = {};

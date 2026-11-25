@@ -13,6 +13,7 @@ import {
 import {
   canadaGoals,
   canadaSteps,
+  equitySharePercent,
   initialPrGoals,
   residenceGoals,
   visibleSections,
@@ -28,6 +29,7 @@ const sectionHints: Partial<Record<CanadaSectionTitle, TranslationKey>> = {
   trips: 'ca.form.tripsHint',
   temporaryPeriods: 'ca.form.periodsHint',
   taxYears: 'ca.form.taxYearsHint',
+  investment: 'ca.form.equityShareHint',
 };
 
 function CanadaStep({
@@ -122,7 +124,12 @@ function CanadaStep({
         const fields = (
           <>
             {sectionHints[section.id] && (
-              <p className={form.hint}>{t(sectionHints[section.id]!)}</p>
+              <p className={form.hint}>
+                {t(sectionHints[section.id]!).replace(
+                  '{percent}',
+                  String(equitySharePercent),
+                )}
+              </p>
             )}
             <CanadaFields
               fields={section.fields}

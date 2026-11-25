@@ -371,7 +371,22 @@ test('the policy page lists only the supplied rule sets, parameters, rules, chan
       [id]: {
         ruleSetId: id,
         asOf: draft.simulationDate,
-        values: { exampleList: { value: ['Alpha', 'Beta'], sources } },
+        values: {
+          exampleList: { value: ['Alpha', 'Beta'], sources },
+          referenceYear: { value: 2026, sources },
+          annualIncome: { value: 12345, sources },
+          incomeHistory: {
+            value: { firstYear: 2009, reducedFrom: 2012, standard: 7500 },
+            sources,
+          },
+          ageBands: {
+            value: [
+              { age: 18, points: 25 },
+              { age: 25, points: 30 },
+            ],
+            sources,
+          },
+        },
       },
     },
     rules: {
@@ -409,4 +424,22 @@ test('the policy page lists only the supplied rule sets, parameters, rules, chan
     expect(html).toContain(content);
   expect(html).not.toContain('current-law-2026-11');
   expect(html.match(/data-source=/g)).toHaveLength(1);
+  // Without a registered country title the page keeps the generic heading.
+  expect(html).toContain(`<h1>${t('policyPage.title')}</h1>`);
+  expect(
+    // A country id with no registered title (never a real country).
+    renderToStaticMarkup(
+      <PolicyPage country={{ id: 'xx' as never, policy }} />,
+    ),
+  ).toContain(`<h1>${t('policyPage.title')}</h1>`);
+  // Calendar years keep their digits; amounts are grouped.
+  for (const text of [
+    '>2026<',
+    '>12,345<',
+    'firstYear 2009、reducedFrom 2012、standard 7,500',
+    '<th scope="col">age</th><th scope="col">points</th>',
+    '<td>18</td><td>25</td>',
+  ])
+    expect(html).toContain(text);
+  expect(html).not.toContain('2,026');
 });

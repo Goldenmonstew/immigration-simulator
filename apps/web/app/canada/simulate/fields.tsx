@@ -119,14 +119,20 @@ function Question({
   const label =
     (shownLabel ?? t(`ca.field.${field.label}` as TranslationKey)) +
     (field.required ? ' *' : '');
-  const nested = (fields: CanadaField[], record: unknown, key: string) => (
+  // An emptied record falls back to `empty`, e.g. {} keeps "applies".
+  const nested = (
+    fields: CanadaField[],
+    record: unknown,
+    key: string,
+    empty?: Answers,
+  ) => (
     <CanadaFields
       fields={fields}
       values={record as Answers | undefined}
       id={key}
       errors={errors}
       draft={draft}
-      change={(next) => set(next)}
+      change={(next) => set(next ?? empty)}
     />
   );
   switch (field.type) {
@@ -171,12 +177,13 @@ function Question({
           {until && (
             <Field
               id={`${id}-until`}
-              label={t('ca.field.extensionUntil')}
+              label={`${t('ca.field.extensionUntil')} *`}
               error={errors[`${id}-until`]}
             >
               <input
                 {...inputProps(`${id}-until`, errors)}
                 type="date"
+                required
                 value={(value as { until: string }).until}
                 onChange={(event) => set({ until: event.target.value })}
               />
@@ -202,8 +209,13 @@ function Question({
             value={String(value ?? '')}
             onChange={(event) => {
               const text = event.target.value;
+              // Codes and timestamps are compared exactly.
               set(
-                text.trim() === '' ? undefined : numeric ? Number(text) : text,
+                text.trim() === ''
+                  ? undefined
+                  : numeric
+                    ? Number(text)
+                    : text.trim(),
               );
             }}
           />
@@ -215,9 +227,20 @@ function Question({
         number | null
       )[];
       return (
-        <fieldset className={form.fieldset}>
+        <fieldset
+          id={id}
+          className={form.fieldset}
+          tabIndex={-1}
+          aria-invalid={errors[id] ? true : undefined}
+          aria-describedby={errors[id] ? `${id}-error` : undefined}
+        >
           <legend className={form.legend}>{label}</legend>
           <p className={form.hint}>{t('ca.form.tupleHint')}</p>
+          {errors[id] && (
+            <p id={`${id}-error`} className={form.error}>
+              {t(errors[id])}
+            </p>
+          )}
           {items.map((item, index) => {
             const key = `${id}-${index}`;
             return (
@@ -308,7 +331,12 @@ function Question({
               {field.fields.some((child) => child.required) && (
                 <p className={form.hint}>{t('ca.form.optionalGroup')}</p>
               )}
-              {nested(field.fields, applies ? value : undefined, id)}
+              {nested(
+                field.fields,
+                applies ? value : undefined,
+                id,
+                field.allowFalse ? {} : undefined,
+              )}
             </>
           )}
         </fieldset>
@@ -381,7 +409,7 @@ function Question({
             >
               {t('ca.form.add')} · {label}
             </button>
-            {!rows.length && (
+            {!rows.length && !(field.type === 'list' && field.nonEmpty) && (
               <button
                 type="button"
                 className={form.copyRow}

@@ -62,7 +62,7 @@ export function itemIcon(id: string) {
 export function gameDraft(state: JpState): JapanDraft {
   return {
     ...createJapanDraft(),
-    ...structuredClone(state.timeline),
+    ...structuredClone(jpGame.timelineOn(state.timeline, state.date)),
     simulationDate: state.date,
     residenceEvidenceOn: jpGame.evidenceDay(state.date),
     step: 5,
@@ -87,13 +87,15 @@ export const jpCountry: GameCountry<JpKinds> = {
     { id: 'pr', label: 'jp.game.prColumn' },
     { id: 'nat', label: 'jp.game.natColumn' },
   ],
+  // FUTURE only says when the time requirement is met, as the detail does.
   outcomeLabel: ({ outcome, earliestDate }, t) =>
     isDecisionOutcome(outcome)
       ? t(`outcome.${outcome}`)
-      : t(`country.status.${outcome}`).replace(
-          '{date}',
-          earliestDate ?? t('result.undetermined'),
-        ),
+      : t(
+          outcome === 'FUTURE'
+            ? 'jp.game.timeFuture'
+            : `country.status.${outcome}`,
+        ).replace('{date}', earliestDate ?? t('result.undetermined')),
   missingRules(state, id) {
     const titles = jpGame
       .pathwayOf(state.result, id)
@@ -121,6 +123,7 @@ export const jpCountry: GameCountry<JpKinds> = {
     harvest: { zhCN: '市民农园收获', en: 'Community garden harvest' },
     catch: { zhCN: '大冈川钓鱼', en: 'Fishing on the Ōoka' },
   },
+  furnishingNames: jpGame.jpFurnishingNames,
   resultHref: (state) =>
     `${countryPath('jp', 'result')}#s=${encodeDraft(japanModule, gameDraft(state))}`,
   assessment: (state, idPrefix) => (
