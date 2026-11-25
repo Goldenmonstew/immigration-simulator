@@ -376,8 +376,8 @@ export const grFurnishingNames: Record<string, Text> = {
 
 const reporting = values.changeReporting.value;
 const moveNote = t(
-  `搬家后 ${reporting.months} 个月内向移民局申报新住址，逾期申报罚款 ${euro(reporting.firstFine)}，再次逾期 ${euro(reporting.repeatFine)}（${src(values.changeReporting)}）。游戏里的日子之间会跳过一段时间，所以只在移民局当天还能受理时提供搬家和退租，搬完当天就去申报。`,
-  `Report the new address to the migration office within ${reporting.months} months of moving; a late report costs ${euro(reporting.firstFine)}, or ${euro(reporting.repeatFine)} when it happens again (${src(values.changeReporting)}). The game skips ahead between days, so moving in or out is offered only while the migration office can still take the report; report it the same day.`,
+  `搬家后 ${reporting.months} 个月内向移民局申报新住址，逾期申报罚款 ${euro(reporting.firstFine)}，再次逾期 ${euro(reporting.repeatFine)}（${src(values.changeReporting)}）。游戏里的日子之间会跳过一段时间，所以只在移民局当天还能受理时（算上从家走过去的时间）提供搬家和退租，搬完当天就去申报。`,
+  `Report the new address to the migration office within ${reporting.months} months of moving; a late report costs ${euro(reporting.firstFine)}, or ${euro(reporting.repeatFine)} when it happens again (${src(values.changeReporting)}). The game skips ahead between days, so moving in or out is offered only while the migration office can still take the report after the walk there; report it the same day.`,
 );
 
 export const grActions: GrActivity[] = [

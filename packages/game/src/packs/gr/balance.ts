@@ -24,6 +24,13 @@ export const grBalance = {
   housingDeposit: 1_800,
   housingMoveCost: 400,
   housingRent: 750,
+  /**
+   * Game minutes to walk from home to the migration office in the browser:
+   * 38 tiles on the town map, about 4 s when walking to a place (145 px/s) or
+   * 7 s with the keys (85 px/s), and the outdoor clock moves 10 minutes every
+   * 2 s, so up to four ticks.
+   */
+  walkToVisaMinutes: 40,
   lifestyleReserve: { bluecard: 4_000, spouse: 5_000 } as Record<
     string,
     number

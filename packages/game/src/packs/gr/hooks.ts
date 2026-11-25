@@ -147,12 +147,13 @@ function lateReport(state: GrState) {
 const visaHours = grPlaces.find((place) => place.id === 'visa')!.hours!;
 /**
  * Whether the migration office can still take an address report today after
- * an action. Play skips ahead between days, so the next working day may fall
- * outside the reporting period.
+ * an action and the walk there. Play skips ahead between days, so the next
+ * working day may fall outside the reporting period.
  */
 const reportableToday = (state: GrState, minutes: number) =>
   visaHours.dayKinds!.includes(state.day.kind) &&
-  state.day.minute + minutes + b.minutes.paperwork <= visaHours.closes;
+  state.day.minute + minutes + b.walkToVisaMinutes + b.minutes.paperwork <=
+    visaHours.closes;
 
 export function actionAvailable(
   state: GrState,

@@ -338,8 +338,13 @@ test('the Saturday street market sells this season’s produce', () => {
 
 test('moving is offered only while the migration office can take the report', () => {
   const office = gr.places.find(({ id }) => id === 'visa')!.hours!;
-  // Moving and reporting each take an hour of paperwork.
-  const latest = office.closes - 2 * grBalance.minutes.paperwork;
+  // Moving and reporting each take an hour of paperwork, with the walk from
+  // home to the office in between: 11:50 at the latest.
+  const latest =
+    office.closes -
+    2 * grBalance.minutes.paperwork -
+    grBalance.walkToVisaMinutes;
+  expect(latest).toBe(710);
   const workday = settle(gr.newGame('bluecard', 5, 'en'));
   const lease = (state: State) => ({
     ...state,
