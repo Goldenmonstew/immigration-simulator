@@ -865,6 +865,48 @@ test('the family step asks what to assess, and a renewal answer does not replace
   );
 });
 
+test('work renewals and EU acquisition say what their dates and blanks mean', () => {
+  // review99-2 suggestion 1: a renewal does not need the employer’s letter.
+  const renewal = pathway(
+    {
+      ...workDraft,
+      workStage: 'renewal',
+      registration: {
+        ...registration,
+        irpExpiresOn: '2027-06-30',
+        checklistComplete: true,
+      },
+    },
+    'IE-STAMP4-21',
+  );
+  expect(renewal).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2027-04-07',
+  });
+  expect(renewal.summary).toContain(t('ie.result.projected'));
+  expect(renewal.summary).not.toContain(t('ie.result.projectedWork'));
+  expect(pathway(workDraft, 'IE-STAMP4-21').summary).toContain(
+    t('ie.result.projectedWork'),
+  );
+  // review99-2 suggestion 2: unanswered acquisition is assessed as ordinary.
+  const html = render(
+    IrelandSimulatePage().props.children({
+      draft: {
+        ...workDraft,
+        step: 6,
+        pathways: ['IE-EU-PERMANENT'],
+        eu: { role: 'citizen' },
+      },
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(html).toContain(t('ie.option.acquisition.default'));
+  expect(t('ie.option.acquisition.default')).toContain(
+    t('ie.option.acquisition.ordinary'),
+  );
+});
+
 // Leaf questions and innermost groups shown for one pathway, as draft paths.
 type Unit = { path: string[]; field: IrelandField };
 function units(

@@ -799,7 +799,9 @@ export const treatySections = {
       },
       { label: 'treatyAbsences' },
     ),
-    acquisition: choice(['ordinary', 'early', 'retained']),
+    acquisition: choice(['ordinary', 'early', 'retained'], {
+      blank: 'default',
+    }),
     early: group<Early>({
       kind: choice(['retired', 'incapacity', 'frontier', 'worker-death'], {
         label: 'earlyKind',

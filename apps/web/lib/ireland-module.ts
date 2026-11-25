@@ -37,7 +37,9 @@ function run(draft: IrelandDraft, locale: Locale) {
       pathway.summary = [
         pathway.summary,
         t(
-          (WORK_PATHS as readonly string[]).includes(pathway.id)
+          // Only an upgrade relies on the employer’s letter.
+          (WORK_PATHS as readonly string[]).includes(pathway.id) &&
+            !draft.workStage
             ? 'ie.result.projectedWork'
             : 'ie.result.projected',
           locale,

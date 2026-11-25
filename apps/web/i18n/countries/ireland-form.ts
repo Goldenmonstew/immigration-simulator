@@ -1822,6 +1822,10 @@ const messages = {
     '通常方式（连续居住期满）',
     'Ordinary (continuous residence)',
   ],
+  'ie.option.acquisition.default': [
+    '未选时按通常方式（连续居住期满）核对',
+    'If not chosen: Ordinary (continuous residence)',
+  ],
   'ie.option.acquisition.early': ['提前取得', 'Early acquisition'],
   'ie.option.acquisition.retained': [
     '保留权利后取得',
