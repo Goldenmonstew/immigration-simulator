@@ -2204,6 +2204,91 @@ describe('review113-4', () => {
       ),
     ).toEqual(['MET', '2026-03-16', 0]);
   });
+
+  test('a refusal less than a year ago moves the earliest date (risk 2)', () => {
+    // SRC-505 §8.4 p25: a new application "selepas satu (1) tahun daripada
+    // tarikh keputusan".
+    const refused = {
+      simulationDate: day,
+      previousPrRefusalOn: '2026-06-01',
+      family: {
+        tie: 'wife-of-citizen',
+        marriedOn: '2024-01-01',
+        marriageRegistration: 'malaysia',
+        separatedOrDivorced: false,
+      },
+      passes: [{ kind: 'ltsvp-spouse', from: '2026-03-01', to: '2029-12-31' }],
+    } satisfies MyFullRequest;
+    // Marriage and pass alone: 2027-01-01 and 2027-03-02.
+    expect(time('my.pr.wife', refused)).toEqual(['FUTURE', '2027-06-01', 0]);
+    expect(path('my.pr.wife', refused).summary).toContain('2027-06-01');
+    const long = {
+      ...refused,
+      family: { ...refused.family, marriedOn: '2020-01-01' },
+      passes: [{ kind: 'ltsvp-spouse', from: '2021-01-01', to: '2029-12-31' }],
+    } satisfies MyFullRequest;
+    expect(cond('my.pr.wife', 'my.pr.previous-refusal', long).status).toBe(
+      'NOT_MET',
+    );
+    expect(time('my.pr.wife', long)).toEqual(['FUTURE', '2027-06-01', 0]);
+    expect(
+      time('my.pr.wife', { ...long, simulationDate: '2027-06-01' }),
+    ).toEqual(['MET', '2027-06-01', 0]);
+    // Without a refusal the three years of marriage decide.
+    for (const previousPrRefusalOn of [null, undefined])
+      expect(time('my.pr.wife', { ...long, previousPrRefusalOn })).toEqual([
+        'MET',
+        '2023-01-01',
+        0,
+      ]);
+    // Past the last pass a renewal is assumed; a later pass after a break
+    // starts the twelve months again (2027-09-01 + 12 months, then a day).
+    const ends = (passes: MyFullRequest['passes']) =>
+      time('my.pr.wife', { ...long, passes });
+    expect(
+      ends([{ kind: 'ltsvp-spouse', from: '2021-01-01', to: '2027-03-31' }]),
+    ).toEqual(['FUTURE', '2027-06-01', 1]);
+    expect(
+      ends([
+        { kind: 'ltsvp-spouse', from: '2021-01-01', to: '2027-03-31' },
+        { kind: 'ltsvp-spouse', from: '2027-09-01', to: '2030-12-31' },
+      ]),
+    ).toEqual(['FUTURE', '2028-09-02', 0]);
+    // The husband, child and fully foreign categories wait alike.
+    const others: [MyPathwayId, MyFullRequest][] = [
+      [
+        'my.pr.husband',
+        {
+          ...long,
+          family: { ...long.family, tie: 'husband-of-citizen' },
+          passes: [
+            { kind: 'ltsvp-spouse', from: '2020-01-01', to: '2029-12-31' },
+          ],
+        },
+      ],
+      [
+        'my.pr.child',
+        {
+          ...long,
+          dateOfBirth: '2015-01-01',
+          family: { tie: 'child-of-citizen', childRelation: 'biological' },
+          passes: [{ kind: 'student', from: '2020-01-01', to: '2029-12-31' }],
+        },
+      ],
+      [
+        'my.pr.was',
+        {
+          ...long,
+          family: { tie: 'none' },
+          passes: [
+            { kind: 'employment', from: '2015-01-01', to: '2029-12-31' },
+          ],
+        },
+      ],
+    ];
+    for (const [id, req] of others)
+      expect(time(id, req), id).toEqual(['FUTURE', '2027-06-01', 0]);
+  });
 });
 
 describe('29 February birthdays (review113-1 #10)', () => {

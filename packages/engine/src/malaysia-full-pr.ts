@@ -438,6 +438,19 @@ function barredPass(ctx: MyContext, barred: MyPassKind[], source: SourceRef) {
   );
 }
 
+/** SRC-505 §8.4 p25: a new application one year after a refusal. */
+function reapplyFrom(ctx: MyContext) {
+  const refusal = ctx.req.previousPrRefusalOn;
+  return refusal ? addYears(refusal, v.prReapplyYears.value) : undefined;
+}
+
+/** The later of the dates given, leaving out those not known. */
+const laterOf = (...dates: (IsoDate | null | undefined)[]) =>
+  dates
+    .filter((d): d is IsoDate => typeof d === 'string')
+    .sort()
+    .pop();
+
 function commonChecks(ctx: MyContext, route: PrRoute): MyCheck[] {
   const { req, date, L } = ctx;
   const months =
@@ -544,13 +557,13 @@ function commonChecks(ctx: MyContext, route: PrRoute): MyCheck[] {
   );
 
   const refusal = req.previousPrRefusalOn;
-  const reapply = refusal && addYears(refusal, v.prReapplyYears.value);
+  const reapply = reapplyFrom(ctx);
   const previous = check(
     'my.pr.previous-refusal',
     L('此前被拒后的等待期', 'Waiting period after a refusal'),
     refusal === undefined
       ? undefined
-      : refusal === null || date >= (reapply as IsoDate),
+      : reapply === undefined || date >= reapply,
     [...v.prAppealDays.sources, ...v.prReapplyYears.sources],
     L(
       `被拒后可在 ${v.prAppealDays.value} 日内向内政部长书面上诉，部长决定为终局；或在决定日起满 ${v.prReapplyYears.value} 年后重新申请。`,
@@ -798,6 +811,9 @@ export function assessPrSpouse(
     p.sources,
     true,
   );
+  // The pass dates are worked out no earlier than the marriage years and
+  // the waiting period after a refusal.
+  const notBefore = laterOf(marriage.earliest, reapplyFrom(ctx));
   const pass = wife
     ? earlyPassCheck(
         ctx,
@@ -814,7 +830,7 @@ export function assessPrSpouse(
           `The wife-of-citizen social visit pass must have been held for more than ${v.prWife.value.ltsvpMonths} months and still be valid when applying.`,
         ),
         true,
-        marriage.earliest ?? undefined,
+        notBefore,
       )
     : longPassCheck(
         ctx,
@@ -832,7 +848,7 @@ export function assessPrSpouse(
           `The husband-of-citizen social visit pass must have been held for ${v.prHusband.value.ltsvpYears} continuous years with no break longer than ${v.prHusband.value.maxGapMonths} months.`,
         ),
         true,
-        marriage.earliest ?? undefined,
+        notBefore,
       );
   const checks = [
     cat,
@@ -922,6 +938,8 @@ export function assessPrChild(ctx: MyContext): MyPathway {
       `须持社交访问、学生、专业访问或 Residence Pass 超过 ${v.prChild.value.passMonths} 个月，且递交时仍有效。`,
       `A social visit, student, professional visit or Residence Pass must have been held for more than ${v.prChild.value.passMonths} months and still be valid when applying.`,
     ),
+    false,
+    reapplyFrom(ctx),
   );
   return assemble(
     ctx,
@@ -995,6 +1013,8 @@ export function assessPrWas(ctx: MyContext): MyPathway {
       `须持就业、学生、专业访问或 Residence Pass（含 RP-T）连续 ${p.passYears} 年，中断不得超过 ${p.maxGapMonths} 个月；MM2H、PVIP、PLKS 期间不计。`,
       `An Employment, Student, Professional Visit or Residence Pass (including RP-T) must have been held for ${p.passYears} continuous years with no break longer than ${p.maxGapMonths} months; MM2H, PVIP and PLKS time does not count.`,
     ),
+    false,
+    reapplyFrom(ctx),
   );
   const recognised = req.was?.regulatorRecognition;
   const field = check(
