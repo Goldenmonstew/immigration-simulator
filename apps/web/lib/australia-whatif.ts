@@ -237,7 +237,9 @@ export const australiaWhatIf: CountryWhatIf<AustraliaDraft, AustraliaWhatIf> = {
           ? {
               ...nom,
               annualSalary: knobs.annualSalary,
-              acceptedMarketRate: knobs.annualSalary,
+              // The accepted market rate is the department's finding, not a
+              // variable: keep it when the questionnaire has one.
+              acceptedMarketRate: nom.acceptedMarketRate ?? knobs.annualSalary,
             }
           : undefined;
       if (existing?.['AU-186-TRT'] || existing?.['AU-186-DE']) {

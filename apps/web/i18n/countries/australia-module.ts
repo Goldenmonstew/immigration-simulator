@@ -32,7 +32,7 @@ export const auModuleZh = {
   'au.policy.additionalAdult': '成年副申请人（每人）',
   'au.policy.additionalMinor': '未成年副申请人（每人）',
   'au.policy.firstInstalment': '第一期',
-  'au.policy.secondInstalment': '第二期（每名须缴的申请人）',
+  'au.policy.secondInstalment': '第二期（每名须缴的申请人，186 另见分项）',
   'au.policy.paperSurcharge': '获准纸质递交附加费',
   'au.policy.healthRule': '移民体检（PIC 4005 / 4007）',
   'au.policy.feesRule': '申请费用预算（签证、居民返程签证或入籍）',
@@ -46,7 +46,8 @@ export const auModuleZh = {
   'au.whatif.english6': 'IELTS 6.0（Competent English）',
   'au.whatif.english7': 'IELTS 7.0（Proficient English，+10 分）',
   'au.whatif.english8': 'IELTS 8.0（Superior English，+20 分）',
-  'au.whatif.salary': '186 提名保证年薪与市场薪资（AUD）',
+  'au.whatif.salary':
+    '186 提名保证年薪（AUD；问卷未填市场薪资时同时作为市场薪资）',
   'au.whatif.taxYears': '191 已备齐 ATO 评税通知的已结束合资格财年数',
   'au.whatif.taxYearsBaseline': '保持问卷所填财年',
   'au.whatif.citizenshipTest': '入籍考试通过情况（达标且价值观题全对）',
@@ -101,7 +102,8 @@ export const auModuleEn: Record<keyof typeof auModuleZh, string> = {
   'au.policy.additionalAdult': 'Each additional adult',
   'au.policy.additionalMinor': 'Each additional child',
   'au.policy.firstInstalment': 'First instalment',
-  'au.policy.secondInstalment': 'Second instalment (each chargeable applicant)',
+  'au.policy.secondInstalment':
+    'Second instalment (each chargeable applicant; 186 itemised)',
   'au.policy.paperSurcharge': 'Authorised paper application surcharge',
   'au.policy.healthRule': 'Immigration health assessment (PIC 4005 / 4007)',
   'au.policy.feesRule':
@@ -117,7 +119,7 @@ export const auModuleEn: Record<keyof typeof auModuleZh, string> = {
   'au.whatif.english7': 'IELTS 7.0 (Proficient English, +10 points)',
   'au.whatif.english8': 'IELTS 8.0 (Superior English, +20 points)',
   'au.whatif.salary':
-    '186 nomination guaranteed annual earnings and market rate (AUD)',
+    '186 nomination guaranteed annual earnings (AUD; also used as the market rate when the questionnaire has none)',
   'au.whatif.taxYears':
     '191 completed qualifying income years with ATO notices',
   'au.whatif.taxYearsBaseline': 'Keep questionnaire income years',

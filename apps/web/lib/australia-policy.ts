@@ -112,7 +112,16 @@ function displayParameter(
         row('au.policy.standardRate', rate.standard),
         row('au.policy.pacificRate', rate.pacific),
       ],
-      [label('au.policy.secondInstalment')]: money(rate.second),
+      // 186 charges the primary applicant a separate second instalment.
+      [label('au.policy.secondInstalment')]:
+        tariff === 'employer'
+          ? {
+              [label('au.policy.primary')]: money(
+                v.employerPrimarySecond.value,
+              ),
+              [label('au.policy.additionalAdult')]: money(rate.second),
+            }
+          : money(rate.second),
     };
   }
   if (name === 'returnVisa') {
@@ -124,7 +133,11 @@ function displayParameter(
     };
   }
   if (name === 'employerPrimarySecond')
-    return money(v.employerPrimarySecond.value);
+    return {
+      [label('au.policy.secondInstalment')]: {
+        [label('au.policy.primary')]: money(v.employerPrimarySecond.value),
+      },
+    };
 }
 
 export const australiaPolicy = withPolicySources({

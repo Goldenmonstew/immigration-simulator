@@ -798,3 +798,52 @@ test('opening an Australian share link keeps the existing local draft', () => {
   expect(JSON.parse(storage.get('au-immigration-draft-v1')!)).toEqual(local);
   expect(draftStorage(au).draft).toEqual(local);
 });
+
+test('186 policy fees itemise the second instalment by applicant (review93-2)', () => {
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <AustraliaPolicyPage />
+      </LocaleContext>,
+    );
+    const primary = t('au.policy.primary', locale);
+    const adult = t('au.policy.additionalAdult', locale);
+    // Primary 9,800 and each additional adult 4,890 sit side by side, never
+    // the adult rate under an "each chargeable applicant" heading alone.
+    expect(html).toMatch(
+      new RegExp(`${primary}[^]*?AUD 9,800[^]*?${adult}[^]*?AUD 4,890`),
+    );
+  }
+});
+
+test('the 186 salary knob keeps a recorded market rate (review93-2)', () => {
+  const draft = {
+    ...au.createDraft(),
+    completed: true,
+    simulationDate: '2026-11-23',
+    pathway: 'AU-186-TRT',
+    employer: {
+      nominations: {
+        'AU-186-TRT': {
+          status: 'approved',
+          lodged: '2026-10-01',
+          annualSalary: 100000,
+          acceptedMarketRate: 95000,
+        },
+      },
+    },
+  } as unknown as AustraliaDraft;
+  const after = au.whatif.apply(draft, {
+    ...au.whatif.initial(draft),
+    annualSalary: 90000,
+  });
+  expect(after.employer?.nominations?.['AU-186-TRT']).toMatchObject({
+    annualSalary: 90000,
+    acceptedMarketRate: 95000,
+  });
+  const market = au
+    .run(after, 'zh-CN')
+    .columns[0].pathways.find((p) => p.id === 'AU-186-TRT')
+    ?.checks.find((c) => c.id === 'AU-186-TRT-market-salary');
+  expect(market?.status).toBe('NOT_MET');
+});
