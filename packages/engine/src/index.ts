@@ -12,6 +12,7 @@ export type {
   CountryResult,
 } from './country-result';
 export { adaptUkResult } from './country-result';
+export { addDays, addMonths, addYears } from './dates';
 export type {
   CefrLevel,
   Route,
