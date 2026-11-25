@@ -344,10 +344,6 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Citizenship · National and EU long-term residence · EU mobility and family · Recovery · Free movement',
   'hub.es.desc':
     'Check residence periods, absence continuity, DELE and CCSE exams, IPREM household means, SMI salary, health cover, conduct and post-grant steps across eight pathways. Compare scenarios, share links and inspect official sources.',
-  'hub.gr.code': 'GR',
-  'hub.gr.paths': 'Long-term residence · Golden visa · Naturalisation',
-  'hub.gr.desc':
-    'Use your permits, including golden visas, and travel record to check residence periods for long-term residence (Μ1) and the 7-, 3- and 12-year naturalisation tracks, plus golden visa (Β.5) renewal timing.',
   'hub.ie.code': 'IE',
   'hub.ie.paths': 'Stamp 4 / 5 · Naturalisation · Spouse route',
   'hub.ie.desc':
