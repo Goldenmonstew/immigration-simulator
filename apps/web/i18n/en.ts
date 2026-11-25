@@ -331,10 +331,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.uk.paths': 'Settlement (ILR) · Current law vs reforms',
   'hub.uk.desc':
     'Assess settlement across Skilled Worker, BN(O), Global Talent, family, protection and Long Residence routes, comparing current Immigration Rules with announced reforms.',
-  'hub.nz.code': 'NZ',
-  'hub.nz.paths': 'Permanent Resident Visa · Travel conditions · Citizenship',
-  'hub.nz.desc':
-    'Find when resident visa travel conditions expire. Check how long you have held a resident visa and how many days you have spent in New Zealand for a Permanent Resident Visa (PRV), and count your days in New Zealand for citizenship.',
   'hub.ca.code': 'CA',
   'hub.ca.paths': 'PR residency obligation · Citizenship',
   'hub.ca.desc':
@@ -343,19 +339,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.es.paths': 'Long-term residence · Citizenship by residence',
   'hub.es.desc':
     'Check residence periods for national long-term residence and citizenship by residence (10-, 5-, 2- and 1-year tracks) using your permits, stays for study and travel record.',
-  'hub.gr.code': 'GR',
-  'hub.gr.paths': 'Long-term residence · Golden visa · Naturalisation',
-  'hub.gr.desc':
-    'Use your permits, including golden visas, and travel record to check residence periods for long-term residence (Μ1) and the 7-, 3- and 12-year naturalisation tracks, plus golden visa (Β.5) renewal timing.',
-  'hub.pt.code': 'PT',
-  'hub.pt.paths':
-    'Naturalisation · Permanent residence · EU long-term · Golden visa',
-  'hub.pt.desc':
-    'Check residence periods for naturalisation under the 2026 nationality law, permanent residence and EU long-term resident status, plus minimum stays and renewal timing for a golden visa (ARI).',
-  'hub.de.code': 'DE',
-  'hub.de.paths': 'Settlement permit · EU long-term · Naturalisation',
-  'hub.de.desc':
-    'Check residence periods for a settlement permit (including skilled worker and EU Blue Card tracks), EU long-term residence and naturalisation, and pension contribution periods where applicable. See when a long trip ends your residence permit.',
   'site.skip': 'Skip to main content',
   'site.home': 'Home',
   'site.footer':

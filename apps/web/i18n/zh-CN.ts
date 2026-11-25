@@ -306,10 +306,6 @@ export const zhCN = {
   'hub.uk.paths': '定居 ILR · 现行法律与改革对比',
   'hub.uk.desc':
     '评估 Skilled Worker、BN(O)、Global Talent、家庭、保护与 10 年长居等路线的定居条件，并排对比现行 Immigration Rules 与已公布改革。',
-  'hub.nz.code': 'NZ',
-  'hub.nz.paths': '永久居民 PRV · 旅行条件 · 入籍',
-  'hub.nz.desc':
-    '计算居民签证旅行条件的到期日，核对转永久居民签证（PRV）所需的持签时长和在境天数，以及入籍所需的在境天数。',
   'hub.ca.code': 'CA',
   'hub.ca.paths': '永居居住义务 · 入籍',
   'hub.ca.desc':
@@ -318,18 +314,6 @@ export const zhCN = {
   'hub.es.paths': '国内长期居留 · 按居住入籍',
   'hub.es.desc':
     '按居留许可、学习停留与出入境记录，核对国内长期居留与按居住入籍（10 年、难民 5 年、拉美等 2 年、配偶 1 年）的居住时间。',
-  'hub.gr.code': 'GR',
-  'hub.gr.paths': '长期居留 · 黄金签证续期 · 入籍',
-  'hub.gr.desc':
-    '按居留许可（含黄金签证）与出入境记录，核对长期居留（Μ1）和 7 年、3 年或 12 年入籍路线的居住时间，以及黄金签证（Β.5）的续期时段。',
-  'hub.pt.code': 'PT',
-  'hub.pt.paths': '入籍 · 永久居留 · 欧盟长居 · 黄金签证',
-  'hub.pt.desc':
-    '核对 2026 年国籍法下入籍所需的居住年限、永久居留与欧盟长期居民所需的居住时间，以及黄金签证的最低停留时间和续期时段。',
-  'hub.de.code': 'DE',
-  'hub.de.paths': '定居许可 · 欧盟长期居留 · 入籍',
-  'hub.de.desc':
-    '核对定居许可（含技术工人与欧盟蓝卡路线）、欧盟长期居留和入籍的居留时长，以及适用的养老保险缴费时长。也计算长期出境何时使居留许可失效。',
   'site.skip': '跳到主要内容',
   'site.home': '首页',
   'site.language': '语言',
