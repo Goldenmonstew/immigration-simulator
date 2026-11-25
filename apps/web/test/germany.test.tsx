@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
 import { usePathname } from 'next/navigation';
+import { germanyFull2026_11 } from '@uk-immigration/policy-data';
 import GermanyPage from '../app/germany/page';
 import GermanyPolicyPage from '../app/germany/policy/page';
 import GermanySimulatePage from '../app/germany/simulate/page';
@@ -860,8 +861,8 @@ test('each route and group shows its own field and option wording (review100-1 #
 
 test('the policy page shows the full-time work exception in months (review100-1 #3)', () => {
   for (const [locale, text] of [
-    ['zh-CN', 'requiredMonths 20、windowMonths 24'],
-    ['en', 'requiredMonths 20, windowMonths 24'],
+    ['zh-CN', '<td>所需全职月数</td><td>20 个月</td>'],
+    ['en', '<td>Required months of full-time work</td><td>20 months</td>'],
   ] as const) {
     const html = renderToStaticMarkup(
       <LocaleContext value={{ locale, setLocale: () => {} }}>
@@ -869,7 +870,7 @@ test('the policy page shows the full-time work exception in months (review100-1 
       </LocaleContext>,
     );
     const row = html.match(
-      /<tr data-parameter="citizenshipFullTime">(.*?)<\/tr>/,
+      /<tr data-parameter="citizenshipFullTime">(.*?)<\/td><td data-label/,
     )?.[1];
     expect(row).toContain(text);
     expect(row).not.toMatch(/年|years/);
@@ -1354,3 +1355,67 @@ test('fee budgets, the declaration after approval and procedural notes are label
   expect(html).toContain(t('pilot.pending'));
   expect(html).not.toContain(t('result.pendingDetails'));
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'the policy page shows nested parameters by meaning, with units and euro amounts (%s)',
+  (locale) => {
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        <GermanyPolicyPage />
+      </LocaleContext>,
+    );
+    const cell = (name: string) =>
+      html.match(
+        new RegExp(
+          `<tr data-parameter="${name}">.*?<td data-label="[^"]*">(.*?)</td><td data-label`,
+        ),
+      )?.[1] ?? '';
+    const l = (zh: string, en: string) => (locale === 'en' ? en : zh);
+    const row = (...cells: string[]) =>
+      cells.map((text) => `<td>${text}</td>`).join('');
+    // Nested values carry labelled items instead of raw keys or bare arrays.
+    for (const [name, { value }] of Object.entries(germanyFull2026_11.values)) {
+      if (typeof value !== 'object') continue;
+      const text = cell(name).replace(/<[^>]+>/g, ' ');
+      expect(text, name).not.toBe('');
+      if (locale === 'zh-CN' && !Array.isArray(value))
+        for (const key of Object.keys(value).filter((k) => !/^\d+$/.test(k)))
+          expect(text, `${name}.${key}`).not.toMatch(
+            new RegExp(`\\b${key}\\b`),
+          );
+    }
+    expect(cell('citizenshipFullTime')).toContain(
+      row(
+        l('最近核算期间', 'Within the most recent'),
+        l('24 个月', '24 months'),
+      ),
+    );
+    expect(cell('blueCardStandardPay')).toContain(row('2024', '€45,300'));
+    expect(cell('blueCardReducedPay')).toContain(row('2026', '€45,934.20'));
+    expect(cell('retirementAdditionalMonths')).toContain(
+      row('1959', l('14 个月', '14 months')),
+    );
+    expect(cell('retirementAge')).toContain('<td>1947</td>');
+    expect(cell('initialSkilledSalary')).toContain('<td>2026</td>');
+    expect(cell('initialSkilledSalary')).toContain('€55,770');
+    expect(cell('blueCardLanguage')).toContain(
+      row(l('就业 27 个月档', '27-month track'), 'A1'),
+    );
+    expect(cell('blueCardItGroups')).toBe(
+      l('ISCO-08 职业组：133、25', 'ISCO-08 groups: 133, 25'),
+    );
+    expect(cell('monthlyNeeds2026')).toContain(l('每月 €563', '€563 a month'));
+    expect(cell('settlementFees')).toContain(
+      row(l('定居许可（一般）', 'Settlement permit (general)'), '€113'),
+    );
+    expect(cell('identityCardFees')).toContain('€27.60');
+    expect(cell('integrationCourseShare')).toContain('<td>33%</td>');
+    expect(cell('blueCardCeilingShares')).toContain('<td>45.3%</td>');
+    expect(cell('expressFee')).toBe('€35');
+    expect(cell('pensionCeiling2026')).toBe(
+      l('每年 €101,400', '€101,400 a year'),
+    );
+    for (const year of ['1,947', '1,959', '1,964', '2,024', '2,026'])
+      expect(html).not.toContain(year);
+  },
+);

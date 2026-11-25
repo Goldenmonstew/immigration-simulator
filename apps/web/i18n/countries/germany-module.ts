@@ -510,3 +510,490 @@ export const germanyConditionTitles = {
     'Employee earnings threshold for a course contribution exemption',
   ],
 } as const;
+
+// Policy page: units, column names and item labels for nested parameters.
+export const germanyParameterText = {
+  unit: {
+    years: ['{n} 年', '{n} year{n:s}'],
+    months: ['{n} 个月', '{n} month{n:s}'],
+    days: ['{n} 天', '{n} day{n:s}'],
+    hours: ['{n} 小时', '{n} hour{n:s}'],
+    age: ['{n} 岁', 'age {n}'],
+    m2: ['{n} 平方米', '{n} m²'],
+    dayRates: ['{n} 个日额', '{n} day rate{n:s}'],
+    questions: ['{n} 题', '{n} question{n:s}'],
+    minutes: ['{n} 分钟', '{n} minute{n:s}'],
+    level: ['第 {n} 级', 'level {n}'],
+    share: ['{n}%', '{n}%'],
+    calendarYear: ['{n}', '{n}'],
+    eur: ['€{n}', '€{n}'],
+    eurMonth: ['每月 €{n}', '€{n} a month'],
+    eurYear: ['每年 €{n}', '€{n} a year'],
+  },
+  item: ['项目', 'Item'],
+  value: ['数值', 'Value'],
+  year: ['年份', 'Year'],
+  annualPay: ['税前年薪下限', 'Minimum gross annual salary'],
+  birthYear: ['出生年份', 'Year of birth'],
+  addedMonths: ['在 {n} 岁基础上增加', 'Added to age {n}'],
+  blueCardTrack: ['就业 {n} 个月档', '{n}-month track'],
+  isco: ['ISCO-08 职业组：{list}', 'ISCO-08 groups: {list}'],
+} as const;
+
+type ParameterUnit = keyof typeof germanyParameterText.unit;
+
+export const germanyParameterLabels: Record<
+  string,
+  Record<string, readonly [string, string, ParameterUnit]>
+> = {
+  naturalisationYears: {
+    general: [
+      '一般入籍所需合法惯常居住',
+      'Lawful habitual residence for ordinary naturalisation',
+      'years',
+    ],
+    spouse: [
+      '德国公民配偶或伴侣入籍所需居住',
+      'Residence for the spouse or partner of a German',
+      'years',
+    ],
+  },
+  priorResidenceCreditYears: {
+    general: [
+      '一般入籍：中断后可计入的先前居住',
+      'Ordinary naturalisation: earlier residence counted after an interruption',
+      'years',
+    ],
+    spouse: [
+      '配偶或伴侣入籍：中断后可计入的先前居住',
+      'Spouse or partner: earlier residence counted after an interruption',
+      'years',
+    ],
+  },
+  monthlyNeeds2026: {
+    single: [
+      '单身成年人或单亲家长（Regelbedarfsstufe 1）',
+      'Single adult or lone parent (Regelbedarfsstufe 1)',
+      'eurMonth',
+    ],
+    partner: [
+      '同住成年配偶或伴侣，每人（Regelbedarfsstufe 2）',
+      'Cohabiting adult spouse or partner, each (Regelbedarfsstufe 2)',
+      'eurMonth',
+    ],
+    otherAdult: [
+      '家庭内其他成年成员（Regelbedarfsstufe 3）',
+      'Other adult in the household (Regelbedarfsstufe 3)',
+      'eurMonth',
+    ],
+    child14to17: [
+      '14 至 17 岁青少年（Regelbedarfsstufe 4）',
+      'Adolescent aged 14 to 17 (Regelbedarfsstufe 4)',
+      'eurMonth',
+    ],
+    child6to13: [
+      '6 至 13 岁儿童（Regelbedarfsstufe 5）',
+      'Child aged 6 to 13 (Regelbedarfsstufe 5)',
+      'eurMonth',
+    ],
+    childUnder6: [
+      '6 岁以下幼儿（Regelbedarfsstufe 6）',
+      'Child under age 6 (Regelbedarfsstufe 6)',
+      'eurMonth',
+    ],
+  },
+  housingGuidance: {
+    omitUnderAge: [
+      '不计面积的幼儿（未满）',
+      'Children not counted (under)',
+      'age',
+    ],
+    childBoundary: [
+      '儿童与其他成员的面积分界',
+      'Age dividing the two reference areas',
+      'age',
+    ],
+    childArea: [
+      '分界年龄以下儿童，每人参考面积',
+      'Reference area per child below the dividing age',
+      'm2',
+    ],
+    olderArea: [
+      '其他家庭成员，每人参考面积',
+      'Reference area per other household member',
+      'm2',
+    ],
+    shortfallFraction: [
+      '联邦指引容许的面积不足（约）',
+      'Shortfall tolerated by federal guidance (about)',
+      'share',
+    ],
+  },
+  settlementFees: {
+    general: ['定居许可（一般）', 'Settlement permit (general)', 'eur'],
+    academic: [
+      '高资质学术人才定居许可',
+      'Settlement permit for a highly qualified academic',
+      'eur',
+    ],
+    business: [
+      '企业经营者定居许可',
+      'Settlement permit for an entrepreneur',
+      'eur',
+    ],
+    familyChild: [
+      '在德长大的未成年子女定居许可',
+      'Settlement permit for a minor raised in Germany',
+      'eur',
+    ],
+    euLongTerm: ['欧盟长期居留许可', 'EU long-term residence permit', 'eur'],
+    advanceShare: [
+      '处理费占规费的比例（含在总费用内）',
+      'Processing fee as a share of the charge (included in the total)',
+      'share',
+    ],
+    minorShare: [
+      '未成年申请人适用的规费比例',
+      'Share of the charge for a minor applicant',
+      'share',
+    ],
+    euCertificate: [
+      '自由流动永久居住证明',
+      'Certificate of permanent residence under free movement',
+      'eur',
+    ],
+  },
+  identityCardFees: {
+    age: ['年龄分界', 'Age threshold', 'age'],
+    under: ['未满分界年龄', 'Under the age threshold', 'eur'],
+    standard: ['达到分界年龄', 'At or above the age threshold', 'eur'],
+  },
+  naturalisationFees: {
+    standard: ['入籍规费，每人', 'Naturalisation charge, per person', 'eur'],
+    childJoining: [
+      '随父母入籍且无应税收入的未成年子女',
+      'Minor naturalised with a parent and without taxable income',
+      'eur',
+    ],
+    minimumOnWithdrawal: [
+      '撤回或拒绝后的最低规费',
+      'Minimum charge after withdrawal or refusal',
+      'eur',
+    ],
+  },
+  integrationCourseShare: {
+    personal: [
+      '个人承担的课程费用比例',
+      'Share of course costs paid personally',
+      'share',
+    ],
+    employee: [
+      '受雇者豁免工资线：占养老保险缴费上限',
+      'Employee exemption threshold: share of the pension contribution ceiling',
+      'share',
+    ],
+    oneChildAddition: ['有一名子女时加计', 'Added with one child', 'share'],
+    multipleChildrenAddition: [
+      '有两名及以上子女时加计',
+      'Added with two or more children',
+      'share',
+    ],
+  },
+  citizenshipFullTime: {
+    required: ['所需全职月数', 'Required months of full-time work', 'months'],
+    window: ['最近核算期间', 'Within the most recent', 'months'],
+  },
+  citizenshipKnowledgeTest: {
+    required: ['及格所需答对', 'Correct answers to pass', 'questions'],
+    total: ['总题数', 'Total questions', 'questions'],
+    stateQuestions: [
+      '其中关于所在州',
+      'Of which about the federal state',
+      'questions',
+    ],
+    minutes: ['考试时长', 'Test duration', 'minutes'],
+  },
+  citizenshipConvictions: {
+    fineDayRates: [
+      '不予考虑的罚金，最多',
+      'Fines disregarded up to',
+      'dayRates',
+    ],
+    probationMonths: [
+      '不予考虑的缓刑自由刑，最多',
+      'Suspended prison sentences disregarded up to',
+      'months',
+    ],
+    minorExcessDayRates: [
+      '超出上述上限时可由机关决定忽略的幅度',
+      'Excess the authority may decide to disregard',
+      'dayRates',
+    ],
+  },
+  citizenshipSpouseException: {
+    publicInterestMarriageYears: [
+      '机关缩短居住年限时所需婚姻存续',
+      'Marriage needed for a shortened residence period',
+      'years',
+    ],
+    endedApplicationYears: [
+      '配偶去世或关系依法终结后的申请期限',
+      'Deadline to apply after death or legal termination',
+      'years',
+    ],
+  },
+  citizenshipFamilyGuidance: {
+    spouseYears: ['随同入籍的配偶：居住', 'Joining spouse: residence', 'years'],
+    relationshipYears: [
+      '随同入籍的配偶：婚姻或共同生活',
+      'Joining spouse: marriage or family life',
+      'years',
+    ],
+    childYears: ['随同入籍的子女：居住', 'Joining child: residence', 'years'],
+    youngChildAge: ['低龄子女（未满）', 'Young child (under)', 'age'],
+    youngChildLifeShare: [
+      '低龄子女：在德居住占其年龄的比例',
+      'Young child: share of life lived in Germany',
+      'share',
+    ],
+  },
+  blueCardCeilingShares: {
+    standard: [
+      '标准工资线：占养老保险缴费上限',
+      'Standard threshold: share of the pension contribution ceiling',
+      'share',
+    ],
+    reduced: [
+      '降低工资线：占养老保险缴费上限',
+      'Reduced threshold: share of the pension contribution ceiling',
+      'share',
+    ],
+  },
+  blueCardJob: {
+    minimumContractMonths: ['最短合同期', 'Minimum contract term', 'months'],
+    recentDegreeYears: [
+      '毕业后可按降低工资线申请的期限',
+      'Reduced threshold after graduating, within',
+      'years',
+    ],
+    renewalMonths: [
+      '按毕业生降低工资线续签：自首张蓝卡起',
+      'Graduate threshold on renewal: from the first card, within',
+      'months',
+    ],
+    experienceYears: [
+      'IT 专业人员所需相关经验',
+      'Relevant experience for IT specialists',
+      'years',
+    ],
+    experienceWindowYears: [
+      'IT 经验的回溯期间',
+      'IT experience gained within the last',
+      'years',
+    ],
+    tertiaryYears: [
+      '同等高等教育资格的最短学制',
+      'Minimum length of an equivalent tertiary programme',
+      'years',
+    ],
+    tertiaryLevel: [
+      '同等高等教育资格的最低 DQR／EQF 级别',
+      'Minimum DQR/EQF level of an equivalent tertiary programme',
+      'level',
+    ],
+    jobChangeMonths: [
+      '换岗须通报的首次就业期间',
+      'Job changes are notified during the first',
+      'months',
+    ],
+    suspensionDays: [
+      '暂停换岗后机关可拒绝的期限',
+      'Rejection after a suspension, within',
+      'days',
+    ],
+  },
+  freeMovementPeriods: {
+    residenceYears: [
+      '通常取得永久居住权所需合法居住',
+      'Lawful residence for permanent residence',
+      'years',
+    ],
+    ordinaryAbsenceMonths: [
+      '每年出境不中断居住的上限',
+      'Absence per year that does not break residence',
+      'months',
+    ],
+    importantAbsenceMonths: [
+      '重要原因的单次出境上限',
+      'One absence for an important reason',
+      'months',
+    ],
+    jobseekingMonths: [
+      '求职者身份的通常期限',
+      'Jobseeker status, usual period',
+      'months',
+    ],
+    retirementAge: [
+      '退休提前取得：退休年龄',
+      'Early acquisition on retirement: retirement age',
+      'age',
+    ],
+    retirementResidenceYears: [
+      '退休提前取得：连续居住',
+      'Early acquisition on retirement: continuous residence',
+      'years',
+    ],
+    retirementWorkMonths: [
+      '退休提前取得：最后在德工作',
+      'Early acquisition on retirement: final work in Germany',
+      'months',
+    ],
+    disabilityResidenceYears: [
+      '丧失工作能力提前取得：连续居住',
+      'Early acquisition on incapacity: continuous residence',
+      'years',
+    ],
+    frontierWorkYears: [
+      '跨境工作者提前取得：此前在德连续工作和居住',
+      'Early acquisition as a frontier worker: prior continuous work and residence in Germany',
+      'years',
+    ],
+    bereavementResidenceYears: [
+      '劳动者去世后家属提前取得：劳动者生前连续居住',
+      'Family members after a worker’s death: the worker’s continuous residence',
+      'years',
+    ],
+    lossYears: [
+      '取得后离开德国超过此期限即丧失',
+      'Lost after an absence from Germany of more than',
+      'years',
+    ],
+    cardIssueMonths: [
+      '非欧盟家属永久居留卡的签发期限',
+      'Permanent residence card for a non-EU family member issued within',
+      'months',
+    ],
+  },
+  permanentTitleAbsence: {
+    longResidenceYears: [
+      '出境例外所需的长期合法居留',
+      'Long lawful residence for the absence exceptions',
+      'years',
+    ],
+    olderResidentAge: [
+      '定居许可：长期居留且离境时年满该年龄可延长返回期',
+      'Settlement permit: longer return period after long residence from',
+      'age',
+    ],
+    returnMonths: [
+      '强迫婚姻解除或兵役结束后的返回期限',
+      'Return after a forced marriage or military service ends, within',
+      'months',
+    ],
+    coercionMaximumYears: [
+      '强迫婚姻情形自离境起的最长期限',
+      'Forced marriage: longest period from departure',
+      'years',
+    ],
+    longVisaDays: [
+      '不按出境期限失效的签证：多次入境，或授权停留超过',
+      'Visas outside the absence limit: multiple-entry, or a stay of more than',
+      'days',
+    ],
+  },
+  refugeeBerlinBenefitShare: {
+    ordinary: [
+      '普通档（柏林机关做法）：SGB II／XII 福利占总收入须低于',
+      'Ordinary tier (Berlin practice): SGB II / XII benefits below this share of income',
+      'share',
+    ],
+    accelerated: [
+      '加速档（柏林机关做法）：SGB II／XII 福利占总收入须低于',
+      'Accelerated tier (Berlin practice): SGB II / XII benefits below this share of income',
+      'share',
+    ],
+  },
+  retirementAge: {
+    earlierYears: ['原标准退休年龄', 'Former standard retirement age', 'age'],
+    standardYears: ['标准退休年龄', 'Standard retirement age', 'age'],
+    firstRaisedCohort: [
+      '首个逐步提高退休年龄的出生年份',
+      'First year of birth with a raised age',
+      'calendarYear',
+    ],
+    firstStandardCohort: [
+      '首个适用标准退休年龄的出生年份',
+      'First year of birth at the standard age',
+      'calendarYear',
+    ],
+  },
+  euMobility: {
+    germanBlueYears: [
+      '在德国持蓝卡至少',
+      'Blue Card held in Germany for at least',
+      'years',
+    ],
+    maxConsecutiveMonthsOutsideEu: [
+      '连续离开欧盟的上限',
+      'Longest single period outside the EU',
+      'months',
+    ],
+    maxTotalMonthsOutsideEu: [
+      '累计离开欧盟的上限',
+      'Total time outside the EU',
+      'months',
+    ],
+    studyCredit: [
+      '学习或职业培训期间的计入比例',
+      'Share of study or vocational training counted',
+      'share',
+    ],
+  },
+  childSettlement: {
+    birthday: [
+      '未成年人可取得定居许可的年龄',
+      'Age from which a minor may qualify',
+      'age',
+    ],
+    adulthood: ['成年年龄', 'Age of majority', 'age'],
+    years: ['所需持证年限', 'Required permit period', 'years'],
+    offenceWindowYears: [
+      '核查裁判的期间',
+      'Convictions considered within the last',
+      'years',
+    ],
+    youthMonths: [
+      '排除：故意犯罪的少年刑至少',
+      'Excluded by a youth sentence for an intentional offence of at least',
+      'months',
+    ],
+    prisonMonths: [
+      '排除：故意犯罪的自由刑至少',
+      'Excluded by a prison sentence for an intentional offence of at least',
+      'months',
+    ],
+    fineUnits: [
+      '排除：故意犯罪的罚金至少',
+      'Excluded by a fine for an intentional offence of at least',
+      'dayRates',
+    ],
+  },
+  skilledSpouse: {
+    permitYears: ['本人持居留许可', 'Own residence permit held', 'years'],
+    weeklyHours: ['每周工作至少', 'Weekly work of at least', 'hours'],
+  },
+  initialSkilledSalary: {
+    age: [
+      '首次申请时年满此年龄须证明工资或养老保障',
+      'From this age at first application, salary or pension provision is needed',
+      'age',
+    ],
+    year: ['工资线年份', 'Threshold year', 'calendarYear'],
+    annualGross: ['税前年薪下限', 'Minimum gross annual salary', 'eur'],
+    ceilingShare: [
+      '占养老保险缴费上限',
+      'Share of the pension contribution ceiling',
+      'share',
+    ],
+  },
+};
