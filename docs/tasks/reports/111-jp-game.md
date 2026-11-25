@@ -169,3 +169,40 @@
 - 新西兰分支（`fable/104-nz-game`）自己的 `game.prepare-salad` 也会被英国「轻轻拌匀」覆盖；合并 main 后应改成 `nz.game.prepare-salad`。加拿大（`fable/105-ca-game`）与美国（`fable/106-us-game`）都定义了不带前缀的 `game.prepare-garden-salad`（枫糖油醋汁 / ranch），两国都合并后会互相覆盖，同样应各自加国家前缀。其余菜谱 ID 与英国、彼此都不重名；各分支里 `miso-soup` 等 6 个不带前缀的日本键继承自日本旧版，合并后会随本轮改动消失。
 - 自动退租时日本没有记住址变更。如要补，可给内容包一个可选的退租钩子，或在日本的 `afterQuarter` 比对 `brighter-home` 旗标后记 `moved`（同样要考虑当天能否申报）。
 - `packages/game/src/model.ts` 里 `DayState.date` 的注释写"时间线效果仍用 `state.date`"，但出境（共用）与日本住址现在都按当天日期记录，注释已过时。
+
+## 审核修正（review111-2）
+
+审核意见：Gemini 4 Neon 只读复核第 2 轮（`review111-2`，结论"需要修改"）。本轮只处理"问题 1"；风险 1–2、建议 1–3 按范围未改，见第 3、4 段。共用外壳（`app/game-shell/*`、`GameCountry`）、共用 `game.ts` 与 `content-pack.ts`、英国游戏都没有改动。PROGRESS 行号：brief 给的 783 起，在提交时已被并行任务（98、100、102 的 worktree）用到 797，800–816 是旧行、850–861 属任务 113，所以取下一段空号 817–819。
+
+### 1. 做了什么（按 commit）
+
+| PROGRESS | commit | 对应审核 | 内容 |
+|---|---|---|---|
+| 817 | `Fix: 同季住址变更后结局链接能打开结果页（review111-2 问题 1）` | 问题 1 第一条、修复方向 1、3 | 按修复方向第 1 条里后一种做法的思路（季中的事到季末才进入评估，与出境回国后才记入一致），但不改存储：内容包新增 `timelineOn(timeline, date)`，取评估日那天的时间线视图——`eventOn` 晚于评估日的住址变更先不计入，`notifiedOn` 晚于评估日的申报先按未申报（去掉该字段，与游戏里未申报的写法相同）。`jpRules.evaluate` 与结果页草稿 `gameDraft` 都按它取时间线，所以游戏内的 `state.result` 与结果页回读的是同一份时间线，草稿里也不再有晚于模拟日期的已发生事项。时间线本身仍按当天日期记录（review111-1 风险 2 的做法不变）。行为变化：跨季补报在补报的那一季显示待确认（`UNKNOWN`），下一季起为不满足（`NOT_MET`）；原来补报当场就是不满足。 |
+| 818 | `Fix: 同季搬家未申报住址时不提供永住申请（review111-2 问题 1）` | 问题 1 第二条、修复方向 2、3 | 当季的住址变更要到下一季才进入评估，评估里的住址项仍是满足，所以 `actionAvailable` 对 `settle` 加 `address-notice-due` 旗标检查（路径 `MET` 与只剩最长在留期间待确认两种情况都适用）；当天申报、旗标清除后恢复。 |
+| 819 | `Docs: 任务 111 审核修正报告（review111-2）` | — | 本节与 PROGRESS。 |
+
+### 2. 怎么验证的
+
+- 先写回归测试并确认失败，再修：
+  - 网页单测 `apps/web/test/japan-game.test.tsx`「the ending link opens after %s moves and reports mid-quarter」，工程师与安娜各三种结局：同季搬家未申报后离开、同季搬家并当天申报后离开、跨季补报后在同季离开。用结果页入口 `readPageResult(japanModule, 'zh-CN', 片段, 'result')` 回读，要求无更正提示、草稿等于 `gameDraft(state)`、各路径 status、earliestDate、timeEarliestDate 与逐项检查状态和游戏内一致。修前两位角色都得到更正提示「请在问卷的「在留身份、品行与公共义务」中核对日期。有一项已发生事项晚于模拟日期。」。
+  - 只在 `gameDraft` 里对齐日期（修复方向第 1 条里前一种做法）时又跑了一次：结果页不再报错，但跨季补报那一项游戏内是 `NOT_MET`、结果页是 `UNKNOWN`，所以评估也改成按同一视图取时间线，之后两边一致。
+  - 内容包单测 `packages/game/test/jp-pack.test.ts`「a move made this quarter keeps the application closed until it is reported」：2034-06-01（当天 2034-06-13，已过日语评估，只剩最长在留期间待确认）在家搬到朝南公寓，评估里的住址项仍是 `MET`、入管窗口不提供 `settle`；当天到区役所申报后提供。修前窗口仍列出 `settle`。原有住址用例补一句：跨季补报的当季住址项为 `UNKNOWN`，下一季为 `NOT_MET`。
+  - 每个 commit 前跑了 game 与 web 的 typecheck、ESLint、Prettier 检查与两个日本测试文件。
+- 整链（HEAD `bbcb9353`，报告提交前）：`export VITEST_MAX_WORKERS=2` 后 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0。error-report 2、policy-data 23、engine 6,006（既有 1 项按默认跳过）、game 1,362（日本内容包单测 13 → 14）、web 878（日本网页单测 11 → 13）项通过，英国游戏既有单测全部通过；构建生成 37 个静态页面。
+- 浏览器 e2e：确认 4461 端口空闲后 `cd apps/e2e && E2E_PORT=4461 npx playwright test tests/game.spec.ts tests/life.spec.ts tests/japan-game.spec.ts --project=desktop --reporter=line`，26 项全部通过（英国 `game.spec.ts` 14、`life.spec.ts` 7，日本 5），之后删除 `apps/e2e/test-results`。
+- 视觉检查：本轮没有可见的界面改动（只改评估取数、结果页草稿与入管窗口是否列出永住申请），没有截图。
+
+### 3. 没做或没验证的
+
+- 风险 1（工作日下午搬家后步行去区役所来不及申报）与风险 2（季末余额不足自动退租不记住址变更）按范围未改；风险 2 在 review111-1 报告里已列为未做。
+- 建议 1（进度条 `missingRules` 只列 `requirement`）、建议 2（日记收成句子的"菜地"措辞）、建议 3（日语熟练度判断的字面量 59/60）按范围未改。
+- 同季搬家未申报时帰化申请仍开放：引擎的帰化评估不看住址申报，审核也只要求永住；是否一并限制需要统筹决定。
+- 没有补"可递交季度搬家并申报后递交永住或帰化"的结局链接回读用例；`timelineOn` 与结局种类无关，离开日本的三种情形已覆盖同一路径。
+- 英国 e2e 截图基线仍未在本机比对；没有跑 a11y e2e。
+
+### 4. 发现与建议（范围外，未实现）
+
+- 其他国家照做的要点补一条：结果页问卷不接受晚于模拟日期的已发生事项。季中按当天日期写进时间线的事实，评估与结果页草稿要用同一个"评估日视图"去掉（日本是 `timelineOn`），只在草稿里删会让结果页与游戏内不一致（跨季补报就是例子）。
+- 审核风险 1 的步行余量：`reportableToday` 可以在 `paperwork` 之外再留出从公寓走到区役所的游戏时间（审核估计 30–40 分钟），这个数是游戏平衡参数，可放进 `jpBalance`。
+- `packages/game/src/model.ts` 里 `DayState.date` 的注释仍写"时间线效果仍用 `state.date`"，已过时（review111-1 已提）。
