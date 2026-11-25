@@ -34,8 +34,15 @@ const weight = (status?: PilotStatus) =>
 export const pathwayOutcome = (filing: PilotStatus, approval?: PilotStatus) =>
   approval && weight(approval) > weight(filing) ? approval : filing;
 
-function run(draft: UsDraft, locale: Locale): UsFullResult {
-  const result = evaluateUnitedStatesFull(unitedStatesRequest(draft, locale));
+/**
+ * The result page's view of an engine result, changed in place: check kinds,
+ * amounts and the pathway outcome. The town game shows its assessment through
+ * this too.
+ */
+export function presentUnitedStatesResult(
+  result: UsFullResult,
+  locale: Locale,
+): UsFullResult {
   const separator = locale === 'zh-CN' ? '' : ' ';
   const formatter = new Intl.NumberFormat(locale);
   for (const pathway of result.columns[0].pathways) {
@@ -75,6 +82,12 @@ function run(draft: UsDraft, locale: Locale): UsFullResult {
   }
   return result;
 }
+
+const run = (draft: UsDraft, locale: Locale) =>
+  presentUnitedStatesResult(
+    evaluateUnitedStatesFull(unitedStatesRequest(draft, locale)),
+    locale,
+  );
 
 export const unitedStatesModule: CountryModule<UsDraft, UnitedStatesWhatIf> = {
   id: 'us',

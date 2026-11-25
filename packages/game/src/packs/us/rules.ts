@@ -139,23 +139,38 @@ export function visaMonthsLeft(state: UsState): number {
   return months;
 }
 
+// As on the result page (apps/web/lib/united-states-module.ts): an approval
+// stage that does not apply, is unmet or is open outranks filing; otherwise
+// filing gives the outcome.
+const stageRank = (status?: UsOutcome) =>
+  status === 'NOT_APPLICABLE'
+    ? 3
+    : status === 'NOT_MET'
+      ? 2
+      : status === 'UNKNOWN'
+        ? 1
+        : 0;
+export const stageOutcome = (filing: UsOutcome, approval?: UsOutcome) =>
+  approval && stageRank(approval) > stageRank(filing) ? approval : filing;
+
+/** Outcomes as the result page shows them; the bar fills toward filing. */
 function progress(state: UsState): Progress<UsColumn, UsOutcome> {
   const start = Date.parse(state.timeline.permanentResident);
   const entry = (column: UsColumn) => {
     const pathway = pathwayOf(state.result, column);
-    const status = pathway?.status ?? 'UNKNOWN';
+    const filing = pathway?.status ?? 'UNKNOWN';
     const target =
-      status === 'FUTURE' && pathway?.earliestDate
+      filing === 'FUTURE' && pathway?.earliestDate
         ? Date.parse(pathway.earliestDate)
         : undefined;
     const percent =
-      status === 'MET'
+      filing === 'MET'
         ? 100
         : target && target > start
           ? ((Date.parse(state.date) - start) / (target - start)) * 100
           : 0;
     return {
-      outcome: status,
+      outcome: stageOutcome(filing, pathway?.approvalStatus),
       ...(target && { earliestDate: pathway!.earliestDate }),
       percent: Math.round(Math.max(0, Math.min(100, percent))),
     };

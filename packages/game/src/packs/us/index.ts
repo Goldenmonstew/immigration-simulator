@@ -116,6 +116,7 @@ export {
   filingDay,
   greenCardPathway,
   pathwayOf,
+  stageOutcome,
   usRequest,
   type UsColumn,
   type UsEffect,

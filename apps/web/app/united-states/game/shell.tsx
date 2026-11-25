@@ -9,11 +9,21 @@ import type {
   UsTimeline,
 } from '@uk-immigration/game/us';
 import { CountryAssessmentColumns } from '../../../components/result-view';
-import { isDecisionOutcome, pathwayTitle } from '../../../lib/country-module';
+import {
+  earliestLabelFor,
+  isDecisionOutcome,
+  pathwayTitle,
+} from '../../../lib/country-module';
 import { encodeDraft } from '../../../lib/share';
 import { countryPath } from '../../../lib/site-countries';
-import type { UsDraft } from '../../../lib/united-states-draft';
-import { unitedStatesModule } from '../../../lib/united-states-module';
+import {
+  activeUnitedStatesAnswers,
+  type UsDraft,
+} from '../../../lib/united-states-draft';
+import {
+  presentUnitedStatesResult,
+  unitedStatesModule,
+} from '../../../lib/united-states-module';
 import { createGameShell } from '../../game-shell/shell';
 import type { GameCountry } from '../../game-shell/types';
 import styles from '../../uk/game/game.module.css';
@@ -62,6 +72,7 @@ export function itemIcon(id: string) {
 /**
  * The game timeline as a completed questionnaire for the result page: the
  * citizenship pathway, or the green card one if conditional residence lapsed.
+ * Only the answers that pathway's questions ask for, as a share link keeps.
  */
 export function gameDraft(state: UsState): UsDraft {
   const pathway =
@@ -76,8 +87,17 @@ export function gameDraft(state: UsState): UsDraft {
     state.locale,
   );
   // The game never sets the month or ground tables the draft keeps as rows.
-  return { ...request, version: 1, step: 13, completed: true } as UsDraft;
+  return activeUnitedStatesAnswers({
+    ...request,
+    version: 1,
+    step: 13,
+    completed: true,
+  } as UsDraft);
 }
+
+/** The game's assessment as the result page shows it. */
+export const shownResult = (state: UsState) =>
+  presentUnitedStatesResult(structuredClone(state.result), state.locale);
 
 const t = (zhCN: string, en: string) => ({ zhCN, en });
 /** The next step at the Federal Building, from the engine's dates. */
@@ -165,21 +185,21 @@ export const usCountry: GameCountry<UsKinds> = {
   assessment: (state, idPrefix) => (
     <CountryAssessmentColumns
       country={unitedStatesModule}
-      result={state.result}
-      simulationDate={state.date}
+      result={shownResult(state)}
+      simulationDate={usGame.filingDay(state.date)}
       idPrefix={idPrefix}
     />
   ),
   endingAssessment: (state) => (
     <CountryAssessmentColumns
       country={unitedStatesModule}
-      result={state.result}
-      simulationDate={state.date}
+      result={shownResult(state)}
+      simulationDate={usGame.filingDay(state.date)}
       idPrefix="ending-"
     />
   ),
   progressDetail(state, id, t) {
-    const pathway = usGame.pathwayOf(state.result, id);
+    const pathway = usGame.pathwayOf(shownResult(state), id);
     if (!pathway)
       return <p className={styles.lead}>{t('result.undetermined')}</p>;
     return (
@@ -189,7 +209,9 @@ export const usCountry: GameCountry<UsKinds> = {
         </p>
         <dl className={styles.facts}>
           <div>
-            <dt>{t('result.earliest')}</dt>
+            <dt>
+              {t(earliestLabelFor(pathway, unitedStatesModule.earliestLabel))}
+            </dt>
             <dd>{pathway.earliestDate ?? t('result.undetermined')}</dd>
           </div>
           {pathway.approvalStatus && (

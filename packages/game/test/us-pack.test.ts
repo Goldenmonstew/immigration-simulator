@@ -84,9 +84,15 @@ test('the US rules engine assesses each character’s green card and citizenship
   // Five years from the 2023-06-15 green card, filed up to 90 days early
   // (SRC-079 8 U.S.C. 1427(a), SRC-080 8 CFR 334.2(b)).
   expect(unitedStates2026_11.values.earlyFilingDays.value).toBe(90);
+  // Filing opens on 2028-03-17; approval stays open until the English and
+  // civics tests, so the bar shows the result page's outcome, UNKNOWN.
+  expect(us.pathwayOf(engineer.result, 'cit')).toMatchObject({
+    status: 'FUTURE',
+    approvalStatus: 'UNKNOWN',
+  });
   expect(us.progress(engineer)).toEqual({
     gc: { outcome: 'MET', percent: 100 },
-    cit: { outcome: 'FUTURE', earliestDate: '2028-03-17', percent: 57 },
+    cit: { outcome: 'UNKNOWN', earliestDate: '2028-03-17', percent: 57 },
   });
   // The same answers on the questionnaire give the same assessment.
   const direct = evaluateUnitedStatesFull(
@@ -110,7 +116,7 @@ test('the US rules engine assesses each character’s green card and citizenship
   });
   // Three years from 2025-09-15, 90 days early, on the next paper receipt day.
   expect(us.progress(spouse).cit).toMatchObject({
-    outcome: 'FUTURE',
+    outcome: 'UNKNOWN',
     earliestDate: '2028-06-20',
   });
 });

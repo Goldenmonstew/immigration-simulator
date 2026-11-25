@@ -2,18 +2,27 @@ import { existsSync } from 'node:fs';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
-import type { Locale } from '@uk-immigration/engine';
+import type {
+  CountryResult,
+  Locale,
+  UsFullResult,
+} from '@uk-immigration/engine';
 import * as us from '@uk-immigration/game/us';
 import { usGameArt } from '@uk-immigration/game/us/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount, type TranslationKey } from '../i18n';
-import { decodeDraft } from '../lib/share';
+import { readPageResult } from '../lib/page-result';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
-import { unitedStatesModule } from '../lib/united-states-module';
+import { unitedStatesSteps } from '../lib/united-states-draft';
+import {
+  pathwayOutcome,
+  unitedStatesModule,
+} from '../lib/united-states-module';
 import {
   gameDraft,
   itemIcon,
+  shownResult,
   usCountry,
   usShell,
 } from '../app/united-states/game/shell';
@@ -58,39 +67,139 @@ test('the United States has a game page, entries and its own save and sound keys
   expect(storage.get('us-immigration-life-muted')).toBe('false');
 });
 
+/** Walk to an open place at a given time, as the town map would. */
+function visit(state: State, place: string, minute: number) {
+  state = settle(state);
+  if (state.day.minute < minute)
+    state = settle(us.tick(state, minute - state.day.minute));
+  return settle(us.enter(state, place));
+}
+function quarterLater(from: State) {
+  let next = from;
+  for (let i = 0; i < 12 && next.date === from.date && !us.isOver(next); i++)
+    next = settle(us.sleep(next));
+  return next;
+}
+function playTo(state: State, date: string) {
+  while (state.date < date && !us.isOver(state)) state = quarterLater(state);
+  return settle(state);
+}
+const leave = (state: State) =>
+  us.doActivity(visit(state, 'station', 900), 'leave');
+const report = (state: State) =>
+  settle(us.doActivity(visit(state, 'home', 500), 'address-report'));
+/** What the result page and the game show for one pathway. */
+const view = (result: CountryResult, id: string) =>
+  (result as UsFullResult).columns[0].pathways
+    .filter((pathway) => pathway.id === id)
+    .map((pathway) => ({
+      id: pathway.id,
+      status: pathway.status,
+      earliestDate: pathway.earliestDate,
+      approvalStatus: pathway.approvalStatus,
+      approvalEarliestDate: pathway.approvalEarliestDate,
+      summary: pathway.summary,
+      checks: pathway.checks.map((check) => [
+        check.id,
+        check.status,
+        check.kind,
+      ]),
+    }));
+
 test.each(['engineer', 'spouse'])(
-  'the ending link restores the %s’s citizenship timeline on the US result page',
+  'the ending link opens the same %s timeline on the US result page',
   (id) => {
-    const state = settle(us.newGame(id, 4, 'en'));
-    const href = usCountry.resultHref(state);
-    expect(href.startsWith('/united-states/result#s=')).toBe(true);
-    const draft = decodeDraft(unitedStatesModule, href.split('#s=')[1], true)!;
-    expect(draft.completed).toBe(true);
-    // The quarter is assessed on its first USCIS business day.
-    expect(draft.simulationDate).toBe('2026-03-02');
-    expect(draft.pathway).toBe(us.citizenshipPathway(state.timeline));
-    expect(draft.permanentResident).toBe(state.timeline.permanentResident);
-    const shown = unitedStatesModule.run(draft, 'en').columns[0].pathways;
-    const played = us.pathwayOf(state.result, 'cit')!;
-    expect(
-      shown.map(({ id, status, earliestDate }) => [id, status, earliestDate]),
-    ).toEqual([[played.id, played.status, played.earliestDate]]);
-    expect(gameDraft(state).step).toBe(13);
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    });
+    const opening = settle(us.newGame(id, 7, 'zh-CN'));
+    const abroad = settle(
+      us.doActivity(visit(opening, 'station', 600), 'travel-1'),
+    );
+    expect(abroad.timeline.trips.length).toBeGreaterThan(
+      opening.timeline.trips.length,
+    );
+    // Enough savings for the deposit, so both characters can move.
+    const saved = { ...opening, stats: { ...opening.stats, money: 20_000 } };
+    const moved = settle(
+      us.doActivity(visit(saved, 'home', 480), 'rent-brighter-home'),
+    );
+    // Reported a quarter late, then left in that same quarter.
+    const late = report(quarterLater(moved));
+    expect(late.date).not.toBe(moved.date);
+    const states = [
+      opening,
+      abroad,
+      leave(moved),
+      leave(report(moved)),
+      leave(late),
+    ];
+    if (id === 'spouse') {
+      const lapsed = playTo(opening, '2027-12-01');
+      expect(lapsed.ending).toBe('overstayed');
+      states.push(lapsed);
+    } else {
+      let state = playTo(opening, '2028-06-01');
+      state = playTo(
+        us.doActivity(visit(state, 'visa', 600), 'n400'),
+        '2028-09-01',
+      );
+      state.stats.english = 64;
+      state = settle(us.doActivity(visit(state, 'visa', 600), 'interview'));
+      const sworn = us.doActivity(visit(state, 'visa', 700), 'oath');
+      expect(sworn.ending).toBe('settled');
+      states.push(sworn);
+    }
+    for (const state of states) {
+      const href = usCountry.resultHref(state);
+      expect(href.startsWith('/united-states/result#s=')).toBe(true);
+      const page = readPageResult(
+        unitedStatesModule,
+        'zh-CN',
+        href.split('#s=')[1],
+        'result',
+      );
+      expect(page.correction).toBeUndefined();
+      const draft = page.draft!;
+      expect(draft).toEqual(gameDraft(state));
+      expect(draft.simulationDate).toBe(us.filingDay(state.date));
+      expect(draft.step).toBe(unitedStatesSteps(draft).at(-1)!.step);
+      const column = state.ending === 'overstayed' ? 'gc' : ('cit' as const);
+      expect(draft.pathway).toBe(us.pathwayOf(state.result, column)!.id);
+      // The game's assessment, progress bar and detail show the same result.
+      const shown = view(page.result!, draft.pathway!);
+      expect(shown).toHaveLength(1);
+      expect(view(shownResult(state), draft.pathway!)).toEqual(shown);
+      expect(us.progress(state)[column].outcome).toBe(shown[0].status);
+      if (state.ending === 'overstayed')
+        expect([shown[0].status, shown[0].approvalStatus]).toEqual([
+          'NOT_MET',
+          'NOT_MET',
+        ]);
+      if (state.ending === 'settled')
+        expect([shown[0].status, shown[0].approvalStatus]).toEqual([
+          'MET',
+          'MET',
+        ]);
+    }
   },
 );
 
-test('a lapsed conditional card links to the I-751 assessment', () => {
-  const state = settle(us.newGame('spouse', 4, 'en'));
-  state.ending = 'overstayed';
-  const draft = gameDraft(state);
-  expect(draft.pathway).toBe('US-CONDITIONS');
-  expect(
-    decodeDraft(
-      unitedStatesModule,
-      usCountry.resultHref(state).split('#s=')[1],
-      true,
-    ),
-  ).toBeDefined();
+test('the progress bars rank the approval stage as the result page does', () => {
+  const statuses = [
+    'MET',
+    'FUTURE',
+    'NOT_MET',
+    'UNKNOWN',
+    'NOT_APPLICABLE',
+  ] as const;
+  for (const filing of statuses)
+    for (const approval of [undefined, ...statuses])
+      expect(us.stageOutcome(filing, approval), `${filing} ${approval}`).toBe(
+        pathwayOutcome(filing, approval),
+      );
 });
 
 test.each(['zh-CN', 'en'] as const)(
@@ -109,9 +218,15 @@ test.each(['zh-CN', 'en'] as const)(
     );
     expect(bars).toContain(t('us.game.gcColumn', locale));
     expect(bars).toContain(t('us.game.citColumn', locale));
-    expect(bars).toContain(
-      t('country.status.FUTURE', locale).replace('{date}', '2028-03-17'),
-    );
+    // As on the result page: the tests are still ahead, so approval is open,
+    // while the bar fills toward the 2028-03-17 filing date.
+    expect(us.progress(state).cit).toEqual({
+      outcome: 'UNKNOWN',
+      earliestDate: '2028-03-17',
+      percent: 57,
+    });
+    expect(bars).toContain(t('country.status.UNKNOWN', locale));
+    expect(bars).toContain('57%');
     const clinic = settle(us.enter(settle(state), 'council'));
     let menu: React.ReactNode;
     function Probe() {
