@@ -662,3 +662,8 @@
 | 814 | 任务 101 第二十四轮审核修正（review101-24）。日本对比和分享按原行程保留已出境事实，假设返日日期相同的其他行程不会提供证据。「尚未出境」与实际返日或重新上陆冲突时提示修正出境答案。日本场景页跳到正文时保留当前方案及编辑进度。 | apps/web/{app/japan/simulate/page.tsx,components/site-shell.tsx,i18n/countries/japan.ts,lib/japan-{draft,whatif}.ts,test/japan-questionnaire.test.tsx}、packages/engine/src/japan-full-reentry.ts、apps/e2e/tests/japan.spec.ts、docs/tasks/reports/101-jp-pages.md |
 | 815 | 任务 101 第二十五轮审核修正（review101-25）。日本对比页和分享结果按假设描述修改的拟递交日、三条路线的返日，保留原行程事实。对比页逐项显示退出计数的条件及原因。日本场景页在脚本接管前激活「跳到主要内容」也会保留场景片段。 | apps/web/{app/japan/simulate,components,i18n,lib,test}/、packages/engine/{src,test}/、apps/e2e/tests/japan.spec.ts、docs/tasks/reports/101-jp-pages.md |
 | 816 | 任务 101 第二十六轮审核修正（review101-26）。日本对比与分享仅在消费拟递交日的路径附加假设递交日说明；みなし再入国与已生效普通再入国许可不附加该说明，在其余输入未变时保留「与当前情景相同」。补只选みなし与已生效普通许可的对比及分享回读回归。 | apps/web/lib/japan-module.ts、apps/web/test/{japan.test.tsx,japan-questionnaire.test.tsx}、docs/tasks/reports/101-jp-pages.md |
+
+## 2026-11-25
+| # | 改动描述 | 涉及文件 |
+|---|---|---|
+| 790 | 任务 98 审核修正（review98-1）对比旋钮：WK-04 跳到按月／按日的税前工资旋钮，WK-01 不再关联（模拟年无公布门槛时恒待确认，年薪旋钮只在公布年度显示），FT-02 续期改为税保凭证旋钮；“假设没有离境”把部分填写的离境汇总整组置 0，并清零 Ο.3 到期后的居留中断；改日期时去掉没有起始日的年数快照并提示改填起始日；早于出生日的日期标在日期旋钮上；收入旋钮说明跨年口径；语言、考试旋钮可保留“按问卷答案”。 | apps/web/lib/greece-whatif.ts、apps/web/app/greece/whatif/controls.tsx、apps/web/i18n/countries/greece.ts、apps/web/test/greece.test.tsx |
