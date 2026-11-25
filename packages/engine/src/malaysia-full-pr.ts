@@ -806,6 +806,35 @@ export function assessPrChild(ctx: MyContext): MyPathway {
   );
 }
 
+/** Permit Masuk deposit by nationality, for WAS and REP family. */
+function depositCheck(ctx: MyContext, sources: readonly SourceRef[]) {
+  const { req, L } = ctx;
+  const d = v.prDepositRm.value;
+  const amount =
+    req.nationality === undefined
+      ? undefined
+      : (d.byNationality[req.nationality] ?? d.otherCountries);
+  return withFee(
+    info(
+      'my.pr.deposit',
+      L('押金（Wang Cagaran）', 'Deposit (Wang Cagaran)'),
+      sources,
+      L(
+        `按国籍缴纳，其他国家为 RM${d.otherCountries}；持永久居留满 ${d.refundYears} 年后可申请退还。`,
+        `Set by nationality, RM${d.otherCountries} for countries not listed, and refundable after holding the permit for ${d.refundYears} years.`,
+      ) +
+        (amount === undefined
+          ? ''
+          : L(
+              `按所填国籍为 RM${amount}。`,
+              ` For the nationality entered it is RM${amount}.`,
+            )),
+      amount !== undefined,
+    ),
+    amount,
+  );
+}
+
 const WAS_TIES = ['none', 'spouse-of-pr', 'child-of-pr', 'former-citizen'];
 
 export function assessPrWas(ctx: MyContext): MyPathway {
@@ -861,31 +890,10 @@ export function assessPrWas(ctx: MyContext): MyPathway {
         : ''),
     ['PD-408'],
   );
-  const nationality = req.nationality;
-  const d = v.wasDepositRm.value;
-  const amount =
-    nationality === undefined
-      ? undefined
-      : (d.byNationality[nationality] ?? d.otherCountries);
-  const deposit = withFee(
-    info(
-      'my.pr.deposit',
-      L('押金（Wang Cagaran）', 'Deposit (Wang Cagaran)'),
-      v.wasDepositRm.sources,
-      L(
-        `按国籍缴纳，其他国家为 RM${d.otherCountries}；持永久居留满 ${d.refundYears} 年后可申请退还。`,
-        `Set by nationality, RM${d.otherCountries} for countries not listed, and refundable after holding the permit for ${d.refundYears} years.`,
-      ) +
-        (amount === undefined
-          ? ''
-          : L(
-              `按所填国籍为 RM${amount}。`,
-              ` For the nationality entered it is RM${amount}.`,
-            )),
-      amount !== undefined,
-    ),
-    amount,
-  );
+  const deposit = depositCheck(ctx, [
+    guide('附录 B3 p57'),
+    guide('§9.2–9.3 p26'),
+  ]);
   const dependants = info(
     'my.pr.dependants',
     L('配偶与子女同时申请', 'Spouse and children applying together'),
@@ -999,6 +1007,11 @@ export function assessPrRep(ctx: MyContext): MyPathway {
       ),
       p.ltsvpFeePerYearRm,
     ),
+  );
+  checks.splice(
+    checks.findIndex((c) => c.id === 'my.pr.fee') + 1,
+    0,
+    depositCheck(ctx, [repGuide('§11.3–11.4 p25'), repGuide('Lampiran 9 p36')]),
   );
   const deadline = r?.approvalLetterValidUntil;
   return assemble(ctx, 'my.pr.rep-family', L(...titles.rep), checks, {

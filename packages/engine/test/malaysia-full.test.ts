@@ -522,6 +522,23 @@ describe('permanent residence: REP family', () => {
     ).toBe(90);
   });
 
+  test('REP family pay the Permit Masuk deposit by nationality (review113-1 #7)', () => {
+    const deposit = (nationality: string) =>
+      cond('my.pr.rep-family', 'my.pr.deposit', {
+        ...rep,
+        nationality,
+      });
+    // SRC-506 §11.3 and Lampiran 9: United States RM2,000, Singapore RM200.
+    expect([deposit('US').fee?.amount, deposit('SG').fee?.amount]).toEqual([
+      2000, 200,
+    ]);
+    expect(deposit('US').sources).toEqual([
+      { srcId: 'SRC-506', locator: '§11.3–11.4 p25' },
+      { srcId: 'SRC-506', locator: 'Lampiran 9 p36' },
+    ]);
+    expect(deposit('US').explanation).toContain('满 2 年后可申请退还');
+  });
+
   test('not a REP family', () => {
     expect(
       path('my.pr.rep-family', { ...rep, rep: { relation: 'none' } }).status,
@@ -990,11 +1007,24 @@ describe('long-term passes', () => {
       });
     expect(bond('US').fee?.amount).toBe(2000);
     expect(bond('DE').fee?.amount).toBe(1500);
-    expect([
-      bond('JP').status,
-      bond('JP').fee,
-      bond('JP').pendingDetails,
-    ]).toEqual(['UNKNOWN', undefined, ['PD-411']]);
+    expect(bond('ID').fee?.amount).toBe(500);
+    // The Immigration page lists Japan, South Korea, Macao and Hong Kong under
+    // RM1,000 and RM750 and omits the seven countries MDEC's table puts at
+    // RM750 (review113-1 #6).
+    for (const n of ['JP', 'HK', 'IN', 'BD', 'PK', 'PH', 'MM', 'LK', 'NP'])
+      expect([bond(n).status, bond(n).fee, bond(n).pendingDetails], n).toEqual([
+        'UNKNOWN',
+        undefined,
+        ['PD-411'],
+      ]);
+    expect(bond('IN').explanation).toContain('MDEC');
+    expect(
+      cond('my.pass.spouse-ltsvp', 'my.pass.security-bond', {
+        ...wife,
+        nationality: 'IN',
+        locale: 'en',
+      }).explanation,
+    ).toContain('the amount needs confirmation');
     expect(
       path('my.pass.spouse-ltsvp', { ...wife, family: { tie: 'none' } }).status,
     ).toBe('NOT_APPLICABLE');
@@ -1227,6 +1257,24 @@ describe('long-term passes', () => {
     expect(cond('my.pass.de-rantau', 'my.pass.fees', nomad).fee?.amount).toBe(
       1_620,
     );
+  });
+
+  test('DE Rantau security bond when MDEC sponsors (review113-1 suggestion 11)', () => {
+    const bond = (nationality?: string) =>
+      cond('my.pass.de-rantau', 'my.pass.security-bond', {
+        ...nomad,
+        nationality,
+      });
+    // SRC-528 v11 Section D Q2 p15.
+    expect(
+      ['US', 'GB', 'JP', 'IN', 'ID', 'TH', 'SG'].map(
+        (n) => bond(n).fee?.amount,
+      ),
+    ).toEqual([2000, 1500, 1000, 750, 500, 300, 200]);
+    expect(bond('IN').sources).toEqual([
+      { srcId: 'SRC-528', locator: 'v11 Section D Q2 p15' },
+    ]);
+    expect(bond(undefined).status).toBe('UNKNOWN');
   });
 
   test('Employment Pass categories by filing date', () => {

@@ -81,9 +81,11 @@ export const malaysiaFull2026_11 = {
       value: 120,
       sources: [guide('§9.1 p26'), rep('§11.1 p25')],
     },
-    // WAS deposit by nationality (ISO 3166-1 alpha-2, or 'stateless');
-    // refundable after holding the Permit Masuk for `refundYears`.
-    wasDepositRm: {
+    // Permit Masuk deposit (Wang Cagaran) by nationality (ISO 3166-1 alpha-2,
+    // or 'stateless') for the fully foreign category (Appendix B3) and REP
+    // family (Lampiran 9, the same table); refundable after holding the
+    // Permit Masuk for `refundYears`.
+    prDepositRm: {
       value: {
         otherCountries: 1500,
         refundYears: 2,
@@ -110,7 +112,12 @@ export const malaysiaFull2026_11 = {
           SG: 200,
         } as Record<string, number>,
       },
-      sources: [guide('附录 B3 p57'), guide('§9.2–9.3 p26')],
+      sources: [
+        guide('附录 B3 p57'),
+        guide('§9.2–9.3 p26'),
+        rep('§11.3–11.4 p25'),
+        rep('Lampiran 9 p36'),
+      ],
     },
     // Returning Expert Programme (REP) family members.
     rep: {
@@ -237,8 +244,11 @@ export const malaysiaFull2026_11 = {
         rep('§11.1 p25'),
       ],
     },
-    // Security bond by nationality. Japan, South Korea, Macao and Hong Kong
-    // appear under two rates.
+    // Security bond by nationality. The Immigration table and MDEC's table
+    // of the same name agree on `byNationality` and the default.
+    // `mdecOnly` is MDEC's: the Immigration table lists Japan, South Korea,
+    // Macao and Hong Kong under RM1,000 and again under RM750, and does not
+    // list the seven countries MDEC puts at RM750.
     securityBondRm: {
       value: {
         otherCountries: 1500,
@@ -271,9 +281,24 @@ export const malaysiaFull2026_11 = {
           TH: 300,
           SG: 200,
         } as Record<string, number>,
-        conflicting: ['JP', 'KR', 'MO', 'HK'],
+        mdecOnly: {
+          JP: 1000,
+          KR: 1000,
+          MO: 1000,
+          HK: 1000,
+          BD: 750,
+          IN: 750,
+          MM: 750,
+          NP: 750,
+          PK: 750,
+          PH: 750,
+          LK: 750,
+        } as Record<string, number>,
       },
-      sources: [{ srcId: 'SRC-510', locator: '费率表及 NOTE' }],
+      sources: [
+        { srcId: 'SRC-510', locator: '费率表及 NOTE' },
+        { srcId: 'SRC-528', locator: 'v11 Section D Q2 p15' },
+      ],
     },
     // MM2H (2024 conditions). SEZ/SFZ deposits differ below and from
     // `sezOlderAge`.
@@ -448,7 +473,7 @@ export const malaysiaFull2026_11 = {
           locator: 'v11 Section A Q4、Q7–Q10 p2、Q13、Q16 p3',
         },
         { srcId: 'SRC-528', locator: 'v11 Section B Q3 p4' },
-        { srcId: 'SRC-528', locator: 'v11 Section D Q1–Q2 p14' },
+        { srcId: 'SRC-528', locator: 'v11 Section D Q1 p14' },
       ],
     },
     // Employment Pass minimum basic monthly salary by category: revised

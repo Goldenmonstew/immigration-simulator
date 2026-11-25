@@ -33,8 +33,7 @@ export function assessSpouseLtsvp(ctx: MyContext): MyPathway {
   const newApplication = ref('SRC-509', '公民配偶新申请清单及注');
   const nationality = req.nationality;
   const bond = v.securityBondRm.value;
-  const conflicting =
-    nationality !== undefined && bond.conflicting.includes(nationality);
+  const conflicting = nationality !== undefined && nationality in bond.mdecOnly;
   const bondAmount =
     nationality === undefined || conflicting
       ? undefined
@@ -123,8 +122,8 @@ export function assessSpouseLtsvp(ctx: MyContext): MyPathway {
         ) +
           (conflicting
             ? L(
-                '所填国籍同时列在两档，金额待确认。',
-                ' The nationality entered is listed under two rates.',
+                `移民局费率表把日本、韩国、澳门、香港同列在 RM1000 与 RM750 两档，未列孟加拉、印度、巴基斯坦、菲律宾、缅甸、斯里兰卡、尼泊尔；MDEC 同名费率表把这四地列为 RM1000、这七国列为 RM750。所填国籍属冲突档位，金额待确认。`,
+                ` The Immigration rate table lists Japan, South Korea, Macao and Hong Kong under both RM1000 and RM750 and does not list Bangladesh, India, Pakistan, the Philippines, Myanmar, Sri Lanka or Nepal; MDEC's table of the same name puts the four at RM1000 and the seven at RM750. The nationality entered falls in a conflicting rate, so the amount needs confirmation.`,
               )
             : bondAmount !== undefined
               ? L(
@@ -572,6 +571,13 @@ export function assessDeRantau(ctx: MyContext): MyPathway {
   const { req, date, L } = ctx;
   const d = req.deRantau ?? {};
   const p = v.deRantau.value;
+  const bond = v.securityBondRm.value;
+  const bondAmount =
+    req.nationality === undefined
+      ? undefined
+      : (bond.mdecOnly[req.nationality] ??
+        bond.byNationality[req.nationality] ??
+        bond.otherCountries);
   const income = v.deRantauIncomeUsd.value;
   const tech = date >= income.techFrom ? income.tech : income.techBefore;
   const threshold =
@@ -680,6 +686,25 @@ export function assessDeRantau(ctx: MyContext): MyPathway {
       d.dependants === undefined
         ? undefined
         : p.processingFeeRm + d.dependants * p.dependantFeeRm,
+    ),
+    withFee(
+      info(
+        'my.pass.security-bond',
+        L('担保金（Personal/Security Bond）', 'Personal or security bond'),
+        [ref('SRC-528', 'v11 Section D Q2 p15')],
+        L(
+          `MDEC 作担保机构时，背书前按国籍缴交担保金，未列国家为 RM${bond.otherCountries}，准证到期全额退还。`,
+          `When MDEC is the sponsoring organisation, a bond set by nationality is paid before endorsement, RM${bond.otherCountries} for countries not listed, and refunded in full when the pass expires.`,
+        ) +
+          (bondAmount === undefined
+            ? ''
+            : L(
+                `按所填国籍为 RM${bondAmount}。`,
+                ` For the nationality entered it is RM${bondAmount}.`,
+              )),
+        bondAmount !== undefined,
+      ),
+      bondAmount,
     ),
     info(
       'my.pass.pr-link',
