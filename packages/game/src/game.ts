@@ -965,7 +965,7 @@ export function createGame<
         },
       ],
       [
-        ['extend', 'settle'],
+        ['extend', 'settle', 'declare'],
         {
           zhCN: '文件夹越装越厚，下一段生活逐渐有了形状。',
           en: 'The paperwork folder thickened as the next chapter took shape.',

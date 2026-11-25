@@ -268,6 +268,7 @@ test('permanent residence goes in at AIMA with only the means assessment open, a
   expect(pt.narrative(ended).at(-1)).toEqual(
     pt.characterOf('worker').settlement,
   );
+  expect(JSON.stringify(pt.narrative(ended))).toContain('paperwork folder');
 });
 
 test('after the fee table ends the application is free in the game, as the fee is unknown', () => {
@@ -308,6 +309,7 @@ test('the nationality declaration by marriage needs papers from an earlier day a
     next.stats.money - fees.adultNationalityFee.value.eur,
   );
   expect(pt.narrative(ended).at(-1)?.en).toContain('nationality declaration');
+  expect(JSON.stringify(pt.narrative(ended))).toContain('paperwork folder');
   // The worker has no declaration to make.
   const worker = visit(
     on(settle(pt.newGame('worker', 5, 'en')), '2027-03-01'),
