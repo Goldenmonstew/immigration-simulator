@@ -1614,6 +1614,51 @@ describe('no earliest date while no pass is held (review113-3 #1, risk 4)', () =
   });
 });
 
+describe('Residence Pass years need the category (review113-3 #2)', () => {
+  // SRC-508: Category 3 needs three years on a long-term pass, Category 4
+  // five, Category 5 no stated period; all need a valid pass when applying.
+  const rp = (
+    passes: MyFullRequest['passes'],
+    tie?: 'former-citizen',
+  ) => {
+    const p = path('my.rp.family', {
+      simulationDate: day,
+      family: { tie },
+      passes,
+    });
+    const c = p.checks.find((x) => x.id === 'my.rp.long-term-pass');
+    return [c?.status, p.timeStatus, p.timeEarliestDate];
+  };
+
+  test('without the relationship there is no date', () => {
+    expect(
+      rp([{ kind: 'ltsvp-spouse', from: '2026-06-01', to: '2028-12-31' }]),
+    ).toEqual(['UNKNOWN', 'UNKNOWN', undefined]);
+    // No pass valid on the date fails every category; the date of the later
+    // pass depends on the category.
+    expect(
+      rp([{ kind: 'employment', from: '2027-01-01', to: '2029-12-31' }]),
+    ).toEqual(['NOT_MET', 'UNKNOWN', undefined]);
+    expect(rp([])).toEqual(['NOT_MET', 'NOT_MET', undefined]);
+    expect(rp(undefined)).toEqual(['UNKNOWN', 'UNKNOWN', undefined]);
+  });
+
+  test('a former citizen still needs only a valid pass', () => {
+    expect(
+      rp(
+        [{ kind: 'ltsvp-spouse', from: '2026-06-01', to: '2028-12-31' }],
+        'former-citizen',
+      ),
+    ).toEqual(['MET', 'MET', day]);
+    expect(
+      rp(
+        [{ kind: 'employment', from: '2027-01-01', to: '2029-12-31' }],
+        'former-citizen',
+      ),
+    ).toEqual(['NOT_MET', 'FUTURE', '2027-01-01']);
+  });
+});
+
 describe('29 February birthdays (review113-1 #10)', () => {
   test('earliest dates and deadlines follow the age in full years', () => {
     // Born 2004-02-29: 20 on 2025-02-28, 21 on 2025-03-01.

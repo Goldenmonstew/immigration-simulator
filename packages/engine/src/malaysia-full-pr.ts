@@ -1293,7 +1293,7 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
           ? d
           : addYears(at.start, years);
   });
-  if (years === undefined) {
+  if (cat === 5) {
     checks.push(
       check(
         'my.rp.long-term-pass',
@@ -1304,6 +1304,29 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
           '须正持有效的长期准证在马来西亚居住。',
           'The applicant must be living in Malaysia on a valid long-term pass.',
         ),
+      ),
+    );
+  } else if (years === undefined) {
+    // Every category needs a valid pass; only the years depend on it.
+    checks.push(
+      check(
+        'my.rp.long-term-pass',
+        L('持长期准证居住年数', 'Years on a long-term pass'),
+        run?.valid === false ? false : undefined,
+        src,
+        L(
+          `第 3 类须持有效长期准证在马来西亚居住至少 ${p.citizenFamilyYears} 年，第 4 类至少 ${p.prFamilyYears} 年，第 5 类不设年数；申请时准证均须有效。`,
+          `Category 3 requires at least ${p.citizenFamilyYears} years in Malaysia on a valid long-term pass and Category 4 at least ${p.prFamilyYears}; Category 5 sets no period. The pass must be valid when applying in every category.`,
+        ) +
+          (run?.valid === false
+            ? L(
+                '申请日没有有效的长期准证。',
+                ' No long-term pass is valid on the application date.',
+              )
+            : L(
+                '未填与公民或永久居民的关系，无法确定所需年数。',
+                ' The relationship to a citizen or permanent resident is not entered, so the years needed are unknown.',
+              )),
       ),
     );
   } else {
@@ -1347,7 +1370,13 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
       ),
     );
   }
-  const earliest = plan.earliest;
+  // Without a category only "no pass now or later" is certain.
+  const earliest =
+    cat === undefined
+      ? plan.earliest === null
+        ? null
+        : undefined
+      : plan.earliest;
   checks.push(
     check(
       'my.rp.sponsor',

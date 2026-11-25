@@ -716,3 +716,4 @@
 | 870 | 任务 113 第二轮审核修正（review113-2 风险 5 补充）：假设续签的说明只在年限状态为将来日期时给出，年限判不满足时不再附带；中断日数合计复用 `spanDays`。 | packages/engine/src/malaysia-full-shared.ts、packages/engine/src/malaysia-full-pr.ts、packages/engine/src/malaysia-full-passes.ts、packages/engine/test/malaysia-full.test.ts |
 | 871 | 任务 113 第二轮审核修正报告（review113-2）：报告末尾加四段，逐条对应问题 1–4、风险 1–7、建议 1–4；正文待确认条件表（MM2H 续签费与 PD-422、配偶各路径分居离婚、多次中断合计）与 DE Rantau 条件同步改正。 | docs/tasks/reports/113-my-rules.md、PROGRESS.md |
 | 872 | 任务 113 第三轮审核修正（review113-3 问题 1、风险 4）：公民之夫与 WAS 类桥接 6 个月以内中断时，最早日期不早于当前持有段的起点，模拟日落在中断期内时取下一段准证起效日，不再给出中断期内的日期或在准证条件不满足时判年限已满足。 | packages/engine/src/malaysia-full-pr.ts、packages/engine/test/malaysia-full.test.ts |
+| 873 | 任务 113 第三轮审核修正（review113-3 问题 2）：Residence Pass 只有第 5 类（前公民）按"无年数要求"只看申请日有效准证；未填关系时，申请日无有效长期准证判不满足，否则长期准证年数待确认（第 3 类 3 年、第 4 类 5 年），年限状态只在现在与以后都没有准证时为不满足，其余待确认、不给日期（SRC-508）。 | packages/engine/src/malaysia-full-pr.ts、packages/engine/test/malaysia-full.test.ts |
