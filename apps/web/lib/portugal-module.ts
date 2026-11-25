@@ -95,6 +95,21 @@ function checkKind(id: string, pathway: CountryPathway): CountryCheck['kind'] {
   return time.has(id) ? 'time' : 'requirement';
 }
 
+/** The result page's wording and check groups, shared with the game. */
+export function portugalPathwayView(
+  pathway: CountryPathway,
+  locale: Locale,
+): CountryPathway {
+  return {
+    ...pathway,
+    checks: pathway.checks.map((check) => ({
+      ...check,
+      explanation: explanation(check, locale),
+      kind: checkKind(check.id, pathway),
+    })),
+  };
+}
+
 function run(draft: PortugalDraft, locale: Locale) {
   const answers = activePortugalAnswers(draft);
   const result = evaluatePortugalFull({
@@ -108,16 +123,10 @@ function run(draft: PortugalDraft, locale: Locale) {
   const selected = new Set(
     answers.targets.map((target) => ptPathwayByTarget[target]),
   );
-  for (const column of result.columns) {
-    column.pathways = column.pathways.filter((pathway) =>
-      selected.has(pathway.id),
-    );
-    for (const pathway of column.pathways)
-      for (const check of pathway.checks) {
-        check.explanation = explanation(check, locale);
-        check.kind = checkKind(check.id, pathway);
-      }
-  }
+  for (const column of result.columns)
+    column.pathways = column.pathways
+      .filter((pathway) => selected.has(pathway.id))
+      .map((pathway) => portugalPathwayView(pathway, locale));
   return result;
 }
 

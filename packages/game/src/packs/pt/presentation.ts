@@ -1,0 +1,35 @@
+// Keep the asset manifest separate from the engine and stories for the initial HTML.
+// Portugal reuses the shared CC0 art; its own cast borrows existing residents.
+export const ptGameArt = {
+  root: '/game',
+  town: '/assets/meadow-town',
+  banner: '/portugal/town-banner.png',
+  townMap: '/portugal/town.json',
+  homeMap: '/home.json',
+  defaultResident: 'skilled-worker',
+  residents: [] as string[],
+  cast: {
+    worker: 'yao-flatmate',
+    partner: 'family-partner',
+    fatima: 'margaret',
+    joaquim: 'dave',
+    ines: 'helen',
+    sunita: 'priya',
+    rui: 'jamie',
+    mariana: 'maeve',
+    thiago: 'gareth',
+    duarte: 'ka-ning-child',
+    miguel: 'skilled-worker',
+  } as Record<string, string>,
+  shopSigns: [
+    'cafe',
+    'shop',
+    'pub',
+    'gp',
+    'library',
+    'college',
+    'visa',
+    'station',
+  ],
+  crops: ['turnip', 'potato', 'strawberry', 'tomato', 'cucumber', 'corn'],
+};
