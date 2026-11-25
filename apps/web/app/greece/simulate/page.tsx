@@ -165,47 +165,14 @@ function GreeceStep({ draft, errors, update }: StepProps) {
           </fieldset>
         </>
       )}
-      {draft.step === 1 && (
-        <>
-          {top([
-            historyFields.permits,
-            historyFields.permitHistoryComplete,
-            tripList(familyRoute(draft)),
-          ])}
-          {!!draft.trips?.length && (
-            <div
-              className={`${form.checkboxes} ${errors['gr-tripsComplete'] ? form.invalid : ''}`}
-            >
-              {errors['gr-tripsComplete'] && (
-                <p id="gr-tripsComplete-error" className={form.error}>
-                  {t(errors['gr-tripsComplete'])}
-                </p>
-              )}
-              <label>
-                <input
-                  type="checkbox"
-                  id="gr-tripsComplete"
-                  checked={draft.tripsComplete === true}
-                  aria-invalid={errors['gr-tripsComplete'] ? true : undefined}
-                  aria-describedby={
-                    errors['gr-tripsComplete']
-                      ? 'gr-tripsComplete-error'
-                      : undefined
-                  }
-                  onChange={(event) =>
-                    update({ tripsComplete: event.target.checked || undefined })
-                  }
-                />
-                {t('gr.form.tripsComplete')}
-              </label>
-            </div>
-          )}
-          {top([
-            ...(settlementRoute(draft) ? [historyFields.backlogRenewals] : []),
-            ...historyFields.renewal,
-          ])}
-        </>
-      )}
+      {draft.step === 1 &&
+        top([
+          historyFields.permits,
+          historyFields.permitHistoryComplete,
+          tripList(familyRoute(draft)),
+          ...(settlementRoute(draft) ? [historyFields.backlogRenewals] : []),
+          ...historyFields.renewal,
+        ])}
       {draft.step === 2 &&
         Object.entries(
           commonSections(

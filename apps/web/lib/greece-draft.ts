@@ -19,6 +19,7 @@ import {
 import { today, validDate } from './questionnaire';
 
 type Nationality = NonNullable<GrFullRequest['nationality']>;
+type Posting = NonNullable<Nationality['diplomaticSpouse']>;
 export interface GreeceIncomeYear {
   year: number;
   taxableEur: number;
@@ -28,13 +29,20 @@ export interface GreeceIncomeYear {
 export interface GreeceDraft
   extends
     CountryDraft,
-    Omit<GrFullRequest, 'locale' | 'pathways' | 'nationality'> {
+    Omit<
+      GrFullRequest,
+      'locale' | 'pathways' | 'nationality' | 'blueCardMobility'
+    > {
   pathways: GrFullPathwayId[];
-  // The user confirms the trip list covers every absence (rule report 88).
+  // The user confirms each list of time abroad is complete (rule report 88).
   tripsComplete?: boolean;
+  blueCardMobility?: NonNullable<GrFullRequest['blueCardMobility']> & {
+    otherMemberTripsComplete?: boolean;
+  };
   // Tax years are entered as rows and keyed by year for the engine.
-  nationality?: Omit<Nationality, 'incomeByTaxYear'> & {
+  nationality?: Omit<Nationality, 'incomeByTaxYear' | 'diplomaticSpouse'> & {
     incomeYears?: GreeceIncomeYear[];
+    diplomaticSpouse?: Posting & { periodsComplete?: boolean };
   };
 }
 
@@ -107,9 +115,53 @@ const routeAnswers: [GrFullPathwayId[], (keyof GreeceDraft)[]][] = [
   [['GR-FAMILY-TCN'], ['familyTcn']],
 ];
 
-// Drop answers for routes that are no longer selected before running or sharing.
+// Answers to hidden questions, such as private cover amounts under public
+// insurance, can arrive in a shared or stored draft. They are not sent on.
+function visibleAnswers<T>(fields: GreeceField[], record: T): T {
+  if (!isRecord(record)) return record;
+  const next: Record<string, unknown> = { ...record };
+  for (const field of fields) {
+    const value = next[field.name];
+    if (field.when && !field.when(record)) delete next[field.name];
+    else if (field.type === 'group' && isRecord(value))
+      next[field.name] = visibleAnswers(field.fields, value);
+    else if (field.type === 'list' && Array.isArray(value))
+      next[field.name] = value.map((row) => visibleAnswers(field.fields, row));
+  }
+  return next as T;
+}
+
+const draftFields: GreeceField[] = [
+  ...basicFields,
+  ...Object.values(historyFields).flat(),
+  ...Object.values(commonSections(true, true)).flatMap(
+    (fields) => fields ?? [],
+  ),
+  ...Object.values(settlementFields),
+  routeField,
+];
+const groupSections = {
+  nationality: nationalitySections,
+  goldenVisa: goldenVisaSections,
+  greekFamily: greekFamilySections,
+  euFamily: euFamilySections,
+  work: workSections,
+  familyTcn: familyTcnSections,
+};
+
+// Drop answers for routes that are no longer selected, and answers to hidden
+// questions, before running or sharing.
 export function activeGreeceAnswers(draft: GreeceDraft): GreeceDraft {
-  const next = { ...draft };
+  const next = visibleAnswers(draftFields, draft);
+  for (const [key, sections] of Object.entries(groupSections) as [
+    keyof typeof groupSections,
+    Partial<Record<string, GreeceField[]>>,
+  ][])
+    if (next[key])
+      next[key] = visibleAnswers(
+        Object.values(sections).flatMap((fields) => fields ?? []),
+        next[key],
+      ) as never;
   for (const [routes, keys] of routeAnswers)
     if (!has(draft, ...routes)) for (const key of keys) delete next[key];
   if (!familyRoute(draft) && next.trips)
@@ -121,27 +173,40 @@ export function activeGreeceAnswers(draft: GreeceDraft): GreeceDraft {
 }
 
 export function greeceRequest(draft: GreeceDraft): GrFullRequest {
-  const { tripsComplete, nationality, ...answers } = activeGreeceAnswers(draft);
+  const { tripsComplete, nationality, blueCardMobility, ...answers } =
+    activeGreeceAnswers(draft);
   let request: GrFullRequest & Partial<CountryDraft> = { ...answers };
   delete request.version;
   delete request.step;
   delete request.completed;
   if (nationality) {
-    const { incomeYears, ...rest } = nationality;
+    const { incomeYears, diplomaticSpouse, ...rest } = nationality;
+    let posting: Posting | undefined;
+    if (diplomaticSpouse) {
+      posting = { ...diplomaticSpouse };
+      delete (posting as typeof diplomaticSpouse).periodsComplete;
+    }
     request = {
       ...request,
-      nationality: incomeYears
-        ? {
-            ...rest,
-            incomeByTaxYear: Object.fromEntries(
-              incomeYears.map(({ year, ...row }) => [year, row]),
-            ),
-          }
-        : rest,
+      nationality: {
+        ...rest,
+        ...(posting && { diplomaticSpouse: posting }),
+        ...(incomeYears && {
+          incomeByTaxYear: Object.fromEntries(
+            incomeYears.map(({ year, ...row }) => [year, row]),
+          ),
+        }),
+      },
     };
   }
   // An unconfirmed list could hide a trip that moves a date, so it is unknown.
   if (request.trips?.length && !tripsComplete) delete request.trips;
+  if (blueCardMobility) {
+    const { otherMemberTripsComplete, ...mobility } = blueCardMobility;
+    if (mobility.otherMemberTrips?.length && !otherMemberTripsComplete)
+      delete mobility.otherMemberTrips;
+    request.blueCardMobility = mobility;
+  }
   return request;
 }
 
@@ -174,6 +239,15 @@ function checkFields(
           value.forEach((row, i) =>
             checkFields(field.fields, row, `${id}-${i}`, required, errors),
           );
+        // Listed time abroad is used only once the list is confirmed complete.
+        if (
+          required &&
+          field.complete &&
+          Array.isArray(value) &&
+          value.length &&
+          answers[field.complete] !== true
+        )
+          errors[`${prefix}-${field.complete}`] = `gr.error.${field.complete}`;
         break;
       case 'group':
         if (!isRecord(value)) errors[id] = 'gr.error.required';
@@ -228,7 +302,7 @@ function order(
 
 function checkRows<T>(
   rows: T[] | undefined,
-  each: (row: T, i: number) => void,
+  each: (row: T, i: number, rows: T[]) => void,
 ) {
   if (Array.isArray(rows)) rows.forEach(each);
 }
@@ -279,8 +353,6 @@ function checkStep(draft: GreeceDraft, step: number, submitting: boolean) {
       checkRows(draft.trips, (trip, i) =>
         order(errors, `gr-trips-${i}-returned`, trip.departed, trip.returned),
       );
-      if (submitting && draft.trips?.length && draft.tripsComplete !== true)
-        errors['gr-tripsComplete'] = 'gr.error.tripsComplete';
       if (settlementRoute(draft))
         checkRows(draft.backlogRenewals, (row, i) =>
           order(
@@ -371,6 +443,12 @@ function checkStep(draft: GreeceDraft, step: number, submitting: boolean) {
           row.through,
         ),
       );
+      // The engine keys income by tax year, so each year has one row.
+      checkRows(draft.nationality?.incomeYears, (row, i, rows) => {
+        if (rows.slice(0, i).some((earlier) => earlier.year === row.year))
+          errors[`gr-nationality-incomeYears-${i}-year`] ??=
+            'gr.error.duplicateYear';
+      });
       break;
     case 5:
       sections(goldenVisaSections, draft.goldenVisa, 'gr-goldenVisa');

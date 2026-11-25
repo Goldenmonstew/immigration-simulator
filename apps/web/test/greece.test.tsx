@@ -1050,3 +1050,125 @@ test('the policy catalogue lists every condition a result shows (review98-1 item
       for (const check of pathway.checks)
         expect(rules.has(check.id), `${pathway.id} ${check.id}`).toBe(true);
 });
+
+test('hidden answers and unconfirmed lists are not sent to the engine (review98-1 risks)', () => {
+  const hidden = routeDraft({
+    ...longTermDraft(),
+    permits: [{ kind: 'investor', from: '2020-01-01', purpose: 'other' }],
+    insurance: { kind: 'public', coversFamily: true, disabilityEur: 10000 },
+    integration: { basis: 'language', greekLevel: 'B1', a2Total: 30 },
+  });
+  const active = activeGreeceAnswers(hidden);
+  expect(active.permits).toEqual([{ kind: 'investor', from: '2020-01-01' }]);
+  expect(active.insurance).toEqual({ kind: 'public', coversFamily: true });
+  expect(active.integration).toEqual({ basis: 'language', greekLevel: 'B1' });
+  expect(greeceRequest(hidden).insurance).toEqual(active.insurance);
+
+  // Other lists of time abroad also need a complete-list confirmation.
+  const mobility = {
+    ...longTermDraft(),
+    blueCardMobility: {
+      otherMemberTrips: [{ departed: '2021-01-01', returned: '2021-02-01' }],
+    },
+  };
+  expect(gr.validateStep(mobility)).toEqual({
+    'gr-blueCardMobility-otherMemberTripsComplete':
+      'gr.error.otherMemberTripsComplete',
+  });
+  expect(greeceRequest(mobility).blueCardMobility).toEqual({});
+  const confirmed = {
+    ...mobility,
+    blueCardMobility: {
+      ...mobility.blueCardMobility,
+      otherMemberTripsComplete: true,
+    },
+  };
+  expect(gr.validateStep(confirmed)).toEqual({});
+  expect(greeceRequest(confirmed).blueCardMobility).toEqual({
+    otherMemberTrips: [{ departed: '2021-01-01', returned: '2021-02-01' }],
+  });
+  const posting = routeDraft({
+    pathways: ['GR-NATIONALITY'],
+    step: 4,
+    nationality: {
+      diplomaticSpouse: {
+        periods: [{ from: '2020-01-01', through: '2021-01-01' }],
+      },
+    },
+  });
+  expect(gr.validateStep(posting)).toEqual({
+    'gr-nationality-diplomaticSpouse-periodsComplete':
+      'gr.error.periodsComplete',
+  });
+  const html = render(
+    GreeceSimulatePage().props.children({
+      draft: posting,
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(html).toContain(
+    'id="gr-nationality-diplomaticSpouse-periodsComplete"',
+  );
+
+  // One row per tax year.
+  expect(
+    gr.validateStep({
+      ...posting,
+      nationality: {
+        incomeYears: [
+          { year: 2024, taxableEur: 15000, dependants: 0 },
+          { year: 2024, taxableEur: 16000, dependants: 0 },
+        ],
+      },
+    }),
+  ).toEqual({ 'gr-nationality-incomeYears-1-year': 'gr.error.duplicateYear' });
+});
+
+test('list rows, alternatives and hints have their own accessible names (review98-1 suggestions)', () => {
+  const html = render(
+    GreeceSimulatePage().props.children({
+      draft: {
+        ...longTermDraft(),
+        step: 1,
+        permits: [
+          { kind: 'regular', from: '2018-01-01' },
+          { kind: 'regular', from: '2021-01-01' },
+        ],
+      },
+      errors: {},
+      update: () => {},
+    }),
+  );
+  const permit = t('gr.field.permits');
+  expect(html).toContain(`aria-label="${t('gr.form.remove')} · ${permit} 2"`);
+  expect(html).toMatch(
+    /<fieldset[^>]*id="gr-permits"[^>]*aria-describedby="gr-permits-hint"/,
+  );
+  expect(html).toContain('<p id="gr-permits-hint"');
+
+  const nationality = render(
+    GreeceSimulatePage().props.children({
+      draft: routeDraft({ pathways: ['GR-NATIONALITY'], step: 4 }),
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(nationality).toContain(
+    `aria-label="${t('gr.option.none')} · ${t('gr.field.lastRejection')}"`,
+  );
+
+  // The annual summary hint names the EU family member's actual start of residence.
+  const eu = render(
+    GreeceSimulatePage().props.children({
+      draft: routeDraft({
+        pathways: ['GR-EU-FAMILY-PR'],
+        step: 6,
+        euFamily: { arrivedOn: '2020-05-01' },
+      }),
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(eu).toContain('（2020-05-01）');
+});
