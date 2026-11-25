@@ -1172,3 +1172,48 @@ test('checks are grouped as time, requirement, budget or information, and only t
   ] as const)
     expect(html, key).toContain(`· ${t(key)}`);
 });
+
+test('the policy page shows nested parameters by meaning and keeps years ungrouped (task 93 shared fix)', () => {
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const html = render(<UnitedStatesPolicyPage />, locale);
+    const row = (name: string) =>
+      html.split(`data-parameter="${name}"`)[1].split('</tr></tbody>')[0];
+    const label = (key: Parameters<typeof t>[0]) => t(key, locale);
+    const list = locale === 'en' ? ', ' : '、';
+    // A calendar year keeps its digits.
+    expect(row('poverty')).toMatch(/>year<\/dt><dd>2026</);
+    expect(html).not.toContain('2,026');
+    // Exemption thresholds are a table with named columns.
+    const exemptions = row('englishExemptions');
+    expect(exemptions).toContain(`>${label('us.policy.minAge')}</th>`);
+    expect(exemptions).toContain(`>${label('us.policy.minLprYears')}</th>`);
+    expect(exemptions).not.toContain('>lprYears</th>');
+    // Periods of hostilities have a start and an end column.
+    const military = row('military');
+    expect(military).toContain(`>${label('us.policy.periodStart')}</th>`);
+    expect(military).toContain(`>${label('us.policy.periodEnd')}</th>`);
+    expect(military).not.toContain(`1917-04-06${list}`);
+    // H.R. 1 pairs are the amounts before and from the adjustment date.
+    const hr1 = row('hr1Fees');
+    expect(hr1).toContain(
+      label('us.policy.before').replace('{date}', '2026-10-16'),
+    );
+    expect(hr1).toContain(
+      label('us.policy.from').replace('{date}', '2026-10-16'),
+    );
+    expect(hr1).toContain('USD 1,050');
+    expect(hr1).not.toContain(`102${list}105`);
+    // Fee tables carry the currency and the filing channel.
+    const fees = row('fees');
+    expect(fees).toContain('USD 1,440');
+    expect(fees).toContain(label('us.policy.paper'));
+    expect(fees).toContain(label('us.policy.online'));
+    expect(fees).toMatch(/>smallEmployerMax<\/dt><dd>25</);
+    expect(row('consularFees')).toContain('USD 325');
+    expect(row('eb5Fees')).toContain('USD 7,615');
+    // Ground lists name the INA paragraph.
+    expect(row('otherImmigrationGrounds')).toContain('INA 212(a)(5)(A)(i)');
+    expect(row('sijAdmissionExemptions')).toContain('INA 212(a)(4)');
+    expect(html).not.toContain('undefined');
+  }
+});
