@@ -894,6 +894,45 @@ test('what-if controls only change their own answers, and never the routes or th
   ).toEqual({ prHeld: true, permanentResidentSince: '2015-01-01' });
 });
 
+// review114-1 problem 2: clearing the MyPR control returns to the
+// questionnaire's answer, and its own errors stay on it.
+test('clearing the MyPR date returns to the questionnaire answer', () => {
+  const { whatif } = my;
+  const held = naturalisationDraft(['cit-naturalisation']);
+  const knobs = { ...whatif.initial(held), prSince: undefined };
+  const cleared = whatif.apply(held, knobs);
+  expect(cleared.citizenship).toEqual(held.citizenship);
+  expect(whatif.validate(cleared, knobs)).toEqual({});
+  const none = {
+    ...held,
+    citizenship: { ...held.citizenship, prHeld: false },
+  };
+  expect(
+    whatif.apply(none, { ...whatif.initial(none), prSince: undefined })
+      .citizenship,
+  ).toEqual(activeMalaysiaAnswers(none).citizenship);
+  for (const locale of ['zh-CN', 'en'] as const)
+    expect(t('my.whatif.prSinceHint', locale)).toMatch(
+      locale === 'en' ? /questionnaire/ : /问卷/,
+    );
+  // An invalid date is reported on the MyPR control, not the date.
+  const bad = { ...whatif.initial(held), prSince: '2016-02-30' };
+  const errors = whatif.validate(whatif.apply(held, bad), bad);
+  expect(errors).toEqual({ prSince: 'my.error.date' });
+  const html = render(
+    <MalaysiaWhatIfControls
+      afterDraft={activeMalaysiaAnswers(held)}
+      knobs={bad}
+      errors={errors}
+      update={() => {}}
+    />,
+  );
+  expect(html).toMatch(
+    /id="my-whatif-pr-since" type="date" aria-invalid="true" aria-describedby="my-whatif-pr-since-hint prSince-error"/,
+  );
+  expect(html).toMatch(/id="my-whatif-date" type="date" aria-invalid="false"/);
+});
+
 test('changing the MyPR date moves the naturalisation date in the comparison', () => {
   const { whatif } = my;
   const draft = naturalisationDraft(['cit-naturalisation']);

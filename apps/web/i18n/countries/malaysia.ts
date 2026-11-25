@@ -30,7 +30,8 @@ export const myZh = {
     '年龄、准证、居住与护照效期按新日期重新计算；已纳税年数、工作经验年数和每年在马天数按问卷所填数值，不随日期推进。',
   'my.whatif.noTrips': '假设没有出境记录',
   'my.whatif.prSince': '假设 MyPR 签发日',
-  'my.whatif.prSinceHint': '留空表示未知。填写日期即假设在该日取得永久居留。',
+  'my.whatif.prSinceHint':
+    '留空则按问卷所填。填写日期即假设永久居留（MyPR）在该日签发。',
   'my.whatif.salary': '基本月薪（马币）',
   'my.whatif.deRantauIncome': 'DE Rantau 年收入（美元）',
   'my.whatif.mm2hDeposit': 'MM2H 定期存款（美元）',
@@ -189,7 +190,7 @@ export const myEn: Record<keyof typeof myZh, string> = {
   'my.whatif.noTrips': 'Assume no trips outside Malaysia',
   'my.whatif.prSince': 'Assumed MyPR issue date',
   'my.whatif.prSinceHint':
-    'Leave blank if unknown. A date assumes permanent residence was issued on that day.',
+    'Leave blank to use the questionnaire answer. A date assumes permanent residence (MyPR) was issued on that day.',
   'my.whatif.salary': 'Basic monthly salary (RM)',
   'my.whatif.deRantauIncome': 'DE Rantau annual income (USD)',
   'my.whatif.mm2hDeposit': 'MM2H fixed deposit (USD)',

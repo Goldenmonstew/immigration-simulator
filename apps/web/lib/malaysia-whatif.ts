@@ -82,7 +82,8 @@ export const malaysiaWhatIf: CountryWhatIf<MalaysiaDraft, MalaysiaWhatIf> = {
       simulationDate: knobs.simulationDate,
     };
     if (knobs.noTrips && draft.trips) next.trips = [];
-    if (knobs.prSince !== before.prSince)
+    // A cleared date keeps the questionnaire's answer.
+    if (knobs.prSince && knobs.prSince !== before.prSince)
       next.citizenship = {
         ...draft.citizenship,
         prHeld: knobs.prSince ? true : draft.citizenship.prHeld,
