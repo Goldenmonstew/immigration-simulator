@@ -231,8 +231,8 @@ test('a Malaysian questionnaire reaches results, saves and shares them and focus
     await receiver.close();
   }
 
-  await result.locator('a[href*="?focus=date"]').first().click();
-  await expect(page.locator('#my-whatif-date')).toBeFocused();
+  await result.locator('a[href*="?focus=prSince"]').first().click();
+  await expect(page.locator('#my-whatif-pr-since')).toBeFocused();
 });
 
 test('English mobile questionnaire compares dates and shows Malaysian policy sources', async ({

@@ -41,7 +41,9 @@ const focusByCondition: Record<string, keyof typeof malaysiaFocusControls> = {
   'my.rp.child-age': 'date',
   'my.rp.passport': 'date',
   'my.cit.age': 'date',
-  'my.cit.residence': 'date',
+  // Citizenship residence turns on the MyPR issue date (both routes that
+  // have it show that control).
+  'my.cit.residence': 'prSince',
   'my.pass.age': 'date',
   'my.pass.passport': 'date',
   'my.pass.work-years': 'date',

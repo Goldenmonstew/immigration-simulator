@@ -883,7 +883,7 @@ test('the result note tells the citizenship time date from the met-since date', 
 });
 
 // The values the end-to-end tests assert.
-test('the result page shows the end-to-end scenario and links its gaps to the date control', () => {
+test('the result page shows the end-to-end scenario and links its gaps to the MyPR control', () => {
   const draft = naturalisationDraft();
   const page = readPageResult(my, 'zh-CN', draft);
   const html = render(
@@ -899,7 +899,9 @@ test('the result page shows the end-to-end scenario and links its gaps to the da
   expect(html).toContain('<time dateTime="2027-03-01">2027-03-01</time>');
   const naturalisation = page.result!.columns[0].pathways[0];
   expect(gapRules(naturalisation)[0].id).toBe('my.cit.residence');
-  expect(html).toContain('?focus=date');
+  // review114-1 suggestion 3: citizenship residence turns on the MyPR date.
+  expect(html).toContain('?focus=prSince');
+  expect(html).not.toContain('?focus=date');
   expect(html).toContain('PD-414');
   const en = render(
     <ResultView country={my} result={my.run(draft, 'en')} draft={page.draft} />,
@@ -1033,9 +1035,8 @@ test('changing the MyPR date moves the naturalisation date in the comparison', (
     expect(html).toContain(t('my.whatif.dateHint', locale));
     expect(html).toContain(t('whatif.unchanged', locale));
   }
-  expect(whatif.focusForRule('my.cit.residence', 'my.cit.naturalisation')).toBe(
-    'date',
-  );
+  for (const id of ['my.cit.naturalisation', 'my.cit.wife-registration'])
+    expect(whatif.focusForRule('my.cit.residence', id)).toBe('prSince');
   expect(
     whatif.focusForRule('my.pass.salary-category', 'my.pass.employment'),
   ).toBe('salary');
