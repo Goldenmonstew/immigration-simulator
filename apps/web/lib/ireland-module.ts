@@ -72,6 +72,7 @@ function run(draft: IrelandDraft, locale: Locale) {
 export const irelandModule: CountryModule<IrelandDraft, IrelandWhatIf> = {
   id: 'ie',
   version: 1,
+  scenarioLinks: true,
   createDraft: createIrelandDraft,
   activeAnswers: activeIrelandAnswers,
   restoreStoredDraft: restoreStoredIrelandDraft,

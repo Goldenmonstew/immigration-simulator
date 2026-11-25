@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
+import { usePathname } from 'next/navigation';
 import {
   IRELAND_CONDITION_IDS,
   evaluateIrelandFull,
@@ -13,6 +14,7 @@ import { GET as offlinePages } from '../app/offline-pages.json/route';
 import Home from '../app/page';
 import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
 import { gapRules } from '../lib/gap-summary';
 import { t, type TranslationKey } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
@@ -30,8 +32,15 @@ import {
 } from '../lib/ireland-fields';
 import { irelandModule as ie } from '../lib/ireland-module';
 import { japanModule } from '../lib/japan-module';
+import { readPageResult } from '../lib/page-result';
 import { decodeDraft, encodeDraft } from '../lib/share';
+import { draftStorage } from '../lib/storage';
 import { irelandFull2026_11 } from '@uk-immigration/policy-data';
+
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  usePathname: vi.fn(),
+}));
 
 const day = '2026-11-23';
 const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
@@ -1084,4 +1093,51 @@ test('row errors, staff shares, tax years and projected dates are explained', ()
   );
   expect(controls).toContain('aria-describedby="ie-whatif-irp-hint"');
   expect(controls).toContain(t('ie.whatif.irpHint'));
+});
+
+test('opening an Irish share link keeps the local draft and the skip link keeps the scenario', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  try {
+    const local: IrelandDraft = {
+      ...ie.createDraft(),
+      simulationDate: '2026-10-01',
+      dateOfBirth: '1985-01-01',
+    };
+    draftStorage(ie, local);
+    const page = readPageResult(ie, 'zh-CN', encodeDraft(ie, workDraft));
+    expect(page.shared).toBe(true);
+    expect(page.result?.columns[0].pathways[0]).toMatchObject({
+      id: 'IE-STAMP4-21',
+      status: 'FUTURE',
+      earliestDate: '2027-02-20',
+    });
+    expect(JSON.parse(storage.get('ie-immigration-draft-v1')!)).toEqual(local);
+    expect(draftStorage(ie).draft).toEqual(local);
+  } finally {
+    vi.unstubAllGlobals();
+  }
+
+  // Skipping the header on a scenario page must not replace the #s= fragment.
+  for (const page of ['result', 'simulate', 'whatif']) {
+    vi.mocked(usePathname).mockReturnValue(`/ireland/${page}`);
+    const html = render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    );
+    expect(html, page).toContain(`<button type="button"`);
+    expect(html, page).not.toContain('href="#main"');
+  }
+  vi.mocked(usePathname).mockReturnValue('/ireland/policy');
+  expect(
+    render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    ),
+  ).toContain('href="#main"');
 });
