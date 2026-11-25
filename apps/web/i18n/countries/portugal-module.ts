@@ -330,6 +330,7 @@ export const zhCN = {
   'pt.policy.feeChange': 'AIMA 新费表生效',
   'pt.policy.feeSummary':
     'AIMA 按 Portaria 307/2023 的年度调整公布新费表，结果中的费用参考按评估日期适用的费表显示。',
+  'pt.result.earliest': '满足所评估条件的日期（推算）',
   'pt.result.finishQuestionnaire':
     '请返回问卷，完成所选路径的必填项目后再查看结果。',
   'pt.result.MET': '所填资料满足这一条件。',
@@ -361,6 +362,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.policy.feeChange': 'New AIMA fee table',
   'pt.policy.feeSummary':
     'AIMA publishes an updated fee table under the yearly adjustment in Portaria 307/2023. Fee references in the results use the table that applies on the assessment date.',
+  'pt.result.earliest': 'Calculated date the assessed requirements are met',
   'pt.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields for your selected routes to see your result.',
   'pt.result.MET': 'Your answers meet this requirement.',

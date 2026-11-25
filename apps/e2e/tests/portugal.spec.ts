@@ -278,7 +278,7 @@ test('English mobile questionnaire compares dates and shows Portuguese policy so
     .first()
     .click();
   const comparison = assessment(page, en)
-    .getByText(en['result.earliest'], { exact: true })
+    .getByText(en['pt.result.earliest'], { exact: true })
     .locator('xpath=following-sibling::dd[1]');
   await expect(comparison).toHaveText('2028-06-02→2028-06-02');
   await page.locator('#pt-whatif-date').fill('2028-07-01');

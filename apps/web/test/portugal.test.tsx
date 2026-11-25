@@ -672,6 +672,29 @@ test('results show only the chosen routes with met, future and pending dates', (
   );
 });
 
+// The free-movement date is when the permanent right is acquired, not a filing
+// date, so the module labels every date as when the assessed rules are met.
+test.each(['zh-CN', 'en'] as const)(
+  'the result date is labelled as meeting the assessed requirements in results, gaps and comparisons (%s)',
+  (locale) => {
+    const draft = partnerDraft(['partner']);
+    const result = pt.run(draft, locale);
+    const label = t('pt.result.earliest', locale);
+    const html = render(
+      <ResultView country={pt} result={result} draft={draft} />,
+      locale,
+    );
+    expect(html).toContain(`<dt>${label}</dt>`);
+    expect(html).toContain(
+      label + (locale === 'en' ? ': ' : '：') + '2028-06-02',
+    );
+    expect(html).not.toContain(t('result.earliest', locale));
+    const whatIf = render(<WhatIfView country={pt} draft={draft} />, locale);
+    expect(whatIf).toContain(`<dt>${label}</dt>`);
+    expect(whatIf).not.toContain(t('result.earliest', locale));
+  },
+);
+
 test('the result page shows the chosen routes under the applicable-law column', () => {
   const draft = partnerDraft(['naturalisation', 'partner']);
   const page = readPageResult(pt, 'zh-CN', draft);

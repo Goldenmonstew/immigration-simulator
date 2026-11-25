@@ -81,6 +81,8 @@ export const portugalModule: CountryModule<PortugalDraft, PortugalWhatIf> = {
     return t('pt.result.finishQuestionnaire', locale);
   },
   run,
+  // Free-movement dates are when the permanent right is acquired.
+  earliestLabel: 'pt.result.earliest',
   whatif: portugalWhatIf,
   policy: portugalPolicy,
 };
