@@ -49,7 +49,12 @@ export type UsTimeline = Omit<
      * The questionnaire's answers take those by the assessment date
      * (usRequest).
      */
-    filed: { i751?: IsoDate; n400?: IsoDate; interview?: IsoDate };
+    filed: {
+      i751?: IsoDate;
+      i90?: IsoDate;
+      n400?: IsoDate;
+      interview?: IsoDate;
+    };
   };
 export type UsFestival =
   'polar-plunge' | 'cinco-de-mayo' | 'fourth-of-july' | 'halloween';
@@ -61,8 +66,8 @@ export type UsOutcome = UsFullPathway['status'];
 export type UsEffect =
   /** Mailing a joint I-751, which USCIS decides later (not in the game). */
   | { type: 'i751' }
-  /** A replacement green card filed on Form I-90 (scenario setting). */
-  | { type: 'renewCard' }
+  /** Mailing Form I-90 to renew the card, which USCIS decides later. */
+  | { type: 'i90' }
   /** Mailing the N-400, with the postmark as its filing date. */
   | { type: 'n400' }
   /** Passing the English and civics tests at the N-400 interview. */
@@ -134,6 +139,10 @@ export function usRequest(
     },
     travel: {
       ...answers.travel,
+      ...(by(filed.i90) && {
+        replacementFiledOn: filed.i90,
+        replacementReason: 'renewal',
+      }),
       movedOn: move?.movedOn ?? 'no-move',
       ...(move && {
         addressReportedOn: by(move.reportedOn)
@@ -270,19 +279,15 @@ export const usRules: EvaluationAdapter<
     return true;
   },
   applyEffect(state, effect, { setFlags }) {
-    const { travel } = state.timeline;
     switch (effect.type) {
       // The postmark carries its own day; no decision and no new card follow.
       case 'i751':
         state.timeline.filed.i751 = state.day.date;
         setFlags(state, ['i751-filed', 'quarter-visa-renewed']);
         return true;
-      case 'renewCard':
-        travel.cardExpiresOn = addMonths(
-          travel.cardExpiresOn,
-          values.address.value.cardYears * 12,
-        );
-        setFlags(state, ['card-renewed', 'quarter-visa-renewed']);
+      case 'i90':
+        state.timeline.filed.i90 = state.day.date;
+        setFlags(state, ['i90-filed', 'quarter-visa-renewed']);
         return true;
       // The postmark and the interview carry their own day, as moves do.
       case 'n400':

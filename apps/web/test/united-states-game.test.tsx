@@ -13,8 +13,9 @@ import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount, type TranslationKey } from '../i18n';
 import { readPageResult } from '../lib/page-result';
+import { encodeDraft } from '../lib/share';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
-import { unitedStatesSteps } from '../lib/united-states-draft';
+import { unitedStatesSteps, type UsDraft } from '../lib/united-states-draft';
 import {
   pathwayOutcome,
   unitedStatesModule,
@@ -169,6 +170,40 @@ test.each(['engineer', 'spouse'])(
       const sworn = us.doActivity(visit(state, 'visa', 600), 'oath');
       expect(sworn.ending).toBe('settled');
       states.push(sworn);
+      // Without naturalizing, the I-90 goes in six months before the card ends.
+      let renewing = playTo(opening, '2033-03-01');
+      renewing = us.doActivity(visit(renewing, 'visa', 600), 'extend');
+      states.push(leave(renewing));
+      renewing = quarterLater(renewing);
+      states.push(leave(renewing));
+      // The green card column, read back as its own questionnaire.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { locale, ...request } = us.usRequest(
+        renewing.timeline,
+        'US-TRAVEL',
+        us.filingDay(renewing.date),
+        'zh-CN',
+      );
+      const travel = readPageResult(
+        unitedStatesModule,
+        'zh-CN',
+        encodeDraft(unitedStatesModule, {
+          ...request,
+          version: 1,
+          step: 13,
+          completed: true,
+        } as UsDraft),
+        'result',
+      );
+      expect(travel.correction).toBeUndefined();
+      expect(travel.draft!.travel).toMatchObject({
+        replacementFiledOn: renewing.timeline.filed.i90,
+        replacementReason: 'renewal',
+        cardExpiresOn: '2033-06-15',
+      });
+      expect(view(shownResult(renewing), 'US-TRAVEL')).toEqual(
+        view(travel.result!, 'US-TRAVEL'),
+      );
     }
     for (const state of states) {
       const href = usCountry.resultHref(state);

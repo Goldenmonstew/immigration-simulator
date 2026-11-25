@@ -23,7 +23,6 @@ import {
   pathwayOf,
   usRequest,
   values,
-  visaMonthsLeft,
   type UsEffect,
   type UsFestival,
   type UsState,
@@ -160,7 +159,12 @@ export function actionAvailable(
       !flags.includes('quarter-visa-renewed') &&
       (state.timeline.conditional !== 'none'
         ? conditional(state) && i751OpenToday(state)
-        : visaMonthsLeft(state) <= values.address.value.renewalMonths) &&
+        : !state.timeline.filed.i90 &&
+          state.day.date >=
+            addMonths(
+              state.timeline.travel.cardExpiresOn,
+              -values.address.value.renewalMonths,
+            )) &&
       state.stats.money >= extendFee(state)
     );
   if (action.id === 'n400')
@@ -205,7 +209,7 @@ export function actionDetails(state: UsState, action: UsActivity): void {
         `Mail Form I-90 to renew your green card (paper fee ${usd(fee)}, ${feeSource})`,
       );
       action.note = renewalNote;
-      action.effects = [{ type: 'money', delta: -fee }, { type: 'renewCard' }];
+      action.effects = [{ type: 'money', delta: -fee }, { type: 'i90' }];
     }
   }
   if (action.id === 'n400') {
@@ -254,8 +258,8 @@ export function afterAction(
           'The clerk postmarks the envelope and hands you the tracking receipt. Next comes the USCIS receipt notice, and later their decision.',
         )
       : t(
-          '换卡申请寄出了。新的绿卡寄到时，你把旧卡剪成两半。',
-          'The renewal is in the mail. When the new card arrives, you cut the old one in half.',
+          '换卡申请寄出了。收件通知会寄到家里，新卡什么时候来要等 USCIS 裁定。',
+          'The renewal is in the mail. A receipt notice will come to your home; the new card waits on USCIS.',
         );
   }
   if (action.id === 'n400')
@@ -481,8 +485,7 @@ export const usAchievements: Achievement<
       'Mailed the I-751 to remove conditions, or the I-90 to renew the card.',
     ),
     check: (state) =>
-      state.flags.includes('i751-filed') ||
-      state.flags.includes('card-renewed'),
+      state.flags.includes('i751-filed') || state.flags.includes('i90-filed'),
   },
   {
     id: 'us-perch',

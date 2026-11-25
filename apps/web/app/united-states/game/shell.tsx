@@ -174,9 +174,9 @@ export const usCountry: GameCountry<UsKinds> = {
   visaStatus: (state) => ({
     months: usGame.visaMonthsLeft(state),
     renewed: state.flags.includes('quarter-visa-renewed'),
-    // USCIS decides a filed I-751 after the game; the receipt notice's
-    // extension of the card is not in policy-data (PD-432).
-    pending: !!state.timeline.filed.i751,
+    // USCIS decides a filed I-751 or I-90 after the game; the receipt
+    // notice's extension of the card is not in policy-data (PD-432).
+    pending: !!(state.timeline.filed.i751 || state.timeline.filed.i90),
     validTo: state.timeline.travel.cardExpiresOn,
   }),
   absences: (state) =>

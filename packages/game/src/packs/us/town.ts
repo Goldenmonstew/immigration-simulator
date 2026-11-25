@@ -367,8 +367,8 @@ const conditionsNote = t(
   `File a joint I-751 with your spouse in the ${timeValues.conditionsWindowDays.value} days before the conditional card expires (${cite(timeValues.conditionsWindowDays)}), counted on the day you mail it. Conditional status then continues until USCIS decides (${cite(timeValues.conditionsWindowDays)}); USCIS may ask for an interview, and the game does not simulate the decision, so the assessment records the petition as pending. How long the receipt notice extends the card is not in policy-data yet (PD-432), so the game books no trips past the card's date.`,
 );
 export const renewalNote = t(
-  `绿卡到期前 ${values.address.value.renewalMonths} 个月内可用 I-90 换卡，纸本费用 ${usd(fees.i90.paper)}（${cite(values.address, 1)}；${cite(values.fees)}）。游戏把这次换卡当作获批；绿卡到期不会让永久居民身份失效。`,
-  `Renew with Form I-90 within ${values.address.value.renewalMonths} months of expiry; the paper fee is ${usd(fees.i90.paper)} (${cite(values.address, 1)}; ${cite(values.fees)}). The game treats the renewal as approved; an expired card does not end permanent residence.`,
+  `绿卡到期前 ${values.address.value.renewalMonths} 个月内可用 I-90 换卡，纸本费用 ${usd(fees.i90.paper)}（${cite(values.address, 1)}；${cite(values.fees)}）。按寄出那天算。游戏不模拟 USCIS 的裁定，不写新卡；收件通知把绿卡有效期延长多久，policy-data 还没有参数（PD-432），卡面到期后游戏不安排出境。绿卡到期不会让永久居民身份失效。`,
+  `Renew with Form I-90 within ${values.address.value.renewalMonths} months of expiry; the paper fee is ${usd(fees.i90.paper)} (${cite(values.address, 1)}; ${cite(values.fees)}). counted on the day you mail it. The game does not simulate the USCIS decision and records no new card; how long the receipt notice extends the card is not in policy-data yet (PD-432), so the game books no trips past the card's date. An expired card does not end permanent residence.`,
 );
 export const interviewNote = t(
   `面谈时考英语读、写、说，以及公民知识：${civics.current.bank} 题题库里问 ${civics.current.asked} 题，答对 ${civics.current.correct} 题通过（${cite(values.civicsTest)}）。没通过的部分在首次面谈后 ${civics.retestDays.earliest}–${civics.retestDays.latest} 天补考一次；游戏把补考安排在下一季，再没通过则 N-400 被拒，要重新递交。`,

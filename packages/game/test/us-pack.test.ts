@@ -285,6 +285,55 @@ test('the I-751 is mailed on a day inside its window and stays pending', () => {
   ).toEqual([]);
 });
 
+test('the I-90 renewal opens six months before expiry and stays pending', () => {
+  const travel = (state: State) =>
+    us.usRequest(state.timeline, 'US-TRAVEL', us.filingDay(state.date), 'en')
+      .travel!;
+  const renewal = (state: State) =>
+    us
+      .pathwayOf(state.result, 'gc')!
+      .checks.find(({ id }) => id === 'US-C19-REPLACEMENT')?.status;
+  const december = visit(
+    playTo(us.newGame('engineer', 5, 'en'), '2032-12-01'),
+    'visa',
+    600,
+  );
+  // The card ends 2033-06-15; renewal opens on the day six months before,
+  // judged on the day the form goes in the mail.
+  expect(december.timeline.travel.cardExpiresOn).toBe('2033-06-15');
+  const on = (date: string) =>
+    ids({ ...december, day: { ...december.day, date } }, 'visa').includes(
+      'extend',
+    );
+  expect(on('2032-12-14')).toBe(false);
+  expect(on('2032-12-15')).toBe(true);
+  const office = visit(playTo(december, '2033-03-01'), 'visa', 600);
+  expect(renewal(office)).toBe('NOT_MET');
+  const mailed = office.day.date;
+  const filed = us.doActivity(office, 'extend');
+  expect(filed.stats.money).toBe(office.stats.money - fees.i90.paper);
+  // No new card: USCIS has not decided, and the card keeps its date.
+  expect(filed.timeline.travel.cardExpiresOn).toBe('2033-06-15');
+  expect(filed.log.at(-1)?.renewalValidTo).toBeUndefined();
+  expect(travel(filed).replacementFiledOn).toBe('not-filed');
+  expect(ids(filed, 'visa')).not.toContain('extend');
+  // From next quarter the engine sees the filing on its own day.
+  const next = quarterLater(filed);
+  expect(travel(next)).toMatchObject({
+    replacementFiledOn: mailed,
+    replacementReason: 'renewal',
+  });
+  expect(renewal(next)).toBe('MET');
+  expect(ids(visit(next, 'visa', 600), 'visa')).not.toContain('extend');
+  // Past the card's date no trips are booked (PD-432).
+  const expired = playTo(next, '2033-09-01');
+  expect(
+    ids(visit(expired, 'station', 600), 'station').filter((id) =>
+      id.startsWith('travel-'),
+    ),
+  ).toEqual([]);
+});
+
 test('missing the I-751 window ends conditional residence', () => {
   const state = playTo(us.newGame('spouse', 5, 'en'), '2027-12-01');
   expect(state.ending).toBe('overstayed');
