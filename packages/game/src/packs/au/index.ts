@@ -54,6 +54,7 @@ export const auGameContent: GameContentPack<
   actionAvailable: hooks.actionAvailable,
   actionDetails: hooks.actionDetails,
   actionFlags: hooks.actionFlags,
+  beforeAction: hooks.beforeAction,
   afterAction: hooks.afterAction,
   quarterEffects: (played) => [
     { type: 'stat', key: 'english', delta: played % 2 ? 0 : -b.englishDecay },

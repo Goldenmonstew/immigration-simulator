@@ -184,6 +184,34 @@ test('leaving on a festival after the visa has ended links the lapse on that day
   expect(view(page.result!)[0].status).toBe('NOT_MET');
 });
 
+test('a Hong Kong application lodged with usual residence pending links the same assessment', () => {
+  vi.stubGlobal('localStorage', {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  });
+  let state = settle(au.newGame('graduate', 7, 'zh-CN'));
+  state = au.doActivity(visit(state, 'station', 540), 'health-exam');
+  state = au.doActivity(visit(state, 'post', 900), 'police-check');
+  state = settle(au.doActivity(visit(state, 'station', 1000), 'travel-1'));
+  const later = structuredClone(state);
+  Object.assign(later, { date: '2027-09-01', quarter: 4 });
+  later.result = au.auRules.evaluate(later);
+  const lodged = au.doActivity(visit(later, 'visa', 600), 'settle');
+  expect(lodged.ending).toBe('settled');
+  const page = readPageResult(
+    australiaModule,
+    'zh-CN',
+    auCountry.resultHref(lodged).split('#s=')[1],
+    'result',
+  );
+  expect(page.correction).toBeUndefined();
+  expect(page.draft).toEqual(gameDraft(lodged));
+  expect(view(page.result!)).toEqual(view(shownResult(lodged)));
+  expect(view(page.result!)[0].status).toBe('UNKNOWN');
+  expect(au.progress(lodged).pr.outcome).toBe('UNKNOWN');
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bar and assessment speak Australian residence in %s',
   (locale) => {

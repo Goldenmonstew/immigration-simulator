@@ -293,3 +293,49 @@ test('a festival after the visa has ended shows the lapse, and leaving is assess
     }),
   );
 });
+
+test('after a trip home, the Hong Kong stream can be lodged once only usual residence (PD-108) is pending', () => {
+  let state = settle(au.newGame('graduate', 5, 'en'));
+  state = au.doActivity(visit(state, 'station', 540), 'health-exam');
+  state = au.doActivity(visit(state, 'post', 900), 'police-check');
+  const station = visit(state, 'station', 1000);
+  // The trip's note says what the trip does to the stream.
+  const trip = au
+    .activities(station, 'station')
+    .find(({ id }) => id === 'travel-1')!;
+  expect(trip.note?.zhCN).toContain('PD-108');
+  expect(trip.note?.zhCN).toContain('仍可在政府服务中心递交');
+  expect(trip.note?.en).toContain('you can still lodge');
+  state = settle(au.doActivity(station, 'travel-1'));
+  expect(state.timeline.trips).toEqual([
+    { departed: '2026-03-10', returned: '2026-04-10' },
+  ]);
+  const later = at(state, '2027-09-01', 4);
+  const pathway = au.pathwayOf(later.result)!;
+  expect(pathway.status).toBe('UNKNOWN');
+  expect(failing(later)).toEqual([
+    'AU-191-HK-time-residence',
+    'AU-FEES-APPLICATION',
+  ]);
+  expect(
+    pathway.checks.find(({ id }) => id === 'AU-191-HK-time-residence')
+      ?.pendingDetails,
+  ).toContain('PD-108');
+  const office = visit(later, 'visa', 600);
+  const lodge = au.activities(office, 'visa').find((a) => a.id === 'settle');
+  expect(lodge?.label.zhCN).toContain('内政部核对');
+  expect(lodge?.label.en).toContain('Home Affairs');
+  expect(lodge?.note?.zhCN).toContain('PD-108');
+  const ended = au.doActivity(office, 'settle');
+  expect(ended.ending).toBe('settled');
+  const ending = au.narrative(ended).at(-1)!;
+  expect(ending.zhCN).toContain(au.characterOf('graduate').settlement.zhCN);
+  expect(ending.zhCN).toContain('PD-108');
+  expect(ending.en).toContain('PD-108');
+  // Still closed while the time requirement itself is not met.
+  const early = visit(at(state, '2026-12-01', 1), 'visa', 600);
+  expect(au.pathwayOf(early.result)?.status).toBe('NOT_MET');
+  expect(au.activities(early, 'visa').map(({ id }) => id)).not.toContain(
+    'settle',
+  );
+});

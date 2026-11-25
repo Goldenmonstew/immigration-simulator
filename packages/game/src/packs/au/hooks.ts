@@ -100,6 +100,25 @@ function lodgementFee(state: AuState) {
   return { fee: tariff.value.standard[0], locator: tariff.sources[0].locator };
 }
 
+/**
+ * Only the Hong Kong streams' continuous usual residence is pending, a
+ * case-by-case call after a trip (PD-108): the application can go in and
+ * Home Affairs decides it. Fees are a budget, not a requirement.
+ */
+function residencePending(state: AuState) {
+  const pathway = pathwayOf(currentResult(state));
+  return (
+    pathway?.status === 'UNKNOWN' &&
+    pathway.checks.every(
+      (check) =>
+        check.status === 'MET' ||
+        check.id.startsWith('AU-FEES-') ||
+        (check.id === 'AU-191-HK-time-residence' &&
+          !!check.pendingDetails?.includes('PD-108')),
+    )
+  );
+}
+
 export function actionAvailable(
   state: AuState,
   action: AuActivity,
@@ -107,7 +126,8 @@ export function actionAvailable(
   const { regional, publicInterest } = state.timeline;
   if (action.id === 'settle')
     return (
-      pathwayOf(currentResult(state))?.status === 'MET' &&
+      (pathwayOf(currentResult(state))?.status === 'MET' ||
+        residencePending(state)) &&
       state.stats.money >= lodgementFee(state).fee
     );
   if (action.id === 'tax-return')
@@ -144,6 +164,16 @@ export function actionDetails(state: AuState, action: AuActivity): void {
       '现实中签证在 ImmiAccount 网上递交，游戏放在服务中心的自助电脑上。费用按游戏日期适用的现行费率计，实际金额以递交当天的费表为准。',
       'In real life visas are lodged online in ImmiAccount; the game puts the kiosk at the service centre. The charge uses the current rates; the actual amount follows the fee table on the day you lodge.',
     );
+    if (residencePending(state)) {
+      action.label = t(
+        `${action.label.zhCN.slice(0, -1)}；连续通常居住由内政部核对）`,
+        `${action.label.en.slice(0, -1)}; Home Affairs decides continuous usual residence)`,
+      );
+      action.note = t(
+        `评估里只剩"连续通常居住"待确认：离境后是否仍算通常居住须个案判断（PD-108），由内政部在审理时核对。${action.note.zhCN}`,
+        `Only continuous usual residence is pending in the assessment: whether you stayed usually resident through a trip is a case-by-case call (PD-108) that Home Affairs makes when it decides the application. ${action.note.en}`,
+      );
+    }
     action.effects = [{ type: 'money', delta: -fee }, ...action.effects];
   }
   if (action.id === 'tax-return') {
@@ -158,13 +188,19 @@ export function actionDetails(state: AuState, action: AuActivity): void {
     action.label = t('冬天下海游一圈（冷！）', 'A winter dip (cold!)');
   if (action.id.startsWith('travel-') && state.timeline.pathway === 'AU-191-HK')
     action.note = t(
-      '须在当前签证到期前回到澳洲。香港类别离境后是否仍算通常居住须个案判断（PD-108），回来后评估会显示待确认。',
-      'Be back before your current visa ends. Whether the Hong Kong streams still treat you as usually resident after a trip is a case-by-case call (PD-108); the assessment will show it as unknown.',
+      '须在当前签证到期前回到澳洲。香港类别离境后是否仍算连续通常居住须个案判断（PD-108）：回来后评估会一直把这一项显示为待确认，进度条也不再给出日期；其他条件都满足后，仍可在政府服务中心递交，由内政部核对。',
+      'Be back before your current visa ends. Whether the Hong Kong streams still treat you as continuously usually resident after a trip is a case-by-case call (PD-108): from then on the assessment shows it as unknown and the progress bar gives no date. Once everything else is met, you can still lodge at the service centre and Home Affairs decides it.',
     );
 }
 
 export function actionFlags(action: AuActivity): string[] | undefined {
   if (action.id === 'settle') return ['applied-pr'];
+}
+
+// Before the effects run: the ending text reads what was pending at lodgement.
+export function beforeAction(state: AuState, action: AuActivity): void {
+  if (action.id === 'settle' && residencePending(state))
+    state.flags.push('lodged-residence-pending');
 }
 
 export function afterAction(
@@ -299,8 +335,14 @@ export function routine(
 }
 
 export function endingText(state: AuState, ending: EndingId): Text {
+  const settlement = characterOf(state.characterId).settlement;
   const texts: Record<EndingId, Text> = {
-    settled: characterOf(state.characterId).settlement,
+    settled: state.flags.includes('lodged-residence-pending')
+      ? t(
+          `${settlement.zhCN}\n申请里"连续通常居住"一项还待内政部个案核对（PD-108），结果要等审理。`,
+          `${settlement.en}\nWhether you stayed usually resident through your trip is still for Home Affairs to decide case by case (PD-108); the outcome waits on the decision.`,
+        )
+      : settlement,
     left: t(
       '行李箱合上，火车驶离金合欢湾，窗外的海一点点变小。你选择离开澳大利亚，这局生活到这里收好。',
       'The suitcase closes and the train pulls out of Wattle Bay, the sea shrinking in the window. You chose to leave Australia, ending this game.',
