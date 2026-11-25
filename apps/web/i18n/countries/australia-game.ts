@@ -1,12 +1,13 @@
-// Australia's town game: its recipes, plus `au.game.*` wording that replaces
-// the shared game strings (see gameKey in app/game-shell/game-ui.tsx).
+// Australia's town game: `au.game.*` wording that replaces the shared game
+// strings or adds its own, recipe steps included (see gameKey in
+// app/game-shell/game-ui.tsx).
 export const auGameZh = {
-  'game.prepare-flathead-and-chips': '裹上面糊，炸到金黄',
-  'game.prepare-roast-spuds': '刷油撒盐，烤到外脆里软',
-  'game.prepare-bbq-corn': '在烤架上转一转，抹上黄油',
-  'game.prepare-winter-veg-soup': '小火慢炖，搅一搅汤锅',
-  'game.prepare-scone-jam': '加糖，慢慢熬稠',
-  'game.prepare-summer-salad': '切块，挤一点柠檬汁',
+  'au.game.prepare-flathead-and-chips': '裹上面糊，炸到金黄',
+  'au.game.prepare-roast-spuds': '刷油撒盐，烤到外脆里软',
+  'au.game.prepare-bbq-corn': '在烤架上转一转，抹上黄油',
+  'au.game.prepare-winter-veg-soup': '小火慢炖，搅一搅汤锅',
+  'au.game.prepare-scone-jam': '加糖，慢慢熬稠',
+  'au.game.prepare-summer-salad': '切块，挤一点柠檬汁',
   'au.game.english': '澳式口语',
   'au.game.season1': '夏',
   'au.game.season2': '秋',
@@ -43,12 +44,12 @@ export const auGameZh = {
 } as const;
 
 export const auGameEn: Record<keyof typeof auGameZh, string> = {
-  'game.prepare-flathead-and-chips': 'Batter and fry until golden',
-  'game.prepare-roast-spuds': 'Oil, salt and roast until crisp',
-  'game.prepare-bbq-corn': 'Turn on the grill and add butter',
-  'game.prepare-winter-veg-soup': 'Simmer low and stir the pot',
-  'game.prepare-scone-jam': 'Add sugar and simmer until thick',
-  'game.prepare-summer-salad': 'Chop and squeeze over some lemon',
+  'au.game.prepare-flathead-and-chips': 'Batter and fry until golden',
+  'au.game.prepare-roast-spuds': 'Oil, salt and roast until crisp',
+  'au.game.prepare-bbq-corn': 'Turn on the grill and add butter',
+  'au.game.prepare-winter-veg-soup': 'Simmer low and stir the pot',
+  'au.game.prepare-scone-jam': 'Add sugar and simmer until thick',
+  'au.game.prepare-summer-salad': 'Chop and squeeze over some lemon',
   'au.game.english': 'Aussie English',
   'au.game.season1': 'Summer',
   'au.game.season2': 'Autumn',

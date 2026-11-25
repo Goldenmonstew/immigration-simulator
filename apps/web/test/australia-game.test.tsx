@@ -7,7 +7,7 @@ import * as au from '@uk-immigration/game/au';
 import { auGameArt } from '@uk-immigration/game/au/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
-import { t, withCount } from '../i18n';
+import { t, withCount, type TranslationKey } from '../i18n';
 import { australiaModule } from '../lib/australia-module';
 import { decodeDraft } from '../lib/share';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
@@ -17,6 +17,7 @@ import {
   gameDraft,
   itemIcon,
 } from '../app/australia/game/shell';
+import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/australia/town.json';
 
 type State = ReturnType<typeof au.newGame>;
@@ -125,6 +126,29 @@ test.each(['zh-CN', 'en'] as const)(
     expect(columns).toBeDefined();
     if (locale === 'en') expect(hud + bars).not.toMatch(/[㐀-鿿]/);
     expect(html).toContain('town-au.current-law-2026-11-heading');
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'Australian recipes keep their own cooking steps in %s',
+  (locale) => {
+    for (const recipe of au.recipes) {
+      const shared = `game.prepare-${recipe.id}` as TranslationKey;
+      const own = gameKey('au', shared);
+      expect(own, recipe.id).toBe(`au.${shared}`);
+      expect(t(own, locale), recipe.id).not.toBe(t(shared, locale));
+    }
+    expect(
+      t(gameKey('au', 'game.prepare-summer-salad' as TranslationKey), locale),
+    ).toBe(
+      locale === 'en'
+        ? 'Chop and squeeze over some lemon'
+        : '切块，挤一点柠檬汁',
+    );
+    // The UK salad keeps its own step.
+    expect(t('game.prepare-salad', locale)).toBe(
+      locale === 'en' ? 'Toss gently' : '轻轻拌匀',
+    );
   },
 );
 

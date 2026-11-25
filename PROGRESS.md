@@ -831,3 +831,4 @@
 | 619.19 | 任务 96 审核修正（review96-2 风险 1）：I-485 换基原依据为职业类时，不论原依据资格是否已确认“符合”，都显示并保留递交时合法非移民身份与 INA 245(k) 合法入境两项；引擎对已确认的原依据只补空答案，已报告的禁令照样适用。 | apps/web/{lib/united-states-fields.ts,test/united-states.test.tsx} |
 | 619.20 | 任务 96 审核修正（review96-2 建议 3）：境内调整的办理步骤（第 10 步）与人道路径第 9 步提示预计裁决日不能早于 I-485 收件日（引擎不采用更早的裁决日）；领馆案件不查；对比页把裁决日改到收件日前时，错误挂在裁决日旋钮。 | apps/web/{lib/united-states-draft.ts,lib/united-states-whatif.ts,i18n/countries/united-states.ts,test/united-states.test.tsx} |
 | 619.21 | 任务 96 审核修正（review96-2）：报告补“审核修正（review96-2）”一节，逐条对应问题 1–2、风险 1–2、建议 1–3，列出先失败后通过的回归测试、完整验收与 e2e 结果；按建议 1 更正第 1 节提交表（补 619.3）、第 3 节政策页标题一句与 review96-1 一节旋钮描述。 | docs/tasks/reports/96-us-pages.md |
+| 1005 | 任务 103 合入 main 后跟进试点（review111-1 问题 3）：澳大利亚 6 道菜的做法文案键改为 `au.game.prepare-<菜谱 ID>`，外壳 `gameKey` 优先取用，不会被英国或别国同 ID 的不带前缀文案覆盖；网页单测按中英文核对前缀与文案。 | apps/web/i18n/countries/australia-game.ts、apps/web/test/australia-game.test.tsx |
