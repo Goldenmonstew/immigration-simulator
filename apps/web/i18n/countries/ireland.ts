@@ -83,7 +83,7 @@ export const zhCN = {
   'ie.whatif.irpHint':
     'EU／WA 永久居留卡续期已填写证件到期日时，按证件到期日计算，这一项不影响。',
   'ie.whatif.income': '担保人最近一个税年税前收入（€）',
-  'ie.whatif.incomeHint': `替换问卷中最近一个税年的数字；留空则沿用问卷资料。A 类按最近 ${taxYearsA} 个税年合计核对。`,
+  'ie.whatif.incomeHint': `只在核对家庭许可申请时显示。替换问卷中最近一个税年的数字，问卷没有填税年时按只有这一个税年核对；留空则沿用问卷资料。A 类按最近 ${taxYearsA} 个税年合计核对。`,
   'ie.whatif.invalid': '对比后的资料有未通过问卷校验的项目，请先核对问卷。',
 } as const;
 
@@ -163,7 +163,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.whatif.irpHint':
     'An EU or WA permanent residence card renewal uses the card expiry date when you entered it, so this control does not change it.',
   'ie.whatif.income': 'Sponsor’s gross income in the latest tax year (€)',
-  'ie.whatif.incomeHint': `Replaces the latest tax year in the questionnaire. Leave blank to keep your answers. Category A adds up the latest ${taxYearsA} tax years.`,
+  'ie.whatif.incomeHint': `Shown only when a family permission application is checked. Replaces the latest tax year in the questionnaire, or is used as the only tax year if none was entered. Leave blank to keep your answers. Category A adds up the latest ${taxYearsA} tax years.`,
   'ie.whatif.invalid':
     'The compared answers fail a questionnaire check. Review the questionnaire first.',
 };

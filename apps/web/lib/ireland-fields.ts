@@ -901,7 +901,8 @@ export const treatyFields: Fields<Treaty> = {
  */
 export interface IrelandStages {
   workStage?: 'first' | 'renewal';
-  familyStage?: 'first' | 'renewal';
+  /** 'application' also assesses a family application with independent Stamp 4. */
+  familyStage?: 'application' | 'first' | 'renewal';
   stamp5Stage?: 'renewal';
   ltrStage?: 'renewal';
   euStage?: 'renewal';
@@ -944,7 +945,11 @@ export const topFields = {
     paths: NATURALISATION_PATHS,
   }),
   work: group<IrelandWorkUpgrade>(workFields, { paths: WORK_PATHS }),
-  familyStage: stage(['first', 'renewal'], FAMILY_PATHS, 'familyStage'),
+  familyStage: stage(
+    ['application', 'first', 'renewal'],
+    FAMILY_PATHS,
+    'familyStage',
+  ),
   family: group<FamilyQuestions>(familyFields, { paths: FAMILY_PATHS }),
   stamp5Stage: stage(['renewal'], ['IE-STAMP5'], 'stamp5Stage'),
   stamp5: group<IrelandWcatt>(stamp5Fields, { paths: ['IE-STAMP5'] }),

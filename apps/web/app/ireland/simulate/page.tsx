@@ -100,16 +100,22 @@ function IrelandStep({ draft, errors, update }: StepProps) {
       topFields[name as keyof typeof topFields],
     ]),
   );
-  // Each section belongs to a top-level group shown on this step and has at
-  // least one question for the selected pathways.
-  const visible = (stepSections[step] ?? []).filter((section) => {
-    const top = topFields[section.path[0] as keyof typeof topFields];
-    return (
+  // Each section belongs to a top-level group shown on this step, sits in
+  // groups shown for the selected pathways and has at least one question.
+  const groupShown = (path: string[]) => {
+    let fields: IrelandFields = topFields;
+    return path.every((name) => {
+      const field = fields[name];
+      if (field.type === 'group') fields = field.fields;
+      return shownField(field, draft);
+    });
+  };
+  const visible = (stepSections[step] ?? []).filter(
+    (section) =>
       stepFields(step).includes(section.path[0] as never) &&
-      shownField(top, draft) &&
-      Object.values(section.fields).some((field) => shownField(field, draft))
-    );
-  });
+      groupShown(section.path) &&
+      Object.values(section.fields).some((field) => shownField(field, draft)),
+  );
   const pathwayError = errors['ie-pathways'];
   return (
     <>

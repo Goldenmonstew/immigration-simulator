@@ -2,11 +2,11 @@
 
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
-import type { IrelandDraft } from '../../../lib/ireland-draft';
+import { shownField, type IrelandDraft } from '../../../lib/ireland-draft';
 import {
-  FAMILY_PATHS,
   TREATY_PATHS,
   WORK_PATHS,
+  familyFields,
 } from '../../../lib/ireland-fields';
 import {
   irelandFocusControls as ids,
@@ -27,6 +27,13 @@ export function IrelandWhatIfControls({
   const described = (field: string, hint?: string) =>
     [hint, errors[field] && `${field}-error`].filter(Boolean).join(' ') ||
     undefined;
+  // Only a family application reads the sponsor's income. The family stage
+  // decides whether one is assessed, so the knob never adds one.
+  const stage = afterDraft.familyStage;
+  const income =
+    stage !== 'first' &&
+    stage !== 'renewal' &&
+    shownField(familyFields.application, afterDraft);
   const error = (field: string) =>
     errors[field] && (
       <p id={`${field}-error`} role="alert" className={styles.error}>
@@ -94,7 +101,7 @@ export function IrelandWhatIfControls({
         // EU and WA card renewals use the card's own expiry when given.
         has(TREATY_PATHS) ? 'ie.whatif.irpHint' : undefined,
       )}
-      {has(FAMILY_PATHS) && (
+      {income && (
         <div className={styles.field}>
           <label htmlFor={ids.income}>{t('ie.whatif.income')}</label>
           <input

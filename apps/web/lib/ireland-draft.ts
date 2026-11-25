@@ -14,6 +14,7 @@ import {
   RESIDENCE_PATHS,
   TREATY_PATHS,
   WORK_PATHS,
+  familyFields,
   topFields,
   type IrelandField,
   type IrelandFields,
@@ -107,8 +108,13 @@ export function stepFields(step: number) {
 
 export function shownField(
   field: IrelandField,
-  draft: Pick<IrelandDraft, 'pathways'>,
+  draft: Pick<IrelandDraft, 'pathways' | 'familyStage'>,
 ) {
+  // The family stage decides what the family pathways assess. Without one,
+  // independent Stamp 4 assesses the change alone and only the Irish
+  // citizen's partner applies for family permission.
+  if (field === familyFields.application && !draft.familyStage)
+    return draft.pathways.includes('IE-STAMP4-IRISH-FAMILY');
   return selected(field.paths, draft);
 }
 
@@ -185,8 +191,15 @@ export function irelandRequest(
   ] as const)
     delete request[key];
   const stage = registrationStage(active, pathway);
-  // The family registration stage is read from the family application.
+  // The family registration stage is read from the family application, and
+  // an application group, even empty, makes independent Stamp 4 assess it.
   const familyStage = active.familyStage;
+  const application =
+    familyStage === 'first' || familyStage === 'renewal'
+      ? { ...active.family?.application, registrationStage: familyStage }
+      : familyStage === 'application'
+        ? { ...active.family?.application }
+        : undefined;
   return {
     ...(request as Omit<IrelandDraft, keyof CountryDraft>),
     simulationDate: active.simulationDate,
@@ -196,15 +209,7 @@ export function irelandRequest(
     registration: stage
       ? { ...active.registration, stage }
       : active.registration,
-    family: familyStage
-      ? {
-          ...active.family,
-          application: {
-            ...active.family?.application,
-            registrationStage: familyStage,
-          },
-        }
-      : active.family,
+    family: application ? { ...active.family, application } : active.family,
   };
 }
 

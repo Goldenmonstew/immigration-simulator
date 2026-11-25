@@ -597,6 +597,12 @@ test(
       const together = ie.run(draft, 'en').columns[0].pathways;
       for (const id of IRELAND_PATHWAYS) {
         const request = irelandRequest(draft, id);
+        // The family stage decides whether independent Stamp 4 reads the
+        // family application; the stage answers are written into it.
+        const application = request.family?.application && {
+          ...draft.family?.application,
+          registrationStage: request.family.application.registrationStage,
+        };
         // The same answers without removing questions hidden for this pathway.
         const unpruned = evaluateIrelandFull({
           ...draft,
@@ -606,16 +612,12 @@ test(
             ...draft.registration,
             stage: request.registration?.stage,
           },
-          family: request.family?.application?.registrationStage
-            ? {
-                ...draft.family,
-                application: {
-                  ...draft.family?.application,
-                  registrationStage:
-                    request.family.application.registrationStage,
-                },
-              }
-            : draft.family,
+          family:
+            id === 'IE-STAMP4-INDEPENDENT-FAMILY' && !draft.familyStage
+              ? { ...draft.family, application: undefined }
+              : application
+                ? { ...draft.family, application }
+                : draft.family,
           pathways: [id],
           locale: 'en',
         }).columns[0].pathways[0];
@@ -636,6 +638,275 @@ test(
   },
   slow,
 );
+
+// What each selected pathway assesses: its title and the conditions it checks.
+const assessed = (draft: IrelandDraft) =>
+  ie.run(draft, 'en').columns[0].pathways.map(
+    (route) =>
+      `${route.id} ${route.title}: ${route.checks
+        .map((c) => c.id)
+        .sort()
+        .join(' ')}`,
+  );
+const addDays = (date: string, days: number) =>
+  new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+// Independent Stamp 4 after five years on family reunification (review99-2
+// problem 1 and review99-3 problem 1).
+const independentFamily: IrelandDraft = {
+  ...workDraft,
+  step: 4,
+  pathways: ['IE-STAMP4-INDEPENDENT-FAMILY'],
+  permissions: [{ kind: 'stamp4', from: '2019-01-01' }],
+  family: {
+    relationship: 'spouse',
+    establishedFamilyPermission: true,
+    sponsorLawfulAndResident: true,
+    dependentPeriods: [{ from: '2019-01-01' }],
+    nextRenewalOn: '2026-12-20',
+  },
+};
+
+test(
+  'no comparison knob changes what a pathway assesses',
+  () => {
+    const both: IrelandDraft = {
+      ...independentFamily,
+      pathways: ['IE-STAMP4-INDEPENDENT-FAMILY', 'IE-STAMP4-IRISH-FAMILY'],
+    };
+    const application: NonNullable<IrelandDraft['family']>['application'] = {
+      channel: 'ordinary',
+      grossTaxYears: [70000, 80000, 90000],
+      familyEvidenceComplete: true,
+    };
+    const fixtures: [string, IrelandDraft][] = [
+      ['work upgrade', workDraft],
+      ['work renewal', { ...workDraft, workStage: 'renewal' }],
+      [
+        'naturalisation',
+        {
+          ...naturalisationDraft,
+          trips: [{ departed: '2026-01-01', returned: '2026-01-20' }],
+        },
+      ],
+      ['independent Stamp 4', independentFamily],
+      ['both family pathways', both],
+      [
+        'both family pathways with an application',
+        {
+          ...both,
+          family: { ...both.family, sponsorIrish: true, application },
+        },
+      ],
+      [
+        'independent Stamp 4 with a family application',
+        {
+          ...independentFamily,
+          familyStage: 'application',
+          family: {
+            ...independentFamily.family,
+            sponsorCategory: 'B',
+            application,
+          },
+        },
+      ],
+      [
+        'family renewal',
+        {
+          ...independentFamily,
+          familyStage: 'renewal',
+          family: {
+            ...independentFamily.family,
+            application: { familyEvidenceComplete: true },
+          },
+        },
+      ],
+      [
+        'family first registration',
+        {
+          ...independentFamily,
+          familyStage: 'first',
+          family: {
+            ...independentFamily.family,
+            application: { channel: 'ordinary' },
+          },
+        },
+      ],
+      [
+        'Irish citizen’s partner',
+        {
+          ...independentFamily,
+          pathways: ['IE-STAMP4-IRISH-FAMILY'],
+          family: { relationship: 'spouse', sponsorIrish: true },
+        },
+      ],
+      [
+        'Stamp 5 and LTR',
+        {
+          ...workDraft,
+          pathways: ['IE-STAMP5', 'IE-LTR-PRINCIPAL', 'IE-LTR-FAMILY'],
+          permissions: [{ kind: 'stamp1-csep', from: '2016-01-01' }],
+          trips: [{ departed: '2024-03-01', returned: '2024-03-20' }],
+          ltr: { validPermission: true, employment: 'employed' },
+        },
+      ],
+      [
+        'Stamp 5 and LTR renewals',
+        {
+          ...workDraft,
+          pathways: ['IE-STAMP5', 'IE-LTR-PRINCIPAL'],
+          permissions: [{ kind: 'stamp5', from: '2020-01-01' }],
+          stamp5Stage: 'renewal',
+          ltrStage: 'renewal',
+        },
+      ],
+      [
+        'EU and WA',
+        {
+          ...workDraft,
+          pathways: ['IE-EU-PERMANENT', 'IE-WA-PERMANENT'],
+          eu: { role: 'citizen' },
+          waStage: 'renewal',
+          wa: {
+            role: 'citizen',
+            document: { currentCardExpiresOn: '2027-03-01' },
+          },
+        },
+      ],
+      ['generated answers', samples[0]],
+      ['generated sparse answers', samples[3]],
+    ];
+    const ids = ie.whatif.focusControls;
+    const problems: string[] = [];
+    for (const [name, draft] of fixtures) {
+      const knobs = ie.whatif.initial(draft);
+      const before = ie.whatif.apply(draft, knobs);
+      const shown = render(
+        <IrelandWhatIfControls
+          afterDraft={before}
+          knobs={knobs}
+          errors={{}}
+          update={() => {}}
+        />,
+      );
+      const variants: [keyof typeof ids, Partial<typeof knobs>][] = [
+        ['date', { simulationDate: addDays(knobs.simulationDate, 90) }],
+        ['date', { simulationDate: addDays(knobs.simulationDate, -90) }],
+        ['trips', { noTrips: true }],
+        [
+          'employment',
+          { employmentStart: addDays(knobs.employmentStart ?? day, -120) },
+        ],
+        ['employment', { employmentStart: undefined }],
+        ['irp', { irpExpiresOn: addDays(knobs.irpExpiresOn ?? day, 200) }],
+        ['irp', { irpExpiresOn: undefined }],
+        ['income', { income: 60000 }],
+        ['income', { income: 10 }],
+      ];
+      const object = assessed(before);
+      for (const [knob, patch] of variants) {
+        // Only controls shown on the comparison page can be changed.
+        if (!shown.includes(`id="${ids[knob]}"`)) continue;
+        const next = { ...knobs, ...patch };
+        const after = ie.whatif.apply(draft, next);
+        if (Object.keys(ie.whatif.validate(after, next)).length) continue;
+        if (JSON.stringify(assessed(after)) !== JSON.stringify(object))
+          problems.push(`${name}: ${knob} ${JSON.stringify(patch)}`);
+      }
+    }
+    // Every knob is covered by the variants above.
+    expect(Object.keys(ids).sort()).toEqual([
+      'date',
+      'employment',
+      'income',
+      'irp',
+      'trips',
+    ]);
+    expect(problems).toEqual([]);
+
+    // review99-3 problem 1: the sponsor’s income is not asked for the change
+    // to independent Stamp 4 alone, and setting it changes nothing there.
+    const knobs = ie.whatif.initial(independentFamily);
+    const controls = render(
+      <IrelandWhatIfControls
+        afterDraft={ie.whatif.apply(independentFamily, knobs)}
+        knobs={knobs}
+        errors={{}}
+        update={() => {}}
+      />,
+    );
+    expect(controls).not.toContain(`id="${ids.income}"`);
+    const id = 'IE-STAMP4-INDEPENDENT-FAMILY';
+    expect(
+      pathway(
+        ie.whatif.apply(independentFamily, { ...knobs, income: 60000 }),
+        id,
+      ),
+    ).toEqual(pathway(independentFamily, id));
+    expect(pathway(independentFamily, id)).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-12-20',
+    });
+  },
+  slow,
+);
+
+test('independent Stamp 4 assesses a family application only when the family step asks for it', () => {
+  const id = 'IE-STAMP4-INDEPENDENT-FAMILY';
+  const html = (draft: IrelandDraft) =>
+    render(
+      IrelandSimulatePage().props.children({
+        draft,
+        errors: {},
+        update: () => {},
+      }),
+    );
+  const alone = pathway(independentFamily, id);
+  // review99-2 risk 1: an application answer kept in the draft no longer adds
+  // the application checks to the change to independent Stamp 4.
+  const answered: IrelandDraft = {
+    ...independentFamily,
+    family: {
+      ...independentFamily.family,
+      application: { date: '2026-11-01' },
+    },
+  };
+  expect(pathway(answered, id)).toEqual(alone);
+  expect(html(independentFamily)).not.toContain(
+    `<summary>${t('ie.form.section.famChannel')}`,
+  );
+  // Application answers for the Irish citizen's partner stay on that pathway.
+  const both: IrelandDraft = {
+    ...answered,
+    pathways: [id, 'IE-STAMP4-IRISH-FAMILY'],
+  };
+  expect(html(both)).toContain(`<summary>${t('ie.form.section.famChannel')}`);
+  expect(pathway(both, id)).toEqual(alone);
+  expect(
+    pathway(both, 'IE-STAMP4-IRISH-FAMILY').checks.map((c) => c.id),
+  ).toContain('IE-B14');
+  // Choosing the family application assesses it, even before any answer.
+  const applying: IrelandDraft = {
+    ...independentFamily,
+    familyStage: 'application',
+  };
+  expect(html(applying)).toContain(
+    `<summary>${t('ie.form.section.famChannel')}`,
+  );
+  expect(html(applying)).toContain(t('ie.option.familyStage.application'));
+  const route = pathway(applying, id);
+  expect(route.title).toBe(alone.title);
+  expect(route.checks.map((c) => c.id)).toEqual(
+    expect.arrayContaining(['IE-B11', 'IE-B12', 'IE-B14', 'IE-B17']),
+  );
+  // Once chosen, answering the application changes the checks' results only.
+  expect(
+    pathway({ ...applying, family: answered.family }, id).checks.map(
+      (c) => c.id,
+    ),
+  ).toEqual(route.checks.map((c) => c.id));
+});
 
 test('minors on the Irish associations and public service routes can be represented', () => {
   const minor: IrelandDraft = {
