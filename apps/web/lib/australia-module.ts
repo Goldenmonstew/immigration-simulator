@@ -1,6 +1,7 @@
 import {
   evaluateAustraliaFull,
   type CountryCheck,
+  type CountryResult,
   type Locale,
 } from '@uk-immigration/engine';
 import { t } from '../i18n';
@@ -31,16 +32,25 @@ function checkKind(id: string): CountryCheck['kind'] {
   return 'requirement';
 }
 
-function run(draft: AustraliaDraft, locale: Locale) {
-  const confirmed = activeAustraliaAnswers(draft);
-  const result = evaluateAustraliaFull({
-    ...confirmed,
-    trips: confirmed.noTrips ? [] : confirmed.trips,
-    locale,
-  });
+/**
+ * The result page's view of an engine result: each check labelled with its
+ * kind. The town game shows its assessment through this too.
+ */
+export function presentAustraliaResult(result: CountryResult): CountryResult {
   for (const pathway of result.columns[0].pathways)
     for (const check of pathway.checks) check.kind = checkKind(check.id);
   return result;
+}
+
+function run(draft: AustraliaDraft, locale: Locale) {
+  const confirmed = activeAustraliaAnswers(draft);
+  return presentAustraliaResult(
+    evaluateAustraliaFull({
+      ...confirmed,
+      trips: confirmed.noTrips ? [] : confirmed.trips,
+      locale,
+    }),
+  );
 }
 
 export const australiaModule: CountryModule<AustraliaDraft, AustraliaWhatIf> = {

@@ -2,20 +2,21 @@ import { existsSync } from 'node:fs';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
-import type { Locale } from '@uk-immigration/engine';
+import type { CountryResult, Locale } from '@uk-immigration/engine';
 import * as au from '@uk-immigration/game/au';
 import { auGameArt } from '@uk-immigration/game/au/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount, type TranslationKey } from '../i18n';
 import { australiaModule } from '../lib/australia-module';
-import { decodeDraft } from '../lib/share';
+import { readPageResult } from '../lib/page-result';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
 import {
   auCountry,
   auShell,
   gameDraft,
   itemIcon,
+  shownResult,
 } from '../app/australia/game/shell';
 import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/australia/town.json';
@@ -58,32 +59,96 @@ test('Australia has a game page, entries and its own save and sound keys', () =>
   expect(storage.get('au-immigration-life-muted')).toBe('false');
 });
 
-test.each(['nurse', 'graduate'] as const)(
-  'the ending link restores the %s timeline on the Australia result page',
-  (id) => {
-    const state = settle(au.newGame(id, 4, 'en'));
-    const href = auCountry.resultHref(state);
-    expect(href.startsWith('/australia/result#s=')).toBe(true);
-    const draft = decodeDraft(australiaModule, href.split('#s=')[1], true)!;
-    expect(draft.completed).toBe(true);
-    expect(draft.simulationDate).toBe(state.date);
-    expect(draft.pathway).toBe(state.timeline.pathway);
-    expect(draft.visas).toEqual(state.timeline.visas);
-    const shown = australiaModule.run(draft, 'en').columns[0].pathways;
-    expect(
-      shown.map(({ id, status, checks }) => [
-        id,
-        status,
-        checks.map((check) => [check.id, check.status]),
-      ]),
-    ).toEqual(
-      state.result.columns[0].pathways.map(({ id, status, checks }) => [
-        id,
-        status,
-        checks.map((check) => [check.id, check.status]),
-      ]),
+/** Walk to an open place at a given time, as the town map would. */
+function visit(state: State, place: string, minute: number) {
+  state = settle(state);
+  if (state.day.minute < minute)
+    state = settle(au.tick(state, minute - state.day.minute));
+  return settle(au.enter(state, place));
+}
+/** Sleep through to the next playable day, answering events on the way. */
+function nextDay(state: State) {
+  const day = state.dayNumber;
+  for (let i = 0; i < 8 && state.dayNumber === day; i++)
+    state = settle(au.sleep(settle(state)));
+  return state;
+}
+/** Every 191 document in hand, at a later quarter start. */
+function ready(state: State, date: string) {
+  const next = structuredClone(state);
+  Object.assign(next.timeline.publicInterest, {
+    health: 'cleared',
+    policeDocuments: 'supplied',
+  });
+  next.timeline.regional.assessmentYears = [2023, 2024, 2025, 2026, 2027];
+  next.date = date;
+  next.result = au.auRules.evaluate(next);
+  return next;
+}
+const view = (result: CountryResult) =>
+  result.columns[0].pathways.map((pathway) => ({
+    id: pathway.id,
+    status: pathway.status,
+    earliestDate: pathway.earliestDate,
+    timeEarliestDate: pathway.timeEarliestDate,
+    checks: pathway.checks.map((check) => [check.id, check.status, check.kind]),
+  }));
+
+test.each([
+  ['nurse', '2027-12-01', '2029-09-01'],
+  ['graduate', '2027-09-01', '2029-06-01'],
+] as const)(
+  'the ending link opens the same %s timeline on the Australia result page',
+  (id, metOn, lastQuarter) => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    });
+    const opening = settle(au.newGame(id, 7, 'zh-CN'));
+    // A month home, recorded when the quarter that holds the return begins.
+    const abroad = settle(
+      au.doActivity(visit(opening, 'station', 600), 'travel-1'),
     );
-    expect(gameDraft(state).step).toBe(6);
+    expect(abroad.timeline.trips).toHaveLength(1);
+    // The medical and police checks on the quarter's playable day, then leave.
+    const medical = au.doActivity(
+      visit(opening, 'station', 540),
+      'health-exam',
+    );
+    const papers = au.doActivity(visit(medical, 'post', 900), 'police-check');
+    const left = au.doActivity(visit(papers, 'station', 1000), 'leave');
+    expect(left.ending).toBe('left');
+    const lodged = au.doActivity(
+      visit(ready(opening, metOn), 'visa', 600),
+      'settle',
+    );
+    expect(lodged.ending).toBe('settled');
+    let lapsed = ready(opening, lastQuarter);
+    for (let i = 0; i < 6 && !au.isOver(lapsed); i++) lapsed = nextDay(lapsed);
+    expect(lapsed.ending).toBe('overstayed');
+    for (const state of [opening, abroad, left, lodged, lapsed]) {
+      const href = auCountry.resultHref(state);
+      expect(href.startsWith('/australia/result#s=')).toBe(true);
+      const page = readPageResult(
+        australiaModule,
+        'zh-CN',
+        href.split('#s=')[1],
+        'result',
+      );
+      expect(page.correction, state.ending).toBeUndefined();
+      expect(page.draft, state.ending).toEqual(gameDraft(state));
+      expect(page.draft!.simulationDate).toBe(state.date);
+      expect(page.draft!.step).toBe(6);
+      expect(view(page.result!), state.ending).toEqual(
+        view(shownResult(state)),
+      );
+      expect(au.progress(state).pr.outcome).toBe(
+        page.result!.columns[0].pathways[0].status,
+      );
+    }
+    expect(view(lodged.result)[0].status).toBe('MET');
+    expect(view(lapsed.result)[0].status).toBe('NOT_MET');
   },
 );
 
@@ -126,6 +191,14 @@ test.each(['zh-CN', 'en'] as const)(
     expect(columns).toBeDefined();
     if (locale === 'en') expect(hud + bars).not.toMatch(/[㐀-鿿]/);
     expect(html).toContain('town-au.current-law-2026-11-heading');
+    // Checks are labelled by kind and the date named as on the result page.
+    expect(html).toContain(t('country.check.time', locale));
+    expect(html).toContain(t('country.check.budget', locale));
+    const detail = render(
+      auCountry.progressDetail(state, 'pr', (key) => t(key, locale)),
+      locale,
+    );
+    expect(detail).toContain(t('au.result.earliest', locale));
   },
 );
 

@@ -13,8 +13,15 @@ import {
   createAustraliaDraft,
   type AustraliaDraft,
 } from '../../../lib/australia-draft';
-import { australiaModule } from '../../../lib/australia-module';
-import { isDecisionOutcome, pathwayTitle } from '../../../lib/country-module';
+import {
+  australiaModule,
+  presentAustraliaResult,
+} from '../../../lib/australia-module';
+import {
+  earliestLabelFor,
+  isDecisionOutcome,
+  pathwayTitle,
+} from '../../../lib/country-module';
 import { encodeDraft } from '../../../lib/share';
 import { countryPath } from '../../../lib/site-countries';
 import { createGameShell } from '../../game-shell/shell';
@@ -74,6 +81,10 @@ export function gameDraft(state: AuState): AustraliaDraft {
   };
 }
 
+/** The game's assessment as the result page shows it. */
+export const shownResult = (state: AuState) =>
+  presentAustraliaResult(structuredClone(state.result));
+
 export const auCountry: GameCountry<AuKinds> = {
   id: 'au',
   game: auGame,
@@ -125,7 +136,7 @@ export const auCountry: GameCountry<AuKinds> = {
   assessment: (state, idPrefix) => (
     <CountryAssessmentColumns
       country={australiaModule}
-      result={state.result}
+      result={shownResult(state)}
       simulationDate={state.date}
       idPrefix={idPrefix}
     />
@@ -133,13 +144,13 @@ export const auCountry: GameCountry<AuKinds> = {
   endingAssessment: (state) => (
     <CountryAssessmentColumns
       country={australiaModule}
-      result={state.result}
+      result={shownResult(state)}
       simulationDate={state.date}
       idPrefix="ending-"
     />
   ),
   progressDetail(state, _id, t) {
-    const pathway = auGame.pathwayOf(state.result);
+    const pathway = auGame.pathwayOf(shownResult(state));
     if (!pathway)
       return <p className={styles.lead}>{t('result.undetermined')}</p>;
     return (
@@ -153,7 +164,9 @@ export const auCountry: GameCountry<AuKinds> = {
             <dd>{auGame.timeDate(state) ?? t('result.undetermined')}</dd>
           </div>
           <div>
-            <dt>{t('result.earliest')}</dt>
+            <dt>
+              {t(earliestLabelFor(pathway, australiaModule.earliestLabel))}
+            </dt>
             <dd>{pathway.earliestDate ?? t('result.undetermined')}</dd>
           </div>
         </dl>
