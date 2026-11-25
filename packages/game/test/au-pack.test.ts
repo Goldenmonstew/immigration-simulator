@@ -409,3 +409,35 @@ test('the tax and application notes follow each stream and the fee table date', 
   expect(lodge.note?.en).toContain(auCharges.effectiveFrom.value);
   expect(lodge.note?.zhCN).not.toContain('游戏日期适用的现行费率');
 });
+
+test('the summer call from Hong Kong and the Christmas invitation come at their time of year', () => {
+  const seen: [string, string, number, string][] = [];
+  for (let seed = 1; seed <= 20; seed++) {
+    let state = au.newGame('graduate', seed, 'en');
+    for (
+      let i = 0;
+      i < 400 && !au.isOver(state) && state.date < '2028-03-01';
+      i++
+    ) {
+      const event = au.currentEvent(state);
+      if (!event) state = au.fastForward(state);
+      else {
+        if (event.id === 'grad-home-call' || event.id === 'au-christmas')
+          seen.push([event.id, state.day.date, state.quarter, state.day.kind]);
+        state = au.resolve(state, event.choices[0].id);
+      }
+    }
+  }
+  const calls = seen.filter(([id]) => id === 'grad-home-call');
+  const christmas = seen.filter(([id]) => id === 'au-christmas');
+  expect(calls.length).toBeGreaterThan(0);
+  expect(christmas.length).toBeGreaterThan(0);
+  // “It's winter there”: the southern winter quarter.
+  for (const [, date, quarter] of calls)
+    expect([date, quarter]).toEqual([date, 3]);
+  // An invitation for Christmas Day comes before it, in December.
+  for (const [, date] of christmas) {
+    expect(date.slice(5, 7)).toBe('12');
+    expect(date.slice(8) < '25').toBe(true);
+  }
+}, 60_000);

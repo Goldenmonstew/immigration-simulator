@@ -252,6 +252,8 @@ const graduateEvents: AuEvent[] = [
   {
     id: 'grad-home-call',
     channel: 'phone',
+    // Hong Kong's summer heat is the southern winter.
+    season: 3,
     title: t('香港来的电话', 'A call from Hong Kong'),
     text: t(
       '妈妈在那头扇着扇子：「这边三十四度。你那边冬天，有没有穿够衣服？」',

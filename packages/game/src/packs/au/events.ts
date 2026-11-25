@@ -156,6 +156,8 @@ export const auEvents: AuEvent[] = [
     id: 'au-christmas',
     channel: 'phone',
     season: 1,
+    // The quarter's weekend falls in mid-December, before Christmas.
+    when: [{ dayKind: 'weekend' }],
     title: t('海边的圣诞', 'Christmas by the beach'),
     text: t(
       '莱拉妮打来电话：圣诞节大家带吃的去海滩，虾和帕夫洛娃都有，你来吗？',
