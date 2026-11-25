@@ -43,6 +43,13 @@ function at(state: State, date: string) {
   next.result = es.esRules.evaluate(next);
   return next;
 }
+/** The nationality checks still open, among those that decide the route. */
+function natGaps(state: State) {
+  const nat = es.pathwayOf(state.result, 'nat')!;
+  return nat.checks
+    .filter(({ id, status }) => status !== 'MET' && nat.decidedBy?.includes(id))
+    .map(({ id }) => id);
+}
 const ids = (state: State, place: string) =>
   es.activities(state, place).map(({ id }) => id);
 
@@ -201,8 +208,8 @@ test('steps taken in town carry their day and join the next quarter’s assessme
     documents: { birthRecord: false, foreignDocumentFormalities: false },
   });
   expect(es.progress(dele).nat.outcome).toBe('NOT_MET');
-  // From the next quarter they count: only the residence period is left,
-  // met from 2026-09-02.
+  // From the next quarter they count: only the residence period, met from
+  // 2026-09-02, and the fee paid with the application are left.
   expect(answers(dele, '2026-06-01')).toMatchObject({
     deleEvidence: 'dele',
     deleLevel: 'A2',
@@ -214,10 +221,12 @@ test('steps taken in town carry their day and join the next quarter’s assessme
       address: true,
     },
   });
-  expect(es.progress(at(dele, '2026-06-01')).nat).toMatchObject({
-    outcome: 'FUTURE',
+  const next = at(dele, '2026-06-01');
+  expect(es.progress(next).nat).toMatchObject({
+    outcome: 'NOT_MET',
     earliestDate: '2026-09-02',
   });
+  expect(natGaps(next)).toEqual(['ES-N01', 'ES-N15']);
 });
 
 test('a lease the balance cannot carry ends with a move to register', () => {
@@ -329,7 +338,7 @@ test('applying for nationality uses the engine’s assessment and the 790-026 fe
     foreignDocumentFormalities: true,
   });
   state = at(state, '2026-12-01');
-  expect(es.pathwayOf(state.result, 'nat')?.status).toBe('MET');
+  expect(natGaps(state)).toEqual(['ES-N15']);
   // The game reads the result exactly as the engine does on the filing day.
   expect(
     evaluateSpainFull({
@@ -365,6 +374,37 @@ test('applying for nationality uses the engine’s assessment and the 790-026 fe
   );
 });
 
+test('the 790-026 fee counts as paid only once the application goes in', () => {
+  let cook = settle(es.newGame('cook', 5, 'en'));
+  Object.assign(cook.timeline.nationality, {
+    deleEvidence: 'dele',
+    deleLevel: 'A2',
+    ccse: { verifiedPass: true, issued: '2026-06-01' },
+  });
+  cook.timeline.nationality.criminalRecords!.originRecordOrLawfulAlternative = true;
+  Object.assign(cook.timeline.nationality.documents!, {
+    birthRecord: true,
+    foreignDocumentFormalities: true,
+  });
+  cook = at(cook, '2026-12-01');
+  const answers = es.filingAnswers(cook.timeline, cook.date).nationality;
+  expect(answers.feePaid).toBe(false);
+  expect(answers.feePaidOn).toBeUndefined();
+  // Everything else is in place: the fee is paid with the application.
+  expect(es.pathwayOf(cook.result, 'nat')?.status).toBe('NOT_MET');
+  expect(natGaps(cook)).toEqual(['ES-N15']);
+  const registry = visit(cook, 'bureau', 600);
+  expect(ids(registry, 'bureau')).toEqual(['naturalise']);
+  const ended = es.doActivity(registry, 'naturalise');
+  expect(
+    es.filingAnswers(ended.timeline, '2026-12-01').nationality,
+  ).toMatchObject({ feePaid: true, feePaidOn: '2026-12-01' });
+  expect(es.pathwayOf(ended.result, 'nat')?.status).toBe('MET');
+  // Leaving instead, the result page sees no payment.
+  const left = es.doActivity(visit(cook, 'station', 900), 'leave');
+  expect(natGaps(left)).toEqual(['ES-N15']);
+});
+
 test('a filing is offered only if it can still be made on the day', () => {
   // Joel's card lapses between the assessment date and the playable day.
   let cook = settle(es.newGame('cook', 5, 'en'));
@@ -380,7 +420,7 @@ test('a filing is offered only if it can still be made on the day', () => {
   });
   es.currentPermit(cook).to = '2026-12-05';
   cook = at(cook, '2026-12-01');
-  expect(es.pathwayOf(cook.result, 'nat')?.status).toBe('MET');
+  expect(natGaps(cook)).toEqual(['ES-N15']);
   expect(ids(visit(cook, 'bureau', 600), 'bureau')).toEqual(['naturalise']);
   cook.day.date = '2026-12-10';
   expect(ids(visit(cook, 'bureau', 600), 'bureau')).toEqual([]);
@@ -432,7 +472,7 @@ test('a filing outside the character’s own route ends with that route’s text
     ccse: { verifiedPass: true, issued: '2031-06-01' },
   });
   exporter = at(exporter, '2031-12-01');
-  expect(es.pathwayOf(exporter.result, 'nat')?.status).toBe('MET');
+  expect(natGaps(exporter)).toEqual(['ES-N15']);
   const nat = es.doActivity(visit(exporter, 'bureau', 600), 'naturalise');
   expect(nat.ending).toBe('settled');
   const natText = es.narrative(nat).at(-1)!;

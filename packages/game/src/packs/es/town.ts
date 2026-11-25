@@ -617,6 +617,10 @@ export const esActions: EsActivity[] = [
       `缴 790-026 并递交入籍申请（${eur(values.nationalityApplicationFee.value)}，SRC-323）`,
       `Pay the 790-026 and apply for nationality (${eur(values.nationalityApplicationFee.value)}, SRC-323)`,
     ),
+    note: t(
+      '790-026 在递交当天一并缴纳；递交前，评估里的「已缴付 790-026」一项显示未满足。',
+      'The 790-026 is paid on the day you apply; until then, the assessment shows the fee as not yet paid.',
+    ),
     minutes: b.minutes.paperwork,
     effects: [
       { type: 'money', delta: -values.nationalityApplicationFee.value },

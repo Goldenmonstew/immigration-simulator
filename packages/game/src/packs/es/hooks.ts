@@ -85,19 +85,31 @@ export function actionAvailable(
 ): boolean | undefined {
   const { nationality: n, steps } = state.timeline;
   const affords = affordable(state, action.effects);
-  // The application goes in on the day: it must still be possible then, as
-  // well as on the quarter's assessment date (a card or late filing window
-  // can run out in between).
-  const met = (column: EsColumn) =>
-    pathwayOf(state.result, column)?.status === 'MET' &&
-    pathwayOf(
-      esRules.evaluate({
-        date: state.day.date,
-        timeline: state.timeline,
-        locale: state.locale,
-      }),
-      column,
-    )?.status === 'MET';
+  // Filing pays the 790-026 fee on the day, so the only gap the assessment
+  // may show is that fee. The application must be possible both on the
+  // quarter's assessment date and on the day itself (a card or late filing
+  // window can run out in between).
+  const met = (column: EsColumn) => {
+    const pathway = pathwayOf(currentResult(state), column);
+    const open = pathway?.checks.filter(
+      ({ id, status }) => status !== 'MET' && pathway.decidedBy?.includes(id),
+    );
+    if (!open || open.some(({ id }) => id !== 'ES-N15')) return false;
+    return [state.date, state.day.date].every(
+      (date) =>
+        pathwayOf(
+          esRules.evaluate({
+            date,
+            timeline: {
+              ...state.timeline,
+              steps: { ...state.timeline.steps, filed: date },
+            },
+            locale: state.locale,
+          }),
+          column,
+        )?.status === 'MET',
+    );
+  };
   switch (action.id) {
     case 'naturalise':
       return affords && met('nat');

@@ -91,9 +91,9 @@ export const currentPermit = (state: { timeline: EsTimeline }) =>
 
 /**
  * The questionnaire's answers on an assessment date: steps taken later in the
- * quarter count from the next one. The game files on the assessment date and
- * pays the 790-026 nationality fee with the application (SRC-323, SRC-334),
- * so the assessment and the result page read the fee as paid on that day.
+ * quarter count from the next one. The 790-026 nationality fee is paid with
+ * the application (SRC-323, SRC-334), so it reads as paid only once one went
+ * in, on that day.
  */
 export function filingAnswers(timeline: EsTimeline, date: IsoDate) {
   const { steps, ...answers } = timeline;
@@ -126,8 +126,9 @@ export function filingAnswers(timeline: EsTimeline, date: IsoDate) {
         // The padrón shows the latest address only once it is registered.
         ...(move && !by(move.registeredOn) && { address: false }),
       },
-      feePaid: true,
-      feePaidOn: date,
+      ...(by(steps.filed)
+        ? { feePaid: true, feePaidOn: steps.filed }
+        : { feePaid: false }),
     },
   };
 }
