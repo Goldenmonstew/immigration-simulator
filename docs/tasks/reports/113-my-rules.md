@@ -64,7 +64,7 @@
 | `my.pass.mm2h` | `diplomatic-relations`、`age`、`licensed-operator`、`fixed-deposit`、`property`、`minimum-stay`、`good-conduct`、`security-screening`（factor）、`medical-insurance`、`work`、`term`、`participation-fee`、`pass-fees`（签发处理费）、`annual-fee`、`system-fee`、`dependants`、`pr-link` | SRC-517 p1–16；SRC-518 p1–5；SRC-519；SRC-520 p12、p26；SRC-521；SRC-522；SRC-523；SRC-524；SRC-504 p5–6；SRC-505 §2.5、§3.14 |
 | `my.pass.rpt` | `work-years`（连续 3 年）、`ep-validity`（超过 3 个月）、`tax`（2 年）、`salary`（RM15,000）、`qualification`、`experience`（5 年）、`benefits`、`fee`、`pr-link` | SRC-525；SRC-505 §5.4(b) p21 |
 | `my.pass.pvip` | `pvip-terms`、`pr-link` | SRC-505 §2.5 p12、§3.15 p14 |
-| `my.pass.de-rantau` | `nationality`、`age`（18 岁）、`income`（2026-11-01 起科技类 USD36,000，此前 USD24,000；非科技类 USD60,000）、`remote-employer`、`passport`（超过 14 个月）、`term`、`fees`、`security-bond`、`pr-link` | SRC-528 v11 Section A–D、v10 Section A Q3 |
+| `my.pass.de-rantau` | `nationality`、`age`（18 岁）、`income`（2026-11-01 起科技类 USD36,000，此前 USD24,000；非科技类 USD60,000）、`remote-employer`（远程雇员的雇主不在马注册、自由职业者与境外客户签约，合同均须在递交前至少 3 个月开始）、`passport`（超过 14 个月）、`term`、`fees`、`security-bond`、`pr-link` | SRC-528 v11 Section A–D、v10 Section A Q3 |
 | `my.pass.employment` | `salary-category`（按递交日分新旧门槛）、`terms`、`pr-link` | SRC-527 p3–6 |
 
 ### 新增 SRC 与 PD
@@ -93,8 +93,8 @@
 | `my.pass.property`（SEZ/SFZ） | 底价由柔佛州政策决定 | PD-423 |
 | `my.pass.duration`、`my.pass.fee`（公民配偶） | 获批期限规则与 RM90 适用范围 | PD-427 |
 | `my.pass.security-bond`（公民配偶 LTSVP：日本、韩国、澳门、香港与孟加拉等七国） | 移民局表与 MDEC 表冲突 | PD-411 |
-| `my.pass.pass-fees`、`my.pass.annual-fee`、`my.pass.dependants`（MM2H） | 叠加关系与保额；子女上限不一致 | PD-422、PD-421 |
-| 婚姻只在外国登记、公民之妻登记与 REP 配偶所填分居或离婚、准证只累计满足、须把 6 个月以内的中断算作持有才满 5 年、公民配偶改持 Residence Pass、养子女 | 指南未写或所填未区分 | PD-405–407、PD-428、PD-409 |
+| `my.pass.term`（MM2H 续签费）、`my.pass.dependants`（MM2H） | 续签费按人还是合计、续签时是否另收条例准证费；子女上限不一致。签发处理费与年费只在未填受养人人数时为 `UNKNOWN`（review113-2） | PD-422、PD-421 |
+| 婚姻只在外国登记；公民之妻登记、公民配偶 LTSVP、REP 配偶与 Residence Pass 配偶所填分居或离婚；准证只累计满足；须把 6 个月以内的中断算作持有、或多次中断合计超过 6 个月才满 5 年；公民配偶改持 Residence Pass 且合并后有效达标；养子女 | 指南未写或所填未区分 | PD-405–407、PD-428、PD-409 |
 | `my.pass.minimum-stay`（MM2H 50 岁及以上未达 90 天） | 只有官网写豁免 | PD-420 |
 | `my.pass.age`、`my.pass.income`（DE Rantau 18 岁生日当天、收入恰为门槛） | FAQ 前后写法不一 | PD-430 |
 | `my.pass.work-years`（RP-T 连同其他准证满 3 年） | 未限定准证种类 | PD-431 |
@@ -208,3 +208,63 @@
 - WAS 清单（SRC-505 附录 C3 辅助文件第 16–17 项 p61）列有收养证明（anak angkat）与继子女的父母离婚证明（anak tiri），而 §5.4(e) p21 只写"anak kandung"；WAS 受养人说明仍按 §5.4(e)，未改。
 - REP 指南 Lampiran 9 的标题是"长期社交访问准证与 Permit Masuk"的押金表，REP 家属申请长期社交访问准证时可能也须押金；本次只按 §11.3 给出 Permit Masuk 押金。
 - 页面任务 114 宜把"已分居或离婚"拆成两个选项，并把永久居留日期问成 MyPR 上的签发日；担保人按路径分开问四次。
+
+## 审核修正（review113-2）
+
+Gemini 4 Neon 第 2 轮审核（问题 4、风险 7、建议 4）全部处理。统一原则：判断所需的事实没填时为 `UNKNOWN`、不给 `timeEarliestDate`，不按默认值判 `MET`；已超过年龄或批准信截止日时年限状态为 `NOT_MET`，不给过去的日期。每组修正先写回归测试并确认失败，再修代码；边界日期按条文手算写进断言注释。没有新增 PD：各项不确定之处都已有 PD 覆盖，只改写了 PD-405、PD-407、PD-420、PD-422、PD-428 的处理说明。
+
+### 1. 做了什么
+
+| PROGRESS | commit | 审核编号 |
+|---|---|---|
+| 862 | `Fix: 马来西亚配偶改持 Residence Pass 只在合并后有效且达标时待确认（review113-2）` | 问题 1 |
+| 863 | `Fix: 马来西亚 REP 家属未填关系、永久居民子女未填亲子关系时待确认（review113-2）` | 问题 2、3，建议 3 |
+| 864 | `Fix: 马来西亚过了年龄或批准信截止日时年限判不满足，未填生日不给最早日期（review113-2）` | 问题 4 |
+| 865 | `Fix: 马来西亚多次短中断合计超限待确认，预录的未来中断推迟最早日期（review113-2）` | 风险 2、5 |
+| 866 | `Fix: 马来西亚公民身份最早日期不受固定窗口限制，登记未填生日时宣誓待确认（review113-2）` | 风险 1、3 |
+| 867 | `Fix: 马来西亚配偶各路径统一核对婚姻存续，未填分居离婚时待确认（review113-2）` | 风险 4，建议 2（PD-405 部分） |
+| 868 | `Fix: 马来西亚 MM2H 达 90 天不看年龄，DE Rantau 自由职业者核对境外客户与合同起算（review113-2）` | 风险 6、7 |
+| 869 | `Fix: 马来西亚 RP-T 冗余说明、边界待定项与 MM2H PD-422 统一处理（review113-2）` | 建议 1、2、4 |
+| 870 | `Fix: 马来西亚续签假设只在最早日期为将来时注明（review113-2）` | 风险 5 补充 |
+| 871 | `Docs: 马来西亚完整版规则第二轮审核修正报告（review113-2）` | 本节；正文待确认条件表与 DE Rantau 条件同步改正 |
+
+逐条处理：
+
+- **问题 1**：公民之妻、之夫的准证条件先按原文只看公民配偶 LTSVP，再把 Residence Pass 并入同样核对一次。只有并入后改变结论（申请日有效且达到所需时间）时才为 `UNKNOWN` 挂 PD-428，否则按原文判定。妻：超过 12 个月且申请日有效（SRC-505 §5.1(d) p18）。审核例 B 两种情形（申请日无有效准证；Residence Pass 自 2026-06-01 起不足 12 个月）为 `NOT_MET`；边界为 Residence Pass 自 2025-11-23 起在 2026-11-24 超过 12 个月（`UNKNOWN`），自 2025-11-24 起不超过（`NOT_MET`）。夫：连续 5 年（§5.2(d) p19）。审核例 A（LTSVP 3 年加 Residence Pass 1 年）为 `NOT_MET`；边界为 LTSVP 自 2021-11-24 起连同 Residence Pass 在 2026-11-24 正好 5 年（`UNKNOWN`），自 2021-11-25 起不足（`NOT_MET`）。申请日只持 Residence Pass 时，年限状态为 `UNKNOWN`，不给日期。PD-406、PD-407 只在相应边界命中时挂出；原有两条测试的待定项由 `['PD-406'/'PD-407', 'PD-428']` 改为 `['PD-428']`，因为这两例并入后既无中断，也不靠累计。
+- **问题 2**：REP 家属未填 `rep.relation` 时，结婚年限为 `UNKNOWN`，说明写妻 3 年、夫 5 年（SRC-506 §5.3 p16），年限状态为 `UNKNOWN`，不给日期。填夫、2023-01-01 结婚时为 FUTURE 2028-01-01。
+- **问题 3**：Residence Pass 第 4 类永久居民子女未填 `childRelation` 时，类别为 `UNKNOWN`（SRC-508 Category 4 只含"Biological child"）；继子女、养子女为 `NOT_MET`。
+- **问题 4**：新增 `beforeDeadline`。永久居留子女类以满 18 岁日为截止（SRC-505 §5.3 p20）。Residence Pass 子女"aged 18 and below"以满 19 岁日为截止（SRC-508）：2009-01-01 出生、准证自 2024-12-31 起为 FUTURE 2027-12-31，自 2025-01-01 起 3 年正好落在 19 岁生日，为 `NOT_MET`。REP 以批准信有效期次日为截止（SRC-506 §5.4 p17）：有效期到申请日当天为 `MET`，前一天为 `NOT_MET`。申请日已到截止日时年限状态为 `NOT_MET`；未填生日或批准信效期时为 `UNKNOWN`。归化未填生日时年限状态为 `UNKNOWN`；居住永远不能满足时（无永久居留、无准证）仍为 `NOT_MET`。
+- **风险 1**：归化与公民之妻登记的最早日期改为一直搜索到"起点（满 21 岁日或申请日）、永久居留签发日与最后一次返回日中最晚者"之后的 12 年或 2 年。到那时所需年数已全部落在永久居留期内且没有长期出境，所以不会漏掉最早日。2018-01-01 出生者为 FUTURE 2039-01-01；永久居留 2027-06-01 签发时，登记为 2029-06-01、归化为 2037-06-01；2026-06-01 至 2027-12-01 因其他原因出境时，登记为 2029-12-01。
+- **风险 2**：公民之夫与 WAS 类的"不得中断超过 6 个月"可能指单次，也可能指累计（PD-407）。`heldRun` 改为给出桥接的各段中断。只有两种读法都已满 5 年才为 `MET`。各段中断都不超过 6 个月、但合计超过 6 个月，只有按单次计才满 5 年时，为 `UNKNOWN`，说明写明单次还是累计待确认。按累计读法，只取其后中断合计不超过 6 个月的起点。审核例：151 日、152 日两段中断，合计 303 日，为 `UNKNOWN`；按累计读法只能从 2022-06-01 起算，扣除 152 日后 2027-10-31 满 1826 日，故为 FUTURE 2027-10-31。59 日与 60 日两段合计不超过 6 个月，为 `MET`。
+- **风险 3**：登记的宣誓只要求 18 岁以上（SRC-500 Art. 18(1) p42）。未填生日且答不放弃原国籍时为 `UNKNOWN`，说明写未填生日，不挂 PD-418。公民之妻登记同样适用；归化（Art. 19(9)）不变。
+- **风险 4**：新增 `marriageSubsists`。公民之妻登记（Art. 15(1) p39）、公民配偶 LTSVP、REP 配偶（SRC-506 §4(a) p16）与 Residence Pass 第 3、4 类配偶（SRC-508）同口径：所填已分居或离婚时为 `UNKNOWN` 挂 PD-405（离婚使婚姻终止，分居则否）；未填时为 `UNKNOWN`，不挂 PD。其中公民配偶 LTSVP 依据移民局"Husband / Wife to Citizen"清单所列"Latest Affidavit – the marriage exists and is still valid"，离婚者另有单独类别（SRC-509）。永久居留配偶类仍按"tanpa berpisah atau bercerai"判 `NOT_MET`；未填时结婚年限与年限状态为 `UNKNOWN`，不挂 PD-405。
+- **风险 5**：新增 `planned`。最早日期先按申请日所持准证推算；如果已录入的后续准证之前有中断，就从后一段起再算一次。中断不超过 6 个月时按风险 2 的口径桥接，超过则重新起算。适用于永久居留四类、Residence Pass 与 RP-T。例：夫 2027-07-01 至 2027-08-31 的预录中断为 62 日，最早日由 2028-01-01 推到 2028-03-04；8 个月的中断改为 2033-03-01。妻 2027-02-01 至 2027-08-31 中断后，为 2028-09-02。Residence Pass 为 2030-03-01，RP-T 为 2030-06-01。最早日期落在最后一段准证之后时，摘要假设写"最后一段准证到期后续签、不中断"；年限判不满足时不附这条假设（commit 870）。
+- **风险 6**：MM2H 每年在马达 90 天时不论年龄（含未填生日）为 `MET`（SRC-517 p3）；不足 90 天而未填生日时为 `UNKNOWN`。PD-420 补记。
+- **风险 7**：DE Rantau 自由职业者不再是"不适用"，改为核对两项：与境外客户签约（新字段 `deRantau.foreignClients`），所有合同在递交前至少 3 个月开始（沿用 `contractStart`，指最近一份客户合同）。依据 SRC-528 v11 Section B Q3 p4–5，参数定位改为 p4–5。说明写内容创作者没有客户合同时改交平台收入证明（Q4 p5）。
+- **建议 1**：RP-T 单靠就业准证已满 3 年时，不再拼接"持其他准证期间的工作能否计入待确认"。
+- **建议 2**：只在命中边界时挂对应 PD：公民之妻登记的 PD-405 只在所填已分居或离婚时挂；婚姻登记的 PD-405 只在婚姻只在外国登记时挂；DE Rantau 年龄的 PD-430 只在 18 岁生日当天挂。
+- **建议 3**：REP 的分居、离婚说明只对 `wife`、`husband` 给出。
+- **建议 4**：MM2H 签发处理费与年费按 P.U. (A) 56/2022 逐人计算，金额确定时为 `MET`，未填受养人人数时为 `UNKNOWN`（说明写未填人数），不挂 PD-422。PD-422 改挂 `my.pass.term`：续签费原文写"untuk prinsipal dan tanggungan"（SRC-517 p6、p11、p16；SRC-518 p5），按人还是合计、续签时是否另收条例准证费都未写明。健康保险原文只要求马来西亚或外国保险公司承保、全球保障（SRC-520 p12 注），说明改为"原文未写最低保额"，按有无判断。正文待确认条件表同步改正。
+
+### 2. 怎么验证的
+
+- 每组修正先写回归测试，运行 `VITEST_MAX_WORKERS=2 npx vitest run test/malaysia-full.test.ts` 确认新测试失败，修正后全部通过：问题 1 一项；问题 2、3 与建议 3 三项；问题 4 四项；风险 2、5 两项；风险 1、3 两项；风险 4 两项；风险 6、7 两项；建议 1、2、4 三项。commit 870 的新断言用 `git stash` 暂存修正后确认失败。`test/malaysia-full.test.ts` 由 86 项增至 105 项。
+- 审核文中各复现输入另用临时脚本逐条运行（未提交），结果与期望一致。问题 1 例 A 为 `NOT_MET`（年限状态 `UNKNOWN`）；例 B 两种情形为 `NOT_MET`。问题 2 为结婚年限与年限状态 `UNKNOWN`。问题 3 为类别 `UNKNOWN`，不给 `earliestDate`。问题 4 例 A、B 年限状态 `NOT_MET`，例 A 未填生日与例 C 为 `UNKNOWN`。
+- 新定位按快照核读：SRC-505 §5.1(c)–(d) p18、§5.2(c)–(d) p19（`pdftotext`）；SRC-506 §4、§5.3 p16（渲染图片目读）；SRC-508 Category 3–4（HTML）；SRC-509 LTSVP 页"Husband / Wife to Citizen"与"Widow to citizen"清单（HTML）；SRC-517 p3、p5、p6、p11、p16 与 SRC-518 p5；SRC-520 p12、p26；SRC-528 v11 p4–5。
+- `packages/policy-data`：`vitest run` 23 项、`tsc --noEmit`、`eslint .` 通过。
+- 完整验收 `VITEST_MAX_WORKERS=2 pnpm lint && pnpm typecheck && pnpm test && pnpm build` 在 commit 870 之后运行，退出码 0。engine 6111 项通过（1 项按既有条件跳过，比上一轮多 19 项）、policy-data 23 项、error-report 2 项、game 1348 项、web 865 项通过，构建生成 36 个静态页面。之后只改本报告与 `PROGRESS.md`。
+
+### 3. 没做或没验证的
+
+- 没有新增 PD（432 起未使用）。
+- 问题 1 中只持 Residence Pass、并入后仍不足时，年限状态为 `UNKNOWN`，不判 `NOT_MET`：Residence Pass 能否计入（PD-428）决定日期。
+- 以下几处按同一原则做了延伸，审核文没有逐条点名：REP 未填批准信效期时年限状态为 `UNKNOWN`（问题 4）；公民之妻登记的宣誓同样按 Art. 18(1) 处理（风险 3）；REP 配偶与 Residence Pass 配偶未填分居离婚时为 `UNKNOWN`（风险 4）。
+- 风险 5 只处理按准证计年限的路径；公民身份的居住仍按永久居留日期与出境记录推算。内容创作者没有单列 `workType`，只在说明里提示 Q4。
+- 新字段 `deRantau.foreignClients` 和各配偶关系都要问的"是否已分居或离婚"，留给页面任务 114。
+- 未改其他国家；未做页面与问卷；未 push、未开 PR。
+
+### 4. 发现与建议
+
+- 未填答案时仍挂边界 PD 的地方还有：宣誓答案未填挂 PD-418，DE Rantau 收入未填挂 PD-426，担保人与推荐人未填挂 PD-410。这几处可按建议 2 的原则再统一，本次未改。
+- 移民局 LTSVP 页另有"Wife 'persecuted' to Citizen"（丈夫下落不明）与"Widow to citizen"（离婚未再婚）两个类别，引擎未建模；Residence Pass 第 3 类父母限"Biological mother/father"，问卷关系 `parent-of-citizen` 没有区分。
+- MM2H 续签费"untuk prinsipal dan tanggungan"按人还是合计，宜向 MOTAC 澄清后更新 PD-422。
