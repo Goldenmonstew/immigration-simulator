@@ -331,10 +331,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.uk.paths': 'Settlement (ILR) · Current law vs reforms',
   'hub.uk.desc':
     'Assess settlement across Skilled Worker, BN(O), Global Talent, family, protection and Long Residence routes, comparing current Immigration Rules with announced reforms.',
-  'hub.ca.code': 'CA',
-  'hub.ca.paths': 'PR residency obligation · Citizenship',
-  'hub.ca.desc':
-    'Check the day count for keeping permanent resident status and the days of physical presence in Canada for citizenship. The citizenship calculation includes eligible days spent in Canada before permanent residence.',
   'hub.es.code': 'ES',
   'hub.es.paths':
     'Citizenship · National and EU long-term residence · EU mobility and family · Recovery · Free movement',
