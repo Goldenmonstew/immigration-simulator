@@ -70,6 +70,11 @@
 .theme.theme a:hover {
   color: var(--primary-hover);
 }
+/* Link-styled buttons keep the button's white text over the theme link colour. */
+.theme.theme a.button,
+.theme.theme a.button:hover {
+  color: #fff;
+}
 .theme.theme :focus-visible {
   outline: 3px solid var(--amber-ink);
   outline-offset: 3px;
