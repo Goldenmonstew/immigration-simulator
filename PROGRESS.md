@@ -927,3 +927,4 @@
 | 968 | 任务 114 审核修正（review114-1 建议 2）：出生日期只在读取它的路径（PR 子女、REP、RP、三类公民身份、MM2H、DE Rantau）下显示，国籍只在 WAS、REP、公民配偶 LTSVP、DE Rantau 下显示；e2e 先选路径再填出生日期。 | apps/web/lib/malaysia-fields.ts、apps/web/test/malaysia.test.tsx、apps/e2e/tests/malaysia.spec.ts |
 | 969 | 任务 114 审核修正（review114-1 建议 3）：归化与公民之妻登记的居住年限缺口改链到对比页"假设 MyPR 签发日"控件；e2e 改为跟随该链接并核对聚焦。 | apps/web/lib/malaysia-whatif.ts、apps/web/test/malaysia.test.tsx、apps/e2e/tests/malaysia.spec.ts |
 | 970 | 任务 114 审核修正（review114-1 建议 4）："曾被拒绝永久居留申请"保持可留空，提示写明留空时被拒后的等待期显示待确认、年限日期也不计入等待期。 | apps/web/lib/malaysia-fields.ts、apps/web/i18n/countries/malaysia-form.ts、apps/web/test/malaysia.test.tsx |
+| 971 | 任务 114 审核修正报告（review114-1）：报告末尾加四段，逐条对应合入 main、问题 1–3、风险 2–3、建议 1–4；正文中问卷字段、日期标签、对比旋钮与分居离婚的说明同步改正。 | docs/tasks/reports/114-my-pages.md、PROGRESS.md |
