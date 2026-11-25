@@ -1660,10 +1660,11 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
   // Seeded pass histories with breaks under, at and over six months, passes
   // entered for later, and dates before, inside and after each pass and
   // inside each break.
+  // MINSTD: the product stays below 2^53, so the sequence is exact.
   let seed = 113;
   const rand = (n: number) => {
-    seed = (seed * 1103515245 + 12345) % 2147483648;
-    return Math.floor((seed / 2147483648) * n);
+    seed = (seed * 48271) % 2147483647;
+    return Math.floor((seed / 2147483647) * n);
   };
   const histories = Array.from({ length: 60 }, () => {
     let from = addDays('2016-01-01', rand(3650));
