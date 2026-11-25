@@ -154,6 +154,15 @@ test('a Portuguese questionnaire reaches results, saves and shares them and focu
   );
   await next(page, zhCN);
   await fillReview(page, zhCN);
+  // Hiding a sub-answer clears it (review102-1).
+  const record = page.locator('#pt-nationality-crime-record');
+  await record.selectOption('conviction');
+  await page.locator('#pt-nationality-crime-years').fill('2');
+  await record.selectOption('none');
+  await expect(page.locator('#pt-nationality-crime-years')).toHaveCount(0);
+  await record.selectOption('conviction');
+  await expect(page.locator('#pt-nationality-crime-years')).toHaveValue('');
+  await record.selectOption('none');
   await next(page, zhCN);
   await fillPartner(page, zhCN);
   await next(page, zhCN, true);

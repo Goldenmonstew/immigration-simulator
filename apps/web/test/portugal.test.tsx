@@ -18,6 +18,7 @@ import { gapRules } from '../lib/gap-summary';
 import { readPageResult } from '../lib/page-result';
 import {
   activePortugalAnswers,
+  clearHiddenPortugalAnswers,
   portugalStepList,
   type PortugalDraft,
 } from '../lib/portugal-draft';
@@ -421,6 +422,76 @@ test('unfinished drafts and hidden answers with value errors reopen as they were
     completed: false,
     step: 1,
   });
+});
+
+// review102-1 problem 2.
+test('a changed answer clears the sub-answers it hides and empty groups are not assessed', () => {
+  const ari: PortugalDraft = {
+    ...permanentDraft(),
+    step: 5,
+    targets: ['investment'],
+    investment: {
+      operation: 'grant',
+      holder: 'investor',
+      investment: { jobs: 10 } as never,
+    },
+  };
+  const d06 = (draft: PortugalDraft) =>
+    pathway(draft, 'PT-GOLDEN-VISA').checks.find(
+      (check) => check.id === 'PT-D06',
+    )?.status;
+  expect(activePortugalAnswers(ari).investment.investment).toBeUndefined();
+  expect(d06(ari)).toBe('UNKNOWN');
+  expect(
+    d06({ ...ari, investment: { operation: 'grant', holder: 'investor' } }),
+  ).toBe('UNKNOWN');
+  expect(
+    activePortugalAnswers({
+      ...partnerDraft(['naturalisation']),
+      nationality: { language: { recognized: true } as never },
+    }).nationality.language,
+  ).toBeUndefined();
+
+  const cleared = clearHiddenPortugalAnswers({
+    ...ari,
+    targets: ['naturalisation', 'investment'],
+    investment: {
+      operation: 'renew',
+      holder: 'investor',
+      foreignRecordDate: '2026-01-01',
+      investment: { jobs: 10 } as never,
+    },
+    nationality: {
+      crime: { record: 'none', years: 2 },
+      language: { kind: 'none', recognized: true },
+    },
+    residence: {
+      criminalSentence: {
+        convictions: [
+          {
+            date: '2020-01-01',
+            years: 1,
+            suspended: false,
+            expresslyCountedSuspendedOffence: true,
+          },
+        ],
+      },
+    },
+  });
+  expect(cleared.investment).toEqual({
+    operation: 'renew',
+    holder: 'investor',
+  });
+  expect(cleared.nationality).toEqual({
+    crime: { record: 'none' },
+    language: { kind: 'none' },
+  });
+  expect(cleared.residence.criminalSentence!.convictions).toEqual([
+    { date: '2020-01-01', years: 1, suspended: false },
+  ]);
+  // Answers for a route the user left stay for when it is chosen again.
+  const left = { ...ari, targets: ['permanent'] as PortugalDraft['targets'] };
+  expect(clearHiddenPortugalAnswers(left).investment).toBe(left.investment);
 });
 
 // review102-1 problem 3: a renewal filed after the simulation date has not

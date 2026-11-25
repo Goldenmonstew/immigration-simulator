@@ -663,3 +663,4 @@
 | 782 | 任务 102：葡萄牙 e2e 改为完整版流程：中文填问卷到结果、刷新恢复步骤、出境名单须确认、保存情景、分享链接在新上下文还原同一结果、从缺口跳到对比控件；英文 375 px 走伴侣路径，对比页改日期后最早日期变化，政策页标题、来源与条件。 | apps/e2e/tests/portugal.spec.ts、PROGRESS.md |
 | 783 | 任务 102 报告：按 commit 列改动、问卷步骤与字段、对比旋钮、旧链接处理、验收与走查结果、未做事项及发现与建议。 | docs/tasks/reports/102-pt-pages.md、PROGRESS.md |
 | 784 | 任务 102 审核修正（review102-1）问题 1、3：重开问卷时未完成草稿和隐藏步骤只核对类型与选项，日期先后、负数与整数、递交日晚于模拟日期留到提交该步时校验，不再清空本机草稿；续期递交日与两个国籍递交日一样不得晚于模拟日期，问卷、分享结果与对比页都会拦下。 | apps/web/lib/portugal-{draft,fields,whatif}.ts、apps/web/test/portugal.test.tsx、apps/e2e/tests/portugal.spec.ts、PROGRESS.md |
+| 785 | 任务 102 审核修正（review102-1）问题 2：问卷改答案时连带清掉同一记录里随之隐藏的子答案（组内与列表行内，未显示的步骤和分组保留）；送引擎与分享时，子答案全部隐藏的分组按未答处理，投资方式改回待确认后 ARI 重新列出 D06。 | apps/web/lib/portugal-draft.ts、apps/web/app/portugal/simulate/page.tsx、apps/web/test/portugal.test.tsx、apps/e2e/tests/portugal.spec.ts、PROGRESS.md |

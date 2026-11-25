@@ -4,6 +4,7 @@ import { QuestionnaireShell } from '../../../components/questionnaire-shell';
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import {
+  clearHiddenPortugalAnswers,
   portugalStepList,
   readPath,
   sectionPrefix,
@@ -84,7 +85,11 @@ function PortugalStep(props: StepProps) {
               const next = updateAnswer(values, name, value);
               // The simulation date stays a string, as every draft has one.
               if (name === 'simulationDate') next.simulationDate ??= '';
-              update(writePath(draft, section.path, next));
+              update(
+                clearHiddenPortugalAnswers(
+                  writePath(draft, section.path, next),
+                ),
+              );
             }}
           />
         );

@@ -133,16 +133,58 @@ function shownAnswers(
   for (const field of fields) {
     const value = record[field.name];
     if (value === undefined || !fieldShown(field, record)) continue;
-    answers[field.name] =
-      field.type === 'group' && isRecord(value)
-        ? shownAnswers(field.fields, value)
-        : field.type === 'list' && Array.isArray(value)
+    if (field.type === 'group' && isRecord(value)) {
+      // A group whose answers are all hidden was not answered.
+      const nested = shownAnswers(field.fields, value);
+      if (Object.keys(nested).length) answers[field.name] = nested;
+    } else
+      answers[field.name] =
+        field.type === 'list' && Array.isArray(value)
           ? value.map((row) =>
               isRecord(row) ? shownAnswers(field.fields, row) : row,
             )
           : value;
   }
   return answers;
+}
+
+function withoutHidden(
+  fields: PortugalField[],
+  record: Record<string, unknown>,
+): Record<string, unknown> {
+  let next = record;
+  for (const field of fields) {
+    const value = record[field.name];
+    if (value === undefined) continue;
+    let kept: unknown = value;
+    if (!fieldShown(field, record)) kept = undefined;
+    else if (field.type === 'group' && isRecord(value)) {
+      const nested = withoutHidden(field.fields, value);
+      kept = Object.keys(nested).length ? nested : undefined;
+    } else if (field.type === 'list' && Array.isArray(value)) {
+      const rows = value.map((row) =>
+        isRecord(row) ? withoutHidden(field.fields, row) : row,
+      );
+      if (rows.some((row, i) => row !== value[i])) kept = rows;
+    }
+    if (kept === value) continue;
+    next = { ...next, [field.name]: kept };
+    if (kept === undefined) delete next[field.name];
+  }
+  return next;
+}
+
+// Changing an answer clears the questions it hides in the same record. Answers
+// in steps or sections that are not shown are kept for when they return.
+export function clearHiddenPortugalAnswers(draft: PortugalDraft) {
+  let next = draft;
+  for (const { step } of portugalStepList(draft))
+    for (const section of visibleSections(draft, step)) {
+      const record = readPath(next, section.path);
+      const kept = record && withoutHidden(section.fields, record);
+      if (kept !== record) next = writePath(next, section.path, kept!);
+    }
+  return next;
 }
 
 // The editable draft may keep answers for a route or branch the user later
