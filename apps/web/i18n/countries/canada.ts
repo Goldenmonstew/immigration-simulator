@@ -40,6 +40,8 @@ export const zhCN = {
     '在加拿大以访客、学生、工作者或受保护人身份合法停留的期间，每段一行。没有身份或等待难民申请决定的时间不要填。',
   'ca.form.taxYearsHint':
     '按签署日（未填时按模拟日期）之前的计算期间列出日历年；签署日不是 1 月 1 日时也列出签署当年。未列出的年份不影响结果。',
+  'ca.form.equityShareHint':
+    '持股比例按百分数填写。门槛为三分之一，百分数写不出恰好三分之一，持股恰为三分之一时请填 {percent}。',
   'ca.form.tupleHint': '请填写全部数值，或全部留空。',
   'ca.form.add': '添加',
   'ca.form.remove': '删除',
@@ -150,6 +152,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Add a row for each period you were in Canada lawfully as a visitor, student, worker or protected person. Do not include time without status or waiting on a refugee claim.',
   'ca.form.taxYearsHint':
     'Calendar years in the period before the signing date (or the simulation date if none), including the signing year unless you sign on 1 January. Years not listed do not affect the result.',
+  'ca.form.equityShareHint':
+    'Enter the equity share as a percentage. The threshold is one third, which a percentage cannot state exactly, so for a share of exactly one third enter {percent}.',
   'ca.form.tupleHint': 'Fill in every value, or leave them all blank.',
   'ca.form.add': 'Add',
   'ca.form.remove': 'Remove',

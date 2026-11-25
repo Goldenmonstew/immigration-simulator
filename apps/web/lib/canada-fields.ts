@@ -69,6 +69,10 @@ export const canadaGoals: CaFullPathwayId[] = [
 
 const v = canadaFull2026_11.values;
 export const maxLevel = 12;
+// A percentage cannot state the one-third share in IRPR s87(5)–(6)
+// (SRC-261) exactly; this is the smallest two-decimal entry that reaches it.
+export const equitySharePercent =
+  Math.ceil(v.pnpInvestment.value.minEquityShare * 10_000) / 100;
 
 type Label = CanadaFieldLabel;
 const bool = (name: string, label = name as Label): CanadaField => ({

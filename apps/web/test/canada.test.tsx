@@ -538,6 +538,34 @@ test.each([
   },
 );
 
+// review95-2 risk 1: a percentage cannot state one third exactly, so the
+// form says which entry reaches it.
+test.each(['zh-CN', 'en'] as const)(
+  'the equity share question says how to enter exactly one third in %s',
+  (locale) => {
+    const draft: CanadaDraft = {
+      ...ca.createDraft(),
+      step: 6,
+      goals: ['CA-PNP'],
+      answers: { pnp: { investment: 'business' } },
+    };
+    const html = render(
+      CanadaSimulatePage().props.children({
+        draft,
+        errors: {},
+        update: () => {},
+      }),
+      locale,
+    );
+    const hint = t('ca.form.equityShareHint', locale).replace(
+      '{percent}',
+      '33.34',
+    );
+    expect(hint).toContain('33.34');
+    expect(html).toContain(hint);
+  },
+);
+
 test('the result lists only chosen routes, with a future date, a met case and a pending case', () => {
   const draft = residencyDraft();
   const result = ca.run(draft, 'zh-CN');
