@@ -528,6 +528,49 @@ test('a renewal filing date cannot be after the simulation date', () => {
   });
 });
 
+// review102-1 problem 5.
+test('a blue-card long-term resident can answer the protection fee question', () => {
+  const longTerm: PortugalDraft = {
+    ...permanentDraft(),
+    step: 4,
+    targets: ['long-term'],
+    longTerm: { basis: 'blue-card', qualifyingProtectionGranted: false },
+    residence: {
+      ...residence,
+      fees: { column: 'left', exemption: 'none', paid: true },
+    },
+  };
+  const html = step(longTerm);
+  expect(html).toContain('id="pt-longTerm-qualifyingProtectionGranted"');
+  expect(html).not.toContain('id="pt-longTerm-protectionApplicationDate"');
+  expect(activePortugalAnswers(longTerm).longTerm).toEqual(longTerm.longTerm);
+  expect(
+    pathway(longTerm, 'PT-EU-LONG-TERM').checks.find(
+      (check) => check.id === 'PT-C09-FEE',
+    )?.status,
+  ).toBe('MET');
+  expect(step({ ...longTerm, longTerm: { basis: 'ordinary' } })).not.toContain(
+    'id="pt-longTerm-qualifyingProtectionGranted"',
+  );
+});
+
+// review102-1 risk: the engine treats a long-term card that starts after the
+// simulation date as a first application.
+test('the long-term procedure defaults follow cards already in force', () => {
+  const later: PortugalDraft = {
+    ...permanentDraft({ kind: 'eu-long-term', from: '2027-01-01' }),
+    step: 4,
+    targets: ['long-term'],
+  };
+  expect(step(later)).not.toContain(t('pt.section.ltLoss'));
+  expect(
+    step({
+      ...later,
+      permits: [{ kind: 'eu-long-term', from: '2026-01-01' }],
+    }),
+  ).toContain(t('pt.section.ltLoss'));
+});
+
 test('results show only the chosen routes with met, future and pending dates', () => {
   const met = pathway(permanentDraft(), 'PT-PERMANENT');
   expect(met.status).toBe('MET');

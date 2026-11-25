@@ -275,6 +275,7 @@ const investmentOption = group(
 );
 
 const grant = on('operation', 'grant');
+const protectionBasis = on('basis', 'international-protection');
 
 /** A path from the draft root to the record a section edits. */
 export type PtPath = readonly string[];
@@ -289,6 +290,7 @@ export interface PortugalSection {
 
 // The answers a section may depend on. Kept structural to avoid a cycle with the draft module.
 export interface PtSectionDraft {
+  simulationDate: string;
   targets: readonly PtTarget[];
   permits?: PtFullRequest['permits'];
   longTerm: PtLongTermEvidence;
@@ -305,9 +307,13 @@ export interface PortugalStep {
   sections: PortugalSection[];
 }
 
+// As the engine: a long-term card already in force defaults to keeping it.
 const longTermOperation = (draft: PtSectionDraft) =>
   draft.longTerm.operation ??
-  (draft.permits?.some((permit) => permit.kind === 'eu-long-term')
+  (draft.permits?.some(
+    (permit) =>
+      permit.kind === 'eu-long-term' && permit.from <= draft.simulationDate,
+  )
     ? 'retain'
     : 'grant');
 
@@ -524,12 +530,15 @@ export const portugalSteps: PortugalStep[] = [
       {
         id: 'ltProtection',
         path: ['longTerm'],
-        show: (draft) => draft.longTerm.basis === 'international-protection',
+        // Protection also decides the fee exemption on a blue-card basis.
+        show: (draft) =>
+          draft.longTerm.basis === 'international-protection' ||
+          draft.longTerm.basis === 'blue-card',
         fields: [
-          date('protectionApplicationDate'),
+          date('protectionApplicationDate', { when: protectionBasis }),
           bool('qualifyingProtectionGranted'),
-          bool('protectionContinuityVerified'),
-          review('protectionWithdrawal'),
+          bool('protectionContinuityVerified', { when: protectionBasis }),
+          review('protectionWithdrawal', { when: protectionBasis }),
         ],
       },
       {
