@@ -59,6 +59,8 @@ export const newZealandModule: CountryModule<NzDraft, NzWhatIf> = {
   validateStep: validateNzStep,
   decodeDraft: decodeNzDraft,
   run,
+  // The travel conditions date is the first resident entry, not a filing date.
+  earliestLabel: 'nz.result.earliest',
   whatif: nzWhatIf,
   policy: newZealandPolicy,
 };

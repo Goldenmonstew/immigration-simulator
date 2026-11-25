@@ -491,3 +491,23 @@ test('opening a New Zealand share link keeps the local draft, and skipping to th
     );
   }
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'the projected date is labelled as the date the conditions are met in results and comparisons (%s)',
+  (locale) => {
+    const draft = citizenshipDraft();
+    const result = nz.run(draft, locale);
+    expect(nz.earliestLabel).toBe('nz.result.earliest');
+    const label = t('nz.result.earliest', locale);
+    expect(label).toBeTruthy();
+    const html = render(
+      <ResultView country={nz} result={result} draft={draft} />,
+      locale,
+    );
+    expect(html).toContain(`<dt>${label}</dt>`);
+    expect(html).not.toContain(t('result.earliest', locale));
+    const whatIf = render(<WhatIfView country={nz} draft={draft} />, locale);
+    expect(whatIf).toContain(`<dt>${label}</dt>`);
+    expect(whatIf).not.toContain(t('result.earliest', locale));
+  },
+);

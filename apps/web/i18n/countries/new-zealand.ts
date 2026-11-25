@@ -17,6 +17,7 @@ export const zhCN = {
     '准备居民签证和出入境日期、身份与体检及警方证明，以及所选路径需要的工作、收入、英语、家庭关系或投资资料。不确定的事项可以留待确认。',
   'nz.privacy':
     '问卷在浏览器内计算，草稿与保存的方案留在这台设备。分享链接包含所填资料，拿到链接的人可以还原问卷。',
+  'nz.result.earliest': '预计满足条件的日期',
   'nz.policy.pageTitle': '新西兰政策依据',
   'nz.policy.title': '新西兰现行规则',
   'nz.policy.unlawfulChildChange': '居民签证新增非法居留受抚养子女的筛查',
@@ -57,6 +58,7 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Have your resident visa and travel dates, identity, medical and police certificates ready, plus any work, income, English, family or investment details your pathways need. You can leave uncertain items to be confirmed.',
   'nz.privacy':
     'Calculations run in your browser. Drafts and saved scenarios stay on this device. Anyone with a share link can read the answers it contains.',
+  'nz.result.earliest': 'Projected date the conditions are met',
   'nz.policy.pageTitle': 'Policy basis for New Zealand',
   'nz.policy.title': 'Current New Zealand rules',
   'nz.policy.unlawfulChildChange':
