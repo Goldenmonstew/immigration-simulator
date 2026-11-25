@@ -104,7 +104,9 @@ test('the English interface shows the residence permit and German study', async 
   const hud = page.locator('header').filter({ hasText: 'Jiahe Xu' });
   await expect(hud.getByText('Residence permit: 34 months left')).toBeVisible();
   await expect(hud.getByText('German', { exact: true })).toBeVisible();
-  await expect(hud.getByText('€15,000')).toBeVisible();
+  // Savings in euros with a thousands separator; the seed is the clock, so
+  // a morning card may already have spent a few euros of the €15,000.
+  await expect(hud.getByText(/^€1\d,\d{3}$/)).toBeVisible();
   expect(await hud.innerText()).not.toMatch(/[㐀-鿿]/);
   await walkTo(page, 'Market square');
 });
