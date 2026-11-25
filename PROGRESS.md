@@ -876,3 +876,4 @@
 | 920 | 任务 95 审核修正（review95-2 建议 2）。加拿大“适用／不适用”分组（如安省近期毕业）选“适用”后，清空最后一个子项时仍保留“适用”（存为空记录），不再无提示退回未答、隐藏子项。 | apps/web/app/canada/simulate/fields.tsx、apps/web/test/canada.test.tsx |
 | 921 | 任务 95 审核修正（review95-2）报告：逐条对应问题 1、风险 1–3、建议 1–3，风险 4 与签署日对比跳转列入发现与建议／未做；同步报告中已过时的共用组件、结果说明与缓存版本（建议 1）。 | docs/tasks/reports/95-ca-pages.md |
 | 1220 | 任务 116 共用游戏修正：进度条详情弹窗标题改为该路径名（原为"进入新一年前 → 进入新一年后"，与内容不符；美国、澳大利亚游戏报告提出），日本 e2e 核对弹窗名 | `apps/web/app/game-shell/game-client.tsx`、`apps/e2e/tests/japan-game.spec.ts` |
+| 1221 | 任务 116 共用游戏修正：日记申请分组加入 `naturalise`（日本递交帰化后出现"文件夹越装越厚"；德国游戏审核提出）；季末自动退租日志与日记菜地收成英文不再写英国的"明亮住处""allotment"，各国通用（澳大利亚游戏审核提出）；单测核对 | `packages/game/src/game.ts`、`packages/game/test/jp-pack.test.ts`、`packages/game/test/time-and-economy.test.ts` |

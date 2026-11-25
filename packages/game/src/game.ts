@@ -782,8 +782,8 @@ export function createGame<
       next.flags = next.flags.filter((flag) => flag !== 'brighter-home');
       applyEffects(next, [{ type: 'money', delta: b.housingDeposit }]);
       recordLife(next, 'brighter-home-return', {
-        zhCN: '明亮住处的短租到期，你退回原住处，押金回到账户，额外房租停止。',
-        en: 'The brighter home’s short let ends. You return to the original place, recover the deposit and stop paying the extra rent.',
+        zhCN: '短租住处到期，你搬回原住处，押金回到账户，额外房租停止。',
+        en: 'The short let ends. You move back to the original place, recover the deposit and stop paying the extra rent.',
       });
     }
     const brighter = next.flags.includes('brighter-home');
@@ -917,7 +917,7 @@ export function createGame<
     if (harvests)
       pursuits.push({
         zhCN: `菜地收成 ${harvests} 次`,
-        en: `${harvests} harvest${harvests === 1 ? '' : 's'} from the allotment`,
+        en: `${harvests} harvest${harvests === 1 ? '' : 's'} from the garden plot`,
       });
     if (casts)
       pursuits.push({
@@ -965,7 +965,7 @@ export function createGame<
         },
       ],
       [
-        ['extend', 'settle'],
+        ['extend', 'settle', 'naturalise'],
         {
           zhCN: '文件夹越装越厚，下一段生活逐渐有了形状。',
           en: 'The paperwork folder thickened as the next chapter took shape.',
