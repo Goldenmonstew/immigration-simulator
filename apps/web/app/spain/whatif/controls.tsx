@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import {
   ES_NATIONALITY_ROUTES,
   type EsNationalityRoute,
@@ -8,11 +9,16 @@ import { useTranslation } from '../../../i18n/locale';
 import type { TranslationKey } from '../../../i18n';
 import type { SpainDraft } from '../../../lib/spain-draft';
 import {
+  spainAnswers,
   spainFocusControls as ids,
+  spainMobilityPurpose,
   type SpainWhatIf,
 } from '../../../lib/spain-whatif';
 import type { WhatIfControlsProps } from '../../../lib/whatif';
 import styles from '../../uk/whatif/whatif.module.css';
+
+const examHint = 'es-whatif-exam-hint';
+const resourcesHint = 'es-whatif-resources-hint';
 
 export function SpainWhatIfControls({
   afterDraft,
@@ -22,42 +28,39 @@ export function SpainWhatIfControls({
 }: WhatIfControlsProps<SpainDraft, SpainWhatIf>) {
   const { t } = useTranslation();
   const targets = afterDraft.targets;
-  const hasNat = targets.includes('N');
-  const hasTrips = targets.some(
-    (item) => item === 'N' || item === 'L' || item === 'E' || item === 'U',
-  );
-  const hasFamilyResources = targets.some(
-    (item) => item === 'E' || item === 'F' || item === 'M',
-  );
-  const hasIncome = targets.some(
-    (item) =>
-      item === 'E' ||
-      item === 'F' ||
-      item === 'M' ||
-      item === 'R-E' ||
-      item === 'U',
-  );
-  const hasSalary = targets.includes('M');
-  const hasInsurance = targets.some(
-    (item) => item === 'E' || item === 'M' || item === 'F' || item === 'R-E',
-  );
+  const purpose = spainMobilityPurpose(afterDraft);
+  const has = (...items: typeof targets) =>
+    targets.some((item) => items.includes(item));
+  const hasNat = has('N');
+  // M reads card absences (ES-T02).
+  const hasTrips = has('N', 'L', 'E', 'U', 'M');
+  const hasResources = has('E', 'F') || purpose === 'non-working';
+  const hasSalary = purpose === 'employment';
+  // M and F read cover only for a non-working holder (ES-M03, ES-F04).
+  const hasInsurance =
+    has('E', 'R-E') || afterDraft.mobility.purpose === 'non-working';
+  const hasConduct = has('N', 'L', 'E', 'M', 'R-N', 'R-E', 'U');
+  // An answer not picked here shows its status in the comparison.
+  const shown = Object.keys(errors).length ? {} : spainAnswers(afterDraft);
 
   function choice(
     field: 'delePassed' | 'ccsePassed' | 'healthCover' | 'conductCleared',
     id: string,
     label: TranslationKey,
+    hint?: string,
+    after?: ReactNode,
   ) {
-    const value = knobs[field];
+    const value = knobs[field] === undefined ? shown[field] : knobs[field];
     return (
       <div className={styles.field}>
         <label htmlFor={id}>{t(label)}</label>
         <select
           id={id}
-          value={value === undefined ? '' : String(value)}
+          value={value == null ? '' : String(value)}
+          aria-describedby={hint}
           onChange={(e) =>
             update({
-              [field]:
-                e.target.value === '' ? undefined : e.target.value === 'true',
+              [field]: e.target.value === '' ? null : e.target.value === 'true',
             })
           }
         >
@@ -65,6 +68,7 @@ export function SpainWhatIfControls({
           <option value="true">{t('form.yes')}</option>
           <option value="false">{t('form.no')}</option>
         </select>
+        {after}
       </div>
     );
   }
@@ -89,8 +93,15 @@ export function SpainWhatIfControls({
           value={knobs.simulationDate}
           onChange={(e) => update({ simulationDate: e.target.value })}
           aria-invalid={!!errors.date}
-          aria-describedby={errors.date ? 'date-error' : undefined}
+          aria-describedby={
+            errors.date
+              ? 'es-whatif-date-hint date-error'
+              : 'es-whatif-date-hint'
+          }
         />
+        <p id="es-whatif-date-hint" className={styles.hint}>
+          {t('es.whatif.dateHint')}
+        </p>
         {error('date')}
       </div>
       {hasTrips && (
@@ -128,11 +139,19 @@ export function SpainWhatIfControls({
               ))}
             </select>
           </div>
-          {choice('delePassed', ids.dele, 'es.whatif.dele')}
-          {choice('ccsePassed', ids.ccse, 'es.whatif.ccse')}
+          {choice('delePassed', ids.dele, 'es.whatif.dele', examHint)}
+          {choice(
+            'ccsePassed',
+            ids.ccse,
+            'es.whatif.ccse',
+            examHint,
+            <p id={examHint} className={styles.hint}>
+              {t('es.whatif.examHint')}
+            </p>,
+          )}
         </>
       )}
-      {hasFamilyResources && (
+      {hasResources && (
         <div className={styles.field}>
           <label htmlFor={ids.familySize}>{t('es.whatif.familySize')}</label>
           <input
@@ -148,13 +167,15 @@ export function SpainWhatIfControls({
             }
             aria-invalid={!!errors.familySize}
             aria-describedby={
-              errors.familySize ? 'familySize-error' : undefined
+              errors.familySize
+                ? `${resourcesHint} familySize-error`
+                : resourcesHint
             }
           />
           {error('familySize')}
         </div>
       )}
-      {hasIncome && (
+      {hasResources && (
         <div className={styles.field}>
           <label htmlFor={ids.income}>{t('es.whatif.income')}</label>
           <input
@@ -171,9 +192,14 @@ export function SpainWhatIfControls({
               })
             }
             aria-invalid={!!errors.income}
-            aria-describedby={errors.income ? 'income-error' : undefined}
+            aria-describedby={
+              errors.income ? `${resourcesHint} income-error` : resourcesHint
+            }
           />
           {error('income')}
+          <p id={resourcesHint} className={styles.hint}>
+            {t('es.whatif.resourcesHint')}
+          </p>
         </div>
       )}
       {hasSalary && (
@@ -198,8 +224,9 @@ export function SpainWhatIfControls({
           {error('salary')}
         </div>
       )}
-      {hasInsurance && choice('healthCover', ids.insurance, 'es.whatif.insurance')}
-      {choice('conductCleared', ids.conduct, 'es.whatif.conduct')}
+      {hasInsurance &&
+        choice('healthCover', ids.insurance, 'es.whatif.insurance')}
+      {hasConduct && choice('conductCleared', ids.conduct, 'es.whatif.conduct')}
     </>
   );
 }

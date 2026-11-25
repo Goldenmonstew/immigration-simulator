@@ -145,10 +145,14 @@ function Question({
             <Field
               id={`${id}-${i}`}
               label={`${label} ${i + 1}`}
-              error={errors[id]}
+              error={errors[`${id}-${i}`]}
             >
               <input
                 id={`${id}-${i}`}
+                aria-invalid={errors[`${id}-${i}`] ? true : undefined}
+                aria-describedby={
+                  errors[`${id}-${i}`] ? `${id}-${i}-error` : undefined
+                }
                 type="date"
                 value={item}
                 onChange={(event) =>
@@ -234,7 +238,7 @@ function Question({
           })}
         </div>
         {supportsUnknown && Array.isArray(value) && !selected.length && (
-          <p>{t('es.form.emptyConfirmed')}</p>
+          <p>{t(`es.form.${field.none?.confirmed ?? 'emptyConfirmed'}`)}</p>
         )}
         {supportsUnknown && !selected.length && (
           <div className={site.actions}>
@@ -245,7 +249,7 @@ function Question({
             >
               {t(
                 value === undefined
-                  ? 'es.form.noRecords'
+                  ? `es.form.${field.none?.confirm ?? 'noRecords'}`
                   : 'es.form.resetRecords',
               )}
             </button>
@@ -263,7 +267,9 @@ function Question({
         .filter(Boolean)
         .join(' ') || undefined,
   };
-  const required = !!field.required;
+  const required =
+    !!field.required ||
+    (!!field.requiredWith && answers[field.requiredWith] !== undefined);
   const marked = label + (required ? ' *' : '');
   if (field.type === 'boolean' || field.type === 'choice') {
     const isBool = field.type === 'boolean';
@@ -291,7 +297,7 @@ function Question({
           ) : (
             field.options.map((option) => (
               <option key={option} value={option}>
-                {t(`es.option.${option}`)}
+                {t(`es.option.${field.optionLabels?.[option] ?? option}`)}
               </option>
             ))
           )}
@@ -306,7 +312,7 @@ function Question({
       <input
         {...props}
         type={isNumber ? 'number' : 'date'}
-        min={isNumber ? 0 : undefined}
+        min={isNumber ? (field.min ?? 0) : undefined}
         step={isNumber ? (field.type === 'number' ? 'any' : 1) : undefined}
         required={required}
         value={String(value ?? '')}

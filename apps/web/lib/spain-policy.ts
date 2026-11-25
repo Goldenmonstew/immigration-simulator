@@ -1,14 +1,20 @@
+import type { Locale } from '@uk-immigration/engine';
 import { spain2026_11, spainFull2026_11 } from '@uk-immigration/policy-data';
 import { t, type TranslationKey } from '../i18n';
-import { withPolicySources, type PolicyRuleSet } from './policy';
+import { spainParameterLabels } from '../i18n/countries/spain-module';
+import {
+  withPolicySources,
+  type PolicyParameterValue,
+  type PolicyRuleSet,
+} from './policy';
 import { spainRules } from './spain-policy-rules';
 
 function title(key: TranslationKey) {
   return { 'zh-CN': t(key), en: t(key, 'en') };
 }
 
-const time = spain2026_11.values;
 const full = spainFull2026_11;
+const values = { ...spain2026_11.values, ...full.values };
 const set: PolicyRuleSet = {
   id: full.ruleSetId,
   title: title('es.policy.title'),
@@ -33,12 +39,37 @@ export const spainPathways = [
   { id: 'ES-U', target: 'U', title: title('es.target.U') },
 ] as const;
 
+// Nested fields and the DELE-exempt country codes are shown by name.
+function displayParameter(
+  name: string,
+  locale: Locale,
+): PolicyParameterValue | undefined {
+  if (name === 'nationalityDeleExemptCountries')
+    return full.values.nationalityDeleExemptCountries.value.map((code) =>
+      t(`es.option.${code}` as TranslationKey, locale),
+    );
+  const labels = spainParameterLabels[name];
+  if (!labels) return undefined;
+  const value = values[name as keyof typeof values].value as Record<
+    string,
+    number
+  >;
+  return Object.fromEntries(
+    Object.entries(labels).map(([key, [zh, en]]) => [
+      locale === 'en' ? en : zh,
+      // The label no longer ends in "year", so keep the calendar year as text.
+      key === 'year' ? String(value[key]) : value[key],
+    ]),
+  );
+}
+
 export const spainPolicy = withPolicySources({
   ruleSets: [set],
   displayedRuleSets: [set],
   pathways: spainPathways.map(({ id, title }) => ({ id, title })),
-  parameters: { [set.id]: { ...full, values: { ...time, ...full.values } } },
+  parameters: { [set.id]: { ...full, values } },
   rules: { [set.id]: spainRules },
+  displayParameter,
   changelog: [
     {
       date: full.values.nationalityFrenchTreatyFrom.value,

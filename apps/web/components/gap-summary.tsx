@@ -8,7 +8,11 @@ import { useTranslation } from '../i18n/locale';
 import { countryPath } from '../lib/site-countries';
 import { punct } from '../i18n/punctuation';
 import { firstSentence, gapRules, remainingTime } from '../lib/gap-summary';
-import type { CountryDraft, CountryModule } from '../lib/country-module';
+import {
+  earliestLabelFor,
+  type CountryDraft,
+  type CountryModule,
+} from '../lib/country-module';
 import { rememberWhatIfTarget } from '../lib/whatif';
 import site from '../app/site.module.css';
 import styles from '../app/uk/result/result.module.css';
@@ -80,7 +84,7 @@ export function GapSummary<D extends CountryDraft, K>({
             {date && (
               <li>
                 {assessment.status === 'FUTURE'
-                  ? `${t('result.earliest')}${p.colon}${date}`
+                  ? `${t(earliestLabelFor(assessment, country.earliestLabel))}${p.colon}${date}`
                   : t('gap.earliest').replace('{date}', date)}
                 {wait &&
                   withCount(

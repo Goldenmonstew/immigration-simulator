@@ -11,6 +11,7 @@ import {
   type EsRecoveryFacts,
   type EsResidenceFacts,
 } from '@uk-immigration/engine';
+import { spainFull2026_11 } from '@uk-immigration/policy-data';
 import type { TranslationKey } from '../i18n';
 import type { CountryDraft, DraftReadMode } from './country-module';
 import { today, validDate } from './questionnaire';
@@ -103,6 +104,42 @@ export function spainSteps(draft: SpainDraft) {
   });
 }
 
+// Free-movement history does not use Spanish residence permits.
+const usesPermits = (targets: readonly EsFullTarget[]) =>
+  targets.some((t) => t === 'N' || t === 'L' || t === 'E');
+
+export function spainHistoryFieldsFor(targets: readonly EsFullTarget[]) {
+  return usesPermits(targets)
+    ? spainHistoryFields
+    : spainHistoryFields.filter((field) => field.name !== 'permits');
+}
+
+// National grounds are read only for L, the detailed EU record only for E.
+export function spainResidenceSectionsFor(
+  targets: readonly EsFullTarget[],
+): Record<string, SpainField[]> {
+  return Object.fromEntries(
+    Object.entries(spainResidenceSections).filter(([section]) =>
+      section === 'resNational'
+        ? targets.includes('L')
+        : section === 'resEu'
+          ? targets.includes('E')
+          : true,
+    ),
+  );
+}
+
+function shownResidence(draft: SpainDraft): SpainDraft['residence'] {
+  const names = new Set(
+    Object.values(spainResidenceSectionsFor(draft.targets))
+      .flat()
+      .map((field) => field.name),
+  );
+  return Object.fromEntries(
+    Object.entries(draft.residence).filter(([name]) => names.has(name)),
+  );
+}
+
 export function activeSpainAnswers(draft: SpainDraft): SpainDraft {
   const visible = new Set(spainSteps(draft).map(({ step }) => step));
   const hasHistory = visible.has(1);
@@ -113,7 +150,7 @@ export function activeSpainAnswers(draft: SpainDraft): SpainDraft {
   return {
     ...draft,
     timeRecordsComplete: hasHistory ? draft.timeRecordsComplete : undefined,
-    permits: hasHistory ? draft.permits : undefined,
+    permits: usesPermits(draft.targets) ? draft.permits : undefined,
     trips: hasHistory ? draft.trips : undefined,
     route: visible.has(2) ? draft.route : undefined,
     marriedToSpaniard:
@@ -121,12 +158,22 @@ export function activeSpainAnswers(draft: SpainDraft): SpainDraft {
         ? draft.marriedToSpaniard
         : undefined,
     nationality: visible.has(2) ? draft.nationality : {},
-    residence: visible.has(3) ? draft.residence : {},
+    residence: visible.has(3) ? shownResidence(draft) : {},
     mobility: visible.has(4) ? draft.mobility : {},
     recovery: visible.has(5) && hasRecovery ? draft.recovery : {},
     longTermCard: visible.has(5) && hasCard ? draft.longTermCard : {},
     freeMovement: visible.has(6) ? draft.freeMovement : {},
   };
+}
+
+// The answers the engine reads.
+export function spainEngineInput(draft: SpainDraft): SpainDraft {
+  const active = activeSpainAnswers(draft);
+  const { schooling } = active.residence;
+  // Notice dates apply child by child, so an unconfirmed list stays unconfirmed.
+  return schooling && !schooling.children
+    ? { ...active, residence: { ...active.residence, schooling: undefined } }
+    : active;
 }
 
 type Errors = Record<string, TranslationKey>;
@@ -159,7 +206,12 @@ function checkFields(
     const id = `${prefix}-${field.name}`;
     const value = answers[field.name];
     if (value === undefined || (value === '' && field.type === 'date')) {
-      if (required && field.required) errors[id] = 'es.form.required';
+      if (
+        required &&
+        (field.required ||
+          (field.requiredWith && answers[field.requiredWith] !== undefined))
+      )
+        errors[id] = 'es.form.required';
       continue;
     }
     switch (field.type) {
@@ -188,6 +240,9 @@ function checkFields(
             order(`${id}-to`, value.from, value.to);
             order(`${id}-returned`, value.departed, value.returned);
             order(`${id}-validTo`, value.validFrom, value.validTo);
+            order(`${id}-validThrough`, value.issued, value.validThrough);
+            order(`${id}-cureDeadline`, value.noticeDate, value.cureDeadline);
+            order(`${id}-moveDate`, value.firstCardFrom, value.moveDate);
           }
         } else {
           errors[id] = 'es.form.required';
@@ -211,11 +266,15 @@ function checkFields(
           errors[id] = 'es.form.required';
         break;
       case 'date-list':
-        if (
-          !Array.isArray(value) ||
-          !value.every((item) => typeof item === 'string' && validDate(item))
-        )
+        if (!Array.isArray(value)) {
           errors[id] = 'es.error.date';
+          break;
+        }
+        // A blank row may still be in progress until the step is submitted.
+        value.forEach((item, i) => {
+          if (typeof item !== 'string' || ((required || item) && !validDate(item)))
+            errors[`${id}-${i}`] = 'es.error.date';
+        });
         break;
       case 'boolean':
         if (typeof value !== 'boolean') errors[id] = 'es.form.required';
@@ -238,6 +297,8 @@ function checkFields(
           !Number.isSafeInteger(value)
         )
           errors[id] = 'es.form.integerError';
+        else if (required && field.min !== undefined && value < field.min)
+          errors[id] = 'es.whatif.invalidFamilySize';
         break;
     }
   }
@@ -258,7 +319,7 @@ function checkStep(draft: SpainDraft, step: number, submitting: boolean) {
         errors['es-targets'] = 'es.form.routeError';
       break;
     case 1:
-      fields(spainHistoryFields, draft, 'es');
+      fields(spainHistoryFieldsFor(draft.targets), draft, 'es');
       break;
     case 2:
       fields(spainNatTopFields, draft, 'es-nat');
@@ -270,10 +331,18 @@ function checkStep(draft: SpainDraft, step: number, submitting: boolean) {
           draft.nationality.guardianshipFrom,
           draft.nationality.guardianshipTo,
         );
+        const correct = draft.nationality.ccse?.correct;
+        if (
+          typeof correct === 'number' &&
+          correct > spainFull2026_11.values.nationalityCcseQuestions.value
+        )
+          errors['es-nat-ccse-correct'] ??= 'es.form.ccseCorrectError';
       }
       break;
     case 3:
-      for (const section of Object.values(spainResidenceSections))
+      for (const section of Object.values(
+        spainResidenceSectionsFor(draft.targets),
+      ))
         fields(section, draft.residence, 'es-res');
       break;
     case 4:
@@ -350,11 +419,9 @@ function migrateLegacySpainForm(
     !Array.isArray(value.trips)
   )
     return undefined;
-  const route =
-    typeof value.route === 'string' &&
-    ES_NATIONALITY_ROUTES.includes(value.route as EsNationalityRoute)
-      ? (value.route as EsNationalityRoute)
-      : 'general';
+  if (!ES_NATIONALITY_ROUTES.includes(value.route as EsNationalityRoute))
+    return undefined;
+  const route = value.route as EsNationalityRoute;
   const married =
     typeof value.marriedOn === 'string' && validDate(value.marriedOn)
       ? value.marriedOn
@@ -368,7 +435,7 @@ function migrateLegacySpainForm(
           {
             from: row.from,
             ...(typeof row.to === 'string' && row.to ? { to: row.to } : {}),
-            ...(row.study === true ? { study: true } : {}),
+            study: row.study === true,
           },
         ]
       : [],
@@ -433,7 +500,12 @@ export function decodeSpainDraft(
     longTermCard: (value.longTermCard as EsLongTermCardFacts) ?? {},
     freeMovement: (value.freeMovement as EsFreeMovementFacts) ?? {},
   };
-  if (titles.some((_, i) => Object.keys(checkStep(draft, i, false)).length > 0))
+  // Answers kept for a deselected route are checked again if it is reselected.
+  if (
+    spainSteps(draft).some(
+      ({ step }) => Object.keys(checkStep(draft, step, false)).length > 0,
+    )
+  )
     return undefined;
   const restored = restoreStoredSpainDraft(draft, !!mode);
   if (!spainSteps(restored).some(({ step }) => step === restored.step))

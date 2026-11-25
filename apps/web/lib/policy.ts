@@ -39,6 +39,11 @@ export interface CountryPolicy {
   rules: Record<string, RuleMeta[]>;
   changelog: PolicyChange[];
   sourceUrls: Record<string, string>;
+  // A parameter shown with labelled rows and columns instead of raw values.
+  displayParameter?(
+    name: string,
+    locale: Locale,
+  ): PolicyParameterValue | undefined;
 }
 
 export function withPolicySources(

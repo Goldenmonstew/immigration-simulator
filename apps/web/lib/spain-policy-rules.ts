@@ -7,6 +7,10 @@ const ref = (srcId: string, locator: string, url?: string): SourceRef => ({
   locator,
   ...(url ? { url } : {}),
 });
+// SRC-345 is two guidance sheets; family rules cite Hoja 52, as the engine's
+// familyGuide does. sourceUrls lists Hoja 51 for the source as a whole.
+const hoja52 =
+  'https://www.inclusion.gob.es/web/migraciones/w/51.-residencia-de-larga-duracion-en-espana-del-residente-de-larga-duracion-ue-en-otro-eemm-de-la-ue-duplicar-0';
 
 function rule(
   id: keyof typeof spainConditionTitles,
@@ -388,7 +392,7 @@ export const spainRules: RuleMeta[] = [
     [
       ref('SRC-083', 'art. 180.1–4'),
       ref('SRC-090', 'art. 30.2, 30.4–6'),
-      ref('SRC-345', 'Hoja 52, requisitos y documentación a aportar'),
+      ref('SRC-345', 'Hoja 52, requisitos y documentación a aportar', hoja52),
     ],
     ['PD-099'],
   ),
@@ -398,7 +402,7 @@ export const spainRules: RuleMeta[] = [
     [
       ref('SRC-083', 'arts. 66.1.c, 180.1'),
       ref('SRC-320', 'art. 17.1.b–d'),
-      ref('SRC-345', 'Hoja 52, requisitos y documentación a aportar'),
+      ref('SRC-345', 'Hoja 52, requisitos y documentación a aportar', hoja52),
     ],
     ['PD-294'],
   ),
@@ -408,7 +412,7 @@ export const spainRules: RuleMeta[] = [
       ref('SRC-083', 'arts. 180.3.d, 67.1'),
       ref('SRC-326', 'Ley 31/2022 DA 90.a–c'),
       ref('SRC-337', 'Ley 19/2021 art. 13.2; RDL 3/2026 art. 2.5'),
-      ref('SRC-345', 'Hoja 52, medios económicos'),
+      ref('SRC-345', 'Hoja 52, medios económicos', hoja52),
     ],
     ['PD-290'],
   ),
@@ -416,7 +420,7 @@ export const spainRules: RuleMeta[] = [
     'ES-F04',
     [
       ref('SRC-083', 'arts. 179.3.d.1º, 180.3.e'),
-      ref('SRC-345', 'Hoja 52, requisitos y documentación a aportar'),
+      ref('SRC-345', 'Hoja 52, requisitos y documentación a aportar', hoja52),
     ],
     ['PD-291'],
   ),

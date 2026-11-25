@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import { ES_FULL_TARGETS } from '@uk-immigration/engine';
+import { spain2026_11, spainFull2026_11 } from '@uk-immigration/policy-data';
 import Home from '../app/page';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
@@ -9,12 +10,15 @@ import SpainPolicyPage from '../app/spain/policy/page';
 import SpainSimulatePage from '../app/spain/simulate/page';
 import { ResultView } from '../components/result-view';
 import { WhatIfView } from '../components/whatif-lab';
+import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
+import { gapRules } from '../lib/gap-summary';
 import { readPageResult } from '../lib/page-result';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { sourceUrls } from '../lib/sources';
 import type { SpainDraft } from '../lib/spain-draft';
 import { spainModule as es } from '../lib/spain-module';
+import { spainAnswers } from '../lib/spain-whatif';
 import { ukModule } from '../lib/uk-module';
 
 const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
@@ -32,7 +36,7 @@ function longTermMetDraft(): SpainDraft {
     simulationDate: '2026-11-23',
     targets: ['L', 'N', 'E'],
     timeRecordsComplete: true,
-    permits: [{ from: '2017-01-01' }],
+    permits: [{ from: '2017-01-01', study: false }],
     trips: [],
     route: 'general',
     residence: {
@@ -181,7 +185,8 @@ test('step validation checks targets, simulation date and date ordering across s
     ...fresh,
     step: 1,
     targets: ['L'] as SpainDraft['targets'],
-    permits: [{ from: '2024-05-10', to: '2024-05-01' }],
+    timeRecordsComplete: true,
+    permits: [{ from: '2024-05-10', to: '2024-05-01', study: false }],
     trips: [{ departed: '2024-08-10', returned: '2024-08-01' }],
   };
   expect(es.validateStep(step1)).toEqual({
@@ -191,7 +196,7 @@ test('step validation checks targets, simulation date and date ordering across s
   expect(
     es.validateStep({
       ...step1,
-      permits: [{ from: '2024-05-01', to: '2024-05-10' }],
+      permits: [{ from: '2024-05-01', to: '2024-05-10', study: false }],
       trips: [{ departed: '2024-08-01', returned: '2024-08-10' }],
     }),
   ).toEqual({});
@@ -248,10 +253,13 @@ test('what-if controls adjust simulation date, household size, income, absences 
     simulationDate: '2026-11-23',
     noTrips: false,
     natRoute: 'general',
-    delePassed: true,
-    ccsePassed: true,
     familySize: 2,
     monthlyIncome: 950,
+  });
+  // Yes/no controls start unpicked and show the baseline status.
+  expect(spainAnswers(draft)).toEqual({
+    delePassed: true,
+    ccsePassed: true,
     healthCover: true,
     conductCleared: true,
   });
@@ -340,6 +348,23 @@ test('what-if controls adjust simulation date, household size, income, absences 
   expect(whatifHtml).toContain('ES-E05');
 });
 
+test('the family rules on the policy page link to Hoja 52, as the engine does', () => {
+  const family = es
+    .run({ ...longTermMetDraft(), targets: ['F'] }, 'en')
+    .columns[0].pathways[0].checks.find((check) => check.id === 'ES-F01')!;
+  const hoja52 = family.sources.find(
+    (source) => source.srcId === 'SRC-345' && source.url,
+  )?.url;
+  expect(hoja52).toMatch(/duplicar-0$/);
+  const html = render(<SpainPolicyPage />, 'en');
+  const rules = html.split('<li data-rule="');
+  for (const id of ['ES-F01', 'ES-F02', 'ES-F03', 'ES-F04']) {
+    const rule = rules.find((part) => part.startsWith(`${id}"`))!;
+    expect(rule, id).toContain(`href="${hoja52}"`);
+    expect(rule, id).not.toContain(`href="${sourceUrls['SRC-345']}"`);
+  }
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'questionnaire, result view and policy page render in %s with only Spanish sources',
   (locale) => {
@@ -389,5 +414,216 @@ test.each(['zh-CN', 'en'] as const)(
     for (const id of cited) {
       expect(policyHtml).toContain(`data-source="${id}"`);
     }
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'fees and follow-up steps are labelled as such, and a held permanent right shows when it was acquired (%s)',
+  (locale) => {
+    const draft: SpainDraft = {
+      ...es.createDraft(),
+      completed: true,
+      simulationDate: '2026-11-24',
+      targets: ['U'],
+      timeRecordsComplete: true,
+      trips: [],
+      freeMovement: {
+        person: 'eu-eea-swiss',
+        residenceFrom: '2017-01-01',
+        noExecutedExpulsion: true,
+        history: [
+          { from: '2017-01-01', basis: 'employment', documented: true },
+        ],
+        noOfficialRestriction: true,
+      },
+    };
+    const result = es.run(draft, locale);
+    expect(result.columns[0].pathways[0]).toMatchObject({
+      status: 'MET',
+      earliestDate: '2026-11-24',
+      pathwayCompletionDate: '2022-01-01',
+    });
+    const html = render(
+      <ResultView country={es} result={result} draft={draft} />,
+      locale,
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? 'Permanent residence was acquired on 2022-01-01.'
+        : '已于 2022-01-01 取得永久居留权。',
+    );
+    expect(html).toContain(
+      locale === 'en'
+        ? 'Fees, cards, post-grant steps and branch details (these do not decide this pathway)'
+        : '费用、办卡、获批后手续与分支明细（不决定本路径结论）',
+    );
+    expect(html).not.toContain(
+      locale === 'en' ? 'Other pathways (shows why' : '其他路径的条件',
+    );
+  },
+);
+
+// Direct national grounds stay listed until the applicant rules them out.
+function openGroundsDraft(): SpainDraft {
+  const draft = longTermMetDraft();
+  return {
+    ...draft,
+    residence: { ...draft.residence, nationalAlternatives: undefined },
+  };
+}
+
+test('checks are grouped as time, requirements, fees, post-grant steps and alternative grounds', () => {
+  const draft = { ...openGroundsDraft(), targets: [...ES_FULL_TARGETS] };
+  const pathways = es.run(draft, 'zh-CN').columns[0].pathways;
+  const kinds = new Map<string, string | undefined>();
+  for (const pathway of pathways) {
+    for (const check of pathway.checks) {
+      expect(check.kind, check.id).toBeDefined();
+      kinds.set(check.id, check.kind);
+    }
+    // Only requirements and time requirements can be gaps.
+    for (const rule of gapRules(pathway))
+      expect(['requirement', 'time']).toContain(rule.kind);
+  }
+  expect(
+    Object.fromEntries(
+      [
+        'ES-N01',
+        'ES-N15',
+        'ES-N16',
+        'ES-N17',
+        'ES-N18',
+        'ES-L-BASIS',
+        'ES-L01',
+        'ES-L01-TOTAL',
+        'ES-L03',
+        'ES-L09',
+        'ES-L14',
+        'ES-E-TIME',
+        'ES-E01',
+        'ES-E05',
+        'ES-E09',
+        'ES-M01',
+        'ES-M09',
+        'ES-M09-card',
+        'ES-M10',
+        'ES-M11',
+        'ES-F01-grant',
+        'ES-F05',
+        'ES-F05-effective',
+        'ES-F05-card-fee',
+        'ES-R01',
+        'ES-R08',
+        'ES-R09',
+        'ES-T01',
+        'ES-T02',
+        'ES-U04',
+        'ES-U13',
+      ].map((id) => [id, kinds.get(id)]),
+    ),
+  ).toEqual({
+    'ES-N01': 'time',
+    // The application fee is paid before filing and decides the pathway.
+    'ES-N15': 'requirement',
+    'ES-N16': 'budget',
+    'ES-N17': 'afterApproval',
+    'ES-N18': 'afterApproval',
+    'ES-L-BASIS': 'requirement',
+    'ES-L01': 'time',
+    'ES-L01-TOTAL': 'time',
+    'ES-L03': 'alternative',
+    'ES-L09': 'alternative',
+    'ES-L14': 'budget',
+    'ES-E-TIME': 'time',
+    'ES-E01': 'time',
+    'ES-E05': 'requirement',
+    'ES-E09': 'budget',
+    'ES-M01': 'requirement',
+    'ES-M09': 'afterApproval',
+    'ES-M09-card': 'afterApproval',
+    'ES-M10': 'budget',
+    'ES-M11': 'information',
+    'ES-F01-grant': 'information',
+    'ES-F05': 'budget',
+    'ES-F05-effective': 'afterApproval',
+    'ES-F05-card-fee': 'budget',
+    'ES-R01': 'requirement',
+    'ES-R08': 'budget',
+    'ES-R09': 'afterApproval',
+    'ES-T01': 'afterApproval',
+    'ES-T02': 'afterApproval',
+    'ES-U04': 'time',
+    'ES-U13': 'afterApproval',
+  });
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'result checks show their group, and an acquired permanent right keeps the two-part ordinary route out of the alternative grounds (%s)',
+  (locale) => {
+    const draft: SpainDraft = {
+      ...es.createDraft(),
+      completed: true,
+      simulationDate: '2026-11-24',
+      targets: ['U'],
+      timeRecordsComplete: true,
+      trips: [],
+      freeMovement: {
+        person: 'eu-eea-swiss',
+        residenceFrom: '2017-01-01',
+        noExecutedExpulsion: true,
+        history: [
+          { from: '2017-01-01', basis: 'employment', documented: true },
+        ],
+        noOfficialRestriction: true,
+        acquiredOn: '2022-01-01',
+      },
+    };
+    const [pathway] = es.run(draft, locale).columns[0].pathways;
+    const kind = (id: string) =>
+      pathway.checks.find((check) => check.id === id)?.kind;
+    expect(pathway.decidedBy).toContain('ES-U04-basis');
+    expect(pathway.decidedBy).not.toContain('ES-U04');
+    expect(pathway.decidedBy).not.toContain('ES-U05');
+    expect(['ES-U04-basis', 'ES-U04', 'ES-U05', 'ES-U13'].map(kind)).toEqual([
+      'requirement',
+      'time',
+      'requirement',
+      'afterApproval',
+    ]);
+    const html = render(
+      <ResultView
+        country={es}
+        result={es.run({ ...openGroundsDraft(), targets: ['L'] }, locale)}
+        draft={draft}
+      />,
+      locale,
+    );
+    for (const group of ['budget', 'afterApproval', 'alternative'] as const)
+      expect(html).toContain(`· ${t(`country.check.${group}`, locale)}`);
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'policy parameters label nested values and keep calendar years ungrouped in %s',
+  (locale) => {
+    const html = render(<SpainPolicyPage />, locale);
+    const row = (name: string) =>
+      html.match(new RegExp(`<tr data-parameter="${name}">.*?</tr>`))![0];
+    const values = { ...spain2026_11.values, ...spainFull2026_11.values };
+    for (const [name, { value }] of Object.entries(values))
+      if (typeof value === 'object' && !Array.isArray(value))
+        for (const key of Object.keys(value))
+          expect(row(name), `${name}.${key}`).not.toMatch(
+            new RegExp(`(^|[^\\w-])${key} [\\d.]`),
+          );
+    expect(row('nationalityYears')).toContain(
+      locale === 'en' ? 'General (years) 10' : '一般（年） 10',
+    );
+    expect(row('nationalityDeleExemptCountries')).toContain(
+      locale === 'en' ? 'Argentina (AR)' : '阿根廷 (AR)',
+    );
+    for (const name of ['ipremYear', 'smiYear', 'retirementTable'])
+      expect(row(name)).toMatch(/\b2026\b/);
+    expect(html).not.toContain('2,026');
   },
 );
