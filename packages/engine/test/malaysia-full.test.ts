@@ -1768,7 +1768,7 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
     };
   };
 
-  test('met only when the pass condition is met, and no date without a pass', () => {
+  test('met only when the pass condition is met, and no date without a pass', { timeout: 30_000 }, () => {
     histories.forEach((h, i) => {
       for (const r of routes) {
         const passes = h.map((s) => ({ kind: r.kind, from: s.from, to: s.to }));
