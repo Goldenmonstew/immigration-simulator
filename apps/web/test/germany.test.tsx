@@ -21,6 +21,7 @@ import {
   type GermanyDraft,
 } from '../lib/germany-draft';
 import { germanyModule as de } from '../lib/germany-module';
+import { gapRules } from '../lib/gap-summary';
 import { readPageResult } from '../lib/page-result';
 import { decodeDraft, encodeDraft, linkedResultDraft } from '../lib/share';
 import { draftStorage, readScenarios, saveScenario } from '../lib/storage';
@@ -1291,3 +1292,65 @@ test.each(['zh-CN', 'en'] as const)(
     expect(whatIf).not.toContain(t('result.earliest', locale));
   },
 );
+
+test('fee budgets, the declaration after approval and procedural notes are labelled apart and left out of the gaps', () => {
+  const draft: GermanyDraft = {
+    ...sampleDraft(),
+    routes: ['R01', 'R03', 'R07'],
+  };
+  const pathways = de.run(draft, 'zh-CN').columns[0].pathways;
+  const kinds = Object.fromEntries(
+    pathways.flatMap((p) => p.checks.map((c) => [c.id, c.kind])),
+  );
+  expect(kinds).toMatchObject({
+    'DE-C13': 'time',
+    'DE-C19-time': 'time',
+    'DE-C55': 'time',
+    'DE-C03': 'requirement',
+    'DE-C19-months': 'requirement',
+    'DE-C49': 'requirement',
+    'DE-C65': 'budget',
+    'DE-C67': 'budget',
+    'DE-C69': 'budget',
+    'DE-C70': 'budget',
+    'DE-C71': 'budget',
+    'DE-C54': 'afterApproval',
+    'DE-C01-procedure': 'information',
+    'DE-C06-authority': 'information',
+    'DE-C11': 'information',
+    'DE-C46-application': 'information',
+  });
+  expect(Object.values(kinds)).not.toContain(undefined);
+  const r07 = pathways.find((p) => p.id === 'DE-R07')!;
+  expect(r07.status).toBe('NOT_MET');
+  const gaps = gapRules(r07).map((c) => c.id);
+  expect(gaps).toContain('DE-C55');
+  expect(gaps).toContain('DE-C49');
+  for (const id of [
+    'DE-C54',
+    'DE-C46-application',
+    'DE-C69',
+    'DE-C70',
+    'DE-C71',
+  ])
+    expect(gaps).not.toContain(id);
+  for (const pathway of pathways)
+    for (const id of gapRules(pathway).map((c) => c.id))
+      expect(['requirement', 'time']).toContain(kinds[id]);
+
+  const html = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'zh-CN', setLocale: () => {} }}>
+      <ResultView country={de} result={de.run(draft, 'zh-CN')} draft={draft} />
+    </LocaleContext>,
+  );
+  for (const kind of [
+    'time',
+    'requirement',
+    'budget',
+    'afterApproval',
+    'information',
+  ] as const)
+    expect(html).toContain(`· ${t(`country.check.${kind}`)}`);
+  expect(html).toContain(t('pilot.pending'));
+  expect(html).not.toContain(t('result.pendingDetails'));
+});
