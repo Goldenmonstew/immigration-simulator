@@ -12,7 +12,15 @@ import type {
 
 export interface CountryCheck extends Omit<RuleOutcome, 'status'> {
   status: 'MET' | 'NOT_MET' | 'UNKNOWN';
-  kind?: 'requirement' | 'factor' | 'information';
+  /** Display group. Only requirements and time requirements are gaps. */
+  kind?:
+    | 'requirement'
+    | 'factor'
+    | 'information'
+    | 'time'
+    | 'budget'
+    | 'afterApproval'
+    | 'alternative';
   applicable?: boolean;
   fee?: { currency: string; amount: number; possibleReducedAmount?: number };
 }
