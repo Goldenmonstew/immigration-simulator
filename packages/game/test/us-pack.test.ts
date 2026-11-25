@@ -244,6 +244,23 @@ test('the I-751 window opens at the Federal Building and removes the conditions'
 test('missing the I-751 window ends conditional residence', () => {
   const state = playTo(us.newGame('spouse', 5, 'en'), '2027-12-01');
   expect(state.ending).toBe('overstayed');
+  // The ending's assessment shows the lapse: no timely petition and no
+  // permanent residence to naturalize from.
+  const status = (column: 'gc' | 'cit', id: string) =>
+    us.pathwayOf(state.result, column)!.checks.find((check) => check.id === id)
+      ?.status;
+  expect(status('gc', 'US-TIME-CONDITIONS-FILING')).toBe('NOT_MET');
+  expect(status('cit', 'US-C02-LAWFUL-LPR')).toBe('NOT_MET');
+  expect(
+    state.result.columns[0].pathways.map(({ id, status, approvalStatus }) => [
+      id,
+      status,
+      approvalStatus,
+    ]),
+  ).toEqual([
+    ['US-CONDITIONS', 'NOT_MET', 'NOT_MET'],
+    ['US-SPOUSE', 'NOT_MET', 'NOT_MET'],
+  ]);
 });
 
 test('naturalization runs from the N-400 through the interview to the oath', () => {

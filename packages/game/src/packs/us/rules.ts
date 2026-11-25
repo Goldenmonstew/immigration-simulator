@@ -210,9 +210,19 @@ export const usRules: EvaluationAdapter<
   },
   // Conditional residence ends at the second anniversary without a timely
   // I-751 (SRC-079 8 U.S.C. 1186a(c)(2)); the conditional card ends then too.
-  expired: (state) =>
-    greenCardPathway(state.timeline) === 'US-CONDITIONS' &&
-    state.timeline.travel.cardExpiresOn < state.date,
+  // The ending's assessment must show the lapse: no excused late petition and
+  // no permanent residence to naturalize from.
+  expired(state) {
+    const { conditions, naturalization, travel } = state.timeline;
+    if (
+      greenCardPathway(state.timeline) !== 'US-CONDITIONS' ||
+      travel.cardExpiresOn >= state.date
+    )
+      return false;
+    if (conditions?.marriage) conditions.marriage.lateFilingExcuse = 'barred';
+    naturalization.lawfulAdmission = 'barred';
+    return true;
+  },
   applyEffect(state, effect, { setFlags }) {
     const { naturalization, travel } = state.timeline;
     switch (effect.type) {
