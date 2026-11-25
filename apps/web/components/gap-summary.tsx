@@ -80,7 +80,7 @@ export function GapSummary<D extends CountryDraft, K>({
             {date && (
               <li>
                 {assessment.status === 'FUTURE'
-                  ? `${t('result.earliest')}${p.colon}${date}`
+                  ? `${t(country.earliestLabel ?? 'result.earliest')}${p.colon}${date}`
                   : t('gap.earliest').replace('{date}', date)}
                 {wait &&
                   withCount(
