@@ -103,7 +103,11 @@ test('the English interface shows the visa, Aussie English and dollars', async (
   const hud = page.locator('header').filter({ hasText: 'Maricel Dizon' });
   await expect(hud.getByText('Visa: 43 months left')).toBeVisible();
   await expect(hud.getByText('Aussie English', { exact: true })).toBeVisible();
-  await expect(hud.getByText('$15,000')).toBeVisible();
+  // Morning cards on the first day can pay out, so read the saved balance.
+  const money: number = (await save(page, 'nurse')).stats.money;
+  await expect(
+    hud.getByText(`$${money.toLocaleString('en-AU')}`, { exact: true }),
+  ).toBeVisible();
   expect(await hud.innerText()).not.toMatch(/[㐀-鿿]/);
   await walkTo(page, 'The jetty');
 });
