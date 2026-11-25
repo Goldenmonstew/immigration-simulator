@@ -7,7 +7,7 @@ import {
   type DeFullRoute,
 } from '@uk-immigration/engine';
 import { germanyFull2026_11 } from '@uk-immigration/policy-data';
-import { addDays, addMonths, dayMs } from '../../calendar';
+import { addMonths, dayMs } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
 import type { GameState, IsoDate, Progress } from '../../model';
 import { deBalance as b } from './balance';
@@ -41,7 +41,11 @@ export type DeEffect =
   | { type: 'german' }
   /** The Leben in Deutschland test with this many correct answers. */
   | { type: 'orientationTest'; correct: number }
-  /** A Blue Card extension applied for before the card ends (SRC-100 § 81 Abs. 4). */
+  /**
+   * A Blue Card extension applied for before the card ends: only the filing
+   * is recorded, and the card is deemed to continue until the decision
+   * (SRC-100 § 81 Abs. 4). The game does not decide the application.
+   */
   | { type: 'extension' }
   /** A quarter of Blue Card employment with contributions, less months abroad. */
   | { type: 'payroll' }
@@ -86,50 +90,34 @@ export const currentTitle = (
   )!;
 };
 
-/** The last day covered by the current permit and any permit that follows on. */
-export function permitEnd(state: { timeline: DeTimeline; date: IsoDate }) {
-  let end = currentPermit(state).to;
-  for (const permit of [...state.timeline.permits].sort((a, c) =>
-    a.from.localeCompare(c.from),
-  ))
-    if (end && permit.to && permit.from === addDays(end, 1)) end = permit.to;
-  return end;
-}
+/** A timely extension application is waiting for a decision. */
+export const extensionPending = (state: {
+  timeline: DeTimeline;
+  date: IsoDate;
+}) => !!currentPermit(state).renewing;
 
-const term = values.skilledTitleTerm.value;
-/**
- * The next Blue Card, as an extension follows the rules for issue (SRC-100
- * § 8 Abs. 1): four years, or the employment's remaining term plus six months
- * if shorter (§ 18 Abs. 4). None once the contract ends before it would start.
- */
-export function blueCardExtension(state: DeState) {
-  const card = state.timeline.mobility.blueCard;
-  const current = currentPermit(state);
-  if (
-    current.kind !== 'blue-card' ||
-    !current.to ||
-    !card?.employmentStartedOn ||
-    !card.contractMonths
-  )
-    return;
-  const from = addDays(current.to, 1);
-  const contractEnd = addDays(
-    addMonths(card.employmentStartedOn, card.contractMonths),
-    -1,
-  );
-  if (contractEnd < from) return;
-  const full = addDays(addMonths(from, term.years * 12), -1);
-  const shorter = addMonths(contractEnd, term.extraMonths);
-  return { from, to: shorter < full ? shorter : full };
-}
-
-/** Months to the end of the current permit and any that follows, rounded down. */
+/** Months to the end of the current permit, rounded down. */
 function visaMonthsLeft(state: DeState): number {
-  const to = permitEnd(state);
+  const to = currentPermit(state).to;
   if (!to || to < state.date) return 0;
   let months = 0;
   while (addMonths(state.date, months + 1) <= to) months++;
   return months;
+}
+
+/**
+ * The timeline as it stood on the assessment date. An extension application
+ * carries the day it was filed, after the quarter's first day, so it joins
+ * the assessment in the next quarter, as trips do on return.
+ */
+export function timelineOn(timeline: DeTimeline, date: IsoDate): DeTimeline {
+  const filedOn = timeline.mobility.blueCard?.applicationOn;
+  if (!filedOn || filedOn <= date) return timeline;
+  const unfiled = structuredClone(timeline);
+  delete unfiled.mobility.blueCard!.applicationOn;
+  for (const permit of unfiled.permits) delete permit.renewing;
+  for (const title of unfiled.mobility.titles) delete title.continuingUnder81;
+  return unfiled;
 }
 
 /**
@@ -147,8 +135,7 @@ function progress(state: DeState): Progress<DeColumn, DeOutcome> {
     const date = timeDate(pathway);
     const target = date && Date.parse(date);
     const percent =
-      pathway?.status === 'MET' ||
-      (column === 'settle' && !!officePending(state))
+      pathway?.status === 'MET' || !!officePending(state, column)
         ? 100
         : target && target > start
           ? ((Date.parse(state.date) - start) / (target - start)) * 100
@@ -177,17 +164,30 @@ function monthsAbroad(state: DeState, from: IsoDate, to: IsoDate) {
 }
 
 /**
- * The settlement checks the authority confirms when the application is made,
- * if they are all that is open: the local housing standard, for which the
+ * The checks the authority confirms when an application is made, if they are
+ * all that is open. For settlement: the local housing standard, for which the
  * game has no local figure (PD-348), and the Blue Card pay check for a year
- * whose salary threshold is not yet in the parameter table (PD-350).
+ * whose salary threshold is not yet in the parameter table (PD-350). For
+ * naturalisation: whether residence while an extension is pending counts,
+ * which depends on the renewal being granted (PD-124).
  */
-export function officePending(state: DeState): string[] | undefined {
-  const pathway = pathwayOf(state.result, state.timeline, 'settle');
+export function officePending(
+  state: DeState,
+  column: DeColumn = 'settle',
+): string[] | undefined {
+  const pathway = pathwayOf(state.result, state.timeline, column);
   if (pathway?.status !== 'UNKNOWN') return;
-  const office = ['DE-C10'];
-  if (!(state.date.slice(0, 4) in values.blueCardStandardPay.value))
-    office.push('DE-C21-pay');
+  const office =
+    column === 'nat'
+      ? extensionPending(state)
+        ? ['DE-C55']
+        : []
+      : [
+          'DE-C10',
+          ...(state.date.slice(0, 4) in values.blueCardStandardPay.value
+            ? []
+            : ['DE-C21-pay']),
+        ];
   const open = pathway.checks.filter(
     (check) =>
       check.status !== 'MET' &&
@@ -207,12 +207,16 @@ export const deRules: EvaluationAdapter<
   DeFestival
 > = {
   evaluate: ({ date, timeline, locale }) =>
-    evaluateGermanyFull({ ...timeline, simulationDate: date, locale }),
+    evaluateGermanyFull({
+      ...timelineOn(timeline, date),
+      simulationDate: date,
+      locale,
+    }),
   progress,
   route: (state) => state.timeline.routes[0],
   visaMonthsLeft,
   canTravel: (state, through) => {
-    const to = permitEnd(state);
+    const to = currentPermit(state).to;
     return !!to && through <= to;
   },
   // A home visit is an ordinary, temporary absence: no other ground for the
@@ -242,11 +246,11 @@ export const deRules: EvaluationAdapter<
       );
     return true;
   },
-  // The game makes no extension application; a lapse ends this story. The
+  // A lapse without a timely extension application ends this story. The
   // ending's assessment shows it: no current card, title or lawful residence.
   expired(state) {
     const to = currentPermit(state).to;
-    if (!to || to >= state.date) return false;
+    if (!to || to >= state.date || extensionPending(state)) return false;
     const card = state.timeline.mobility.blueCard;
     if (card) card.cardHeldAtDecision = false;
     currentTitle(state).continuingUnder81 = false;
@@ -269,16 +273,10 @@ export const deRules: EvaluationAdapter<
         return true;
       }
       case 'extension': {
-        const next = blueCardExtension(state)!;
-        state.timeline.permits.push({ kind: 'blue-card', ...next });
-        state.timeline.mobility.titles.push({
-          kind: 'blue-card',
-          from: next.from,
-          validTo: next.to,
-          noOtherLossEvent: true,
-          trips: [],
-        });
-        setFlags(state, ['visa-renewed', 'quarter-visa-renewed']);
+        currentPermit(state).renewing = true;
+        currentTitle(state).continuingUnder81 = true;
+        state.timeline.mobility.blueCard!.applicationOn = state.day.date;
+        setFlags(state, ['extension-filed', 'quarter-visa-renewed']);
         return true;
       }
       case 'payroll': {

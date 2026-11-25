@@ -89,8 +89,8 @@ const bluecardEvents: DeEvent[] = [
   permitReminder(
     'bc',
     t(
-      '蓝卡背面的有效期越来越近。到期前可以去外管局申请延期，新卡期限按劳动合同计算；条件满足时也可以递交定居申请。',
-      'The date on the back of your Blue Card is getting closer. Before it ends you can ask the Ausländerbehörde for an extension, with a term set by your employment contract, or apply for settlement once you qualify.',
+      '蓝卡背面的有效期越来越近。到期前可以去外管局递交延期申请，审理期间原卡继续有效；条件满足时也可以递交定居申请。',
+      'The date on the back of your Blue Card is getting closer. Before it ends you can apply to the Ausländerbehörde for an extension, and the card stays valid while it is decided, or apply for settlement once you qualify.',
     ),
   ),
   {
@@ -440,8 +440,7 @@ const bluecard: DeCharacter = {
       blueCard: {
         cardHeldAtDecision: true,
         countableAnnualGross: 64_000,
-        // A five-year contract from the first day of work (fictional).
-        employmentStartedOn: '2025-01-15',
+        // A five-year employment contract (fictional).
         contractMonths: 60,
         jobInGermanyMatchesQualification: true,
         requiredLicencesHeld: true,

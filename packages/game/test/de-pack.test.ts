@@ -309,7 +309,7 @@ function beforeExpiry(dayDate = '2028-03-14') {
   return visit(state, 'visa', 600);
 }
 
-test('the office extends the Blue Card before it ends, by the contract and § 18 Abs. 4', () => {
+test('a Blue Card extension is filed, not granted: the card continues under § 81 Abs. 4', () => {
   const fee = values.extensionFee.value;
   // More than the game's window (12 months) before the card ends.
   expect(ids(beforeExpiry('2027-12-14'), 'visa')).not.toContain('extend');
@@ -318,44 +318,69 @@ test('the office extends the Blue Card before it ends, by the contract and § 18
   const extend = de
     .activities(office, 'visa')
     .find(({ id }) => id === 'extend')!;
-  // The five-year contract ends 2030-01-14: six months on is shorter than
-  // four years from 2029-01-15 (SRC-100 § 18 Abs. 4).
   expect(extend.label.en).toContain(`€${fee}`);
-  expect(extend.label.en).toContain('2030-07-14');
-  const renewed = de.doActivity(office, 'extend');
-  expect(renewed.stats.money).toBe(office.stats.money - fee);
-  expect(renewed.timeline.permits.at(-1)).toEqual({
-    kind: 'blue-card',
-    from: '2029-01-15',
-    to: '2030-07-14',
-  });
-  expect(renewed.timeline.mobility.titles.at(-1)).toEqual({
-    kind: 'blue-card',
-    from: '2029-01-15',
-    validTo: '2030-07-14',
-    noOtherLossEvent: true,
-    trips: [],
-  });
-  expect(renewed.log.at(-1)?.renewalValidTo).toBe('2030-07-14');
-  expect(de.visaMonthsLeft(renewed)).toBe(28);
-  expect(ids(renewed, 'visa')).not.toContain('extend');
-  // With too little money for the fee there is no extension.
+  const filed = de.doActivity(office, 'extend');
+  expect(filed.stats.money).toBe(office.stats.money - fee);
+  // Only the application is recorded, on the day; no new card or date.
+  expect(filed.timeline.permits).toEqual([
+    {
+      kind: 'blue-card',
+      from: '2025-01-15',
+      to: '2029-01-14',
+      renewing: true,
+    },
+  ]);
+  expect(filed.timeline.mobility.titles).toHaveLength(1);
+  expect(filed.timeline.mobility.titles[0].continuingUnder81).toBe(true);
+  expect(filed.timeline.mobility.blueCard!.applicationOn).toBe('2028-03-14');
+  expect(filed.log.at(-1)?.renewalValidTo).toBeUndefined();
+  expect(ids(filed, 'visa')).not.toContain('extend');
+  // The quarter is assessed from its first day: the application joins next quarter.
+  expect(de.timelineOn(filed.timeline, filed.date)).toEqual(office.timeline);
+  const next = quarterLater(filed);
+  expect(de.timelineOn(next.timeline, next.date).permits[0].renewing).toBe(
+    true,
+  );
+  // With too little money for the fee there is no application.
   const poor = structuredClone(office);
   poor.stats.money = fee - 1;
   expect(ids(poor, 'visa')).not.toContain('extend');
 });
 
-test('after the extension, naturalisation opens from the 2030-03-01 quarter', () => {
-  const renewed = certified(de.doActivity(beforeExpiry(), 'extend'));
-  renewed.date = '2030-03-01';
-  renewed.day.date = '2030-03-12';
-  renewed.result = de.deRules.evaluate(renewed);
-  expect(pathway(renewed, 'nat').status).toBe('MET');
-  // The contract has ended, so the office offers no further extension.
-  expect(ids(visit(renewed, 'visa', 600), 'visa')).not.toContain('extend');
-  const ended = de.doActivity(visit(renewed, 'bureau', 600), 'naturalise');
+test('while the extension is pending the card does not lapse', () => {
+  let state = de.doActivity(beforeExpiry('2028-12-14'), 'extend');
+  for (let i = 0; i < 6 && state.date < '2029-03-01'; i++)
+    state = nextDay(state);
+  expect(state.date).toBe('2029-03-01');
+  expect(state.ending).toBeUndefined();
+  expect(de.visaMonthsLeft(state)).toBe(0);
+  const checks = pathway(state, 'settle').checks;
+  expect(checks.find(({ id }) => id === 'DE-C63-current')!.status).toBe('MET');
+});
+
+test('after five years under the pending extension, naturalisation waits only for the office', () => {
+  const filed = certified(de.doActivity(beforeExpiry(), 'extend'));
+  filed.date = '2030-03-01';
+  filed.day.date = '2030-03-12';
+  filed.result = de.deRules.evaluate(filed);
+  const nat = pathway(filed, 'nat');
+  // Whether the waiting period counts depends on the renewal (PD-124).
+  expect(nat.status).toBe('UNKNOWN');
+  expect(de.officePending(filed, 'nat')).toEqual(['DE-C55']);
+  expect(de.progress(filed).nat.percent).toBe(100);
+  const bureau = visit(filed, 'bureau', 600);
+  const apply = de
+    .activities(bureau, 'bureau')
+    .find(({ id }) => id === 'naturalise')!;
+  expect(apply.note?.en).toContain('PD-124');
+  const ended = de.doActivity(bureau, 'naturalise');
   expect(ended.ending).toBe('settled');
   expect(de.narrative(ended).at(-1)!.en).toContain('naturalisation');
+  // Without the pending extension that check is not left to the office.
+  const lapsed = structuredClone(filed);
+  delete lapsed.timeline.permits[0].renewing;
+  lapsed.result = de.deRules.evaluate(lapsed);
+  expect(de.officePending(lapsed, 'nat')).toBeUndefined();
 });
 
 test('the annual review never lowers the Blue Card salary', () => {

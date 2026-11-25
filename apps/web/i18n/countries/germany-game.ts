@@ -20,17 +20,17 @@ export const deGameZh = {
   'de.game.intro':
     '在柏林运河边的林登岸街区安顿下来。上班、学德语、逛集市，把四季过成自己的故事。',
   'de.game.chooseCharacter': '谁将搬进林登岸？',
-  'de.game.visa': '居留许可剩余 {count} 个月',
-  'de.game.visaUrgent': '居留许可即将到期',
-  'de.game.visaReminderTitle': '新一季，看看居留许可',
+  'de.game.visa': '居留卡有效期剩余 {count} 个月',
+  'de.game.visaUrgent': '居留卡即将到期',
+  'de.game.visaReminderTitle': '新一季，看看居留卡',
   'de.game.visaReminder':
-    '居留许可还剩 {count} 个月。到期前去外管局看看：蓝卡可以申请延期，条件满足时可以递交定居申请，也可以到入籍科递交入籍申请。',
-  'de.game.renewedThisSeason': '本季已办好蓝卡延期。',
-  'de.game.renewedThrough': '本季已办好蓝卡延期，新卡有效至 {date}。',
+    '居留卡有效期还剩 {count} 个月。到期前去外管局看看：蓝卡可以递交延期申请，条件满足时可以递交定居申请，也可以到入籍科递交入籍申请。',
+  'de.game.renewedThisSeason':
+    '本季已递交蓝卡延期申请，外管局决定前原卡继续有效。',
   'de.game.fastVisaWarning':
-    '居留许可到 {date} 为止。快进会直接过完这一季、跨过这一天，先去外管局看看吧。',
+    '居留卡有效期到 {date} 为止。快进会直接过完这一季、跨过这一天，先去外管局看看吧。',
   'de.game.fastVisaWarningNone':
-    '当前没有有效的居留许可记录。快进会直接过完这一季，先去外管局看看吧。',
+    '蓝卡延期申请审理中，外管局决定前原卡视为继续有效（AufenthG § 81 Abs. 4）。快进会直接过完这一季。',
   'de.game.visaVisit': '去外管局',
   'de.game.noVisaActions': '眼下这里没有可办的居留手续。',
   'de.game.councilDetails': '去移民咨询处看详情',
@@ -65,18 +65,17 @@ export const deGameEn: Record<keyof typeof deGameZh, string> = {
   'de.game.intro':
     'Settle into Lindenufer, a canal-side Kiez in Berlin. Work, learn German, browse the markets and make the seasons your own.',
   'de.game.chooseCharacter': 'Who is moving to Lindenufer?',
-  'de.game.visa': 'Residence permit: {count} month{count:s} left',
-  'de.game.visaUrgent': 'Residence permit ending soon',
-  'de.game.visaReminderTitle': 'A new quarter: check your residence permit',
+  'de.game.visa': 'Residence card: {count} month{count:s} left',
+  'de.game.visaUrgent': 'Residence card ending soon',
+  'de.game.visaReminderTitle': 'A new quarter: check your residence card',
   'de.game.visaReminder':
-    'Your residence permit has {count} month{count:s} left. Before it ends, visit the Ausländerbehörde: a Blue Card can be extended there, and you can apply for settlement once you qualify, or for naturalisation at the naturalisation office.',
-  'de.game.renewedThisSeason': 'You extended your Blue Card this season.',
-  'de.game.renewedThrough':
-    'You extended your Blue Card this season; the new card runs to {date}.',
+    'Your residence card has {count} month{count:s} left. Before it ends, visit the Ausländerbehörde: you can apply there to extend a Blue Card, apply for settlement once you qualify, or apply for naturalisation at the naturalisation office.',
+  'de.game.renewedThisSeason':
+    'You applied to extend your Blue Card this season; the card continues until the office decides.',
   'de.game.fastVisaWarning':
-    'Your residence permit runs until {date}. Fast-forwarding runs past that date to the end of the quarter, so visit the Ausländerbehörde first.',
+    'Your residence card runs until {date}. Fast-forwarding runs past that date to the end of the quarter, so visit the Ausländerbehörde first.',
   'de.game.fastVisaWarningNone':
-    'No current residence permit is recorded. Fast-forwarding runs to the end of the quarter, so visit the Ausländerbehörde first.',
+    'Your Blue Card extension is pending; the card is deemed to continue until the Ausländerbehörde decides (AufenthG § 81 Abs. 4). Fast-forwarding runs to the end of the quarter.',
   'de.game.visaVisit': 'Visit the Ausländerbehörde',
   'de.game.noVisaActions':
     'No residence procedures are available here right now.',

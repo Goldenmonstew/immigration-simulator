@@ -68,7 +68,7 @@ export function itemIcon(id: string) {
 export function gameDraft(state: DeState): GermanyDraft {
   return {
     ...createGermanyDraft(),
-    ...structuredClone(state.timeline),
+    ...structuredClone(deGame.timelineOn(state.timeline, state.date)),
     simulationDate: state.date,
     step: 5,
     completed: true,
@@ -114,11 +114,23 @@ export const deCountry: GameCountry<DeKinds> = {
       .map((check) => check.title);
     return titles?.length ? [...new Set(titles)] : undefined;
   },
-  visaStatus: (state) => ({
-    months: deGame.visaMonthsLeft(state),
-    renewed: deGame.permitEnd(state) !== deGame.currentPermit(state).to,
-    validTo: deGame.permitEnd(state),
-  }),
+  // A pending extension has no new date: no countdown warning or reminder,
+  // and the fast-forward notice says the card continues (de.game.*).
+  visaStatus: (state) =>
+    deGame.extensionPending(state)
+      ? { months: deGame.visaMonthsLeft(state), renewed: true }
+      : {
+          months: deGame.visaMonthsLeft(state),
+          renewed: false,
+          validTo: deGame.currentPermit(state).to,
+        },
+  placeNote: (state, place) =>
+    place === 'visa' && deGame.extensionPending(state)
+      ? {
+          zhCN: `蓝卡延期申请已于 ${state.timeline.mobility.blueCard!.applicationOn} 递交，外管局决定前原卡视为继续有效（AufenthG § 81 Abs. 4）。`,
+          en: `Your Blue Card extension was filed on ${state.timeline.mobility.blueCard!.applicationOn}; the card is deemed to continue until the Ausländerbehörde decides (AufenthG § 81 Abs. 4).`,
+        }
+      : undefined,
   absences: (state) =>
     state.timeline.trips.map((trip) => ({
       from: trip.departed,

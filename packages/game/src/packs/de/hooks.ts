@@ -15,11 +15,10 @@ import type {
 import { deBalance as b } from './balance';
 import { deCharacters } from './characters';
 import {
-  blueCardExtension,
   currentPermit,
+  extensionPending,
   pathwayOf,
   officePending,
-  permitEnd,
   type DeEffect,
   type DeFestival,
   type DeState,
@@ -133,18 +132,19 @@ export function actionAvailable(
     );
   if (action.id === 'naturalise')
     return (
-      pathwayOf(state.result, state.timeline, 'nat')?.status === 'MET' &&
+      (pathwayOf(state.result, state.timeline, 'nat')?.status === 'MET' ||
+        !!officePending(state, 'nat')) &&
       affordable(state, [{ type: 'money', delta: -naturalisationFee }])
     );
-  // An extension goes in before the card ends, once per card, while the
-  // contract runs on (see blueCardExtension); the window is a game setting.
+  // An extension application goes in once, before the card ends (SRC-100
+  // § 81 Abs. 4); taking it in the last months is a game setting.
   if (action.id === 'extend') {
-    const to = currentPermit(state).to;
+    const current = currentPermit(state);
     return (
-      !!blueCardExtension(state) &&
-      permitEnd(state) === to &&
-      state.day.date <= to! &&
-      state.day.date >= addMonths(to!, -b.renewalWindowMonths) &&
+      current.kind === 'blue-card' &&
+      !extensionPending(state) &&
+      state.day.date <= current.to! &&
+      state.day.date >= addMonths(current.to!, -b.renewalWindowMonths) &&
       affordable(state, action.effects)
     );
   }
@@ -178,20 +178,22 @@ export function actionDetails(state: DeState, action: DeActivity): void {
     }
     action.effects = [{ type: 'money', delta: -amount }, ...action.effects];
   }
-  if (action.id === 'extend') {
-    const next = blueCardExtension(state);
-    if (next)
-      action.label = t(
-        `申请延长蓝卡至 ${next.to}（手续费 ${eur(values.extensionFee.value)}，SRC-410 第 45 条）`,
-        `Apply to extend your Blue Card to ${next.to} (fee ${eur(values.extensionFee.value)}, SRC-410 § 45)`,
-      );
-  }
   if (action.id === 'naturalise') {
     const amount = naturalisationFee;
     action.label = t(
       `递交入籍申请（手续费 ${eur(amount)}，SRC-101 第 38 条）`,
       `Apply for naturalisation (fee ${eur(amount)}, SRC-101 § 38)`,
     );
+    if (officePending(state, 'nat')) {
+      action.label = t(
+        `递交入籍申请（手续费 ${eur(amount)}，SRC-101 第 38 条；居住年限待入籍机关核对）`,
+        `Apply for naturalisation (fee ${eur(amount)}, SRC-101 § 38; residence period to be checked by the office)`,
+      );
+      action.note = t(
+        '评估里只剩居住年限待确认：蓝卡延期审理期间的居住能否计入，取决于延期最终获批（PD-124），由主管机关在审查时核对。',
+        'Only the residence period is pending in the assessment: whether residence while the Blue Card extension is pending counts depends on the renewal being granted (PD-124), and the authority checks it during review.',
+      );
+    }
     action.effects = [{ type: 'money', delta: -amount }, ...action.effects];
   }
   if (action.id === 'exam') {
@@ -226,7 +228,6 @@ export function afterAction(
   log: LogEntry,
   { applyEffects, setFlags }: DeTools,
 ): void {
-  if (action.id === 'extend') log.renewalValidTo = permitEnd(next);
   if (action.id === 'board') {
     const posted = deNotices.filter((notice) =>
       next.flags.includes(`quarter-board-${notice.id}`),

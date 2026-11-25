@@ -516,10 +516,13 @@ export const deActions: Activity<DeEffect, DeFestival>[] = [
   {
     id: 'extend',
     place: 'visa',
-    label: t('申请延长蓝卡', 'Apply to extend your Blue Card'),
+    label: t(
+      `申请延长蓝卡（手续费 ${eur(values.extensionFee.value)}，SRC-410 第 45 条）`,
+      `Apply to extend your Blue Card (fee ${eur(values.extensionFee.value)}, SRC-410 § 45)`,
+    ),
     note: t(
-      `到期前递交延期申请，原卡在决定前继续有效（SRC-100 第 81 条第 4 款）。延期适用签发的规定（第 8 条第 1 款）：期限 ${values.skilledTitleTerm.value.years} 年，劳动合同更短时为合同剩余期限加 ${values.skilledTitleTerm.value.extraMonths} 个月（第 18 条第 4 款）；手续费 ${eur(values.extensionFee.value)}（SRC-410 第 45 条第 2 项 b 目）。游戏把申请当作获批，新卡从旧卡到期次日起算；到期前 ${b.renewalWindowMonths} 个月内受理是游戏设定。`,
-      `Apply before the card ends and it stays valid until the decision (SRC-100 § 81 Abs. 4). An extension follows the rules for issue (§ 8 Abs. 1): ${values.skilledTitleTerm.value.years} years, or the contract's remaining term plus ${values.skilledTitleTerm.value.extraMonths} months if shorter (§ 18 Abs. 4); fee ${eur(values.extensionFee.value)} (SRC-410 § 45 Nr. 2 Buchst. b). The game treats the application as granted, with the new card starting the day after the old one ends; taking applications in the last ${b.renewalWindowMonths} months is a game setting.`,
+      `到期前递交延期申请，原卡在外管局决定前视为继续有效（SRC-100 第 81 条第 4 款）。游戏只记递交与手续费 ${eur(values.extensionFee.value)}（SRC-410 第 45 条第 2 项 b 目），不预设审批结果和新卡期限；递交从下一季起进入评估。审理期间的居住能否计入入籍年限，取决于延期最终获批（PD-124）。到期前 ${b.renewalWindowMonths} 个月内受理是游戏设定。`,
+      `Apply before the card ends and it is deemed to continue until the Ausländerbehörde decides (SRC-100 § 81 Abs. 4). The game records only the filing and the fee of ${eur(values.extensionFee.value)} (SRC-410 § 45 Nr. 2 Buchst. b); it does not assume the decision or a new card's term, and the filing joins the assessment from the next quarter. Whether residence while it is pending counts towards naturalisation depends on the renewal being granted (PD-124). Taking applications in the last ${b.renewalWindowMonths} months is a game setting.`,
     ),
     minutes: b.minutes.paperwork,
     oncePerDay: true,

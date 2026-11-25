@@ -60,7 +60,9 @@ test('a new resident walks to the canal bench and watches the boats', async ({
 }) => {
   await startGermanyGame(page);
   // The Blue Card runs to 2029-01-14 (see packages/game/test/de-pack.test.ts).
-  await expect(page.getByText('居留许可剩余 34 个月').first()).toBeVisible();
+  await expect(
+    page.getByText('居留卡有效期剩余 34 个月').first(),
+  ).toBeVisible();
   const bench = await walkTo(page, '运河长椅');
   await bench.getByRole('button', { name: /坐着看运河上的船/ }).click();
   await expect
@@ -90,7 +92,7 @@ test('fast-forwarding the first spring reaches the summary with German routes', 
     await page.waitForTimeout(500);
   }
   await expect(summary).toBeVisible();
-  await expect(openDialog(page).getByText(/居留许可剩余/)).toBeVisible();
+  await expect(openDialog(page).getByText(/居留卡有效期剩余/)).toBeVisible();
   await openDialog(page).getByRole('button', { name: '迎接下一季' }).click();
   await dismissCards(page);
   await expect(page.getByText(/第 1 年 · 第 3 季/).first()).toBeVisible();
@@ -102,7 +104,7 @@ test('the English interface shows the residence permit and German study', async 
 }) => {
   await startGermanyGame(page, characters[0].en, 'en');
   const hud = page.locator('header').filter({ hasText: 'Jiahe Xu' });
-  await expect(hud.getByText('Residence permit: 34 months left')).toBeVisible();
+  await expect(hud.getByText('Residence card: 34 months left')).toBeVisible();
   await expect(hud.getByText('German', { exact: true })).toBeVisible();
   // Savings in euros with a thousands separator; the seed is the clock, so
   // a morning card may already have spent a few euros of the €15,000.

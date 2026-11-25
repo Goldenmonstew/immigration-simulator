@@ -155,7 +155,7 @@ test.each(['bluecard', 'spouse'])(
   },
 );
 
-test('the ending link opens after the Blue Card is extended and naturalisation is filed', () => {
+test('the ending link opens after a Blue Card extension is filed and naturalisation follows', () => {
   vi.stubGlobal('localStorage', {
     getItem: () => null,
     setItem: () => {},
@@ -165,21 +165,29 @@ test('the ending link opens after the Blue Card is extended and naturalisation i
   state.date = '2028-03-01';
   state.day.date = '2028-03-14';
   state.result = de.deRules.evaluate(state);
-  const renewed = de.doActivity(visit(state, 'visa', 600), 'extend');
-  expect(renewed.timeline.permits).toHaveLength(2);
-  const later = certified(structuredClone(renewed));
+  const filed = settle(de.doActivity(visit(state, 'visa', 600), 'extend'));
+  // This quarter the draft has no application yet; next quarter it has the day.
+  expect(gameDraft(filed).mobility?.blueCard?.applicationOn).toBeUndefined();
+  let next = filed;
+  for (let i = 0; i < 6 && next.date === filed.date; i++)
+    next = settle(de.sleep(next));
+  expect(next.date).toBe('2028-06-01');
+  expect(gameDraft(next).mobility?.blueCard?.applicationOn).toBe('2028-03-14');
+  expect(gameDraft(next).permits![0].renewing).toBe(true);
+  const later = certified(structuredClone(filed));
   later.date = '2030-03-01';
   later.day.date = '2030-03-12';
   later.result = de.deRules.evaluate(later);
   const naturalised = de.doActivity(visit(later, 'bureau', 600), 'naturalise');
   expect(naturalised.ending).toBe('settled');
-  for (const ending of [renewed, naturalised]) reopen(ending);
-  // The status bar runs to the extended card.
-  expect(deCountry.visaStatus(renewed)).toEqual({
-    months: 28,
+  for (const ending of [filed, next, naturalised]) reopen(ending);
+  // The status bar shows the pending application rather than a new date.
+  expect(deCountry.visaStatus(next)).toEqual({
+    months: 7,
     renewed: true,
-    validTo: '2030-07-14',
+    validTo: undefined,
   });
+  expect(deCountry.placeNote!(next, 'visa')?.zhCN).toContain('2028-03-14');
 });
 
 test.each(['zh-CN', 'en'] as const)(

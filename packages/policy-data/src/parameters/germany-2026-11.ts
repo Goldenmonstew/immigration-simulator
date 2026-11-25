@@ -378,13 +378,6 @@ export const germanyFull2026_11 = {
       value: 93,
       sources: [{ srcId: 'SRC-410', locator: 'AufenthV § 45 Nr. 2 Buchst. b' }],
     },
-    // § 18 Abs. 4, applied to extensions by § 8 Abs. 1: titles under §§ 18a,
-    // 18b, 18g and 19c run four years, or a shorter employment term plus six
-    // months, never more than four years.
-    skilledTitleTerm: {
-      value: { years: 4, extraMonths: 6 },
-      sources: [aufenthG('§ 18 Abs. 4', '18'), aufenthG('§ 8 Abs. 1', '8')],
-    },
     expressFee: {
       value: 35,
       sources: [{ srcId: 'SRC-410', locator: '§ 45a' }],
