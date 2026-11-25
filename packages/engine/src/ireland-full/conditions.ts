@@ -609,6 +609,9 @@ const conditions = {
 } as const satisfies Record<string, Condition>;
 
 export type IrelandConditionId = keyof typeof conditions;
+export const IRELAND_CONDITION_IDS = Object.keys(
+  conditions,
+) as IrelandConditionId[];
 
 export function irelandCondition(id: IrelandConditionId) {
   const [zh, en, refs] = conditions[id];
