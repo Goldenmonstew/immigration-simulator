@@ -120,4 +120,7 @@ export const malaysiaWhatIf: CountryWhatIf<MalaysiaDraft, MalaysiaWhatIf> = {
     return errors;
   },
   Controls: MalaysiaWhatIfControls,
+  // As in "what is missing": fees, notes, terms after approval and review
+  // factors never decide a route.
+  compared: (check) => check.kind === 'requirement' || check.kind === 'time',
 };

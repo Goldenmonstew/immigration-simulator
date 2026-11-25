@@ -45,14 +45,16 @@ function Comparison({
   before,
   after,
   earliestLabel,
+  compared,
 }: {
   before?: CountryPathway;
   after?: CountryPathway;
   earliestLabel?: EarliestLabel;
+  compared?: (check: CountryPathway['checks'][number]) => boolean;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
-  const diff = diffPathways(before, after);
+  const diff = diffPathways(before, after, compared);
   const groups = (
     ['becameMet', 'becameUnmet', 'stillUnmet', 'becameInapplicable'] as const
   ).filter(
@@ -337,6 +339,7 @@ function WhatIfLab<D extends CountryDraft, K>({
                               before={path.before}
                               after={path.after}
                               earliestLabel={country.earliestLabel}
+                              compared={country.whatif.compared}
                             />
                           </Fragment>
                         );

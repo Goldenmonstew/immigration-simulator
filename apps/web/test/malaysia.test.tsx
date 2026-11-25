@@ -1021,6 +1021,23 @@ test('changing the MyPR date moves the naturalisation date in the comparison', (
   });
 });
 
+// review114-1 suggestion 1: the comparison groups list only the
+// requirements that can be gaps, as the result's "what is missing" does.
+test('the comparison lists requirements, not fees, notes or review factors', () => {
+  const draft = wifeDraft(['pr-wife']);
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const html = render(<WhatIfView country={my} draft={draft} />, locale);
+    expect(html).toContain('my.pr.discretion ·');
+    for (const id of [
+      'my.pr.fee',
+      'my.pr.health',
+      'my.pr.means',
+      'my.pr.after-approval',
+    ])
+      expect(html, id).not.toContain(`${id} ·`);
+  }
+});
+
 test('each control shows only for the routes that read it', () => {
   const controls = (targets: MyTarget[], trips?: MalaysiaDraft['trips']) => {
     const draft = { ...naturalisationDraft(targets), trips };
