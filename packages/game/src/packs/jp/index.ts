@@ -56,6 +56,7 @@ export const jpGameContent: GameContentPack<
   beforeAction: hooks.beforeAction,
   afterAction: hooks.afterAction,
   afterActionAwards: hooks.afterActionAwards,
+  afterQuarter: hooks.afterQuarter,
   quarterEffects: (played) => [
     {
       type: 'stat',

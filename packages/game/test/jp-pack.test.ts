@@ -364,6 +364,19 @@ test('a trip never carries the player past the last day they could renew', () =>
   expect(trips).toEqual(['travel-1', 'travel-3']);
 });
 
+test('a short let given back at quarter end leaves an address notice to file', () => {
+  let state = visit(jp.newGame('engineer', 7, 'en'), 'home', 600);
+  state = settle(jp.doActivity(state, 'rent-brighter-home'));
+  state = settle(jp.doActivity(visit(state, 'ward', 660), 'address-notice'));
+  state.stats.money = 0;
+  const next = quarterLater(state);
+  expect(next.log.some(({ id }) => id === 'brighter-home-return')).toBe(true);
+  expect(next.flags).toContain('address-notice-due');
+  expect(
+    next.timeline.permanentResidence.evidence.addressNotices?.at(-1),
+  ).toEqual({ eventOn: next.date });
+});
+
 test('a lapsed period of stay ends the story', () => {
   let state = settle(jp.newGame('spouse', 5, 'en'));
   jp.status(state).expiresOn = '2026-04-30';
