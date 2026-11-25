@@ -383,8 +383,8 @@ export const jpActions: Activity<JpEffect, JpFestival>[] = [
       `Move to a south-facing flat (${yen(b.housingDeposit)} deposit, ${yen(b.housingMoveCost)} moving, +${yen(b.housingRent)}/quarter; ongoing mood and health; a low balance ends the lease and returns the deposit)`,
     ),
     note: t(
-      `搬家后 ${japanFull2026_11.values.immigrationDuties.value.addressDays} 天内到区役所申报新住址（SRC-110 第19条の7–9）。`,
-      `Report the new address at the ward office within ${japanFull2026_11.values.immigrationDuties.value.addressDays} days of moving (SRC-110 art. 19-7 to 19-9).`,
+      `搬家后 ${japanFull2026_11.values.immigrationDuties.value.addressDays} 天内到区役所申报新住址（SRC-110 第19条の7–9）。游戏里的日子之间会跳过一段时间，所以只在区役所当天还能受理时提供搬家，搬完当天就去申报。`,
+      `Report the new address at the ward office within ${japanFull2026_11.values.immigrationDuties.value.addressDays} days of moving (SRC-110 art. 19-7 to 19-9). The game skips ahead between days, so moving is offered only while the ward office can still take the notice; report it the same day.`,
     ),
     minutes: b.minutes.paperwork,
     effects: [

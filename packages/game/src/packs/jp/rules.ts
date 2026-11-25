@@ -183,16 +183,19 @@ export const jpRules: EvaluationAdapter<
         nat.requiredInterviewAndAssessmentComplete = true;
         setFlags(state, ['nat-interviewed']);
         return true;
+      // Notices carry the day they happen, as trips do.
       case 'moved':
         pr.addressNotices = [
           ...(pr.addressNotices ?? []),
-          { eventOn: state.date },
+          { eventOn: state.day.date },
         ];
         setFlags(state, ['address-notice-due']);
         return true;
       case 'addressNotice':
         pr.addressNotices = (pr.addressNotices ?? []).map((notice) =>
-          notice.notifiedOn ? notice : { ...notice, notifiedOn: state.date },
+          notice.notifiedOn
+            ? notice
+            : { ...notice, notifiedOn: state.day.date },
         );
         state.flags = state.flags.filter(
           (flag) => flag !== 'address-notice-due',

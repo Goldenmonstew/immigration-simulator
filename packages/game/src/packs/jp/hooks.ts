@@ -21,7 +21,7 @@ import {
   type JpTimeline,
 } from './rules';
 import type { JpFullResult } from '@uk-immigration/engine';
-import { festivalFoods, jpFish, jpItems, jpNotices } from './town';
+import { festivalFoods, jpFish, jpItems, jpNotices, jpPlaces } from './town';
 
 type JpTools = GameTools<JpTimeline, JpFullResult, JpEffect, JpFestival>;
 type JpActivity = Activity<JpEffect, JpFestival>;
@@ -86,11 +86,26 @@ const prFee = (state: JpState) =>
     (check) => check.id === 'jp.pr.approval-fee',
   )?.fee?.amount ?? 0;
 
+const wardHours = jpPlaces.find((place) => place.id === 'ward')!.hours!;
+/**
+ * Whether the ward office can still take an address notice today after an
+ * action. Play skips ahead between days, so the next counter day may fall
+ * outside the notice period.
+ */
+const reportableToday = (state: JpState, minutes: number) =>
+  wardHours.dayKinds!.includes(state.day.kind) &&
+  state.day.minute + minutes + b.minutes.paperwork <= wardHours.closes;
+
 export function actionAvailable(
   state: JpState,
   action: JpActivity,
   { affordable }: JpTools,
 ): boolean | undefined {
+  if (action.id === 'rent-brighter-home' || action.id === 'leave-brighter-home')
+    return (
+      reportableToday(state, action.minutes) &&
+      affordable(state, action.effects)
+    );
   // The fee joins the effects only in actionDetails, after this check.
   if (action.id === 'settle')
     return (

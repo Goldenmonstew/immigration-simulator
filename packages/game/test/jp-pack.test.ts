@@ -23,6 +23,13 @@ function nextDay(state: State) {
     state = settle(jp.sleep(settle(state)));
   return state;
 }
+/** Sleep on to the first day of the next quarter. */
+function quarterLater(from: State) {
+  let next = from;
+  for (let i = 0; i < 12 && next.date === from.date; i++)
+    next = settle(jp.sleep(next));
+  return next;
+}
 /** Walk to an open place at a given time, as the town map would. */
 function visit(state: State, place: string, minute: number) {
   state = settle(state);
@@ -99,24 +106,51 @@ test('a renewal records the longest period of stay and lifts the visa warning', 
   expect(jp.activities(renewed, 'visa').map(({ id }) => id)).toEqual([]);
 });
 
-test('moving home and reporting the address go through the ward office', () => {
+const addressCheck = (state: State) =>
+  jp
+    .pathwayOf(state.result, 'pr')!
+    .checks.find(({ id }) => id === 'jp.pr.address-registration')!.status;
+const homeActions = (state: State) =>
+  jp.activities(state, 'home').map(({ id }) => id);
+
+test('a move and its address notice are recorded on the day they happen', () => {
   const home = visit(jp.newGame('engineer', 5, 'en'), 'home', 480);
   const moved = settle(jp.doActivity(home, 'rent-brighter-home'));
   expect(moved.timeline.permanentResidence.evidence.addressNotices).toEqual([
-    { eventOn: '2026-03-01' },
+    { eventOn: '2026-03-10' },
   ]);
-  const check = (state: State) =>
-    jp
-      .pathwayOf(state.result, 'pr')!
-      .checks.find(({ id }) => id === 'jp.pr.address-registration')!.status;
-  expect(check(moved)).toBe('UNKNOWN');
   const ward = visit(moved, 'ward', 600);
   const reported = jp.doActivity(ward, 'address-notice');
   expect(reported.timeline.permanentResidence.evidence.addressNotices).toEqual([
-    { eventOn: '2026-03-01', notifiedOn: '2026-03-01' },
+    { eventOn: '2026-03-10', notifiedOn: '2026-03-10' },
   ]);
-  expect(check(reported)).toBe('MET');
   expect(reported.flags).not.toContain('address-notice-due');
+  // The quarter is assessed from its first day; the next one sees the move.
+  const reportedLater = quarterLater(reported);
+  expect(addressCheck(reportedLater)).toBe('MET');
+  const unreported = quarterLater(moved);
+  expect(addressCheck(unreported)).toBe('UNKNOWN');
+  const late = jp.doActivity(visit(unreported, 'ward', 600), 'address-notice');
+  expect(
+    late.timeline.permanentResidence.evidence.addressNotices![0].notifiedOn,
+  ).toBe(late.day.date);
+  expect(addressCheck(quarterLater(late))).toBe('NOT_MET');
+});
+
+test('moving is offered only while the ward office can take the notice that day', () => {
+  const start = settle(jp.newGame('engineer', 5, 'en'));
+  const at = (minute: number) => visit(start, 'home', minute);
+  // Moving and reporting take an hour each; the ward office closes at 17:15.
+  expect(homeActions(at(915))).toContain('rent-brighter-home');
+  expect(homeActions(at(916))).not.toContain('rent-brighter-home');
+  const weekend = visit(nextDay(start), 'home', 480);
+  expect(weekend.day.kind).toBe('weekend');
+  expect(homeActions(weekend)).not.toContain('rent-brighter-home');
+  const moved = jp.doActivity(at(480), 'rent-brighter-home');
+  expect(homeActions(moved)).toContain('leave-brighter-home');
+  expect(
+    homeActions(settle(jp.tick(moved, 916 - moved.day.minute))),
+  ).not.toContain('leave-brighter-home');
 });
 
 test('the spring festival is hanami at the shrine, with sakura mochi and a diary flag', () => {
@@ -149,12 +183,6 @@ test('a JSON save round trip continues the same quarter after a trip', () => {
   ]);
   expect([state.date, state.quarter]).toEqual(['2026-06-01', 3]);
   const restored: State = JSON.parse(JSON.stringify(state));
-  const quarterLater = (from: State) => {
-    let next = from;
-    for (let i = 0; i < 12 && next.date === from.date; i++)
-      next = settle(jp.sleep(next));
-    return next;
-  };
   const played = quarterLater(state);
   expect(played.date).toBe('2026-09-01');
   expect(quarterLater(restored)).toEqual(played);
