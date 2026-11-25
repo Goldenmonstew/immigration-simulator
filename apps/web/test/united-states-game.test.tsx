@@ -334,6 +334,19 @@ test('a mailed I-751 shows as pending, without reminders or warnings', () => {
     expect(render(<usShell.StatusBar state={pending} />)).toContain(
       t('us.game.visaPending', 'zh-CN'),
     );
+    // At phone width the status bar keeps the short word, so the stats fit.
+    for (const locale of ['zh-CN', 'en'] as const) {
+      const html = render(<usShell.StatusBar state={pending} />, locale);
+      // The compact visa chip sits in the bottom row, before the stats.
+      const phone = html.slice(
+        html.lastIndexOf('mobileOnly'),
+        html.indexOf('data-stat'),
+      );
+      expect(phone).toMatch(locale === 'en' ? />Pending</ : />待决</);
+      expect(phone).not.toMatch(
+        />(Green card: |绿卡)[^<]*pending|>绿卡申请待决</,
+      );
+    }
     expect(usShell.needsVisaReminder(pending)).toBe(false);
     expect(usShell.visaExpiresThisSeason(pending)).toBe(false);
   }

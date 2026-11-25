@@ -92,7 +92,7 @@ export function createHud<K extends GameKinds>(c: GameCountry<K>) {
       >
         {compact && <GameIcon name="visa" />}
         {pending
-          ? t('game.visaPending')
+          ? t(compact ? 'game.visaPendingShort' : 'game.visaPending')
           : withCount(
               t(compact ? 'game.visaShort' : 'game.visa'),
               'count',
