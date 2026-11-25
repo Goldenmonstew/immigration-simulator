@@ -3,8 +3,12 @@ import type {
   EsNationalityFacts,
   EsResidenceFacts,
 } from '@uk-immigration/engine';
+import { spainFull2026_11 } from '@uk-immigration/policy-data';
 import type { Character, CharacterProfile, GameEvent, Text } from '../../model';
 import type { EsEffect, EsFestival, EsTimeline } from './rules';
+
+// SRC-083 art. 183.1.
+const longTermYears = spainFull2026_11.values.longTermYears.value;
 
 type EsCharacter = Character<EsTimeline, EsEffect, CountryResult, EsFestival>;
 type EsEvent = GameEvent<EsEffect, EsFestival>;
@@ -66,8 +70,8 @@ export const exporterProfile: CharacterProfile = {
   id: 'exporter',
   name: t('周雨桐', 'Yutong Zhou'),
   intro: t(
-    '雨桐来自浙江青田，2021 年秋天持居留和工作许可来到瓦伦西亚，在一家瓷砖出口公司做对华业务。女儿乐乐在街区小学读三年级。居留满五年后，她想申请长期居留。人物与事件均为虚构。',
-    'Yutong from Qingtian in Zhejiang came to València in autumn 2021 with a residence and work permit, handling China sales for a tile exporter. Her daughter Lele is in year three at the neighbourhood school. After five years of residence she plans to apply for long-term residence. All characters and events are fictional.',
+    `雨桐来自浙江青田，2021 年秋天持居留和工作许可来到瓦伦西亚，在一家瓷砖出口公司做对华业务。女儿乐乐在街区小学读三年级。居留满 ${longTermYears} 年后，她想申请长期居留。人物与事件均为虚构。`,
+    `Yutong from Qingtian in Zhejiang came to València in autumn 2021 with a residence and work permit, handling China sales for a tile exporter. Her daughter Lele is in year three at the neighbourhood school. After ${longTermYears} years of residence she plans to apply for long-term residence. All characters and events are fictional.`,
   ),
   sprite: 'urban/ka-ning-partner.png',
 };

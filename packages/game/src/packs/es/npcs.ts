@@ -417,8 +417,8 @@ export const esNpcs: EsNpc[] = [
         'The immigration office runs on appointments. Without a cita previa, the guard won’t let you past the door.',
       ],
       [
-        '入籍现在都在网上递，缴费单是 790-026。缴了就不退，先把材料备齐。',
-        'Nationality applications go in online now, paid with form 790-026. The fee isn’t refunded, so get your papers ready first.',
+        '入籍可以在网上递，街坊们还是习惯去民事登记处的窗口。缴费单是 790-026，先把材料备齐。',
+        'Nationality applications can go in online, though people round here still like the civil registry counter. The fee form is 790-026. Get your papers ready first.',
       ],
       [
         '八月？八月整个西班牙都在海边。文件也在海边。',

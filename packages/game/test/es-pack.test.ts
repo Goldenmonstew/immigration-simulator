@@ -575,6 +575,31 @@ test('a trip leaves a working day to apply before the card ends', () => {
   expect(station).not.toContain('travel-6');
 });
 
+test('wording keeps policy figures sourced and the fees as the game charges them', () => {
+  // The residence years come from policy-data (SRC-083 art. 183.1).
+  const years = values.longTermYears.value;
+  const exporter = es.characters.find(({ id }) => id === 'exporter')!;
+  expect(exporter.intro.zhCN).toContain(`居留满 ${years} 年后`);
+  expect(exporter.intro.en).toContain(`After ${years} years of residence`);
+  // Sergi no longer claims the 790-026 is never refunded: no source says so.
+  const sergi = JSON.stringify(es.npcs.find(({ id }) => id === 'sergi'));
+  expect(sergi).not.toMatch(/不退|refunded/);
+  // The game charges the long-term residence fee when the application goes in.
+  const office = visit(
+    {
+      ...at(settle(es.newGame('exporter', 5, 'en')), '2026-12-01'),
+      flags: ['cita-booked'],
+    },
+    'visa',
+    600,
+  );
+  const apply = es
+    .activities(office, 'visa')
+    .find(({ id }) => id === 'settle')!;
+  expect(apply.note?.zhCN).toContain('游戏在递交时一并扣除');
+  expect(apply.note?.en).toContain('charges it when you apply');
+});
+
 test('a lapsed card ends the story unless long-term residence can still be filed', () => {
   const exporter = settle(es.newGame('exporter', 5, 'en'));
   // Within three months of the 2027-04-30 expiry (SRC-083 art. 184.2).

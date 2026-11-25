@@ -588,6 +588,10 @@ export const esActions: EsActivity[] = [
       `递交长期居留申请（EX-11；受理后缴费 ${eur(values.applicationFeeEur.value)}，SRC-325）`,
       `Apply for long-term residence (EX-11; fee after admission ${eur(values.applicationFeeEur.value)}, SRC-325)`,
     ),
+    note: t(
+      '这笔费用本应在受理后缴纳；递交即结局，游戏在递交时一并扣除。',
+      'The fee is due after admission; as applying ends the game, the game charges it when you apply.',
+    ),
     minutes: b.minutes.paperwork,
     when: [{ flag: 'cita-booked' }],
     effects: [
