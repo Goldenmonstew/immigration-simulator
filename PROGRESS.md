@@ -881,3 +881,4 @@
 | 1223 | 任务 116 共用游戏修正：结局页"在模拟器里打开这条时间线"链接按钮被 `.theme.theme a` 覆盖成深绿字配绿底（对比度约 1.3:1），链接按钮恢复白字；英国 e2e 核对颜色 | `apps/web/app/uk/game/game.module.css`、`apps/e2e/tests/game.spec.ts` |
 | 1224 | AGENTS.md 记录用户 2026-11-25 决定：Gemini 周额度用完后由未参与实现的 Claude 子 agent 终审、通过即合并，Gemini 恢复后补复查 | `AGENTS.md` |
 | 1225 | 任务 116 报告 | `docs/tasks/reports/116-shared-fixes.md` |
+| 1226 | 任务 116 审核建议跟进（review116-1）：删掉 engine 希腊入籍单测的 10 秒单测超时（低于新的 60 秒默认）；`.theme.theme a.secondary` 同样恢复按钮文字色；报告措辞改准 | `packages/engine/test/greece-settlement.test.ts`、`apps/web/app/uk/game/game.module.css`、`docs/tasks/reports/116-shared-fixes.md` |

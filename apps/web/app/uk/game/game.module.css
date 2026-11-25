@@ -75,6 +75,10 @@
 .theme.theme a.button:hover {
   color: #fff;
 }
+.theme.theme a.secondary,
+.theme.theme a.secondary:hover {
+  color: var(--ink);
+}
 .theme.theme :focus-visible {
   outline: 3px solid var(--amber-ink);
   outline-offset: 3px;
