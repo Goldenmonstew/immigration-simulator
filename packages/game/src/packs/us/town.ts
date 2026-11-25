@@ -428,8 +428,8 @@ export const usActions: UsActivity[] = [
       `Move to a top-floor flat with a lake view (${usd(b.housingDeposit)} deposit, ${usd(b.housingMoveCost)} moving, +${usd(b.housingRent)}/quarter; ongoing mood and health; a low balance ends the lease and returns the deposit)`,
     ),
     note: t(
-      `搬家后 ${addressDays} 天内向 USCIS 申报新地址（AR-11，${cite(values.address)}）。`,
-      `Report the new address to USCIS within ${addressDays} days of moving (AR-11, ${cite(values.address)}).`,
+      `搬家后 ${addressDays} 天内向 USCIS 申报新地址（AR-11，${cite(values.address)}），搬完当天就能在家在线提交。`,
+      `Report the new address to USCIS within ${addressDays} days of moving (AR-11, ${cite(values.address)}); you can file it online at home the same day.`,
     ),
     minutes: b.minutes.paperwork,
     effects: [

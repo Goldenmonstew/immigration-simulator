@@ -161,17 +161,66 @@ test('a six-month trip is presumed to break continuous residence for naturalizat
   expect(us.pathwayOf(back.result, 'gc')?.status).toBe('MET');
 });
 
-test('moving home records the AR-11 duty until the new address is reported', () => {
+test('a move and its AR-11 report carry the day and join the next quarter’s assessment', () => {
+  const address = (state: State) =>
+    us
+      .pathwayOf(state.result, 'gc')!
+      .checks.find(({ id }) => id === 'US-C19-ADDRESS')!.status;
+  // The answers the questionnaire gets for this quarter's assessment date.
+  const answers = (state: State) =>
+    us.usRequest(state.timeline, 'US-TRAVEL', us.filingDay(state.date), 'en')
+      .travel;
   const home = visit(us.newGame('engineer', 5, 'en'), 'home', 480);
+  expect([us.filingDay(home.date), home.day.date]).toEqual([
+    '2026-03-02',
+    '2026-03-10',
+  ]);
   const moved = settle(us.doActivity(home, 'rent-brighter-home'));
-  expect(moved.timeline.travel).toMatchObject({
-    movedOn: '2026-03-01',
-    addressReportedOn: 'not-reported',
-  });
+  expect(moved.flags).toContain('address-report-due');
+  // The move happens after the assessment date, so it waits for next quarter.
+  expect(answers(moved)).toMatchObject({ movedOn: 'no-move' });
   expect(ids(visit(moved, 'home', 500), 'home')).toContain('address-report');
-  const reported = us.doActivity(visit(moved, 'home', 500), 'address-report');
-  expect(reported.timeline.travel.addressReportedOn).toBe('2026-03-01');
+  const reported = settle(
+    us.doActivity(visit(moved, 'home', 500), 'address-report'),
+  );
   expect(reported.flags).not.toContain('address-report-due');
+  expect(answers(reported)).toMatchObject({ movedOn: 'no-move' });
+  const next = quarterLater(reported);
+  expect(answers(next)).toMatchObject({
+    movedOn: '2026-03-10',
+    addressReportedOn: '2026-03-10',
+  });
+  expect(address(next)).toBe('MET');
+  // Not reported at all.
+  expect(address(quarterLater(moved))).toBe('NOT_MET');
+  // Reported on the festival day, eight weeks after the move.
+  const festival = nextDay(nextDay(moved));
+  expect(festival.day.date).toBe('2026-05-05');
+  const late = settle(
+    us.doActivity(visit(festival, 'home', 600), 'address-report'),
+  );
+  expect(address(late)).toBe('MET');
+  const after = quarterLater(late);
+  expect(answers(after)).toMatchObject({
+    movedOn: '2026-03-10',
+    addressReportedOn: '2026-05-05',
+  });
+  expect(address(after)).toBe('NOT_MET');
+});
+
+test('a move is offered only while the AR-11 can still be filed that day', () => {
+  const evening = visit(us.newGame('engineer', 5, 'en'), 'home', 1370);
+  expect(ids(evening, 'home')).toContain('rent-brighter-home');
+  expect(ids(settle(us.tick(evening, 1)), 'home')).not.toContain(
+    'rent-brighter-home',
+  );
+  const moved = settle(us.doActivity(evening, 'rent-brighter-home'));
+  expect(ids(moved, 'home')).toContain('address-report');
+  const back = visit(nextDay(moved), 'home', 1370);
+  expect(ids(back, 'home')).toContain('leave-brighter-home');
+  expect(ids(settle(us.tick(back, 1)), 'home')).not.toContain(
+    'leave-brighter-home',
+  );
 });
 
 test('the I-751 window opens at the Federal Building and removes the conditions', () => {

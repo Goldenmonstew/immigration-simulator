@@ -38,6 +38,12 @@ export type UsTimeline = Omit<
     travel: NonNullable<UsFullRequest['travel']> & { cardExpiresOn: IsoDate };
     /** Game only: fictional household earnings a year, in US dollars. */
     annualIncomeUsd: number;
+    /**
+     * Game only: each change of address and its AR-11 report, on the day they
+     * happen. The questionnaire's travel answers take the latest move by the
+     * assessment date (see usRequest).
+     */
+    moves: { movedOn: IsoDate; reportedOn?: IsoDate }[];
   };
 export type UsFestival =
   'polar-plunge' | 'cinco-de-mayo' | 'fourth-of-july' | 'halloween';
@@ -81,7 +87,12 @@ export const greenCardPathway = (timeline: UsTimeline): UsFullPathwayId =>
 export const citizenshipPathway = (timeline: UsTimeline): UsFullPathwayId =>
   timeline.marriage ? 'US-SPOUSE' : 'US-NATURALIZATION';
 
-/** The questionnaire's answers for one of the character's pathways. */
+/**
+ * The questionnaire's answers for one of the character's pathways, as they
+ * stood on the assessment date. A move or report made later in the quarter
+ * carries its own day, so it joins the assessment next quarter, as trips do
+ * on return. The game's assessment and the ending link both read this.
+ */
 export function usRequest(
   timeline: UsTimeline,
   pathway: UsFullPathwayId,
@@ -89,8 +100,24 @@ export function usRequest(
   locale: Locale,
 ): UsFullRequest {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { annualIncomeUsd, ...answers } = timeline;
-  return { ...answers, pathway, simulationDate, locale };
+  const { annualIncomeUsd, moves, ...answers } = timeline;
+  const move = moves.filter(({ movedOn }) => movedOn <= simulationDate).at(-1);
+  return {
+    ...answers,
+    travel: {
+      ...answers.travel,
+      movedOn: move?.movedOn ?? 'no-move',
+      ...(move && {
+        addressReportedOn:
+          move.reportedOn && move.reportedOn <= simulationDate
+            ? move.reportedOn
+            : 'not-reported',
+      }),
+    },
+    pathway,
+    simulationDate,
+    locale,
+  };
 }
 
 /**
@@ -219,19 +246,19 @@ export const usRules: EvaluationAdapter<
         });
         setFlags(state, ['interview-passed']);
         return true;
+      // Moves and reports carry the day they happen, as trips do.
       case 'moved':
-        Object.assign(travel, {
-          movedOn: state.date,
-          addressReportedOn: 'not-reported',
-        });
+        state.timeline.moves.push({ movedOn: state.day.date });
         setFlags(state, ['address-report-due']);
         return true;
-      case 'addressReport':
-        travel.addressReportedOn = state.date;
+      case 'addressReport': {
+        const move = state.timeline.moves.at(-1);
+        if (move && !move.reportedOn) move.reportedOn = state.day.date;
         state.flags = state.flags.filter(
           (flag) => flag !== 'address-report-due',
         );
         return true;
+      }
       case 'salary':
         state.timeline.annualIncomeUsd = effect.annualUsd;
         return false;

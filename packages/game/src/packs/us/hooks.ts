@@ -98,11 +98,25 @@ const conditional = (state: UsState) =>
 const extendFee = (state: UsState) =>
   conditional(state) ? fees.i751.paper : fees.i90.paper;
 
+/**
+ * Whether the online AR-11 still fits into today after an action. Play skips
+ * ahead between days, so the next playable day may fall outside the reporting
+ * period.
+ */
+const reportableToday = (state: UsState, minutes: number) =>
+  state.day.minute + minutes + b.minutes.board <= b.midnight;
+
 export function actionAvailable(
   state: UsState,
   action: UsActivity,
+  { affordable }: UsTools,
 ): boolean | undefined {
   const flags = state.flags;
+  if (action.id === 'rent-brighter-home' || action.id === 'leave-brighter-home')
+    return (
+      reportableToday(state, action.minutes) &&
+      affordable(state, action.effects)
+    );
   if (action.id === 'extend')
     return (
       !flags.includes('quarter-visa-renewed') &&
