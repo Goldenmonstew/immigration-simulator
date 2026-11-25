@@ -382,6 +382,30 @@ test('income, household size and salary controls change the routes that read the
   expect(es.whatif.focusForRule('ES-T02', '')).toBe('trips');
 });
 
+test('a shared household value shows only when every route that reads it agrees', () => {
+  const draft: SpainDraft = {
+    ...base(['E', 'M']),
+    residence: { resources: { familySize: 1, eligibleMonthlyIncome: 1000 } },
+    mobility: { purpose: 'non-working', holder: { nonWorking: {} } },
+  };
+  // M has no income yet, so typing E's value still reaches M.
+  expect(es.whatif.initial(draft)).toMatchObject({
+    familySize: undefined,
+    monthlyIncome: undefined,
+  });
+  const after = compare(draft, { familySize: 1, monthlyIncome: 1000 });
+  expect(after.residence.resources).toMatchObject({
+    familySize: 1,
+    eligibleMonthlyIncome: 1000,
+  });
+  expect(after.mobility.holder?.nonWorking).toMatchObject({
+    dependants: 0,
+    monthlyNonWorkIncome: 1000,
+  });
+  const html = render(<WhatIfView country={es} draft={draft} />);
+  expect(html).toContain('aria-describedby="es-whatif-resources-hint"');
+});
+
 test('assuming no trips also clears the longest absence after permanent residence', () => {
   const draft: SpainDraft = {
     ...base(['U']),

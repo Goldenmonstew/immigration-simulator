@@ -147,11 +147,11 @@ function baselineAnswer(result: CountryResult, ids: string[]) {
   return undefined;
 }
 
-/** The common value when every route that records it agrees. */
+/** The common value when every route that reads it records the same one. */
 function agreed(values: (number | undefined)[]) {
-  const known = values.filter((value) => value !== undefined);
-  return known.length && known.every((value) => value === known[0])
-    ? known[0]
+  return values.length &&
+    values.every((value) => value !== undefined && value === values[0])
+    ? values[0]
     : undefined;
 }
 
@@ -179,25 +179,25 @@ function initialKnobs(stored: SpainDraft): SpainWhatIf {
   const has = (target: SpainDraft['targets'][number]) =>
     draft.targets.includes(target);
   const purpose = spainMobilityPurpose(draft);
-  const own = has('E') ? draft.residence.resources : undefined;
-  const family = has('F') ? draft.mobility.family?.resources : undefined;
+  const resources = [
+    ...(has('E') ? [draft.residence.resources ?? {}] : []),
+    ...(has('F') ? [draft.mobility.family?.resources ?? {}] : []),
+  ];
   const nonWorking =
-    purpose === 'non-working' ? draft.mobility.holder?.nonWorking : undefined;
+    purpose === 'non-working' ? [draft.mobility.holder?.nonWorking ?? {}] : [];
   return {
     simulationDate: draft.simulationDate,
     noTrips: false,
     natRoute: draft.route,
     familySize: agreed([
-      own?.familySize,
-      family?.familySize,
-      nonWorking?.dependants === undefined
-        ? undefined
-        : nonWorking.dependants + 1,
+      ...resources.map((r) => r.familySize),
+      ...nonWorking.map((n) =>
+        n.dependants === undefined ? undefined : n.dependants + 1,
+      ),
     ]),
     monthlyIncome: agreed([
-      own?.eligibleMonthlyIncome,
-      family?.eligibleMonthlyIncome,
-      nonWorking?.monthlyNonWorkIncome,
+      ...resources.map((r) => r.eligibleMonthlyIncome),
+      ...nonWorking.map((n) => n.monthlyNonWorkIncome),
     ]),
     annualSalary:
       purpose === 'employment'

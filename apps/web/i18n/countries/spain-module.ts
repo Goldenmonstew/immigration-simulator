@@ -29,6 +29,8 @@ export const zhCN = {
     '西班牙 ESO 学历、全部免试和司法免试同时免考 DELE 与 CCSE。任一考试选“否”或“不确定”时，一并假设没有这些免试，另一门考试和社会融合条件的结果可能随之改变。',
   'es.whatif.familySize': '家庭人数（含申请人，用于 IPREM 资源门槛）',
   'es.whatif.income': '可计入的固定家庭月收入（EUR／月）',
+  'es.whatif.resourcesHint':
+    '家庭人数和月收入会同时改写所有所选路径（西班牙欧盟长居、随迁家属、非营利迁居）的对应答案。各路径答案不同或有路径未填时，输入框为空。',
   'es.whatif.salary': '跨境迁居受雇年薪（EUR／年）',
   'es.whatif.insurance': '递交时在西班牙有效的合规公共或私人医疗保险已备凭证',
   'es.whatif.conduct': '公民品格、公共秩序与安全及刑事记录审查均通过',
@@ -75,6 +77,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'es.whatif.familySize':
     'Household size (including applicant, for IPREM threshold)',
   'es.whatif.income': 'Eligible stable monthly household income (EUR/month)',
+  'es.whatif.resourcesHint':
+    'Household size and income replace the answers for every selected route that uses them (Spanish EU long-term residence, family members, non-working mobility). The box is empty when those routes differ or one is unanswered.',
   'es.whatif.salary': 'Annual gross salary for mobility employment (EUR/year)',
   'es.whatif.insurance':
     'Valid public or authorised private health insurance in Spain documented',

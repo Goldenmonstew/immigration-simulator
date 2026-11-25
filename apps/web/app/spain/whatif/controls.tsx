@@ -18,6 +18,7 @@ import type { WhatIfControlsProps } from '../../../lib/whatif';
 import styles from '../../uk/whatif/whatif.module.css';
 
 const examHint = 'es-whatif-exam-hint';
+const resourcesHint = 'es-whatif-resources-hint';
 
 export function SpainWhatIfControls({
   afterDraft,
@@ -166,7 +167,9 @@ export function SpainWhatIfControls({
             }
             aria-invalid={!!errors.familySize}
             aria-describedby={
-              errors.familySize ? 'familySize-error' : undefined
+              errors.familySize
+                ? `${resourcesHint} familySize-error`
+                : resourcesHint
             }
           />
           {error('familySize')}
@@ -189,9 +192,14 @@ export function SpainWhatIfControls({
               })
             }
             aria-invalid={!!errors.income}
-            aria-describedby={errors.income ? 'income-error' : undefined}
+            aria-describedby={
+              errors.income ? `${resourcesHint} income-error` : resourcesHint
+            }
           />
           {error('income')}
+          <p id={resourcesHint} className={styles.hint}>
+            {t('es.whatif.resourcesHint')}
+          </p>
         </div>
       )}
       {hasSalary && (
