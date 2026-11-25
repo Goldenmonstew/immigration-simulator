@@ -511,3 +511,57 @@ test.each(['zh-CN', 'en'] as const)(
     expect(whatIf).not.toContain(t('result.earliest', locale));
   },
 );
+
+test.each(['zh-CN', 'en'] as const)(
+  'the policy page shows rate tables, the work window and the OET order by meaning (%s)',
+  (locale) => {
+    const html = render(<NewZealandPolicyPage />, locale);
+    const l = (key: TranslationKey) => t(key, locale);
+    const head = (...keys: TranslationKey[]) =>
+      keys.map((key) => `<th scope="col">${l(key)}</th>`).join('');
+    const cell = (name: string) =>
+      html.match(
+        new RegExp(
+          `data-parameter="${name}">.*?<td data-label="${l('policyPage.value')}">(.*?)</td><td data-label="${l('result.sources')}">`,
+        ),
+      )?.[1] ?? '';
+    const list = locale === 'en' ? ', ' : '、';
+    // SR5.15(a): 24 of the 30 months, not years.
+    expect(cell('workResidenceMonths')).toBe(
+      l('nz.policy.monthsInWindow')
+        .replace('{required}', '24')
+        .replace('{window}', '30'),
+    );
+    expect(cell('workResidenceMonths')).toContain(
+      locale === 'en' ? 'months' : '个月',
+    );
+    expect(cell('englishOetGrades')).toBe(
+      l('nz.policy.lowToHigh') +
+        (locale === 'en' ? ': ' : '：') +
+        ['E', 'D', 'C', 'C+', 'B', 'A'].join(list),
+    );
+    for (const name of ['smcRateBase', 'greenRateTwice', 'careRates'])
+      expect(cell(name), name).toContain(
+        head('nz.policy.from', 'nz.policy.hourlyRate'),
+      );
+    expect(cell('smcRateBase')).toMatch(
+      /2020-02-24<\/time><\/td><td>25\.5<\/td>/,
+    );
+    expect(cell('parentMedianIncome')).toContain(
+      head('nz.policy.from', 'nz.policy.medianWage'),
+    );
+    expect(cell('parentMedianIncome')).toContain('<td>53,040</td>');
+    for (const name of ['tierOneEmployeeRates', 'tierOneContractRates'])
+      expect(cell(name), name).toContain(
+        head('nz.policy.occupation', 'nz.policy.hourlyRate'),
+      );
+    expect(cell('tierOneEmployeeRates')).toContain(
+      '<td>221213</td><td>45.5</td>',
+    );
+    expect(html).not.toContain('2020-02-24 25.5');
+    expect(html).not.toContain('221213 45.5');
+    // Amounts and counts are grouped; no parameter holds a calendar year.
+    expect(html).toContain('significantCostNzd 81,000');
+    expect(html).toContain('1,350');
+  },
+);

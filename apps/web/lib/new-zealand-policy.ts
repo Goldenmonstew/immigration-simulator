@@ -1,5 +1,6 @@
 import {
   evaluateNewZealandFull,
+  type Locale,
   type NzFullRequest,
   type RuleMeta,
 } from '@uk-immigration/engine';
@@ -8,7 +9,12 @@ import {
   type SourceRef,
 } from '@uk-immigration/policy-data';
 import { t, type TranslationKey } from '../i18n';
-import { withPolicySources, type PolicyRuleSet } from './policy';
+import { punct } from '../i18n/punctuation';
+import {
+  withPolicySources,
+  type PolicyParameterValue,
+  type PolicyRuleSet,
+} from './policy';
 
 const title = (key: TranslationKey) => ({ 'zh-CN': t(key), en: t(key, 'en') });
 const values = full.values;
@@ -153,6 +159,62 @@ function engineRules() {
   };
 }
 
+// Pay thresholds by effective date or occupation code are shown as tables,
+// the work-to-residence window in months and the OET grades in their order.
+const hourlyByDate = [
+  'smcRateBase',
+  'smcRateOrdinary',
+  'smcRateAmber',
+  'smcRateOneHalf',
+  'smcRateTwice',
+  'smcRateTriple',
+  'greenRateBase',
+  'greenRatePlus15',
+  'greenRatePlus30',
+  'greenRatePlus50',
+  'greenRateTwice',
+  'careRates',
+] as const;
+
+function displayParameter(
+  name: string,
+  locale: Locale,
+): PolicyParameterValue | undefined {
+  const label = (key: TranslationKey) => t(key, locale);
+  const rows = (
+    rates: Readonly<Record<string, number>>,
+    key: TranslationKey,
+    amount: TranslationKey,
+  ) =>
+    Object.entries(rates).map(([row, value]) => ({
+      [label(key)]: row,
+      [label(amount)]: value,
+    }));
+  if (name === 'parentMedianIncome')
+    return rows(
+      values.parentMedianIncome.value,
+      'nz.policy.from',
+      'nz.policy.medianWage',
+    );
+  if (name === 'tierOneEmployeeRates' || name === 'tierOneContractRates')
+    return rows(
+      values[name].value,
+      'nz.policy.occupation',
+      'nz.policy.hourlyRate',
+    );
+  const hourly = hourlyByDate.find((id) => id === name);
+  if (hourly)
+    return rows(values[hourly].value, 'nz.policy.from', 'nz.policy.hourlyRate');
+  if (name === 'workResidenceMonths')
+    return label('nz.policy.monthsInWindow')
+      .replace('{required}', String(values.workResidenceMonths.value.required))
+      .replace('{window}', String(values.workResidenceMonths.value.window));
+  if (name === 'englishOetGrades') {
+    const p = punct(locale);
+    return `${label('nz.policy.lowToHigh')}${p.colon}${values.englishOetGrades.value.join(p.list)}`;
+  }
+}
+
 const engine = engineRules();
 const set: PolicyRuleSet = {
   id: full.ruleSetId,
@@ -173,6 +235,7 @@ export const newZealandPolicy = withPolicySources({
   pathways: engine.pathways,
   parameters: { [set.id]: full },
   rules: { [set.id]: engine.rules },
+  displayParameter,
   changelog: [
     {
       date: values.unlawfulChildRuleFrom.value,

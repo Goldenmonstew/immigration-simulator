@@ -20,6 +20,12 @@ export const zhCN = {
   'nz.result.earliest': '预计满足条件的日期',
   'nz.policy.pageTitle': '新西兰政策依据',
   'nz.policy.title': '新西兰现行规则',
+  'nz.policy.monthsInWindow': '{window} 个月中满足 {required} 个月',
+  'nz.policy.lowToHigh': '由低到高',
+  'nz.policy.from': '起始日',
+  'nz.policy.occupation': 'ANZSCO 职业代码',
+  'nz.policy.hourlyRate': '时薪（NZD）',
+  'nz.policy.medianWage': '年化中位工资（NZD）',
   'nz.policy.unlawfulChildChange': '居民签证新增非法居留受抚养子女的筛查',
   'nz.policy.unlawfulChildSummary':
     '自该日起，居民签证申请须核对每位申请人在新西兰非法居留的受抚养子女（包括不随行的子女），只有全部符合年龄及无权迁出的例外才能通过（R5.125）。',
@@ -61,6 +67,12 @@ export const en: Record<keyof typeof zhCN, string> = {
   'nz.result.earliest': 'Projected date the conditions are met',
   'nz.policy.pageTitle': 'Policy basis for New Zealand',
   'nz.policy.title': 'Current New Zealand rules',
+  'nz.policy.monthsInWindow': '{required} of {window} months',
+  'nz.policy.lowToHigh': 'Lowest to highest',
+  'nz.policy.from': 'From',
+  'nz.policy.occupation': 'ANZSCO code',
+  'nz.policy.hourlyRate': 'Hourly rate (NZD)',
+  'nz.policy.medianWage': 'Annualised median wage (NZD)',
   'nz.policy.unlawfulChildChange':
     'Residence screening for dependent children unlawfully in New Zealand',
   'nz.policy.unlawfulChildSummary':
