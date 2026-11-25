@@ -11,6 +11,7 @@ import {
   validateIrelandStep,
   type IrelandDraft,
 } from './ireland-draft';
+import { WORK_PATHS } from './ireland-fields';
 import { irelandPolicy, irelandTimeRuleTitles } from './ireland-policy';
 import { irelandWhatIf, type IrelandWhatIf } from './ireland-whatif';
 
@@ -33,7 +34,15 @@ function run(draft: IrelandDraft, locale: Locale) {
   for (const pathway of result.columns[0].pathways) {
     // A projected date assumes the documents are still valid on that day.
     if (pathway.status === 'FUTURE')
-      pathway.summary = [pathway.summary, t('ie.result.projected', locale)]
+      pathway.summary = [
+        pathway.summary,
+        t(
+          (WORK_PATHS as readonly string[]).includes(pathway.id)
+            ? 'ie.result.projectedWork'
+            : 'ie.result.projected',
+          locale,
+        ),
+      ]
         .filter(Boolean)
         .join(' ');
     // Checks without their own explanation repeat the condition title. Time

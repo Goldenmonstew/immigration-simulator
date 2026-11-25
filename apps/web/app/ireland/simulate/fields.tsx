@@ -206,6 +206,9 @@ function Question({
                 step={isDate ? undefined : 'any'}
                 value={String(item)}
                 aria-invalid={errors[`${id}-${i}`] ? true : undefined}
+                aria-describedby={
+                  errors[`${id}-${i}`] ? `${id}-${i}-error` : undefined
+                }
                 onChange={(event) => {
                   const text = event.target.value;
                   // A blank row stays a placeholder until the step is submitted.
@@ -330,6 +333,7 @@ function Question({
               : 'date'
         }
         min={isNumber ? 0 : undefined}
+        max={field.max}
         step={isNumber ? (field.type === 'integer' ? 1 : 'any') : undefined}
         value={text}
         onChange={(event) => {

@@ -1,4 +1,17 @@
+import {
+  ireland2026_11,
+  irelandFull2026_11,
+} from '@uk-immigration/policy-data';
 import { ieFormEn, ieFormZh } from './ireland-form';
+
+// Policy figures in the change summaries come from the parameters.
+const euro = (amount: number) => `€${amount.toLocaleString('en')}`;
+const { income, relationship } = irelandFull2026_11.family;
+const { categoryA, previousCategoryA, categoryC, taxYearsA } = income.value;
+const { categoryCWaitMonths } = relationship.value;
+const registrationFee = euro(irelandFull2026_11.registration.value.fee);
+const minor = irelandFull2026_11.naturalisation.minor.value;
+const minorContinuous = ireland2026_11.values.continuousYears.value;
 
 export const zhCN = {
   ...ieFormZh,
@@ -27,20 +40,18 @@ export const zhCN = {
     '原 Stamp 1G／Stamp 3 家庭团聚时间（旧计时参考）',
   'ie.policy.rule.wcattTime': 'Stamp 5 合格许可时间',
   'ie.policy.change.family2026': '家庭团聚政策 2026 年 6 月版',
-  'ie.policy.change.family2026Summary':
-    '申请日在此日及之后，A 类（爱尔兰公民）担保人须在申请前 3 个税年税前合计至少 €75,000（此前为 €40,000）。',
+  'ie.policy.change.family2026Summary': `申请日在此日及之后，A 类（爱尔兰公民）担保人须在申请前 ${taxYearsA} 个税年税前合计至少 ${euro(categoryA)}（此前为 ${euro(previousCategoryA)}）。`,
   'ie.policy.change.family2025': '家庭团聚政策 2025 年 11 月修订',
-  'ie.policy.change.family2025Summary':
-    '自此日起，C 类担保人按修订版等满 12 个月，无子女伴侣按上一税年税前收入超过 €30,000 核对。',
+  'ie.policy.change.family2025Summary': `自此日起，C 类担保人按修订版等满 ${categoryCWaitMonths} 个月，无子女伴侣按上一税年税前收入超过 ${euro(categoryC)} 核对。`,
   'ie.policy.change.registrationFee': 'IRP 登记费调整',
-  'ie.policy.change.registrationFeeSummary':
-    '自此日起，须缴费的登记或续期按 S.I. 421/2025 收费 €300，法定豁免情形除外。',
+  'ie.policy.change.registrationFeeSummary': `自此日起，须缴费的登记或续期按 S.I. 421/2025 收费 ${registrationFee}，法定豁免情形除外。`,
   'ie.policy.change.minor': '境内出生未成年人入籍居住要求',
-  'ie.policy.change.minorSummary':
-    '自此日起，在共和国出生的未成年人按递交前连续 1 年加此前 8 年内累计 2 年的居住核对（s15B 修订）。',
+  'ie.policy.change.minorSummary': `自此日起，在共和国出生的未成年人按递交前连续 ${minorContinuous} 年加此前 ${minor.windowYears} 年内累计 ${minor.priorYears} 年的居住核对（s15B 修订）。`,
   'ie.result.finishQuestionnaire':
     '请返回问卷，完成所选路径的必填项目后再查看结果。',
   'ie.result.projected':
+    '这是按所填资料推算的日期：届时请确认所用材料与身份仍然有效，并用实际递交日和更新后的材料重新计算。',
+  'ie.result.projectedWork':
     '这是按所填资料推算的日期：届时请确认雇主信、IRP 卡等材料仍在有效期内，并用实际递交日和更新后的材料重新计算。',
   'ie.result.legacyReference': '旧计时参考，不影响本路径结论。',
   'ie.result.checkMet': '按所填资料满足。',
@@ -50,6 +61,7 @@ export const zhCN = {
   'ie.error.list': '请添加记录，或点「确认没有」。',
   'ie.error.date': '请填写有效日期。',
   'ie.error.number': '请填写不小于 0 的数字（件数、人数等须为整数）。',
+  'ie.error.fraction': '请填写 0 到 1 之间的比例，例如 0.25 表示 25%。',
   'ie.error.order': '这个日期不能早于开始的日期。',
   'ie.error.pathways': '请至少选择一条要核对的路径。',
   'ie.whatif.date': '模拟（递交）日期',
@@ -58,8 +70,10 @@ export const zhCN = {
   'ie.whatif.noTrips': '假设没有出境记录',
   'ie.whatif.employmentStart': '在爱尔兰凭就业许可开始工作的日期',
   'ie.whatif.irpExpiresOn': '现有 IRP 卡到期日',
+  'ie.whatif.irpHint':
+    'EU／WA 永久居留卡续期已填写证件到期日时，按证件到期日计算，这一项不影响。',
   'ie.whatif.income': '担保人最近一个税年税前收入（€）',
-  'ie.whatif.incomeHint': '替换问卷中最近一个税年的数字；留空则沿用问卷资料。',
+  'ie.whatif.incomeHint': `替换问卷中最近一个税年的数字；留空则沿用问卷资料。A 类按最近 ${taxYearsA} 个税年合计核对。`,
   'ie.whatif.invalid': '对比后的资料有未通过问卷校验的项目，请先核对问卷。',
 } as const;
 
@@ -92,21 +106,19 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Time on Stamp 1G or Stamp 3 under family reunification (legacy reference)',
   'ie.policy.rule.wcattTime': 'Qualifying permission period for Stamp 5',
   'ie.policy.change.family2026': 'Family reunification policy, June 2026',
-  'ie.policy.change.family2026Summary':
-    'For applications on or after this date, a Category A (Irish citizen) sponsor needs gross income of at least €75,000 over the three tax years before applying (previously €40,000).',
+  'ie.policy.change.family2026Summary': `For applications on or after this date, a Category A (Irish citizen) sponsor needs gross income of at least ${euro(categoryA)} over the ${taxYearsA} tax years before applying (previously ${euro(previousCategoryA)}).`,
   'ie.policy.change.family2025':
     'Family reunification policy, November 2025 revision',
-  'ie.policy.change.family2025Summary':
-    'From this date, Category C sponsors wait 12 months under the revised policy, and a couple without children needs gross income above €30,000 in the previous tax year.',
+  'ie.policy.change.family2025Summary': `From this date, Category C sponsors wait ${categoryCWaitMonths} months under the revised policy, and a couple without children needs gross income above ${euro(categoryC)} in the previous tax year.`,
   'ie.policy.change.registrationFee': 'IRP registration fee',
-  'ie.policy.change.registrationFeeSummary':
-    'From this date, a registration or renewal that is not exempt costs €300 under S.I. 421/2025.',
+  'ie.policy.change.registrationFeeSummary': `From this date, a registration or renewal that is not exempt costs ${registrationFee} under S.I. 421/2025.`,
   'ie.policy.change.minor': 'Residence for minors born in the State',
-  'ie.policy.change.minorSummary':
-    'From this date, a minor born in the State needs one year of continuous residence before filing plus two years in the eight before that (amended s15B).',
+  'ie.policy.change.minorSummary': `From this date, a minor born in the State needs ${minorContinuous} year of continuous residence before filing plus ${minor.priorYears} years in the ${minor.windowYears} before that (amended s15B).`,
   'ie.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields for your pathways before viewing results.',
   'ie.result.projected':
+    'This date is projected from your answers. Check that your documents and status will still be valid then, and work it out again with the actual filing date and updated documents.',
+  'ie.result.projectedWork':
     'This date is projected from your answers. Check that documents such as the employer’s letter and IRP card will still be valid then, and work it out again with the actual filing date and updated documents.',
   'ie.result.legacyReference':
     'Legacy timing for reference only; it does not affect this pathway.',
@@ -117,6 +129,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.error.list': 'Add a record, or choose “Confirm there are none”.',
   'ie.error.date': 'Enter a valid date.',
   'ie.error.number': 'Enter a number of 0 or more (whole numbers for counts).',
+  'ie.error.fraction':
+    'Enter a fraction from 0 to 1, for example 0.25 for 25%.',
   'ie.error.order': 'This date cannot be before the start date.',
   'ie.error.pathways': 'Select at least one pathway to check.',
   'ie.whatif.date': 'Simulation (filing) date',
@@ -126,9 +140,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.whatif.employmentStart':
     'Date you started work in Ireland on the employment permit',
   'ie.whatif.irpExpiresOn': 'Expiry on your current IRP',
+  'ie.whatif.irpHint':
+    'An EU or WA permanent residence card renewal uses the card expiry date when you entered it, so this control does not change it.',
   'ie.whatif.income': 'Sponsor’s gross income in the latest tax year (€)',
-  'ie.whatif.incomeHint':
-    'Replaces the latest tax year in the questionnaire. Leave blank to keep your answers.',
+  'ie.whatif.incomeHint': `Replaces the latest tax year in the questionnaire. Leave blank to keep your answers. Category A adds up the latest ${taxYearsA} tax years.`,
   'ie.whatif.invalid':
     'The compared answers fail a questionnaire check. Review the questionnaire first.',
 };

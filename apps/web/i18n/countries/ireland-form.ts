@@ -1,5 +1,8 @@
+import { irelandFull2026_11 } from '@uk-immigration/policy-data';
+
 // Questionnaire wording for Ireland: ie.field.<label>, ie.hint.<hint> and
 // ie.option.<label>.<value> follow lib/ireland-fields.ts.
+const { taxYearsA } = irelandFull2026_11.family.income.value;
 const messages = {
   'ie.form.step0': ['日期与评估路径', 'Dates and pathways'],
   'ie.form.step1': [
@@ -248,8 +251,8 @@ const messages = {
     'Complete only if you re-enter or convert status on the day you return from this trip. The date must match that return.',
   ],
   'ie.hint.grossTaxYears': [
-    '按税年从早到晚各填一行税前收入（€），最后一行为最近一个税年。配偶事务组（Spouse Unit）渠道不计国家福利。',
-    'Add each tax year’s gross income (€), earliest first, so the last row is the latest year. For the Spouse Unit, exclude State welfare benefits.',
+    `按税年从早到晚各填一行税前收入（€），最后一行为最近一个税年。A 类（爱尔兰公民）担保人须恰好填申请前 ${taxYearsA} 个税年，行数不符时结果为待确认；C 类按最后一行核对。配偶事务组（Spouse Unit）渠道不计国家福利。`,
+    `Add each tax year’s gross income (€), earliest first, so the last row is the latest year. For a Category A (Irish citizen) sponsor, enter exactly the ${taxYearsA} tax years before applying, or the result stays to be confirmed; Category C uses the last row. For the Spouse Unit, exclude State welfare benefits.`,
   ],
   'ie.hint.registeredPeriods': [
     'IRP 上每段登记许可填一行，并选择其所依据的许可。',

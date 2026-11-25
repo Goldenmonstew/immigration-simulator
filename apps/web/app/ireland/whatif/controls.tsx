@@ -3,7 +3,11 @@
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import type { IrelandDraft } from '../../../lib/ireland-draft';
-import { FAMILY_PATHS, WORK_PATHS } from '../../../lib/ireland-fields';
+import {
+  FAMILY_PATHS,
+  TREATY_PATHS,
+  WORK_PATHS,
+} from '../../../lib/ireland-fields';
 import {
   irelandFocusControls as ids,
   type IrelandWhatIf,
@@ -33,6 +37,7 @@ export function IrelandWhatIfControls({
     field: 'employment' | 'irp',
     knob: 'employmentStart' | 'irpExpiresOn',
     label: TranslationKey,
+    hint?: TranslationKey,
   ) => (
     <div className={styles.field}>
       <label htmlFor={ids[field]}>{t(label)}</label>
@@ -42,8 +47,13 @@ export function IrelandWhatIfControls({
         value={knobs[knob] ?? ''}
         onChange={(e) => update({ [knob]: e.target.value || undefined })}
         aria-invalid={!!errors[field]}
-        aria-describedby={described(field)}
+        aria-describedby={described(field, hint && `${ids[field]}-hint`)}
       />
+      {hint && (
+        <p id={`${ids[field]}-hint`} className={styles.hint}>
+          {t(hint)}
+        </p>
+      )}
       {error(field)}
     </div>
   );
@@ -77,7 +87,13 @@ export function IrelandWhatIfControls({
       )}
       {has(WORK_PATHS) &&
         date('employment', 'employmentStart', 'ie.whatif.employmentStart')}
-      {date('irp', 'irpExpiresOn', 'ie.whatif.irpExpiresOn')}
+      {date(
+        'irp',
+        'irpExpiresOn',
+        'ie.whatif.irpExpiresOn',
+        // EU and WA card renewals use the card's own expiry when given.
+        has(TREATY_PATHS) ? 'ie.whatif.irpHint' : undefined,
+      )}
       {has(FAMILY_PATHS) && (
         <div className={styles.field}>
           <label htmlFor={ids.income}>{t('ie.whatif.income')}</label>

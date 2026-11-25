@@ -28,6 +28,8 @@ export type IrelandField = {
   required?: boolean;
   /** Option label (ie.option.<label>.<blank>) for an unanswered choice. */
   blank?: string;
+  /** Upper bound for a number. */
+  max?: number;
   /** Shown only when one of these pathways is selected. */
   paths?: readonly IrelandFullPathwayId[];
 } & (
@@ -49,7 +51,7 @@ export type IrelandFields = Record<string, IrelandField>;
 type Fields<T> = { [K in keyof T]-?: IrelandField };
 type Extra = Pick<
   IrelandField,
-  'label' | 'hint' | 'required' | 'blank' | 'paths'
+  'label' | 'hint' | 'required' | 'blank' | 'max' | 'paths'
 >;
 
 const bool = (extra?: Extra): IrelandField => ({ type: 'boolean', ...extra });
@@ -414,7 +416,7 @@ const permitFields = {
   occupationEligible: bool(),
   recognisedQualifications: bool(),
   employerEligible: bool(),
-  eeaStaffShare: number({ hint: 'eeaStaffShare' }),
+  eeaStaffShare: number({ hint: 'eeaStaffShare', max: 1 }),
   staffShareExemption: bool(),
   graduateNfqLevel: integer(),
   graduateAwardOn: date(),

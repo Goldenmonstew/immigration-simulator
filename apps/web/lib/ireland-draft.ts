@@ -282,6 +282,12 @@ function checkFields(
       case 'number':
       case 'integer':
         if (!number(value, false)) errors[id] = 'ie.error.number';
+        else if (
+          submit &&
+          field.max !== undefined &&
+          (value as number) > field.max
+        )
+          errors[id] = 'ie.error.fraction';
         else
           range(
             (value as number) >= 0 && number(value, field.type === 'integer'),

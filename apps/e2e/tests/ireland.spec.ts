@@ -147,7 +147,7 @@ test('a work Stamp 4 questionnaire shows conditions, saves, shares and compares 
     zhCN['ie.policy.rule.stamp4WorkTime'],
   );
   await expect(workTime).toContainText('自 2025-05-20 开始受雇满 21 个月');
-  await expect(result).toContainText(zhCN['ie.result.projected']);
+  await expect(result).toContainText(zhCN['ie.result.projectedWork']);
   const original = await result.innerText();
 
   const scenarios = page.getByRole('region', {

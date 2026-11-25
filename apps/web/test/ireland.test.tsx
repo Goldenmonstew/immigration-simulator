@@ -31,6 +31,7 @@ import {
 import { irelandModule as ie } from '../lib/ireland-module';
 import { japanModule } from '../lib/japan-module';
 import { decodeDraft, encodeDraft } from '../lib/share';
+import { irelandFull2026_11 } from '@uk-immigration/policy-data';
 
 const day = '2026-11-23';
 const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
@@ -359,11 +360,11 @@ test('a work Stamp 4 upgrade is projected after 21 months, with a note about doc
     title: t('ie.policy.rule.stamp4WorkTime'),
   });
   expect(time.explanation).toContain('自 2025-05-20 开始受雇满 21 个月');
-  expect(route.summary).toContain(t('ie.result.projected'));
+  expect(route.summary).toContain(t('ie.result.projectedWork'));
   // The IRP expires before the projected date (PD-321).
   expect(route.summary).toContain('2027-01-31');
   expect(pathway(workDraft, 'IE-STAMP4-21', 'en').summary).toContain(
-    t('ie.result.projected', 'en'),
+    t('ie.result.projectedWork', 'en'),
   );
 });
 
@@ -878,4 +879,65 @@ test('clearing the last ticked option returns a multiple choice to unanswered', 
   ]);
   // Only the "Confirm there are none" button records an empty answer.
   expect(toggleOption(['continuous'], 'continuous', false)).toBeUndefined();
+});
+
+test('row errors, staff shares, tax years and projected dates are explained', () => {
+  // Each date or number row names its own error for screen readers.
+  const draft: IrelandDraft = {
+    ...naturalisationDraft,
+    citizenship: {
+      residenceEvidence: { requiredYears: [2025, ''] as never, years: [] },
+    },
+  };
+  const html = render(
+    IrelandSimulatePage().props.children({
+      draft,
+      errors: ie.validateStep(draft),
+      update: () => {},
+    }),
+  );
+  expect(html).toContain(
+    'aria-describedby="ie-citizenship-residenceEvidence-requiredYears-1-error"',
+  );
+  // The EEA staff share is a fraction between 0 and 1.
+  const share = (eeaStaffShare: number) =>
+    ie.validateStep({
+      ...workDraft,
+      work: { ...workDraft.work, permitApplication: { eeaStaffShare } },
+    })['ie-work-permitApplication-eeaStaffShare'];
+  expect(share(0.25)).toBeUndefined();
+  expect(share(25)).toBe('ie.error.fraction');
+  // Tax year rows and policy summaries follow the parameters.
+  const income = irelandFull2026_11.family.income.value;
+  for (const locale of ['zh-CN', 'en'] as const) {
+    expect(t('ie.hint.grossTaxYears', locale)).toContain(
+      String(income.taxYearsA),
+    );
+    expect(t('ie.policy.change.family2026Summary', locale)).toContain(
+      `€${income.categoryA.toLocaleString('en')}`,
+    );
+  }
+  // Only work upgrades mention the employer’s letter.
+  const later: IrelandDraft = {
+    ...naturalisationDraft,
+    permissions: [{ kind: 'stamp4', from: '2021-12-01' }],
+  };
+  const naturalisation = pathway(later, 'IE-NATURALISATION');
+  expect(naturalisation.status).toBe('FUTURE');
+  expect(naturalisation.summary).toContain(t('ie.result.projected'));
+  expect(naturalisation.summary).not.toContain('雇主信');
+  expect(pathway(workDraft, 'IE-STAMP4-21').summary).toContain(
+    t('ie.result.projectedWork'),
+  );
+  // The IRP control notes that EU and WA cards use their own expiry.
+  const controls = render(
+    <IrelandWhatIfControls
+      afterDraft={{ ...workDraft, pathways: ['IE-EU-PERMANENT'] }}
+      knobs={ie.whatif.initial(workDraft)}
+      errors={{}}
+      update={() => {}}
+    />,
+  );
+  expect(controls).toContain('aria-describedby="ie-whatif-irp-hint"');
+  expect(controls).toContain(t('ie.whatif.irpHint'));
 });
