@@ -446,8 +446,8 @@ const nurse: NzCharacter = {
     ],
   ),
   settlement: t(
-    '移民局的邮件到了：永久居民签证获批。你给伊洛伊洛的妈妈打视频，身后的海湾亮晶晶的。下次回家，不用再算旅行条件了。',
-    'The email from Immigration New Zealand arrives: your permanent resident visa is granted. You video-call Mum in Iloilo with the bay glittering behind you. Next time you fly home, there are no travel conditions to count.',
+    '永久居民签证的申请递交了，INZ 的确认邮件躺在收件箱里，接下来等他们审核。你给伊洛伊洛的妈妈打视频，身后的海湾亮晶晶的。',
+    'Your permanent resident visa application is lodged, and the confirmation from Immigration New Zealand sits in your inbox while they assess it. You video-call Mum in Iloilo with the bay glittering behind you.',
   ),
   events: nurseEvents,
 };
@@ -480,8 +480,8 @@ const partner: NzCharacter = {
     ],
   ),
   settlement: t(
-    '永久居民签证批下来了。Aroha 抱着你转了一圈，Nikau 在旁边喊：“现在你是真的凯雷鲁湾人了！”',
-    'Your permanent resident visa is granted. Aroha spins you round, and Nikau shouts: “Now you’re a real Kererū Bay local!”',
+    '永久居民签证的申请递交了，接下来等移民局审核。Aroha 抱着你转了一圈，Nikau 在旁边喊：“我们去码头庆祝吧！”',
+    'Your permanent resident visa application is lodged; now Immigration New Zealand assesses it. Aroha spins you round, and Nikau shouts: “Let’s celebrate at the wharf!”',
   ),
   events: partnerEvents,
 };

@@ -184,6 +184,43 @@ test('a permanent resident visa application uses the engine assessment and the r
   );
 });
 
+// INZ and Internal Affairs decide each application; an ending only records
+// that it was lodged.
+const granted = /获批|批下来|宣誓|granted|oath/i;
+
+test.each(['nurse', 'partner'])(
+  'the %s’s permanent resident visa ending records a lodged application',
+  (id) => {
+    const state = settle(nz.newGame(id, 5, 'en'));
+    state.date = '2028-03-01';
+    state.result = nz.nzRules.evaluate(state);
+    const ended = nz.doActivity(visit(state, 'visa', 600), 'settle');
+    expect(ended.ending).toBe('settled');
+    const text = nz.narrative(ended).at(-1)!;
+    expect(text).toEqual(nz.characterOf(id).settlement);
+    expect(`${text.zhCN} ${text.en}`).not.toMatch(granted);
+    expect(`${text.zhCN} ${text.en}`).toMatch(/递交|lodged/);
+  },
+);
+
+test('a citizenship application ends on the citizenship text, read before the effects', () => {
+  const state = settle(nz.newGame('nurse', 5, 'en'));
+  // The engine holds the test open (PD-224); open the pathway to reach the
+  // application the game would offer once it is met.
+  const office = visit(state, 'dia', 600);
+  nz.pathwayOf(office.result, 'cit')!.status = 'MET';
+  expect(nz.activities(office, 'dia').map(({ id }) => id)).toContain(
+    'naturalise',
+  );
+  const ended = nz.doActivity(office, 'naturalise');
+  expect(ended.ending).toBe('settled');
+  const text = nz.narrative(ended).at(-1)!;
+  expect(text).not.toEqual(nz.characterOf('nurse').settlement);
+  expect(text.en).toContain('citizenship application');
+  expect(`${text.zhCN} ${text.en}`).not.toMatch(granted);
+  expect(ended.log.filter(({ kind }) => kind === 'ending')).toHaveLength(1);
+});
+
 test('the Internal Affairs counter reads the presence date from the engine', () => {
   const office = visit(nz.newGame('nurse', 5, 'en'), 'dia', 600);
   expect(nz.activities(office, 'dia').map(({ id }) => id)).toEqual([

@@ -921,3 +921,4 @@
 | 920 | 任务 95 审核修正（review95-2 建议 2）。加拿大“适用／不适用”分组（如安省近期毕业）选“适用”后，清空最后一个子项时仍保留“适用”（存为空记录），不再无提示退回未答、隐藏子项。 | apps/web/app/canada/simulate/fields.tsx、apps/web/test/canada.test.tsx |
 | 921 | 任务 95 审核修正（review95-2）报告：逐条对应问题 1、风险 1–3、建议 1–3，风险 4 与签署日对比跳转列入发现与建议／未做；同步报告中已过时的共用组件、结果说明与缓存版本（建议 1）。 | docs/tasks/reports/95-ca-pages.md |
 | 1024 | 任务 104 合入 main 后跟进试点修正（review111-1 问题 3）。新西兰 6 道菜的做法文案键由 `game.prepare-<ID>` 改为 `nz.game.prepare-<ID>`，外壳 `gameKey` 优先取用；`salad` 不再被英国「轻轻拌匀」覆盖，英国文案不变。 | apps/web/i18n/countries/new-zealand-game.ts、apps/web/test/new-zealand-game.test.tsx |
+| 1025 | 任务 104 合入 main 后跟进试点修正（review111-1 问题 2，美国、希腊、澳大利亚跟进补充"个案裁量不预设"）。核对入籍结局：`beforeAction` 在效果前记下 `applied-citizenship`，结局文案按它选，补单测（入籍路径打开后递交，结局是入籍文案、只有一条结局日志）。永久居民签证与入籍由 INZ、内政部个案决定，结局文案只写申请已递交、等待审核，不再写"获批""批下来"或入籍仪式宣誓。 | packages/game/src/packs/nz/{characters,hooks}.ts、packages/game/test/nz-pack.test.ts |

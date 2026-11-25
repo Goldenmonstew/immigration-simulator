@@ -279,8 +279,8 @@ export function endingText(state: NzState, ending: EndingId): Text {
   const texts: Record<EndingId, Text> = {
     settled: state.flags.includes('applied-citizenship')
       ? t(
-          '入籍申请递进了内政部。等到入籍仪式那天，你会在区议会的礼堂里宣誓，唱两种语言的国歌。',
-          'The citizenship application is with Internal Affairs. On ceremony day you will take the oath in the council chambers and sing the anthem in two languages.',
+          '入籍申请递进了内政部，接下来等他们审核。走出服务中心，海湾的风迎面吹来。',
+          'The citizenship application is lodged with Internal Affairs, and now they assess it. Outside the service centre, the wind comes in off the bay.',
         )
       : character.settlement,
     left: t(
