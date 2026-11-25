@@ -142,3 +142,80 @@
 - 问卷外壳的 `update` 按补丁合并，删除的字段会被旧值带回。葡萄牙已在本国页面绕开；其他国家的问卷如果在草稿根层删除字段，也要注意。建议共用外壳以后改为接受完整草稿，或明确约定删除要传 `undefined`。
 - 同一请求去掉居留证件后，`evaluatePortugalFull` 慢 3–20 倍（本机高负载下，例如约 15 ms 对约 240 ms）。若页面以后在加载时跑引擎，建议规则侧先查明原因。
 - 引擎没有 `timeStatus`、`timeEarliestDate`（第一轮已列）。建议规则侧补上，结果头部就会自动显示按时间推算的日期。
+
+## 合入 main 与共用选项接入
+
+澳大利亚页面（任务 93，#81）合入 main 后，本分支合入 main，并按 93 号报告“其他国家怎么接入”一表接入共用选项。本节没有改引擎和参数。共用组件只按 brief 在 `site-shell.tsx` 加了本国路径，其余共用组件用 main 的版本。
+
+### 1. 做了什么（按 commit）
+
+| PROGRESS | commit message | 内容 |
+|---|---|---|
+| 792 | `Merge: 合入 main（澳大利亚完整版页面 #81）` | 解决四处冲突。`policy-page.tsx` 取 main 的版本：本分支 780 的两处改动（非英国读 `<国家>.policy.pageTitle`、非英国一律分组千分位）已被 main 的通用写法取代（标题回退、按字段语义判断年份、`displayParameter`），本分支对该文件没有别的改动。`site-countries.ts` 的离线页面同时登记澳大利亚与葡萄牙。`sw.js` 与 `about-page.test.tsx` 的缓存版本保持 `2026-11-25-pt`。`PROGRESS.md`、中英文字典自动合并，两边的行和键都在。 |
+| 793 | `Fix: 葡萄牙分享链接不覆盖本机草稿，结果、修改与对比之间带场景` | 葡萄牙模块设 `scenarioLinks: true`；`site-shell.tsx` 的场景路径判断加上 `/portugal/{result,simulate,whatif}`。 |
+| 794 | `Fix: 葡萄牙结果日期标为满足所评估条件的日期` | 设 `earliestLabel: 'pt.result.earliest'`，中文“满足所评估条件的日期（推算）”，英文“Calculated date the assessed requirements are met”。e2e 对比页改读该标签。 |
+| 795 | `Fix: 葡萄牙检查项分组，费用、获批后事项、可选依据与提示不进还差什么` | 在模块的 `run` 里为每个检查项设 `kind`，分法见下表。 |
+| 796 | `Fix: 葡萄牙政策页嵌套参数按含义展示` | 葡萄牙政策提供 `displayParameter`，28 个嵌套参数全部换成中英文字段名。 |
+| 797 | `Fix: 葡萄牙政策页费表表头带币种，窄屏不挤占来源列` | 浏览器验收发现的问题，见第 2 段。 |
+| 798 | `Test: 葡萄牙 e2e 覆盖修改与对比链接的场景片段及根层清空` | e2e 补场景片段与根层清空。 |
+| 799 | `Docs: 任务 102 报告补合入 main 与共用选项接入` | 本节。 |
+
+各 commit 含 `PROGRESS.md` 对应行，尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。
+
+**原来标为待处理的条目，逐条对应：**
+
+| 条目 | 处理 |
+|---|---|
+| 审核修正一节“风险”：打开分享链接覆盖本机草稿（待任务 93 合入后解决） | 793。本机已有葡萄牙草稿时，打开分享链接只显示分享的结果，本机草稿和存储都不变。 |
+| 同上：结果、对比、编辑之间不用片段携带情景 | 793。结果页的“修改输入”“去 What-if 试试”及缺口里的旋钮链接都带 `#draft=`（分享结果带 `#s=`）。问卷和对比页监听片段与前进后退；未完成的草稿不显示分享按钮；“跳到主要内容”不洗掉片段。 |
+| 同上：检查项没有 `kind` 分组（当时结果类型没有 `kind`） | 795。main 的 `CountryCheck.kind` 已有 `time`、`budget`、`afterApproval`、`alternative`，本国按下表设置。设了 kind 的待定项显示“待定细节”。 |
+| 第一轮第 3 段：共用组件里只认 `jp` 的行为（片段携带情景、监听前进后退、未完成时隐藏分享）未扩展到葡萄牙 | 793。main 已把这些行为统一挂到 `scenarioLinks`，葡萄牙设了它就全部生效。 |
+| 第一轮第 4 段：把 `country.id === 'jp'`（及 `'au'`）统一成模块能力 | main（任务 93）已改为 `scenarioLinks`。只有 `site-shell.tsx` 仍按路径列国家，本分支按 brief 在那里加了葡萄牙（见第 4 段）。 |
+| 第一轮审核风险：`PolicyPage` 按 `country.id` 取标题和千分位 | 792 取 main 的版本。葡萄牙已登记 `pt.policy.pageTitle`，标题不变。年份规则已核对：葡萄牙参数里没有 1900–2100 的整数年份，大于 1000 的数都是金额（如 `ariResearchEur` 500,000），照常分组。 |
+| brief：根层删除的答案以 `undefined` 送出，合并后是否仍有效 | 有效。问卷外壳的 `update` 仍按补丁合并，葡萄牙页面的做法不变。原 e2e（删除唯一一条出境记录、清空 emancipação 生效日）在合并后通过；798 又在场景片段编辑模式（草稿存于 history state、不写本机）下清空出生日期，刷新后仍为空。 |
+
+**检查项分组（795）**
+
+依据：用一次性探针（scratchpad，不进仓库）包住引擎的 `pathway()`，在政策页单测的 23 组请求上记录每个条件在 `checks`、`timeChecks`、`waits`、`notes` 中的位置。`notes` 不参与路径状态。
+
+| kind | 条件 | 进“还差什么” |
+|---|---|---|
+| `budget` 费用预算 | A11-EXAM-FEE、A11-FEE、B07-FEE、C09-FEE、D-FEE、E07、F09、G06-FEE | 否 |
+| `afterApproval` 获批后事项 | D10-TERMS（批件所列持续投资义务） | 否 |
+| `alternative` 可选依据 | A02-CURRENT-ALTERNATIVE（旧法在审申请时间不足时，按现行法重新递交的时间） | 否 |
+| `information` 办理提示 | B01-CANCELLATION-RISK、B07-ABSENCE、C10-PILOT-ABSENCE、E01-RECEIPT、E01-RELEASE；保持或换发永久卡时的 B01（此时引擎把它放进 notes） | 否 |
+| `time` 时间条件 | A02、B01（首次申请）、C01、C01-SINGLE-ABSENCE、C01-TOTAL-ABSENCE、C03、D07-STAY、D07-WINDOW、E01、F02、F02-EARLY-CONTINUITY、F02-RETENTION | 是 |
+| `requirement` 申请条件 | 其余全部，包括材料类（A11、B06、B07-REPLACE-DOCUMENTS、C09、D04、E06-DOCUMENTS、F07、G06、G06-PARTNER-STATEMENT） | 是 |
+
+材料类在引擎里也是 notes，但它们是递交时要备齐的东西，brief 也没有把它们列为不进缺口的类别，所以保留为申请条件。
+
+**政策页嵌套参数（796、797）**
+
+- 入籍年限 `nationalityYears`、`nationalityIntervalYears`：按国籍列表，“国籍—年数”，国籍名沿用问卷选项。
+- AIMA 四张费表：按“费目—标准栏（EUR）—减免栏（XIV，EUR）”列表，金额到分。长期居民表的 `protected: 0` 显示为“国际保护受益人 0.00 / 0.00”。
+- 自由流动收费：适用起始日、年龄分界、婴儿年龄上限分行显示，各项费用为“费目—金额（EUR）”小表。
+- 其余 21 个参数：字段换成中英文名称并注明单位，金额带 EUR（EUR 与数字之间不断行），比例显示为百分比（如家庭权重 100%、50%、30%，ARI 低密度地区减幅 20%）。字段含义按参数文件的来源定位与引擎用法核对；家庭权重、按目的减免比例取自 SRC-473 Portaria 1563/2007 arts. 2、5，收入证明月数取自 SRC-475，旧制葡语证明取自 SRC-470 RNP art. 25，AIMA 减免取自 SRC-476 XIV，旧 ARI 投资方式取自 SRC-123 Lei 18/2022 附件 art. 3(1)(d)。
+
+### 2. 怎么验证的
+
+- **先失败后通过**：每项先写测试，在改源码前运行，确认失败：793 共 4 项（分享覆盖本机草稿 1 项，三个页面的“跳到主要内容” 3 项）；794 共 2 项（先登记文案、未设 `earliestLabel` 时中英文都失败）；795 共 1 项（缺口里出现没有 kind 的检查项）；796 共 2 项（把 `portugal-policy.ts` 换回上一提交时 `displayParameter` 为空）；797 的自由流动小表和表头币种各 2 项。改后全部通过。
+- **完整验收**（在 796 之后、797 之前）：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，退出码 0。error-report 2、policy-data 23、engine 6,006（1 项既有跳过）、game 1,348、web 885 项通过；构建生成 40/40 个静态页面，含葡萄牙五页。
+- **797 之后**只改了网页文件，重跑 `pnpm lint`、`pnpm --filter web typecheck`、`pnpm --filter web test`（885 项通过）和 `pnpm --filter web build`，退出码均为 0。
+- **浏览器 e2e**：先用 `lsof -i :4459` 确认端口空闲，再在最终构建上运行 `cd apps/e2e && E2E_PORT=4459 npx playwright test tests/portugal.spec.ts tests/australia.spec.ts tests/japan.spec.ts tests/site.spec.ts --project=desktop --reporter=line`，21 项通过。797 之前的构建上也跑过一次，同样 21 项通过。两次跑完都删除了 `apps/e2e/test-results`。
+- **视觉验收**：在内置浏览器中打开本地静态构建（`serve.ts`，端口 4459，用完关闭）。政策页 800px 宽时，原来的长列名（问卷里的费表栏目选项全文）因中文表头不断行而压进来源列；英文 375px 下每格带 EUR 时减免栏被截断。797 修正后，中英文 375px 下页面和各参数单元格都没有横向溢出（`scrollWidth` 等于 `clientWidth`），宽屏下费表、入籍年限表正常。结果页显示新日期标签和“申请条件／费用预算”等分组；未缴费时永久居留的“还差什么”显示已满足。验收时写入本机的葡萄牙草稿已删除。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR。
+- e2e 只跑了 brief 指定的四个文件、desktop 项目；mobile 项目和其他国家的 e2e 未跑。
+- 没有重跑 axe；e2e 第一个用例自带的 axe 检查（结果页）已通过。政策页的新表格没有单独做 axe 检查。
+- 检查项分组靠 23 组请求上的探针和条件含义判断，没有对引擎做穷举。规则任务以后新增 notes 类条件时，需要同步 `portugal-module.ts` 的分组表；单测会发现缺口里出现非 requirement/time 的项，但不会发现新条件被误分为申请条件。
+- `earliestLabel` 按 main 的单键用法接入，七条路径共用一个标签，见第 4 段。
+
+### 4. 发现与建议（范围外，未实现）
+
+- **日期标签**：七条路径里只有自由流动永久权的日期是取得日，其余是可以递交的日期。美国分支（任务 96）把 `earliestLabel` 放宽为按路径的键表，合入后葡萄牙可以只给 `PT-FREE-MOVEMENT-PERMANENT` 设“永久居留权取得日”，其他路径恢复“最早可申请日期（推算）”。
+- **分组由引擎给出更稳**：引擎已在 `pathway()` 里区分 checks、timeChecks、waits、notes，页面再按 ID 列表重建一遍。建议规则侧直接为检查项设 `kind`，页面删掉这张表，B01 随手续变化的情况也不用页面另判。
+- **材料类是否进“还差什么”**：材料类不影响路径状态，现在仍列在缺口里，所以路径已满足时，缺口里也可能出现“材料待确认”。如果希望缺口只列影响状态的条件，可以把材料类改成 `information`；这是产品取舍，本节按 brief 未改。
+- **`site-shell.tsx` 的场景路径表**：现在按路径写死日本、澳大利亚、葡萄牙三国。建议改为按当前国家模块的 `scenarioLinks` 判断，新国家就不用再改这里。
+- **共用政策页的中文表头**：`.valueTable th` 设了 `word-break: keep-all`，长中文列名不会换行，会把嵌套表撑出单元格。葡萄牙改用短列名绕开；其他国家若用长中文列名，也会遇到。

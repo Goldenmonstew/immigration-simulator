@@ -690,3 +690,4 @@
 | 796 | 任务 102 接入共用选项：葡萄牙政策页用 `displayParameter` 按含义展示 28 个嵌套参数。入籍年限按国籍列表，AIMA 四张费表按费目与标准栏、减免栏列表并带 EUR，其余字段换成中英文名称，金额带 EUR，比例显示为百分比；葡萄牙参数没有公历年份，千分位按 main 规则照常分组。 | apps/web/{lib/portugal-policy.ts,i18n/countries/portugal-module.ts,test/portugal.test.tsx}、PROGRESS.md |
 | 797 | 任务 102 政策页浏览器验收修正：AIMA 费表改用短列名“标准栏（EUR）／减免栏（XIV，EUR）”，币种写进表头、单元格只写金额，不再挤进来源列，英文 375px 下不截断；自由流动费用改为“费目—金额（EUR）”小表；其余 EUR 金额与数字之间不断行。 | apps/web/{lib/portugal-policy.ts,i18n/countries/portugal-module.ts,test/portugal.test.tsx}、PROGRESS.md |
 | 798 | 任务 102 e2e：从结果页“修改输入”进入问卷时网址带 `#draft=` 片段，在该编辑中清空根层的出生日期后刷新仍为空，确认按 `undefined` 送出根层删除在场景片段模式下仍有效；对比链接带场景片段。 | apps/e2e/tests/portugal.spec.ts、PROGRESS.md |
+| 799 | 任务 102 报告补“合入 main 与共用选项接入”一节：按 commit 列冲突处理与共用选项接入，逐条对应原待任务 93 解决的条目，列检查项分组依据、政策页嵌套参数展示、验收与 e2e 结果、未做事项及发现与建议。 | docs/tasks/reports/102-pt-pages.md、PROGRESS.md |
