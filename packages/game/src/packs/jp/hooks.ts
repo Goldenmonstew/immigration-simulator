@@ -137,9 +137,14 @@ export function actionDetails(state: JpState, action: JpActivity): void {
   }
 }
 
-export function actionFlags(action: JpActivity): string[] | undefined {
-  if (action.id === 'settle') return ['applied-pr'];
-  if (action.id === 'naturalise') return ['applied-nat'];
+const applicationFlags: Record<string, string> = {
+  settle: 'applied-pr',
+  naturalise: 'applied-nat',
+};
+// Before the effects run: the ending text reads which application was made.
+export function beforeAction(state: JpState, action: JpActivity): void {
+  const flag = applicationFlags[action.id];
+  if (flag && !state.flags.includes(flag)) state.flags.push(flag);
 }
 
 export function afterAction(

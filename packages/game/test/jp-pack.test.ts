@@ -191,6 +191,32 @@ test('settling uses the engine’s assessment and its fee for that filing date',
   );
 });
 
+test('applying for naturalisation ends with the naturalisation text', () => {
+  const state = settle(jp.newGame('engineer', 5, 'zh-CN'));
+  state.date = '2034-06-01';
+  state.timeline.permanentResidence.evidence.japaneseB1Confirmed = true;
+  const nat = state.timeline.naturalisation.evidence;
+  nat.japaneseLanguage = {
+    speaking: 'independent',
+    reading: 'independent',
+    writing: 'independent',
+    authorityConfirmed: true,
+  };
+  nat.requiredInterviewAndAssessmentComplete = true;
+  Object.assign(jp.status(state), {
+    grantedPeriodMonths: values.longestPeriod.value.maximumMonths.engineer,
+    expiresOn: '2037-03-31',
+  });
+  state.result = jp.jpRules.evaluate(state);
+  expect(jp.pathwayOf(state.result, 'nat')?.status).toBe('MET');
+  const ended = jp.doActivity(visit(state, 'bureau', 600), 'naturalise');
+  expect(ended.ending).toBe('settled');
+  const text = jp.narrative(ended).at(-1)!;
+  expect(text.zhCN).toContain('帰化申请的材料递进了法务局');
+  expect(text).not.toEqual(jp.characterOf('engineer').settlement);
+  expect(ended.log.find(({ kind }) => kind === 'ending')?.text).toEqual(text);
+});
+
 test('a lapsed period of stay ends the story', () => {
   let state = settle(jp.newGame('spouse', 5, 'en'));
   jp.status(state).expiresOn = '2026-04-30';

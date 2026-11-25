@@ -664,3 +664,4 @@
 | 763 | 任务 111：新增日本游戏 e2e。静态页横幅与标题、两位角色、日本首页入口；选角色进入小镇走到河边长椅完成活动；快进首个春季看到小结并进入第 1 年第 3 季；英文界面显示在留期限与日语属性；375 宽度用地点抽屉走到神社且无横向滚动。 | apps/e2e/tests/japan-game.spec.ts |
 | 764 | 任务 111：报告，含角色、地点、镇民、节日、活动清单、地图草图与其他国家照做的要点。 | docs/tasks/reports/111-jp-game.md |
 | 765 | 任务 111 审核修正（review111-1 问题 1）：工程师一般永住路线补 2026-10-01 新指南起算日 `newStatusStart`（技人国两版指南都计入），结局链接在结果页能还原同一草稿；网页单测按角色循环检查开局与出境一个月后的结局链接回读、草稿与各路径状态、日期、逐项检查与游戏内一致。 | packages/game/src/packs/jp/characters.ts、apps/web/test/japan-game.test.tsx |
+| 766 | 任务 111 审核修正（review111-1 问题 2）：递交永住或帰化申请的旗标改在 `beforeAction`（效果与结局之前）记下，结局文案按它选择，递交帰化申请后显示帰化文案；内容包单测覆盖帰化结局的叙事与结局日志。 | packages/game/src/packs/jp/{hooks,index}.ts、packages/game/test/jp-pack.test.ts |

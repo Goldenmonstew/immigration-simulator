@@ -51,7 +51,7 @@ export const jpGameContent: GameContentPack<
   calendar: hooks.calendar,
   actionAvailable: hooks.actionAvailable,
   actionDetails: hooks.actionDetails,
-  actionFlags: hooks.actionFlags,
+  beforeAction: hooks.beforeAction,
   afterAction: hooks.afterAction,
   afterActionAwards: hooks.afterActionAwards,
   quarterEffects: (played) => [
