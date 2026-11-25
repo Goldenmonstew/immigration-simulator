@@ -4,6 +4,7 @@ import {
   age,
   all,
   assemble,
+  beforeDeadline,
   birthday,
   check,
   heldRun,
@@ -863,7 +864,6 @@ export function assessPrChild(ctx: MyContext): MyPathway {
       `A social visit, student, professional visit or Residence Pass must have been held for more than ${v.prChild.value.passMonths} months and still be valid when applying.`,
     ),
   );
-  const earliest = latest(pass.earliest);
   return assemble(
     ctx,
     'my.pr.child',
@@ -871,10 +871,7 @@ export function assessPrChild(ctx: MyContext): MyPathway {
     [cat, ageCheck, pass.check, ...commonChecks(ctx, 'child')],
     {
       discretionary: true,
-      time: timing(
-        earliest && deadline && earliest >= deadline ? null : earliest,
-        date,
-      ),
+      time: timing(beforeDeadline(pass.earliest, deadline, date), date),
     },
   );
 }
@@ -1128,11 +1125,11 @@ export function assessPrRep(ctx: MyContext): MyPathway {
     0,
     depositCheck(ctx, [repGuide('§11.3–11.4 p25'), repGuide('Lampiran 9 p36')]),
   );
-  const deadline = r?.approvalLetterValidUntil;
+  const validUntil = r?.approvalLetterValidUntil;
   return assemble(ctx, 'my.pr.rep-family', L(...titles.rep), checks, {
     discretionary: true,
     time: timing(
-      earliest && deadline && earliest > deadline ? null : earliest,
+      beforeDeadline(earliest, validUntil && addDays(validUntil, 1), date),
       date,
     ),
   });
@@ -1193,7 +1190,8 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
           : ''),
     ),
   ];
-  if (tie === 'child-of-citizen' || tie === 'child-of-pr') {
+  const child = tie === 'child-of-citizen' || tie === 'child-of-pr';
+  if (child) {
     const years = age(req.dateOfBirth, date);
     checks.push(
       check(
@@ -1354,7 +1352,17 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
     L('Residence Pass（第 3–5 类）', 'Residence Pass (Categories 3–5)'),
     checks,
     {
-      time: timing(earliest, date),
+      // "Aged 18 and below": too late from the next birthday.
+      time: timing(
+        child
+          ? beforeDeadline(
+              earliest,
+              req.dateOfBirth && birthday(req.dateOfBirth, p.childMaxAge + 1),
+              date,
+            )
+          : earliest,
+        date,
+      ),
     },
   );
 }

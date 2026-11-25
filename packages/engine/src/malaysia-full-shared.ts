@@ -282,6 +282,23 @@ export function latest(...dates: (IsoDate | null | undefined)[]) {
   return (dates as IsoDate[]).reduce((a, b) => (a > b ? a : b));
 }
 
+/**
+ * `earliest` when it and the application date come before `deadline`, the
+ * first day that is too late; null when either does not; undefined when the
+ * deadline or the date is unknown.
+ */
+export function beforeDeadline(
+  earliest: IsoDate | null | undefined,
+  deadline: IsoDate | undefined,
+  date: IsoDate,
+) {
+  if (earliest === null) return null;
+  if (deadline === undefined) return undefined;
+  if (date >= deadline) return null;
+  if (earliest === undefined) return undefined;
+  return earliest < deadline ? earliest : null;
+}
+
 // ---------- Date spans: [start, end) ----------
 
 export interface Span {

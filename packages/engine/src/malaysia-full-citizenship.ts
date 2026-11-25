@@ -411,14 +411,18 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
     checks,
     {
       discretionary: true,
+      // Without a birth date the age, and so the date, is unknown.
       time: timing(
-        answered(r)
-          ? (first ?? (met === undefined ? undefined : null))
-          : undefined,
+        latest(
+          adult,
+          answered(r)
+            ? (first ?? (met === undefined ? undefined : null))
+            : undefined,
+        ),
         date,
       ),
       assumptions:
-        first && first > date
+        adult && first && first > date
           ? [
               L(
                 '最早日期假设保持永久居留，且除已录入的行程外不再出境。',

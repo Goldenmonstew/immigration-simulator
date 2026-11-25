@@ -1173,6 +1173,107 @@ describe('citizenship by registration', () => {
   });
 });
 
+describe('deadlines and missing birth dates in the timeline (review113-2 #4)', () => {
+  const timeOf = (id: MyPathwayId, req: MyFullRequest) => {
+    const p = path(id, req);
+    return [p.timeStatus, p.timeEarliestDate];
+  };
+
+  test('a citizen’s child past 18 or without a birth date', () => {
+    const child = {
+      simulationDate: day,
+      dateOfBirth: '2008-11-25',
+      family: { tie: 'child-of-citizen', childRelation: 'biological' },
+      passes: [{ kind: 'student', from: '2024-01-01', to: '2027-12-31' }],
+    } satisfies MyFullRequest;
+    // Under 18 until 2026-11-24; the pass passed 12 months on 2025-01-02.
+    expect(timeOf('my.pr.child', child)).toEqual(['MET', '2025-01-02']);
+    // Born 2008-11-24: 18 on the application date, so too late.
+    expect(
+      timeOf('my.pr.child', { ...child, dateOfBirth: '2008-11-24' }),
+    ).toEqual(['NOT_MET', undefined]);
+    expect(timeOf('my.pr.child', { ...child, dateOfBirth: undefined })).toEqual(
+      ['UNKNOWN', undefined],
+    );
+  });
+
+  test('a Residence Pass child is 18 or under until the 19th birthday', () => {
+    // SRC-508: "aged 18 and below"; Category 3 needs three years on a pass.
+    const child = (dateOfBirth: string | undefined, from = '2020-01-01') =>
+      ({
+        simulationDate: day,
+        dateOfBirth,
+        family: { tie: 'child-of-citizen' },
+        passes: [{ kind: 'ltsvp-other', from, to: '2029-12-31' }],
+      }) satisfies MyFullRequest;
+    expect(timeOf('my.rp.family', child('2007-11-25'))).toEqual([
+      'MET',
+      '2023-01-01',
+    ]);
+    // 19 on 2026-11-24, and 25 years old.
+    for (const dob of ['2007-11-24', '2001-01-01'])
+      expect(timeOf('my.rp.family', child(dob)), dob).toEqual([
+        'NOT_MET',
+        undefined,
+      ]);
+    // Born 2009-01-01, 19 on 2028-01-01: three years from 2024-12-31 end the
+    // day before, from 2025-01-01 on the birthday itself.
+    expect(timeOf('my.rp.family', child('2009-01-01', '2024-12-31'))).toEqual([
+      'FUTURE',
+      '2027-12-31',
+    ]);
+    expect(timeOf('my.rp.family', child('2009-01-01', '2025-01-01'))).toEqual([
+      'NOT_MET',
+      undefined,
+    ]);
+    expect(timeOf('my.rp.family', child(undefined))).toEqual([
+      'UNKNOWN',
+      undefined,
+    ]);
+  });
+
+  test('a REP approval letter that has expired or is not entered', () => {
+    // SRC-506 §5.4 p17: apply while the approval letter is valid.
+    const rep = (approvalLetterValidUntil?: string) =>
+      ({
+        simulationDate: day,
+        family: { marriedOn: '2020-01-01', separatedOrDivorced: false },
+        rep: {
+          relation: 'wife',
+          participantHasSatk: true,
+          approvalLetterValidUntil,
+        },
+      }) satisfies MyFullRequest;
+    expect(timeOf('my.pr.rep-family', rep(day))).toEqual(['MET', '2023-01-01']);
+    for (const until of ['2026-11-23', '2025-01-01'])
+      expect(timeOf('my.pr.rep-family', rep(until)), until).toEqual([
+        'NOT_MET',
+        undefined,
+      ]);
+    expect(timeOf('my.pr.rep-family', rep())).toEqual(['UNKNOWN', undefined]);
+  });
+
+  test('naturalisation without a birth date has no earliest date', () => {
+    const nat = (permanentResidentSince: string | null) =>
+      ({
+        simulationDate: day,
+        passes: [],
+        trips: [],
+        citizenship: { permanentResidentSince },
+      }) satisfies MyFullRequest;
+    for (const since of ['2016-11-24', '2020-01-01'])
+      expect(timeOf('my.cit.naturalisation', nat(since)), since).toEqual([
+        'UNKNOWN',
+        undefined,
+      ]);
+    // Residence can never be met without permanent residence or passes.
+    expect(timeOf('my.cit.naturalisation', nat(null))).toEqual([
+      'NOT_MET',
+      undefined,
+    ]);
+  });
+});
+
 describe('29 February birthdays (review113-1 #10)', () => {
   test('earliest dates and deadlines follow the age in full years', () => {
     // Born 2004-02-29: 20 on 2025-02-28, 21 on 2025-03-01.
