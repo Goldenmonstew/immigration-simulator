@@ -66,6 +66,7 @@ function run(draft: UsDraft, locale: Locale): UsFullResult {
 export const unitedStatesModule: CountryModule<UsDraft, UnitedStatesWhatIf> = {
   id: 'us',
   version: 1,
+  scenarioLinks: true,
   createDraft: createUnitedStatesDraft,
   activeAnswers: activeUnitedStatesAnswers,
   validateStep: validateUnitedStatesStep,

@@ -1,11 +1,13 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, test } from 'vitest';
+import { usePathname } from 'next/navigation';
+import { afterEach, expect, test, vi } from 'vitest';
 import UnitedStatesPage from '../app/united-states/page';
 import UnitedStatesPolicyPage from '../app/united-states/policy/page';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
 import Home from '../app/page';
 import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
 import { UnitedStatesWhatIfControls } from '../app/united-states/whatif/controls';
 import { UsFields } from '../app/united-states/simulate/fields';
 import { t } from '../i18n';
@@ -27,6 +29,11 @@ import { unitedStatesModule as us } from '../lib/united-states-module';
 import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
 import { gapRules } from '../lib/gap-summary';
+import { readPageResult } from '../lib/page-result';
+import { draftStorage } from '../lib/storage';
+
+vi.mock('next/navigation', () => ({ usePathname: vi.fn(() => '/') }));
+afterEach(() => vi.unstubAllGlobals());
 
 const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
   renderToStaticMarkup(
@@ -1040,4 +1047,35 @@ test('labels, hints, errors and row buttons are tied to their controls (review96
   expect(rows).toContain(
     `aria-label="${t('us.form.remove')} ${t('us.field.advertisementDates')} 2"`,
   );
+});
+
+test('opening a United States share link keeps the local draft and the skip link keeps the scenario (task 93 shared fix)', () => {
+  expect(us.scenarioLinks).toBe(true);
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local: UsDraft = {
+    ...us.createDraft(),
+    simulationDate: '2026-10-01',
+    pathway: 'US-SPOUSE',
+  };
+  draftStorage(us, local);
+  const page = readPageResult(us, 'zh-CN', encodeDraft(us, travelDraft()));
+  expect(page.shared).toBe(true);
+  expect(page.draft?.pathway).toBe('US-TRAVEL');
+  expect(JSON.parse(storage.get('us-immigration-draft-v1')!)).toEqual(local);
+  expect(draftStorage(us).draft).toEqual(local);
+  // "Skip to main content" moves focus without replacing the #s= fragment.
+  for (const sub of ['simulate', 'result', 'whatif']) {
+    vi.mocked(usePathname).mockReturnValue(`/united-states/${sub}`);
+    const html = render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    );
+    expect(html, sub).not.toContain('href="#main"');
+    expect(html, sub).toMatch(/<button type="button"[^>]*>跳到主要内容/);
+  }
 });
