@@ -541,7 +541,7 @@ test('checks are grouped as time, requirements, fees, post-grant steps and alter
 });
 
 test.each(['zh-CN', 'en'] as const)(
-  'result checks show their group, and an acquired permanent right lists the ordinary period as an alternative ground (%s)',
+  'result checks show their group, and an acquired permanent right keeps the two-part ordinary route out of the alternative grounds (%s)',
   (locale) => {
     const draft: SpainDraft = {
       ...es.createDraft(),
@@ -566,9 +566,11 @@ test.each(['zh-CN', 'en'] as const)(
       pathway.checks.find((check) => check.id === id)?.kind;
     expect(pathway.decidedBy).toContain('ES-U04-basis');
     expect(pathway.decidedBy).not.toContain('ES-U04');
-    expect([kind('ES-U04-basis'), kind('ES-U04'), kind('ES-U13')]).toEqual([
+    expect(pathway.decidedBy).not.toContain('ES-U05');
+    expect(['ES-U04-basis', 'ES-U04', 'ES-U05', 'ES-U13'].map(kind)).toEqual([
       'requirement',
-      'alternative',
+      'time',
+      'requirement',
       'afterApproval',
     ]);
     const html = render(

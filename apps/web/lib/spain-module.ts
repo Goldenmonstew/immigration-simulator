@@ -54,9 +54,9 @@ const time = [
   'ES-E04',
   'ES-U04',
 ];
-// Direct national grounds and early free-movement bases, plus the ordinary
-// free-movement period once another acquisition basis decides the pathway.
-const alternative = /^ES-(L0[3-9]|U0[4-9]|U1[01])$/;
+// Direct national grounds and early free-movement bases. The ordinary
+// free-movement route needs both ES-U04 and ES-U05, so they keep their own kind.
+const alternative = /^ES-(L0[3-9]|U0[6-9]|U1[01])$/;
 
 // Fees, steps after a grant, procedural notes and grounds of which one is
 // enough are shown apart; only requirements and time requirements are gaps.
