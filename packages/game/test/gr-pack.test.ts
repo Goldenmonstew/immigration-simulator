@@ -276,6 +276,9 @@ test('settling uses the Greek assessment and the policy card fees', () => {
   expect(gr.narrative(ended).at(-1)).toEqual(
     gr.characterOf('spouse').settlement,
   );
+  expect(ended.log.find(({ kind }) => kind === 'ending')?.text).toEqual(
+    gr.characterOf('spouse').settlement,
+  );
 });
 
 test('a naturalisation filing ends with the naturalisation story', () => {
@@ -304,5 +307,8 @@ test('a naturalisation filing ends with the naturalisation story', () => {
   expect(ended.stats.money).toBe(
     bureau.stats.money - values.naturalisationFees.value.initial,
   );
-  expect(gr.narrative(ended).at(-1)?.en).toContain('naturalisation');
+  const text = gr.narrative(ended).at(-1)!;
+  expect(text.en).toContain('naturalisation');
+  expect(text).not.toEqual(gr.characterOf('bluecard').settlement);
+  expect(ended.log.find(({ kind }) => kind === 'ending')?.text).toEqual(text);
 });

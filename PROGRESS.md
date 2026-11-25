@@ -764,3 +764,4 @@
 | 619.20 | 任务 96 审核修正（review96-2 建议 3）：境内调整的办理步骤（第 10 步）与人道路径第 9 步提示预计裁决日不能早于 I-485 收件日（引擎不采用更早的裁决日）；领馆案件不查；对比页把裁决日改到收件日前时，错误挂在裁决日旋钮。 | apps/web/{lib/united-states-draft.ts,lib/united-states-whatif.ts,i18n/countries/united-states.ts,test/united-states.test.tsx} |
 | 619.21 | 任务 96 审核修正（review96-2）：报告补“审核修正（review96-2）”一节，逐条对应问题 1–2、风险 1–2、建议 1–3，列出先失败后通过的回归测试、完整验收与 e2e 结果；按建议 1 更正第 1 节提交表（补 619.3）、第 3 节政策页标题一句与 review96-1 一节旋钮描述。 | docs/tasks/reports/96-us-pages.md |
 | 942 | 任务 108 跟进试点修正（review111-1 问题 3）：希腊 7 道菜的做法文案改用 `gr.game.prepare-<菜谱 ID>`，由外壳 `gameKey` 优先取用，不会被英国或别国同 ID 的 `game.prepare-*` 覆盖；网页单测按中英文检查希腊菜谱做法键带国家前缀、文案不等于不带前缀的同名键。 | apps/web/i18n/countries/greece-game.ts、apps/web/test/greece-game.test.tsx |
+| 943 | 任务 108 跟进试点修正（review111-1 问题 2）：核对希腊入籍/长期居留结局——递交的申请种类已在 `beforeAction`（效果与结局之前）记下，结局文案按它选。内容包单测补结局日志断言：配偶递交 Μ.3 的叙事与结局日志都是她的定居文案；蓝卡工程师递交入籍的叙事与结局日志都是入籍文案、不是定居文案（改回 `actionFlags` 写法时该用例失败）。 | packages/game/test/gr-pack.test.ts |
