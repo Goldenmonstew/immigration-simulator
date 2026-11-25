@@ -27,9 +27,10 @@ const amendment = v.constitutionAmendment2025;
 
 /**
  * Residence under the Second Schedule Part III s.20: permanent residence
- * counts; short absences and those for health or government service count;
- * time on a pass and long absences for study need the Minister's consent;
- * other long absences do not count.
+ * counts from the Permit Masuk issue date; short absences and those for
+ * health or government service count; time on a pass, and long absences for
+ * study or any other reason, count only with the Minister's consent,
+ * approval or prescription.
  */
 function residence(ctx: MyContext, until: IsoDate) {
   const { req } = ctx;
@@ -38,33 +39,40 @@ function residence(ctx: MyContext, until: IsoDate) {
   const longTrips = (req.trips ?? []).filter(
     (t) => t.returned >= addMonths(t.departed, v.shortAbsenceMonths.value),
   );
-  const away = (counted: string[]) =>
-    longTrips
-      .filter((t) => !counted.includes(t.reason ?? 'other'))
-      .map((t) => ({ start: t.departed, end: t.returned }));
   const counted = ['health', 'government-service'];
   return {
-    known: since !== undefined,
-    strict: minus(pr, away(counted)),
-    // The Minister may also consent to time on a pass and approve study abroad.
-    withConsent: minus(
-      union([
-        ...pr,
-        ...(req.passes ?? []).filter((p) => p.kind !== 'unhcr').map(passSpan),
-      ]),
-      away([...counted, 'education']),
+    prKnown: since !== undefined,
+    tripsKnown: req.trips !== undefined,
+    passesKnown: req.passes !== undefined,
+    strict: minus(
+      pr,
+      longTrips
+        .filter((t) => !counted.includes(t.reason ?? 'other'))
+        .map((t) => ({ start: t.departed, end: t.returned })),
     ),
+    // The most the Minister could count: time on a pass (s.20(2)(c)) and
+    // every long absence (s.20(1)(b), (e)).
+    withConsent: union([
+      ...pr,
+      ...(req.passes ?? []).filter((p) => p.kind !== 'unhcr').map(passSpan),
+    ]),
     longTrips: longTrips.length,
   };
 }
 
 type Residence = ReturnType<typeof residence>;
 
+// Unanswered absences can only shorten residence, and unanswered passes
+// could hold time the Minister may count.
 function verdict(r: Residence, ok: (spans: Span[]) => boolean) {
-  if (ok(r.strict)) return true;
-  if (!r.known || ok(r.withConsent)) return undefined;
+  if (ok(r.strict)) return r.tripsKnown ? true : undefined;
+  if (!r.prKnown || !r.passesKnown || ok(r.withConsent)) return undefined;
   return false;
 }
+
+const answered = (r: Residence) => r.prKnown && r.tripsKnown;
+const consentPending = (r: Residence) =>
+  r.prKnown && r.tripsKnown && r.passesKnown;
 
 function firstDay(
   from: IsoDate,
@@ -81,25 +89,37 @@ function residenceText(ctx: MyContext, r: Residence) {
   return (
     (since
       ? L(
-          `永久居留自 ${since} 起计算。`,
-          ` Permanent residence is counted from ${since}.`,
+          `永久居留自 Permit Masuk 签发日 ${since} 起计算，获批至签发之间仍属凭准证居留。`,
+          ` Permanent residence is counted from ${since}, the date the Permit Masuk was issued; between approval and issue the applicant is still on a pass.`,
         )
       : since === null
         ? L('所填未持永久居留。', ' No permanent residence is reported.')
         : '') +
     (r.longTrips
       ? L(
-          `有 ${r.longTrips} 次 ${v.shortAbsenceMonths.value} 个月或更长的出境，健康或公务原因计入，教育原因须部长批准，其他原因不计入。`,
-          ` ${r.longTrips} absence(s) of ${v.shortAbsenceMonths.value} months or more: those for health or government service count, study needs the Minister’s approval, and others do not count.`,
+          `有 ${r.longTrips} 次 ${v.shortAbsenceMonths.value} 个月或更长的出境：健康或公务原因计入，教育或其他原因须部长批准或指定才计入。`,
+          ` ${r.longTrips} absence(s) of ${v.shortAbsenceMonths.value} months or more: those for health or government service count; study or any other reason counts only if the Minister approves or prescribes it.`,
         )
-      : '')
+      : '') +
+    (r.tripsKnown
+      ? ''
+      : L(
+          '未填出境记录，无法确认居住是否连续。',
+          ' No absences were entered, so continuous residence cannot be confirmed.',
+        )) +
+    (r.passesKnown
+      ? ''
+      : L(
+          '未填准证记录，无法判断有无可经部长同意计入的准证期间。',
+          ' No passes were entered, so time on a pass that the Minister could count is unknown.',
+        ))
   );
 }
 
 const residenceRules = (ctx: MyContext) =>
   ctx.L(
-    `少于 ${v.shortAbsenceMonths.value} 个月的出境、因健康或为联邦或州服务的出境计入；凭准证居留的期间、为教育的长期出境须部长同意或批准才计入，因此按永久居留期间计算；其他原因的长期出境不计入，部长另行指定的除外。`,
-    ` Absences under ${v.shortAbsenceMonths.value} months and those for health or federal or state service count. Time on a pass and longer absences for education count only with the Minister’s consent or approval, so permanent residence is used. Other long absences do not count unless the Minister prescribes the reason.`,
+    `少于 ${v.shortAbsenceMonths.value} 个月的出境、因健康或为联邦或州服务的出境计入；凭准证居留的期间须部长同意，为教育或其他原因的长期出境须部长批准或指定，才计入。因此按永久居留期间计算，只有计入这些期间才满足时待确认。`,
+    ` Absences under ${v.shortAbsenceMonths.value} months and those for health or federal or state service count. Time on a pass counts only with the Minister’s consent, and longer absences for education or any other reason only if the Minister approves or prescribes them, so permanent residence is used and the result needs confirmation when only those periods would meet it.`,
   );
 
 function oath(ctx: MyContext): MyCheck {
@@ -173,7 +193,7 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
     );
   const met = test(date);
   const start = latest(date, adult ?? date) as IsoDate;
-  const first = r.known
+  const first = answered(r)
     ? firstDay(start, addYears(date, n.windowYears), test)
     : undefined;
   const residenceCheck = check(
@@ -191,7 +211,7 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
     ) +
       residenceRules(ctx) +
       residenceText(ctx, r),
-    r.known ? ['PD-413', 'PD-429'] : [],
+    consentPending(r) ? ['PD-413', 'PD-429'] : [],
   );
 
   const intent = c?.intendsToResidePermanently;
@@ -368,7 +388,9 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
     {
       discretionary: true,
       time: timing(
-        r.known ? (first ?? (met === undefined ? undefined : null)) : undefined,
+        answered(r)
+          ? (first ?? (met === undefined ? undefined : null))
+          : undefined,
         date,
       ),
       assumptions:
@@ -407,7 +429,7 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
   const test = (d: IsoDate) =>
     verdict(r, (s) => fullyCovered(s, addYears(d, -w.residenceYears), d));
   const met = test(date);
-  const first = r.known
+  const first = answered(r)
     ? firstDay(date, addYears(date, w.residenceYears), test)
     : undefined;
   const residenceCheck = check(
@@ -425,7 +447,7 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
     ) +
       residenceRules(ctx) +
       residenceText(ctx, r),
-    r.known ? ['PD-413', 'PD-418', 'PD-429'] : [],
+    consentPending(r) ? ['PD-413', 'PD-418', 'PD-429'] : [],
   );
   const intent = req.citizenship?.intendsToResidePermanently;
   const checks: MyCheck[] = [
@@ -519,7 +541,9 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
     checks,
     {
       time: timing(
-        r.known ? (first ?? (met === undefined ? undefined : null)) : undefined,
+        answered(r)
+          ? (first ?? (met === undefined ? undefined : null))
+          : undefined,
         date,
       ),
       assumptions:

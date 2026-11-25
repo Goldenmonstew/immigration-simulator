@@ -587,7 +587,8 @@ describe('citizenship by naturalisation', () => {
       trips: [{ departed: '2016-01-01', returned }],
     });
     expect(residence(away('2018-01-01')).status).toBe('MET');
-    expect(residence(away('2018-01-02')).status).toBe('NOT_MET');
+    // One day more is met only if the Minister prescribes the reason (s.20(1)(e)).
+    expect(residence(away('2018-01-02')).status).toBe('UNKNOWN');
     // One day short until the absence begins to leave the 12-year window.
     expect(
       path('my.cit.naturalisation', away('2018-01-02')).timeEarliestDate,
@@ -600,8 +601,9 @@ describe('citizenship by naturalisation', () => {
       trips: [{ departed, returned, reason }],
     });
     expect(residence(trip('2025-01-01', '2025-06-30')).status).toBe('MET');
-    // Exactly six months is not "less than six months" and falls in the last 12 months.
-    expect(residence(trip('2026-01-01', '2026-07-01')).status).toBe('NOT_MET');
+    // Exactly six months is not "less than six months" and falls in the last
+    // 12 months: without a counted reason it needs the Minister.
+    expect(residence(trip('2026-01-01', '2026-07-01')).status).toBe('UNKNOWN');
     expect(residence(trip('2026-01-01', '2026-07-01', 'health')).status).toBe(
       'MET',
     );
@@ -625,6 +627,70 @@ describe('citizenship by naturalisation', () => {
       'UNKNOWN',
       undefined,
     ]);
+  });
+
+  test('unanswered absences or passes are not confirmed as none (review113-1 #2, #3)', () => {
+    // #2: residence is only met once absences are answered, even as none.
+    const noTrips = { ...nat, trips: undefined };
+    const open = residence(noTrips);
+    expect([open.status, open.pendingDetails]).toEqual(['UNKNOWN', undefined]);
+    expect(open.explanation).toContain('未填出境记录');
+    expect(path('my.cit.naturalisation', noTrips).timeStatus).toBe('UNKNOWN');
+    // Absences can only shorten residence: too little without any is still unmet.
+    expect(
+      residence({
+        ...noTrips,
+        citizenship: {
+          ...nat.citizenship,
+          permanentResidentSince: '2020-01-01',
+        },
+      }).status,
+    ).toBe('NOT_MET');
+    // #3: without permanent residence, unanswered passes may hold time the
+    // Minister can count (s.20(2)(c)); only confirmed "no passes" fails.
+    const noPr = {
+      ...nat,
+      citizenship: { ...nat.citizenship, permanentResidentSince: null },
+    };
+    expect(residence({ ...noPr, passes: undefined }).status).toBe('UNKNOWN');
+    expect(
+      path('my.cit.naturalisation', { ...noPr, passes: undefined }).status,
+    ).toBe('UNKNOWN');
+    expect(residence(noPr).status).toBe('NOT_MET');
+  });
+
+  test('long absences for any other reason need the Minister, as for study (review113-1 #5)', () => {
+    // s.20(1)(e): absences for any other reason the Minister prescribes count.
+    const away = (reason?: 'other' | 'education') =>
+      residence({
+        ...nat,
+        citizenship: {
+          ...nat.citizenship,
+          permanentResidentSince: '2016-01-01',
+        },
+        trips: [{ departed: '2020-01-01', returned: '2021-01-01', reason }],
+      });
+    for (const reason of ['other', 'education', undefined] as const)
+      expect([away(reason).status, away(reason).pendingDetails]).toEqual([
+        'UNKNOWN',
+        ['PD-413', 'PD-429'],
+      ]);
+    expect(away('other').explanation).toContain(
+      '教育或其他原因须部长批准或指定',
+    );
+    // Counting the absence does not help when permanent residence is too short.
+    expect(
+      residence({
+        ...nat,
+        citizenship: {
+          ...nat.citizenship,
+          permanentResidentSince: '2020-01-01',
+        },
+        trips: [
+          { departed: '2021-01-01', returned: '2022-01-01', reason: 'other' },
+        ],
+      }).status,
+    ).toBe('NOT_MET');
   });
 
   test('age 21, intention, referees and renunciation', () => {
@@ -727,13 +793,43 @@ describe('citizenship by registration', () => {
     ).toBe(300);
   });
 
-  test('a long absence breaks the two years; a husband must naturalise', () => {
+  test('unanswered absences leave the two years open (review113-1 #2)', () => {
+    const c = cond('my.cit.wife-registration', 'my.cit.residence', {
+      ...reg,
+      trips: undefined,
+      citizenship: { ...reg.citizenship, permanentResidentSince: '2020-01-01' },
+    });
+    expect(c.status).toBe('UNKNOWN');
+  });
+
+  test('permanent residence runs from the Permit Masuk issue date (review113-1 #4)', () => {
+    // Approved 2024-11-24, issued 2025-05-01: until then she was on the
+    // spouse pass, which counts only with the Minister's consent.
+    const issued = {
+      ...reg,
+      passes: [{ kind: 'ltsvp-spouse', from: '2022-03-01', to: '2025-04-30' }],
+      citizenship: { ...reg.citizenship, permanentResidentSince: '2025-05-01' },
+    } satisfies MyFullRequest;
+    const c = cond('my.cit.wife-registration', 'my.cit.residence', issued);
+    expect([c.status, c.pendingDetails]).toEqual([
+      'UNKNOWN',
+      ['PD-413', 'PD-418', 'PD-429'],
+    ]);
+    expect(c.explanation).toContain('Permit Masuk 签发日 2025-05-01');
+    const p = path('my.cit.wife-registration', issued);
+    expect([p.timeStatus, p.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2027-05-01',
+    ]);
+  });
+
+  test('a long absence needs the Minister; a husband must naturalise', () => {
     expect(
       cond('my.cit.wife-registration', 'my.cit.residence', {
         ...reg,
         trips: [{ departed: '2025-03-01', returned: '2025-09-01' }],
       }).status,
-    ).toBe('NOT_MET');
+    ).toBe('UNKNOWN');
     expect(
       path('my.cit.wife-registration', {
         ...reg,
@@ -1183,7 +1279,7 @@ describe('direct answers', () => {
       }).status;
     expect([study('education'), study('other')]).toEqual([
       'UNKNOWN',
-      'NOT_MET',
+      'UNKNOWN',
     ]);
   });
 });

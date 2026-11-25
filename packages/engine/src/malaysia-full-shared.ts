@@ -120,7 +120,11 @@ export interface MyFullRequest {
     referees?: number;
   };
   citizenship?: {
-    /** Permit Masuk approval date; null when no permanent residence is held. */
+    /**
+     * Date the Permit Masuk was issued, as on the MyPR card or the permit;
+     * null when no permanent residence is held. Approval alone does not
+     * count: the applicant stays on a pass until the permit is issued.
+     */
     permanentResidentSince?: IsoDate | null;
     intendsToResidePermanently?: 'yes' | 'no' | 'undecided';
     /** Referees meeting every JPN condition. */
