@@ -6,7 +6,7 @@ import {
   type Locale,
 } from '@uk-immigration/engine';
 import { canadaFull2026_11 } from '@uk-immigration/policy-data';
-import { addDays, addMonths } from '../../calendar';
+import { addDays, addMonths, firstWeekday } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
 import type { GameState, IsoDate, Progress } from '../../model';
 import { caBalance as b } from './balance';
@@ -217,6 +217,25 @@ export function offerLanguageLevel(teer: number) {
     : aip.otherLanguage;
 }
 
+/** A quarter's one workday, when offices open (as the shared calendar plays it). */
+const workdayOf = (quarter: IsoDate) => firstWeekday(addDays(quarter, 7), 2);
+/**
+ * On a work permit, the start of the last coming quarter whose workday is
+ * still inside the permit: the last day to file the Atlantic application.
+ */
+function lastFilingQuarter(state: CaState): IsoDate | undefined {
+  const { document } = state.timeline;
+  if (document.kind !== 'work-permit') return;
+  let last: IsoDate | undefined;
+  for (
+    let quarter = addMonths(state.date, b.monthsPerQuarter);
+    workdayOf(quarter) <= document.expires;
+    quarter = addMonths(quarter, b.monthsPerQuarter)
+  )
+    last = quarter;
+  return last;
+}
+
 /** Months to the end of the status document, rounded down. */
 function visaMonthsLeft(state: CaState): number {
   const to = state.timeline.document.expires;
@@ -286,8 +305,15 @@ export const caRules: EvaluationAdapter<
   progress,
   route: (state) => state.timeline.goals[0],
   visaMonthsLeft,
-  // A trip must end before the PR card or work permit does.
-  canTravel: (state, through) => through <= state.timeline.document.expires,
+  // A trip must end before the PR card or work permit does. It lasts until
+  // the first quarter that starts after it ends, so on a work permit it must
+  // also be over by the quarter holding the last workday to file.
+  canTravel(state, through) {
+    const last = lastFilingQuarter(state);
+    return (
+      through <= state.timeline.document.expires && (!last || through <= last)
+    );
+  },
   recordAbsence(state, trip) {
     state.timeline.trips = [
       ...(state.timeline.trips ?? []),

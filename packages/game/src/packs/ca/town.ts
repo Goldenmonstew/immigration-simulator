@@ -381,8 +381,8 @@ export const caNotices: { id: string; text: Text; season?: Quarter }[] = [
 ];
 
 const travelNote = t(
-  `出境的日子不算入籍的实际居住天数（SRC-074 s.5(1)(c)(i)）；工作许可或 PR 卡要在回来那天仍然有效。`,
-  `Days abroad do not count as physical presence for citizenship (SRC-074 s.5(1)(c)(i)). Your work permit or PR card must still be valid on the day you return.`,
+  `出境的日子不算入籍的实际居住天数（SRC-074 s.5(1)(c)(i)）；工作许可或 PR 卡要在回来那天仍然有效。行程会持续到回来之后的第一个季度开头：持工作许可时，赶不上许可到期前最后一个可以递交大西洋项目申请的工作日的行程不提供；整个春季在外会错过当年的免费报税诊所。`,
+  `Days abroad do not count as physical presence for citizenship (SRC-074 s.5(1)(c)(i)). Your work permit or PR card must still be valid on the day you return. A trip lasts until the first quarter that starts after you are back: on a work permit, trips that would miss the last workday to file the Atlantic application before the permit ends are not offered, and a spring spent away misses that year’s free tax clinic.`,
 );
 
 /** The shared furniture, as the Maple Harbour shop sells it. */

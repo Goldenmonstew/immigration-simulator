@@ -325,6 +325,27 @@ test('day-count limits are checked on the day itself', () => {
   expect(work('2026-12-08')).toContain('endorsement-request');
 });
 
+test('a trip on a work permit is back for the last workday to file', () => {
+  // The permit runs to 2028-06-30; the last workday inside it is 2028-06-13,
+  // in the quarter that starts on 2028-06-01. A trip lasts until the first
+  // quarter that starts after it ends.
+  const graduate = settle(ca.newGame('graduate', 5, 'en'));
+  const trips = (date: string, day: string) =>
+    ids(visit(jump(graduate, date, day), 'station', 600), 'station').filter(
+      (id) => id.startsWith('travel-'),
+    );
+  expect(trips('2028-03-01', '2028-03-14')).toEqual(['travel-1']);
+  expect(trips('2027-12-01', '2027-12-14')).toEqual(['travel-1', 'travel-3']);
+  // A PR card's end does not close any filing.
+  const citizen = settle(ca.newGame('citizen', 5, 'en'));
+  expect(
+    ids(
+      visit(jump(citizen, '2030-03-01', '2030-03-12'), 'station', 600),
+      'station',
+    ),
+  ).toEqual(expect.arrayContaining(['travel-1', 'travel-3']));
+});
+
 test('the diary casts a line off the fishing wharf, not at a pond', () => {
   const wharf = visit(ca.newGame('citizen', 5, 'en'), 'pond', 600);
   const cast = ca.fish(wharf, false);
