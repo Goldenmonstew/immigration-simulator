@@ -91,7 +91,7 @@ export const usGameEn: Record<keyof typeof usGameZh, string> = {
     'You caught it off the lakefront pier on a {weather} day.',
   'us.game.fishJunk': 'A little lake surprise, brought safely ashore.',
   'us.game.openTimeline': 'Open this timeline in the U.S. simulator',
-  'us.game.settlementSource.brighterHome': 'A top-floor lake-view flat',
+  'us.game.settlementSource.brighterHome': 'A top-floor lake-view apartment',
   'us.game.settlementSource.walkingClub': 'Lakefront Trail running club',
   'us.game.noSeeds': 'No seeds for this season. Try the corner store.',
   'us.game.kitchenNoIngredients':

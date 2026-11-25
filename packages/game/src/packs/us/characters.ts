@@ -196,7 +196,7 @@ const engineerEvents: UsEvent[] = [
     title: t('釜山来的视频电话', 'A video call from Busan'),
     text: t(
       '妈妈举着一碗刚做好的海带汤：“生日也不回来，那边有没有人给你煮汤？”',
-      'Mum holds up a fresh bowl of seaweed soup: “No birthday visit again — is anyone making you soup over there?”',
+      'Mom holds up a fresh bowl of seaweed soup: “No birthday visit again — is anyone making you soup over there?”',
     ),
     weight: 2,
     choices: [
@@ -209,7 +209,7 @@ const engineerEvents: UsEvent[] = [
         id: 'short',
         label: t(
           '聊十分钟，约好周末再打',
-          'Chat ten minutes, call again at the weekend',
+          'Chat ten minutes, call again on the weekend',
         ),
         effects: [{ type: 'stat', key: 'mood', delta: 3 }],
       },
@@ -287,7 +287,7 @@ const engineerEvents: UsEvent[] = [
         id: 'copy',
         label: t(
           '拍下清单，周末整理',
-          'Photograph it and sort it out at the weekend',
+          'Photograph it and sort it out on the weekend',
         ),
         effects: [
           { type: 'stat', key: 'mood', delta: 3 },
@@ -395,7 +395,7 @@ const spouseEvents: UsEvent[] = [
     title: t('成都来的拜年电话', 'New Year greetings from Chengdu'),
     text: t(
       '妈妈在视频里端着一盘香肠腊肉：“你们那边过年吗？马库斯会包饺子不？”',
-      'Mum holds a plate of cured sausage up to the camera. “Do you celebrate over there? Can Marcus fold dumplings?”',
+      'Mom holds a plate of cured sausage up to the camera. “Do you celebrate over there? Can Marcus fold dumplings?”',
     ),
     weight: 3,
     once: true,
@@ -533,7 +533,7 @@ const engineer: UsCharacter = {
   ),
   settlement: t(
     '你举起右手，跟着法官一句一句念完效忠誓词，小星条旗在手里沙沙响。走出联邦大楼时，高架列车正从头顶驶过，你给釜山的妈妈发了一张自拍。',
-    'You raise your right hand and repeat the oath line by line, a little flag rustling in your hand. Outside the Federal Building an L train rolls overhead, and you send Mum in Busan a selfie.',
+    'You raise your right hand and repeat the oath line by line, a little flag rustling in your hand. Outside the Federal Building an L train rolls overhead, and you send Mom in Busan a selfie.',
   ),
   events: engineerEvents,
 };

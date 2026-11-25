@@ -101,6 +101,18 @@ test('policy periods in the story come from policy-data, and class waits for eve
   expect(at(usBalance.classFromMinute)).toContain('class');
 });
 
+test('the English text uses American words', () => {
+  const english = JSON.stringify([
+    us.characters.map(({ intro }) => intro.en),
+    us.characters.map(({ id }) => us.characterOf(id)),
+    us.places,
+    us.usGameContent.actions,
+    us.usGameContent.events,
+    us.usGameContent.systemEvents,
+  ]);
+  expect(english).not.toMatch(/\bMum\b|top-floor flat|at the weekend/);
+});
+
 test('the US rules engine assesses each character’s green card and citizenship pathways', () => {
   const engineer = us.newGame('engineer', 5, 'zh-CN');
   expect(engineer.result.columns[0].id).toBe('us.current-law-2026-11');

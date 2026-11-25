@@ -339,6 +339,12 @@ test('a mailed I-751 shows as pending, without reminders or warnings', () => {
   }
 });
 
+test('the US English game text says apartment, not flat', () => {
+  expect(t('us.game.settlementSource.brighterHome', 'en')).not.toMatch(
+    /\bflat\b/,
+  );
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'the green card reminder names no card length in %s',
   (locale) => {

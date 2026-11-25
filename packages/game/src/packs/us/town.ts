@@ -432,7 +432,7 @@ export const usActions: UsActivity[] = [
     place: 'home',
     label: t(
       `搬到能看见湖的顶层公寓（押金 ${usd(b.housingDeposit)}、搬家 ${usd(b.housingMoveCost)}，每季加租 ${usd(b.housingRent)}；心情、健康持续改善；余额低时退租返押金）`,
-      `Move to a top-floor flat with a lake view (${usd(b.housingDeposit)} deposit, ${usd(b.housingMoveCost)} moving, +${usd(b.housingRent)}/quarter; ongoing mood and health; a low balance ends the lease and returns the deposit)`,
+      `Move to a top-floor apartment with a lake view (${usd(b.housingDeposit)} deposit, ${usd(b.housingMoveCost)} moving, +${usd(b.housingRent)}/quarter; ongoing mood and health; a low balance ends the lease and returns the deposit)`,
     ),
     note: t(
       `搬家后 ${addressDays} 天内向 USCIS 申报新地址（AR-11，${cite(values.address)}），搬完当天就能在家在线提交。`,
@@ -449,7 +449,7 @@ export const usActions: UsActivity[] = [
     place: 'home',
     label: t(
       '退租顶层公寓，退回押金',
-      'Leave the top-floor flat and recover the deposit',
+      'Leave the top-floor apartment and recover the deposit',
     ),
     minutes: b.minutes.paperwork,
     when: [{ flag: 'brighter-home' }],

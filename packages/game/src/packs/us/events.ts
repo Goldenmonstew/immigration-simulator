@@ -180,7 +180,7 @@ export const usEvents: UsEvent[] = [
         id: 'file',
         label: t(
           '周末在线报完，存好回执',
-          'File online at the weekend and keep the confirmation',
+          'File online on the weekend and keep the confirmation',
         ),
         effects: [
           { type: 'money', delta: -40 },
