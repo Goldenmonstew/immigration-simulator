@@ -253,6 +253,8 @@ test.each(['cook', 'exporter'])(
     ).result!.columns[0].pathways)
       expect(pathway.status).toBe('NOT_MET');
   },
+  // Plays and assesses many quarters for each character.
+  60_000,
 );
 
 test.each(['zh-CN', 'en'] as const)(
