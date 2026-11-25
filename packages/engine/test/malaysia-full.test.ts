@@ -2289,6 +2289,44 @@ describe('review113-4', () => {
     for (const [id, req] of others)
       expect(time(id, req), id).toEqual(['FUTURE', '2027-06-01', 0]);
   });
+
+  test('without permanent residence unanswered absences do not matter (suggestion 1)', () => {
+    const noPr = {
+      simulationDate: day,
+      dateOfBirth: '1980-01-01',
+      family: {
+        tie: 'wife-of-citizen',
+        marriageRegistration: 'malaysia',
+        separatedOrDivorced: false,
+      },
+      citizenship: { permanentResidentSince: null },
+    } satisfies MyFullRequest;
+    const wifeReg = cond('my.cit.wife-registration', 'my.cit.residence', {
+      ...noPr,
+      passes: [{ kind: 'ltsvp-spouse', from: '2021-06-01', to: '2030-05-31' }],
+    });
+    expect([wifeReg.status, wifeReg.pendingDetails]).toEqual([
+      'UNKNOWN',
+      ['PD-413', 'PD-418', 'PD-429'],
+    ]);
+    expect(wifeReg.explanation).not.toContain('未填出境记录');
+    const nat = cond('my.cit.naturalisation', 'my.cit.residence', {
+      ...noPr,
+      passes: [{ kind: 'employment', from: '2012-01-01', to: '2030-12-31' }],
+    });
+    expect([nat.status, nat.pendingDetails]).toEqual([
+      'UNKNOWN',
+      ['PD-413', 'PD-429'],
+    ]);
+    expect(nat.explanation).not.toContain('未填出境记录');
+    // With permanent residence the absences are still needed.
+    const pr = cond('my.cit.wife-registration', 'my.cit.residence', {
+      ...noPr,
+      citizenship: { permanentResidentSince: '2020-01-01' },
+    });
+    expect([pr.status, pr.pendingDetails]).toEqual(['UNKNOWN', undefined]);
+    expect(pr.explanation).toContain('未填出境记录');
+  });
 });
 
 describe('29 February birthdays (review113-1 #10)', () => {

@@ -77,8 +77,7 @@ function verdict(r: Residence, ok: (spans: Span[]) => boolean) {
 // Without permanent residence nothing counts unless the Minister consents, so
 // unanswered absences cannot change the result.
 const answered = (r: Residence) => r.prKnown && (r.tripsKnown || r.noPr);
-const consentPending = (r: Residence) =>
-  r.prKnown && r.tripsKnown && r.passesKnown;
+const consentPending = (r: Residence) => answered(r) && r.passesKnown;
 
 /**
  * The last day to search: `years` after the latest of `from`, the permanent
@@ -153,7 +152,7 @@ function residenceText(
           ` ${r.longTrips} absence(s) of ${v.shortAbsenceMonths.value} months or more: those for health or government service count; study or any other reason counts only if the Minister approves or prescribes it.`,
         )
       : '') +
-    (r.tripsKnown
+    (r.tripsKnown || r.noPr
       ? ''
       : L(
           '未填出境记录，无法确认居住是否连续。',
