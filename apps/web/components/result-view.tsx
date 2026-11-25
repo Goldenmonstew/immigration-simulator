@@ -256,7 +256,7 @@ function PathwayAssessment<D extends CountryDraft, K>({
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const basis = basisRule(assessment);
-  const primaryDate = pathwayDate(assessment);
+  const primaryDate = pathwayDate(assessment, country.earliestLabel);
   const shorter = shorterPathwaysNotUsed(assessment);
   const eligible =
     assessment.status === 'LIKELY_ELIGIBLE' || assessment.status === 'MET';

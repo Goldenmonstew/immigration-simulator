@@ -283,6 +283,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'country.check.requirement': 'Requirement',
   'country.check.factor': 'Assessment factor',
   'country.check.information': 'Procedural information',
+  'country.check.time': 'Time requirement',
+  'country.check.budget': 'Fee budget',
+  'country.check.afterApproval': 'After approval',
+  'country.check.alternative': 'Alternative ground (one is enough)',
   'country.fee': 'Fee',
   'country.reducedFee': 'Possible reduced fee',
   'policyPage.title': 'Policy basis',
@@ -327,10 +331,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.uk.paths': 'Settlement (ILR) · Current law vs reforms',
   'hub.uk.desc':
     'Assess settlement across Skilled Worker, BN(O), Global Talent, family, protection and Long Residence routes, comparing current Immigration Rules with announced reforms.',
-  'hub.au.code': 'AU',
-  'hub.au.paths': 'Permanent residence · RRV · Citizenship',
-  'hub.au.desc':
-    'Check visa or residence periods for subclass 191 and the Hong Kong streams (189/191), visa and full-time sponsored employment periods and age at application for 186 TRT, and the wait for the permanent partner visa (801/100). Check days in Australia for a Resident Return visa and residence periods for citizenship.',
   'hub.nz.code': 'NZ',
   'hub.nz.paths': 'Permanent Resident Visa · Travel conditions · Citizenship',
   'hub.nz.desc':
@@ -339,10 +339,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.ca.paths': 'PR residency obligation · Citizenship',
   'hub.ca.desc':
     'Check the day count for keeping permanent resident status and the days of physical presence in Canada for citizenship. The citizenship calculation includes eligible days spent in Canada before permanent residence.',
-  'hub.us.code': 'US',
-  'hub.us.paths': 'Naturalization · Removing conditions · Trips abroad',
-  'hub.us.desc':
-    'Check residence and physical presence for general naturalization and naturalization as the spouse of a U.S. citizen, filing windows for removing green card conditions (I-751/I-829), and how time abroad affects your ability to return on your green card.',
   'hub.es.code': 'ES',
   'hub.es.paths': 'Long-term residence · Citizenship by residence',
   'hub.es.desc':
@@ -356,10 +352,6 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Naturalisation · Permanent residence · EU long-term · Golden visa',
   'hub.pt.desc':
     'Check residence periods for naturalisation under the 2026 nationality law, permanent residence and EU long-term resident status, plus minimum stays and renewal timing for a golden visa (ARI).',
-  'hub.de.code': 'DE',
-  'hub.de.paths': 'Settlement permit · EU long-term · Naturalisation',
-  'hub.de.desc':
-    'Check residence periods for a settlement permit (including skilled worker and EU Blue Card tracks), EU long-term residence and naturalisation, and pension contribution periods where applicable. See when a long trip ends your residence permit.',
   'site.skip': 'Skip to main content',
   'site.home': 'Home',
   'site.footer':

@@ -33,7 +33,7 @@ export type JpColumn = 'pr' | 'nat';
 export type JpOutcome = JpFullPathway['status'] | 'FUTURE';
 
 export type JpEffect =
-  /** Record the longest period for the current status, from its expiry. */
+  /** Record a renewal for the period the guideline treats as longest for now. */
   | { type: 'renewal' }
   /** The in-game language assessment, recorded as confirmed evidence. */
   | { type: 'japanese' }
@@ -96,6 +96,32 @@ function progress(state: JpState): Progress<JpColumn, JpOutcome> {
   return { pr: entry('pr'), nat: entry('nat') };
 }
 
+/**
+ * The timeline as it stood on the assessment date. Address changes and notices
+ * carry the day they happen, which is after the quarter's first day, so they
+ * join the assessment in the next quarter, as trips do on return.
+ */
+export function timelineOn(timeline: JpTimeline, date: IsoDate): JpTimeline {
+  const evidence = timeline.permanentResidence.evidence;
+  if (!evidence.addressNotices) return timeline;
+  return {
+    ...timeline,
+    permanentResidence: {
+      ...timeline.permanentResidence,
+      evidence: {
+        ...evidence,
+        addressNotices: evidence.addressNotices
+          .filter((notice) => notice.eventOn <= date)
+          .map((notice) =>
+            notice.notifiedOn && notice.notifiedOn > date
+              ? { eventOn: notice.eventOn }
+              : notice,
+          ),
+      },
+    },
+  };
+}
+
 export const jpRules: EvaluationAdapter<
   JpTimeline,
   JpFullResult,
@@ -106,7 +132,7 @@ export const jpRules: EvaluationAdapter<
 > = {
   evaluate: ({ date, timeline, locale }) =>
     evaluateJapanFull({
-      ...timeline,
+      ...timelineOn(timeline, date),
       simulationDate: date,
       residenceEvidenceOn: evidenceDay(date),
       locale,
@@ -147,19 +173,27 @@ export const jpRules: EvaluationAdapter<
     );
     return true;
   },
-  // The game files renewals before expiry; a lapse ends this story.
-  expired: (state) =>
-    !!status(state).expiresOn && status(state).expiresOn! < state.date,
+  // The game files renewals before expiry; a lapse ends this story. The
+  // ending's assessment must show the lapse: no valid status, no pending
+  // renewal and no lawful domicile from here on.
+  expired(state) {
+    const current = status(state);
+    if (!current.expiresOn || current.expiresOn >= state.date) return false;
+    current.valid = false;
+    current.timelyRenewalPending = false;
+    state.timeline.naturalisation.evidence.lawfulDomicile = false;
+    return true;
+  },
   applyEffect(state, effect, { setFlags }) {
     const pr = state.timeline.permanentResidence.evidence;
     const nat = state.timeline.naturalisation.evidence;
     switch (effect.type) {
       case 'renewal': {
+        // The office decides the new period; the game records the period the
+        // guideline treats as longest until the transition (SRC-114 第2の5(6)
+        // 注4) and leaves the longest-period check to the engine.
         const current = status(state);
-        const months =
-          values.longestPeriod.value.maximumMonths[
-            current.kind as keyof typeof values.longestPeriod.value.maximumMonths
-          ];
+        const months = values.longestPeriod.value.deemedMonths;
         current.grantedPeriodMonths = months;
         current.expiresOn = addMonths(current.expiresOn!, months);
         setFlags(state, ['visa-renewed', 'quarter-visa-renewed']);
@@ -183,16 +217,19 @@ export const jpRules: EvaluationAdapter<
         nat.requiredInterviewAndAssessmentComplete = true;
         setFlags(state, ['nat-interviewed']);
         return true;
+      // Notices carry the day they happen, as trips do.
       case 'moved':
         pr.addressNotices = [
           ...(pr.addressNotices ?? []),
-          { eventOn: state.date },
+          { eventOn: state.day.date },
         ];
         setFlags(state, ['address-notice-due']);
         return true;
       case 'addressNotice':
         pr.addressNotices = (pr.addressNotices ?? []).map((notice) =>
-          notice.notifiedOn ? notice : { ...notice, notifiedOn: state.date },
+          notice.notifiedOn
+            ? notice
+            : { ...notice, notifiedOn: state.day.date },
         );
         state.flags = state.flags.filter(
           (flag) => flag !== 'address-notice-due',

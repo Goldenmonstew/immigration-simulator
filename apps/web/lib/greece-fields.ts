@@ -13,6 +13,9 @@ export type GreeceHint = Suffix<'hint'>;
 export type GreeceSection = Suffix<'section'>;
 
 type Answers = Record<string, unknown>;
+// A sibling answer confirming that a list of time abroad is complete.
+export type ListComplete =
+  'tripsComplete' | 'otherMemberTripsComplete' | 'periodsComplete';
 export type GreeceField = {
   name: string;
   label: GreeceLabel;
@@ -30,7 +33,8 @@ export type GreeceField = {
       // Option values shared by several questions can read differently here.
       labels?: Partial<Record<GreeceOption, GreeceOption>>;
     }
-  | { type: 'group' | 'list'; fields: GreeceField[] }
+  | { type: 'group'; fields: GreeceField[] }
+  | { type: 'list'; fields: GreeceField[]; complete?: ListComplete }
 );
 
 interface Options {
@@ -87,8 +91,13 @@ const group = (
 const list = (
   name: string,
   fields: GreeceField[],
-  o?: Options,
-): GreeceField => ({ ...base(name, o), type: 'list', fields });
+  o?: Options & { complete?: ListComplete },
+): GreeceField => ({
+  ...base(name, o),
+  type: 'list',
+  fields,
+  complete: o?.complete,
+});
 const is =
   (key: string, ...values: unknown[]) =>
   (answers: Answers) =>
@@ -136,7 +145,7 @@ export const tripList = (family: boolean) =>
           ]
         : []),
     ],
-    { hint: 'trips' },
+    { hint: 'trips', complete: 'tripsComplete' },
   );
 const backlogFields: GreeceField[] = [
   date('filedOn', req),
@@ -345,7 +354,9 @@ export const settlementFields = {
         { ...req, label: 'periodKind' },
       ),
     ]),
-    list('otherMemberTrips', [date('departed', req), date('returned', req)]),
+    list('otherMemberTrips', [date('departed', req), date('returned', req)], {
+      complete: 'otherMemberTripsComplete',
+    }),
   ]),
   integration: group('integration', [
     choice('basis', integrationBasis, { ...req, label: 'integrationBasis' }),
@@ -429,6 +440,7 @@ export const nationalitySections: Partial<
       list('periods', [date('from', req), date('through', req)], {
         ...req,
         label: 'postingPeriods',
+        complete: 'periodsComplete',
       }),
     ]),
   ],

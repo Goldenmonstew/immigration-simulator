@@ -24,6 +24,8 @@ export const grFormZh = {
   'gr.form.optionalGroup': '填写本组时，标 * 的项目必填。',
   'gr.form.tripsComplete':
     '我已列出评估期间所有离开希腊的行程（包括计划中的出行）',
+  'gr.form.otherMemberTripsComplete': '我已列出在其他成员国居留期间的全部离境',
+  'gr.form.periodsComplete': '我已列出随配偶外派的全部期间',
   'gr.form.residenceStartMissing': '尚未填写',
   'gr.error.required': '请填写这一项。',
   'gr.error.date': '请填写有效日期。',
@@ -33,6 +35,12 @@ export const grFormZh = {
   'gr.error.pathways': '请至少选择一条路径。',
   'gr.error.tripsComplete':
     '请确认已列出全部行程。记不全时可删除这些记录，依赖离境的条件会显示为待确认。',
+  'gr.error.otherMemberTripsComplete':
+    '请确认已列出全部离境。记不全时可删除这些记录，蓝卡跨国居留的时间条件会显示为待确认。',
+  'gr.error.periodsComplete':
+    '请确认已列出全部外派期间。少列期间会少算境外时间，可能使入籍日期提前。',
+  'gr.error.duplicateYear':
+    '这个纳税年度已经填过，请把同一年度的收入合并为一行。',
   'gr.error.birthAfterSimulation': '出生日期不能晚于模拟日期。',
   'gr.pathway.GR-LONG-TERM': '欧盟长期居民 Μ.1',
   'gr.pathway.GR-GOLDEN-VISA': '黄金签证 Β.5',
@@ -757,6 +765,10 @@ export const grFormEn: Record<keyof typeof grFormZh, string> = {
     'If you answer this group, items marked * are required.',
   'gr.form.tripsComplete':
     'I have listed every trip outside Greece in the period assessed, including planned trips',
+  'gr.form.otherMemberTripsComplete':
+    'I have listed every trip away from the other member states',
+  'gr.form.periodsComplete':
+    'I have listed every period accompanying the posting',
   'gr.form.residenceStartMissing': 'not yet entered',
   'gr.error.required': 'Answer this question.',
   'gr.error.date': 'Enter a valid date.',
@@ -766,6 +778,12 @@ export const grFormEn: Record<keyof typeof grFormZh, string> = {
   'gr.error.pathways': 'Choose at least one route.',
   'gr.error.tripsComplete':
     'Confirm that every trip is listed. If you cannot list them all, remove these rows and the conditions that depend on absences will be shown as to be confirmed.',
+  'gr.error.otherMemberTripsComplete':
+    'Confirm that every trip is listed. If you cannot list them all, remove these rows and the timing for Blue Card mobility will be shown as to be confirmed.',
+  'gr.error.periodsComplete':
+    'Confirm that every posting period is listed. A missing period can leave out time abroad and bring the naturalisation date forward.',
+  'gr.error.duplicateYear':
+    'This tax year is already listed. Combine the income for one year in a single row.',
   'gr.error.birthAfterSimulation':
     'The date of birth cannot be after the simulation date.',
   'gr.pathway.GR-LONG-TERM': 'EU long-term resident Μ.1',

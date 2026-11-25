@@ -1,6 +1,13 @@
+import { addMonths } from '@uk-immigration/engine';
+import { greeceFull2026_11 } from '@uk-immigration/policy-data';
 import { GreeceWhatIfControls } from '../app/greece/whatif/controls';
 import type { TranslationKey } from '../i18n';
-import { activeGreeceAnswers, type GreeceDraft } from './greece-draft';
+import {
+  activeGreeceAnswers,
+  greeceSteps,
+  validateGreeceStep,
+  type GreeceDraft,
+} from './greece-draft';
 import { validDate } from './questionnaire';
 import type { CountryWhatIf } from './whatif';
 
@@ -14,16 +21,28 @@ export const greekLevels = [
   'C2',
 ] as const;
 export type GreekLevel = (typeof greekLevels)[number];
+// A questionnaire answer that the language or exam select has no option for.
+export const asAnswered = 'answered';
 
 export interface GreeceWhatIf {
   simulationDate: string;
   noTrips: boolean;
-  greekLevel?: GreekLevel;
-  examPassed?: boolean;
+  greekLevel?: GreekLevel | typeof asAnswered;
+  examPassed?: boolean | typeof asAnswered;
   netEur?: number;
   grossAnnualEur?: number;
+  grossPayEur?: number;
   sponsorPersonalNetEur?: number;
+  sponsorEvidence?: boolean;
   qualifyingValueEur?: number;
+  // Read-only facts about the questionnaire answers, set by initial().
+  answered: {
+    language: boolean;
+    exam: boolean;
+    // Some periods were given as years on the questionnaire date.
+    familyYears: boolean;
+    blueCardYears: boolean;
+  };
 }
 
 export const greeceFocusControls = {
@@ -33,11 +52,14 @@ export const greeceFocusControls = {
   exam: 'gr-whatif-exam',
   income: 'gr-whatif-income',
   salary: 'gr-whatif-salary',
-  sponsorIncome: 'gr-whatif-sponsor-income',
+  pay: 'gr-whatif-pay',
+  sponsor: 'gr-whatif-sponsor',
   investment: 'gr-whatif-investment',
 };
 type Focus = keyof typeof greeceFocusControls;
 
+// Each condition points at the knob that changes an answer it reads. WK-01 has
+// none: outside the year of the published salary threshold it stays unknown (PD-317).
 const focusByCondition: Record<string, Focus> = {
   'LT-TIME-SINGLE-ABSENCE': 'trips',
   'LT-TIME-TOTAL-ABSENCE': 'trips',
@@ -61,44 +83,116 @@ const focusByCondition: Record<string, Focus> = {
   'NAT-06': 'exam',
   'LT-02': 'income',
   'TY-04': 'income',
-  'WK-01': 'salary',
-  'WK-04': 'salary',
-  'FT-02': 'sponsorIncome',
+  'WK-04': 'pay',
+  'FT-02': 'sponsor',
   'GV-01': 'investment',
 };
 
-// "No trips" also clears the absence summaries that were answered.
+// The engine compares the annual Blue Card salary only in the year of the
+// last published threshold.
+export const salaryYearPublished = (date: string) =>
+  Number(date.slice(0, 4)) ===
+  greeceFull2026_11.values.workBlueSalary.value.lastPublishedYear;
+
+// Answer each absence summary with zero. The engine reads a summary only with
+// all its parts, so a partly answered one is answered in full. Details that
+// explain an excess are cleared.
+function noAbsence<T extends object>(
+  record: T | undefined,
+  summaries: string[][],
+  details: string[] = [],
+): T | undefined {
+  if (!record) return record;
+  const next = { ...record } as Record<string, unknown>;
+  for (const keys of summaries)
+    if (keys.some((key) => next[key] !== undefined))
+      for (const key of keys) next[key] = 0;
+  for (const key of details) delete next[key];
+  return next as T;
+}
+
 function withoutAbsences(draft: GreeceDraft): GreeceDraft {
-  const zero = <T extends object>(record: T | undefined, keys: (keyof T)[]) => {
-    if (!record) return record;
-    const next = { ...record };
-    for (const key of keys)
-      if (next[key] !== undefined) next[key] = 0 as T[keyof T];
-    return next;
-  };
-  const greekFamily = zero(draft.greekFamily, [
-    'longestAbsenceAfterPrYears',
-    'longestConsecutiveAbsenceYears',
-    'maxAnnualAbsenceMonths',
-  ]);
-  if (greekFamily) delete greekFamily.extendedAbsence;
-  const euFamily = zero(draft.euFamily, [
-    'longestAbsenceAfterPrYears',
-    'maxOrdinaryAnnualAbsenceMonths',
-    'seriousAbsenceCount',
-  ]);
-  if (euFamily) delete euFamily.maxSeriousAbsenceMonths;
   return {
     ...draft,
     trips: [],
     tripsComplete: true,
-    longTerm: zero(draft.longTerm, [
-      'continuousOutsideEuMonths',
-      'continuousOutsideGreeceYears',
+    longTerm: noAbsence(draft.longTerm, [
+      ['continuousOutsideEuMonths'],
+      ['continuousOutsideGreeceYears'],
     ]),
-    greekFamily,
-    euFamily,
+    // An interruption of residence after the card expired is time outside Greece.
+    greekFamily: noAbsence(
+      draft.greekFamily,
+      [
+        ['longestAbsenceAfterPrYears'],
+        ['longestConsecutiveAbsenceYears'],
+        ['interruptionAfterExpiryYears'],
+        ['maxAnnualAbsenceMonths'],
+      ],
+      ['extendedAbsence', 'extendedAbsenceMonths'],
+    ),
+    euFamily: noAbsence(draft.euFamily, [
+      ['longestAbsenceAfterPrYears'],
+      [
+        'maxOrdinaryAnnualAbsenceMonths',
+        'seriousAbsenceCount',
+        'maxSeriousAbsenceMonths',
+      ],
+    ]),
   };
+}
+
+// Years counted up to the questionnaire date, with the start date the engine
+// prefers. Residence before a sponsor's death does not move with the date.
+const familyYearCounts = [
+  ['sponsorLawfulYears', 'sponsorLawfulFrom'],
+  ['familyResidenceYears', 'familyResidenceFrom'],
+  ['yearsSinceFirstFamilyPermit', 'firstFamilyPermitIssuedOn'],
+  ['blueFamilyYearsInEU', 'blueFamilyResidenceFrom'],
+] as const;
+function yearCounts(draft: GreeceDraft) {
+  const family = draft.familyTcn ?? {};
+  const work = draft.work;
+  return {
+    // The engine reads Blue Card years only for a renewal after unemployment.
+    work:
+      work?.permit === 'E1' &&
+      work.stage === 'renewal' &&
+      work.blueRenewalInterruption === 'unemployment' &&
+      work.blueCardYears !== undefined,
+    family: familyYearCounts.filter(
+      ([years, from]) =>
+        family[years] !== undefined &&
+        !family[from] &&
+        !(
+          years === 'familyResidenceYears' &&
+          family.autonomousBasis === 'bereavement'
+        ),
+    ),
+  };
+}
+
+// On another date a count of family years becomes the start date it implies,
+// so the period runs on as an entered start date would. Part months are
+// dropped, which never brings a date forward. The engine would otherwise infer
+// these periods from the card history. Blue Card years have no start date and
+// are left unknown.
+function withStartDates(draft: GreeceDraft, answeredOn: string): GreeceDraft {
+  const counts = yearCounts(draft);
+  const next = { ...draft };
+  if (counts.work) {
+    next.work = { ...draft.work };
+    delete next.work.blueCardYears;
+  }
+  if (counts.family.length) {
+    const family = { ...draft.familyTcn };
+    for (const [years, from] of counts.family) {
+      family[from] = addMonths(answeredOn, -Math.floor(family[years]! * 12));
+      delete family[years];
+    }
+    next.familyTcn = family;
+  }
+  return next;
 }
 
 export const greeceWhatIf: CountryWhatIf<GreeceDraft, GreeceWhatIf> = {
@@ -110,24 +204,37 @@ export const greeceWhatIf: CountryWhatIf<GreeceDraft, GreeceWhatIf> = {
   },
   initial(stored) {
     const draft = activeGreeceAnswers(stored);
+    const integration = draft.integration;
     const exam = draft.nationality?.exam;
+    const counts = yearCounts(draft);
+    const answered = {
+      language: !!integration?.basis && integration.basis !== 'language',
+      exam: !!exam && exam !== 'certificate' && exam !== 'not-passed',
+      familyYears: counts.family.length > 0,
+      blueCardYears: counts.work,
+    };
     return {
       simulationDate: draft.simulationDate,
       noTrips: false,
-      greekLevel:
-        draft.integration?.basis === 'language'
-          ? draft.integration.greekLevel
+      greekLevel: answered.language
+        ? asAnswered
+        : integration?.basis === 'language'
+          ? integration.greekLevel
           : undefined,
-      examPassed:
-        exam === 'certificate'
+      examPassed: answered.exam
+        ? asAnswered
+        : exam === 'certificate'
           ? true
           : exam === 'not-passed'
             ? false
             : undefined,
       netEur: draft.residenceIncome?.netEur,
       grossAnnualEur: draft.work?.grossAnnualEur,
+      grossPayEur: draft.work?.grossPayEur,
       sponsorPersonalNetEur: draft.familyTcn?.sponsorPersonalNetEur,
+      sponsorEvidence: draft.familyTcn?.priorYearTaxAndInsuranceEvidence,
       qualifyingValueEur: draft.goldenVisa?.qualifyingValueEur,
+      answered,
     };
   },
   // Only knobs moved away from the questionnaire answers change the copy.
@@ -137,12 +244,14 @@ export const greeceWhatIf: CountryWhatIf<GreeceDraft, GreeceWhatIf> = {
       ...activeGreeceAnswers(stored),
       simulationDate: knobs.simulationDate,
     };
+    if (knobs.simulationDate !== base.simulationDate)
+      draft = withStartDates(draft, base.simulationDate);
     if (knobs.noTrips) draft = withoutAbsences(draft);
-    if (knobs.greekLevel !== base.greekLevel)
+    if (knobs.greekLevel !== base.greekLevel && knobs.greekLevel !== asAnswered)
       draft.integration = knobs.greekLevel
         ? { basis: 'language', greekLevel: knobs.greekLevel }
         : undefined;
-    if (knobs.examPassed !== base.examPassed)
+    if (knobs.examPassed !== base.examPassed && knobs.examPassed !== asAnswered)
       draft.nationality = {
         ...draft.nationality,
         exam:
@@ -160,10 +269,17 @@ export const greeceWhatIf: CountryWhatIf<GreeceDraft, GreeceWhatIf> = {
       };
     if (knobs.grossAnnualEur !== base.grossAnnualEur)
       draft.work = { ...draft.work, grossAnnualEur: knobs.grossAnnualEur };
+    if (knobs.grossPayEur !== base.grossPayEur)
+      draft.work = { ...draft.work, grossPayEur: knobs.grossPayEur };
     if (knobs.sponsorPersonalNetEur !== base.sponsorPersonalNetEur)
       draft.familyTcn = {
         ...draft.familyTcn,
         sponsorPersonalNetEur: knobs.sponsorPersonalNetEur,
+      };
+    if (knobs.sponsorEvidence !== base.sponsorEvidence)
+      draft.familyTcn = {
+        ...draft.familyTcn,
+        priorYearTaxAndInsuranceEvidence: knobs.sponsorEvidence,
       };
     if (knobs.qualifyingValueEur !== base.qualifyingValueEur)
       draft.goldenVisa = {
@@ -172,12 +288,13 @@ export const greeceWhatIf: CountryWhatIf<GreeceDraft, GreeceWhatIf> = {
       };
     return draft;
   },
-  validate(_draft, knobs) {
+  validate(draft, knobs) {
     const errors: Record<string, TranslationKey> = {};
     if (!validDate(knobs.simulationDate)) errors.date = 'gr.whatif.invalidDate';
     for (const key of [
       'netEur',
       'grossAnnualEur',
+      'grossPayEur',
       'sponsorPersonalNetEur',
       'qualifyingValueEur',
     ] as const) {
@@ -185,6 +302,16 @@ export const greeceWhatIf: CountryWhatIf<GreeceDraft, GreeceWhatIf> = {
       if (value !== undefined && (!Number.isFinite(value) || value < 0))
         errors[key] = 'gr.whatif.invalidAmount';
     }
+    // The copy is checked like the questionnaire. Only the date can make it
+    // invalid, for example by falling before the date of birth.
+    if (!Object.keys(errors).length)
+      for (const { step } of greeceSteps(draft)) {
+        const issues = validateGreeceStep({ ...draft, step });
+        if (Object.keys(issues).length) {
+          errors.date = issues['gr-birthDate'] ?? 'gr.whatif.invalidDate';
+          break;
+        }
+      }
     return errors;
   },
   Controls: GreeceWhatIfControls,

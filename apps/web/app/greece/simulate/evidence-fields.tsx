@@ -60,13 +60,18 @@ function Question({
   const value = answers[field.name];
   const set = (next: unknown) => change(field.name, next);
   const label = t(`gr.field.${field.label}` as TranslationKey);
+  // The engine counts residence years from the start of residence, or else
+  // from arrival (EU family) or the first card (Greek family).
+  const from = [
+    answers.residenceFrom,
+    answers.arrivedOn,
+    answers.initialCardGrantedOn,
+  ].find((date) => typeof date === 'string' && date);
   const hint =
     field.hint &&
     t(`gr.hint.${field.hint}`).replace(
       '{from}',
-      typeof answers.residenceFrom === 'string' && answers.residenceFrom
-        ? answers.residenceFrom
-        : t('gr.form.residenceStartMissing'),
+      (from as string | undefined) ?? t('gr.form.residenceStartMissing'),
     );
   const error = errors[id];
   const marked = label + (field.required ? ' *' : '');
@@ -99,15 +104,26 @@ function Question({
 
   if (field.type === 'list') {
     const rows = (Array.isArray(value) ? value : []) as object[];
+    const complete = field.complete;
+    const completeId = `${prefix}-${complete}`;
+    const completeError = errors[completeId];
     return (
       <fieldset
         className={form.fieldset}
         id={id}
         tabIndex={-1}
-        aria-describedby={error ? `${id}-error` : undefined}
+        aria-describedby={
+          [hint && `${id}-hint`, error && `${id}-error`]
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
       >
         <legend className={form.legend}>{marked}</legend>
-        {hint && <p className={form.hint}>{hint}</p>}
+        {hint && (
+          <p id={`${id}-hint`} className={form.hint}>
+            {hint}
+          </p>
+        )}
         {error && (
           <p id={`${id}-error`} className={form.error}>
             {t(error)}
@@ -136,6 +152,7 @@ function Question({
             <button
               type="button"
               className={form.remove}
+              aria-label={`${t('gr.form.remove')} · ${label} ${i + 1}`}
               onClick={() =>
                 set(
                   rows.length === 1
@@ -150,6 +167,32 @@ function Question({
         ))}
         {Array.isArray(value) && !rows.length && (
           <p>{t('gr.form.emptyConfirmed')}</p>
+        )}
+        {complete && rows.length > 0 && (
+          <div
+            className={`${form.checkboxes} ${completeError ? form.invalid : ''}`}
+          >
+            {completeError && (
+              <p id={`${completeId}-error`} className={form.error}>
+                {t(completeError)}
+              </p>
+            )}
+            <label>
+              <input
+                type="checkbox"
+                id={completeId}
+                checked={answers[complete] === true}
+                aria-invalid={completeError ? true : undefined}
+                aria-describedby={
+                  completeError ? `${completeId}-error` : undefined
+                }
+                onChange={(event) =>
+                  change(complete, event.target.checked || undefined)
+                }
+              />
+              {t(`gr.form.${complete}`)}
+            </label>
+          </div>
         )}
         <div className={site.actions}>
           <button
@@ -281,6 +324,7 @@ function Question({
             <input
               type="checkbox"
               id={`${id}-alternative`}
+              aria-label={`${t(`gr.option.${alternative}`)} · ${label}`}
               checked={usesAlternative}
               onChange={(event) =>
                 set(event.target.checked ? alternative : undefined)

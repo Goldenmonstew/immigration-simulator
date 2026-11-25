@@ -54,8 +54,19 @@ export const zhCN = {
   'gr.whatif.language': '希腊语证书等级（Μ.1／Μ.2 融入）',
   'gr.whatif.exam': '入籍考试（Π.Ε.Γ.Π.）',
   'gr.whatif.income': '上一纳税年度家庭净收入（€）',
+  'gr.whatif.incomeYear':
+    '日期改到其他年份时，仍按这里的金额作为上一纳税年度的收入。',
+  'gr.whatif.yearCounts':
+    '问卷里按年数填写的居住、持卡或担保人合法居留年限只对应问卷日期。改到其他日期时，用问卷日期减去所填年数作为起始日推算，即假设这段时间一直持续。',
+  'gr.whatif.blueCardYears':
+    '持蓝卡年数只对应问卷日期。改到其他日期时不再使用这一年数，“蓝卡就业中断与续期保护”可能显示为待确认。',
+  'gr.whatif.asAnswered': '按问卷答案',
   'gr.whatif.salary': '税前年薪（€）',
+  'gr.whatif.payMonthly': '税前月薪（€）',
+  'gr.whatif.payDaily': '税前日薪（€）',
+  'gr.whatif.payBasisMissing': '税前工资（€，需先在问卷选择按月或按日计薪）',
   'gr.whatif.sponsorIncome': '担保人个人年净收入（€）',
+  'gr.whatif.sponsorEvidence': '担保人与家属上一年度的税务及医保凭证齐全',
   'gr.whatif.investment': '黄金签证计入的投资金额（€）',
   'gr.whatif.invalidDate': '请填写有效日期。',
   'gr.whatif.invalidAmount': '请填写不小于 0 的金额。',
@@ -117,8 +128,21 @@ export const en: Record<keyof typeof zhCN, string> = {
   'gr.whatif.language': 'Greek certificate level (Μ.1/Μ.2 integration)',
   'gr.whatif.exam': 'Naturalisation exam (Π.Ε.Γ.Π.)',
   'gr.whatif.income': 'Household net income in the previous tax year (€)',
+  'gr.whatif.incomeYear':
+    'If the date moves to another year, this amount is still used as the income for the previous tax year.',
+  'gr.whatif.yearCounts':
+    'Years of residence, on a card or of the sponsor’s lawful residence entered as a number apply only on the questionnaire date. On another date they are counted from a start date that many years before the questionnaire date, assuming the period continued.',
+  'gr.whatif.blueCardYears':
+    'Years on the Blue Card apply only on the questionnaire date. On another date they are not used, so “Protection during an interruption of Blue Card employment” may be shown as to be confirmed.',
+  'gr.whatif.asAnswered': 'As answered in the questionnaire',
   'gr.whatif.salary': 'Gross annual salary (€)',
+  'gr.whatif.payMonthly': 'Gross monthly pay (€)',
+  'gr.whatif.payDaily': 'Gross daily pay (€)',
+  'gr.whatif.payBasisMissing':
+    'Gross pay (€; first choose monthly or daily pay in the questionnaire)',
   'gr.whatif.sponsorIncome': 'Sponsor’s personal annual net income (€)',
+  'gr.whatif.sponsorEvidence':
+    'Tax and insurance evidence for the previous year is complete for the sponsor and applicant',
   'gr.whatif.investment': 'Golden visa qualifying value (€)',
   'gr.whatif.invalidDate': 'Enter a valid date.',
   'gr.whatif.invalidAmount': 'Enter an amount of 0 or more.',

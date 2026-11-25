@@ -18,6 +18,12 @@ const day = full.asOf;
 
 // Each route and stage is probed without a permit history, which reaches every
 // eligibility check quickly. The catalogue then uses the engine's own titles and sources.
+// The timing summaries (`GR-…-TIME`) are also probed with a history, which gives
+// them the sources a result cites.
+const history = {
+  permits: [{ kind: 'regular' as const, from: '2018-01-01' }],
+  trips: [],
+};
 const probes: GrFullRequest[] = [
   { simulationDate: day },
   { simulationDate: '2024-01-01', pathways: ['GR-WORK'] },
@@ -94,9 +100,30 @@ const probes: GrFullRequest[] = [
     pathways: ['GR-FAMILY-TCN' as const],
     familyTcn: { stage, sponsor: 'ordinary' as const },
   })),
+  {
+    simulationDate: day,
+    pathways: ['GR-LONG-TERM'],
+    longTerm: { stage: 'initial' },
+    ...history,
+  },
+  {
+    simulationDate: day,
+    pathways: ['GR-NATIONALITY'],
+    route: 'general',
+    nationality: { stage: 'application' },
+    ...history,
+  },
+  {
+    simulationDate: day,
+    pathways: ['GR-GOLDEN-VISA'],
+    goldenVisa: { stage: 'renewal' },
+    permits: [{ kind: 'investor', from: '2021-01-01' }],
+    trips: [],
+  },
 ];
 
-// The time checks are only produced with a permit history, and their titles carry dates.
+// The time checks need a permit history, and their titles carry dates or the
+// years of a route. The catalogue gives them static titles instead.
 const timeChecks: [string, TranslationKey, readonly SourceRef[]][] = [
   ['LT-TIME-RESIDENCE', 'gr.policy.rule.ltResidence', v.longTermYears.sources],
   [
@@ -162,8 +189,6 @@ const pendingDetails: Record<string, string[]> = {
   'GV-10': ['PD-308'],
   'GF-03': ['PD-314'],
   'GF-05': ['PD-301'],
-  'GF-08': ['PD-314'],
-  'EF-02': ['PD-315'],
   'EF-03': ['PD-315'],
   'EF-04': ['PD-316'],
   'EF-05': ['PD-301'],
@@ -172,7 +197,6 @@ const pendingDetails: Record<string, string[]> = {
   'WK-01': ['PD-317'],
   'WK-05': ['PD-317'],
   'WK-07': ['PD-303'],
-  'WK-09': ['PD-319'],
   'FT-01': ['PD-319'],
   'FT-02': ['PD-304'],
   'FT-03': ['PD-318'],
@@ -207,6 +231,7 @@ function greeceRules(): RuleMeta[] {
     );
     zh.forEach((pathway, i) =>
       pathway.checks.forEach((check, j) => {
+        if (timeChecks.some(([id]) => id === check.id)) return;
         const english = en[i].checks[j];
         add(check.id, check.title, english.title, check.sources);
       }),
