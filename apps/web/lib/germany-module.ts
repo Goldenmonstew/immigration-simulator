@@ -22,10 +22,16 @@ import { germanyWhatIf, type GermanyWhatIf } from './germany-whatif';
 // Fees, the solemn declaration and certificate after approval, and the
 // procedural notes that do not decide a pathway are shown apart; only
 // requirements and time requirements are gaps.
-function checkKind(id: string): CountryCheck['kind'] {
+function checkKind(
+  id: string,
+  documentedTravel: boolean,
+): CountryCheck['kind'] {
   if (/^DE-C(6[5-9]|7[01])(-|$)/.test(id)) return 'budget';
   if (id === 'DE-C54') return 'afterApproval';
   if (DE_PROCEDURE_CHECKS.has(id)) return 'information';
+  // With per-document records R00 rests on each document (§ 51); the engine
+  // keeps the generic absence limit only as the baseline explanation.
+  if (documentedTravel && id === 'DE-C63-time') return 'information';
   if (
     id.endsWith('-time') ||
     ['DE-C13', 'DE-C28', 'DE-C44', 'DE-C55'].includes(id)
@@ -41,8 +47,10 @@ function run(draft: GermanyDraft, locale: Locale) {
     routes: confirmed.routes.length ? confirmed.routes : undefined,
     locale,
   });
+  const documented = confirmed.mobility?.titles !== undefined;
   for (const pathway of result.columns[0].pathways)
-    for (const check of pathway.checks) check.kind = checkKind(check.id);
+    for (const check of pathway.checks)
+      check.kind = checkKind(check.id, documented && pathway.id === 'DE-R00');
   return result;
 }
 

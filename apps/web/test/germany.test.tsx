@@ -1419,3 +1419,52 @@ test.each(['zh-CN', 'en'] as const)(
       expect(html).not.toContain(year);
   },
 );
+
+test('with per-document records R00 keeps the generic absence limit as a baseline note outside the gaps (review100-2 #1)', () => {
+  const trip = { departed: '2025-01-01', returned: '2025-09-15' };
+  const documented: GermanyDraft = {
+    ...sampleDraft(),
+    routes: ['R00'],
+    trips: [trip],
+    mobility: {
+      titles: [
+        {
+          kind: 'skilled',
+          validTo: '2028-05-22',
+          noOtherLossEvent: true,
+          trips: [
+            {
+              ...trip,
+              nonTemporary: false,
+              approvedReturnBy: '2025-10-01',
+              exception: 'none',
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const r00 = (draft: GermanyDraft) =>
+    de.run(draft, 'zh-CN').columns[0].pathways.find((p) => p.id === 'DE-R00')!;
+  const met = r00(documented);
+  expect(met.status).toBe('MET');
+  expect(met.checks.find((c) => c.id === 'DE-C63-time')).toMatchObject({
+    status: 'NOT_MET',
+    kind: 'information',
+  });
+  expect(gapRules(met)).toEqual([]);
+
+  const pending = structuredClone(documented);
+  delete pending.mobility!.titles![0].validTo;
+  const unknown = r00(pending);
+  expect(unknown.status).toBe('UNKNOWN');
+  expect(gapRules(unknown).map((c) => c.id)).toEqual(['DE-C63-skilled']);
+
+  // Without per-document records the absence limit still decides R00.
+  const baseline = r00({ ...documented, mobility: {} });
+  expect(baseline.status).toBe('NOT_MET');
+  expect(baseline.checks.find((c) => c.id === 'DE-C63-time')?.kind).toBe(
+    'time',
+  );
+  expect(gapRules(baseline).map((c) => c.id)).toContain('DE-C63-time');
+});
