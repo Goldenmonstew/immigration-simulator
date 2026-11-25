@@ -210,26 +210,3 @@ export function drawBonfire(g: Graphics, time: number, reduced: boolean) {
     );
   }
 }
-
-/** Rain streaks or snowflakes across a w × h screen-space overlay. */
-export function drawPrecipitation(
-  g: Graphics,
-  weather: 'rain' | 'snow',
-  time: number,
-  w: number,
-  h: number,
-  count: number,
-) {
-  for (let i = 0; i < count; i++) {
-    const x =
-        (i * 47 +
-          Math.sin(i) * 18 +
-          (weather === 'snow' ? time / 180 : time / 45)) %
-        w,
-      y = (i * 31 + time / (weather === 'snow' ? 45 : 6)) % h;
-    if (weather === 'rain') {
-      g.lineStyle(0.6, 0xbad5e6, 0.6);
-      g.lineBetween(x, y, x - 2, y + 5);
-    } else g.fillStyle(0xffffff, 0.8).fillCircle(x, y, 1);
-  }
-}
