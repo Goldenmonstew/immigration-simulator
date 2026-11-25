@@ -431,7 +431,14 @@ const engineer: JpCharacter = {
     dateOfBirth: '1995-08-12',
     trips: [],
     permanentResidence: {
-      routes: [{ route: 'general', statusStart: '2024-04-01' }],
+      // Engineer is a work status under both guidelines (SRC-113 1(3)ア, SRC-114 注2).
+      routes: [
+        {
+          route: 'general',
+          statusStart: '2024-04-01',
+          newStatusStart: '2024-04-01',
+        },
+      ],
       evidence: {
         ...goodStanding,
         status: {

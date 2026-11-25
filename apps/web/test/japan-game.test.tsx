@@ -9,7 +9,7 @@ import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount } from '../i18n';
 import { japanModule } from '../lib/japan-module';
-import { decodeDraft } from '../lib/share';
+import { readPageResult } from '../lib/page-result';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
 import {
   gameDraft,
@@ -57,25 +57,45 @@ test('Japan has a game page, entries and its own save and sound keys', () => {
   expect(storage.get('jp-immigration-life-muted')).toBe('false');
 });
 
-test('the ending link restores the same timeline on the Japan result page', () => {
-  const state = settle(jp.newGame('spouse', 4, 'en'));
-  const href = jpCountry.resultHref(state);
-  expect(href.startsWith('/japan/result#s=')).toBe(true);
-  const draft = decodeDraft(japanModule, href.split('#s=')[1], true)!;
-  expect(draft.completed).toBe(true);
-  expect(draft.simulationDate).toBe(state.date);
-  expect(draft.permanentResidence.routes).toEqual(
-    state.timeline.permanentResidence.routes,
-  );
-  expect(draft.naturalisation.routes).toEqual(
-    state.timeline.naturalisation.routes,
-  );
-  const shown = japanModule.run(draft, 'en').columns[0].pathways;
-  expect(shown.map(({ id, status }) => [id, status])).toEqual(
-    state.result.columns[0].pathways.map(({ id, status }) => [id, status]),
-  );
-  expect(gameDraft(state).step).toBe(5);
-});
+test.each(['engineer', 'spouse'])(
+  'the ending link opens the same %s timeline on the Japan result page',
+  (id) => {
+    const storage = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+      removeItem: (key: string) => storage.delete(key),
+    });
+    const opening = settle(jp.newGame(id, 7, 'zh-CN'));
+    let station = settle(jp.tick(opening, 600 - opening.day.minute));
+    station = settle(jp.enter(station, 'station'));
+    const abroad = settle(jp.doActivity(station, 'travel-1'));
+    expect(abroad.timeline.trips).toHaveLength(1);
+    const view = (result: State['result']) =>
+      result.columns[0].pathways.map((pathway) => ({
+        id: pathway.id,
+        status: pathway.status,
+        earliestDate: pathway.earliestDate,
+        timeEarliestDate: pathway.timeEarliestDate,
+        checks: pathway.checks.map((check) => [check.id, check.status]),
+      }));
+    for (const state of [opening, abroad]) {
+      const href = jpCountry.resultHref(state);
+      expect(href.startsWith('/japan/result#s=')).toBe(true);
+      const page = readPageResult(
+        japanModule,
+        'zh-CN',
+        href.split('#s=')[1],
+        'result',
+      );
+      expect(page.correction).toBeUndefined();
+      expect(page.draft).toEqual(gameDraft(state));
+      expect(page.draft!.simulationDate).toBe(state.date);
+      expect(view(page.result!)).toEqual(view(state.result));
+    }
+    expect(gameDraft(opening).step).toBe(5);
+  },
+);
 
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak Japanese residence in %s',
