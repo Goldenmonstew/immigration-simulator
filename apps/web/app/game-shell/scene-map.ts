@@ -1,10 +1,11 @@
 import * as Phaser from 'phaser';
-import type { GameState, PlaceId } from '@uk-immigration/game';
-import { shopSignIds, signPosition } from './art';
+import type { PlaceId, Quarter } from '@uk-immigration/game/core';
+import { signPosition } from './art';
 import type { Cell } from './pathfinding';
 import type { Interaction, SceneView } from './scene';
 import { SceneText } from './scene-text';
-import { animalIds, animalRoutes, type Animal } from './wildlife';
+import type { GameKinds, State } from './types';
+import type { Animal, AnimalRoutes } from './wildlife';
 
 export const tileSize = 16;
 
@@ -27,21 +28,27 @@ export type AnimalSprite = {
   elapsed: number;
 };
 
-const landscapes = {
-  1: { grass: [156, 170, 174], trees: [132, 148, 155] }, // Winter: cool grey.
-  2: { grass: [91, 170, 91], trees: [147, 191, 68] }, // Spring: fresh green.
-  4: { grass: [139, 146, 79], trees: [193, 126, 54] }, // Autumn: ochre foliage.
-};
+/** RGB for the grass and tree tiles in quarters other than summer. */
+export type Landscapes = Record<
+  Exclude<Quarter, 3>,
+  { grass: number[]; trees: number[] }
+>;
 const furnishingFlags = [
   'furnished-reading-chair',
   'furnished-warm-curtains',
   'furnished-desk-lamp',
 ];
 
-export function buildMap(
+export function buildMap<K extends GameKinds>(
   scene: Phaser.Scene,
-  { state, interior }: SceneView,
-  fromHome: boolean,
+  { state, interior }: SceneView<K>,
+  {
+    shopSignIds,
+    animalRoutes,
+  }: {
+    shopSignIds: string[];
+    animalRoutes: AnimalRoutes;
+  },
   textLayer: HTMLDivElement,
   own: OwnWorldObject,
   anchors: Map<string, Cell>,
@@ -63,9 +70,9 @@ export function buildMap(
     }));
   }
   const townTiles = interior ? undefined : tileset;
+  // The town's spawn is the home's front door.
   const spawn = map.getObjectLayer('spawn')!.objects[0];
-  let cell = { x: spawn.x! / tileSize, y: spawn.y! / tileSize };
-  if (fromHome && !interior) cell = { x: 5, y: 12 };
+  const cell = { x: spawn.x! / tileSize, y: spawn.y! / tileSize };
   const player = own(
     scene.add
       .sprite(cell.x * tileSize + 8, cell.y * tileSize + 10, state.characterId)
@@ -171,8 +178,11 @@ export function buildMap(
           .fillCircle(tile.pixelX + 8, tile.pixelY + 8, 13);
       }
     });
-    for (const id of animalIds) {
-      const start = animalRoutes[id][0];
+    for (const [id, route] of Object.entries(animalRoutes) as [
+      Animal,
+      readonly Cell[],
+    ][]) {
+      const start = route[0];
       const sprite = own(
         scene.add
           .sprite(
@@ -202,9 +212,10 @@ export function buildMap(
   };
 }
 
-export function syncMapScenery(
+export function syncMapScenery<K extends GameKinds>(
   textures: Phaser.Textures.TextureManager,
-  state: GameState,
+  state: State<K>,
+  landscapes: Landscapes,
   furnishings: Furnishing[],
   collision: Phaser.Tilemaps.TilemapLayer | undefined,
   townTiles: Phaser.Tilemaps.Tileset | undefined,
