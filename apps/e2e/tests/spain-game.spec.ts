@@ -103,7 +103,9 @@ test('the English interface shows the residence card and Spanish study', async (
   const hud = page.locator('header').filter({ hasText: 'Joel Bautista' });
   await expect(hud.getByText('Residence card: 17 months left')).toBeVisible();
   await expect(hud.getByText('Spanish', { exact: true })).toBeVisible();
-  await expect(hud.getByText('€5,200')).toBeVisible();
+  // €5,200 at the start; a morning event (seeded by the clock) may already
+  // have cost a few euros.
+  await expect(hud.getByText(/^€5,\d{3}$/)).toBeVisible();
   expect(await hud.innerText()).not.toMatch(/[㐀-鿿]/);
   await walkTo(page, 'Plaça dels Tarongers');
 });
