@@ -348,6 +348,13 @@ export const esNotices: { id: string; text: Text; season?: Quarter }[] = [
   },
 ];
 
+/** The shared furniture, as the Vilamar market sells it. */
+export const esFurnishingNames: Record<string, Text> = {
+  'reading-chair': t('藤编摇椅', 'Wicker rocking chair'),
+  'warm-curtains': t('木百叶遮阳帘', 'Wooden shutter blinds'),
+  'desk-lamp': t('台灯', 'Desk lamp'),
+};
+
 export const esActions: EsActivity[] = [
   {
     id: 'rest',
@@ -534,24 +541,16 @@ export const esActions: EsActivity[] = [
     ],
   },
   ...[
-    [
-      'reading-chair',
-      '藤编摇椅（每季心情、健康各加一点）',
-      'Wicker rocking chair (+1 mood and health/quarter)',
-    ],
-    [
-      'warm-curtains',
-      '木百叶遮阳帘（每季心情加一点）',
-      'Wooden shutter blinds (+1 mood/quarter)',
-    ],
-    ['desk-lamp', '台灯（每季健康加一点）', 'Desk lamp (+1 health/quarter)'],
+    ['reading-chair', '每季心情、健康各加一点', '+1 mood and health/quarter'],
+    ['warm-curtains', '每季心情加一点', '+1 mood/quarter'],
+    ['desk-lamp', '每季健康加一点', '+1 health/quarter'],
   ].map(([id, zhCN, en]): EsActivity => ({
     id: `furnish-${id}`,
     place: 'shop',
     minutes: b.minutes.buy,
     label: t(
-      `添置${zhCN} · ${eur(b.furnishings[id].price)}，限一件`,
-      `Buy a ${en} · ${eur(b.furnishings[id].price)}, one per home`,
+      `添置${esFurnishingNames[id].zhCN}（${zhCN}） · ${eur(b.furnishings[id].price)}，限一件`,
+      `Buy a ${esFurnishingNames[id].en} (${en}) · ${eur(b.furnishings[id].price)}, one per home`,
     ),
     effects: [{ type: 'money', delta: -b.furnishings[id].price }],
   })),

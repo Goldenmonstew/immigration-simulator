@@ -38,6 +38,8 @@ export const esGameZh = {
   'es.game.settlementSource.walkingClub': '海滨晨跑小组',
   'es.game.noSeeds': '背包里没有当季种子，去维拉马尔市场看看吧。',
   'es.game.rentFirst': '先在街区菜园租一块地。',
+  'es.game.kitchenNoIngredients':
+    '现在凑不齐任何一道菜的食材：蔬菜来自街区菜园的收成，鱼要去防波堤钓，大米在市场买。',
 } as const;
 
 export const esGameEn: Record<keyof typeof esGameZh, string> = {
@@ -85,4 +87,6 @@ export const esGameEn: Record<keyof typeof esGameZh, string> = {
   'es.game.settlementSource.walkingClub': 'Seafront running club',
   'es.game.noSeeds': 'No seeds for this season. Try the Vilamar market.',
   'es.game.rentFirst': 'Rent a plot at the neighbourhood allotments first.',
+  'es.game.kitchenNoIngredients':
+    'You do not have the ingredients for any dish yet: vegetables come from the neighbourhood allotments, fish from the breakwater and rice from the market.',
 };

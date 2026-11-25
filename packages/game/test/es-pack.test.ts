@@ -314,6 +314,23 @@ test('a filing outside the character’s own route ends with that route’s text
   expect(lt.log.find(({ kind }) => kind === 'ending')?.text).toEqual(ltText);
 });
 
+test('the diary casts a line off the breakwater, not at a pond', () => {
+  const breakwater = visit(es.newGame('cook', 5, 'en'), 'pond', 600);
+  const cast = es.fish(breakwater, false);
+  expect(cast.log.at(-1)).toMatchObject({
+    id: 'fishing',
+    text: { zhCN: '在防波堤抛竿', en: 'Cast at the breakwater' },
+  });
+  const diary = es.narrative(cast);
+  expect(diary.map(({ zhCN }) => zhCN).join('\n')).toContain(
+    '防波堤抛竿 1 次。',
+  );
+  expect(diary.map(({ en }) => en).join('\n')).toContain(
+    '1 cast at the breakwater',
+  );
+  expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
+});
+
 test('a lapsed card ends the story unless long-term residence can still be filed', () => {
   const exporter = settle(es.newGame('exporter', 5, 'en'));
   // Within three months of the 2027-04-30 expiry (SRC-083 art. 184.2).

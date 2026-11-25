@@ -132,6 +132,7 @@ export const esCountry: GameCountry<EsKinds> = {
       to: trip.returned,
     })),
   itemIcon,
+  furnishingNames: esGame.esFurnishingNames,
   diaryText: {
     harvest: { zhCN: '街区菜园收获', en: 'Allotment harvest' },
     catch: { zhCN: '防波堤钓鱼', en: 'Fishing off the breakwater' },

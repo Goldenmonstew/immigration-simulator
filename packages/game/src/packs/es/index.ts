@@ -17,6 +17,7 @@ import {
 import {
   esActions,
   esFestivals,
+  esFurnishingNames,
   esItems,
   esNotices,
   esPlaces,
@@ -65,6 +66,7 @@ export const esGameContent: GameContentPack<
   shopStock: hooks.shopStock,
   catchItem: hooks.catchItem,
   ledgerText: hooks.ledgerText,
+  fishingSpot: { zhCN: '防波堤', en: 'the breakwater' },
 };
 
 export const {
@@ -110,7 +112,7 @@ export const items = esItems;
 export const recipes = esRecipes;
 export const festivals = esFestivals;
 export const achievements = hooks.esAchievements;
-export { esCharacters, esRules };
+export { esCharacters, esFurnishingNames, esRules };
 export {
   currentPermit,
   filingAnswers,
