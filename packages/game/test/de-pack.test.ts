@@ -322,6 +322,10 @@ test('a Blue Card extension is filed, not granted: the card continues under § 8
   const filed = de.doActivity(office, 'extend');
   expect(filed.stats.money).toBe(office.stats.money - fee);
   // Only the application is recorded, on the day; no new card or date.
+  // For naturalisation the waiting period is lawful residence; only holding
+  // the title on the day rests on § 81 Abs. 4 (PD-124).
+  expect(extend.note?.zhCN).toContain('审理期间按合法居留计入入籍年限');
+  expect(extend.note?.zhCN).not.toContain('取决于延期最终获批');
   expect(filed.timeline.permits).toEqual([
     {
       kind: 'blue-card',
@@ -375,6 +379,14 @@ test('after five years under the pending extension, naturalisation waits only fo
   expect(apply.note?.en).toContain('PD-124');
   const ended = de.doActivity(bureau, 'naturalise');
   expect(ended.ending).toBe('settled');
+  expect(apply.label.zhCN).toContain('入籍时的持证情况待入籍机关核对');
+  expect(apply.label.en).toContain(
+    'holding a title on the day of naturalisation to be checked by the office',
+  );
+  // The office checks DE-C55; the game does not claim it is the only reason.
+  expect(apply.note?.zhCN).toContain('由主管机关核对 DE-C55');
+  expect(apply.note?.zhCN).toContain('延期审理期间按合法居留计入入籍年限');
+  expect(apply.note?.zhCN).not.toContain('能否计入');
   expect(de.narrative(ended).at(-1)!.en).toContain('naturalisation');
   // Without the pending extension that check is not left to the office.
   const lapsed = structuredClone(filed);

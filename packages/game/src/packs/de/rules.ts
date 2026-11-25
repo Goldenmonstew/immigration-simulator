@@ -168,8 +168,10 @@ function monthsAbroad(state: DeState, from: IsoDate, to: IsoDate) {
  * all that is open. For settlement: the local housing standard, for which the
  * game has no local figure (PD-348), and the Blue Card pay check for a year
  * whose salary threshold is not yet in the parameter table (PD-350). For
- * naturalisation: whether residence while an extension is pending counts,
- * which depends on the renewal being granted (PD-124).
+ * naturalisation, while an extension is pending: DE-C55. The waiting period
+ * counts as lawful residence; whether the § 81 Abs. 4 continuation alone
+ * meets the title requirement of StAG § 10 Abs. 1 Satz 1 Nr. 2 on the day
+ * is disputed (PD-124). The game does not assume that is the only reason.
  */
 export function officePending(
   state: DeState,

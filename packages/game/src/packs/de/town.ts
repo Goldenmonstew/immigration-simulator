@@ -521,8 +521,8 @@ export const deActions: Activity<DeEffect, DeFestival>[] = [
       `Apply to extend your Blue Card (fee ${eur(values.extensionFee.value)}, SRC-410 § 45)`,
     ),
     note: t(
-      `到期前递交延期申请，原卡在外管局决定前视为继续有效（SRC-100 第 81 条第 4 款）。游戏只记递交与手续费 ${eur(values.extensionFee.value)}（SRC-410 第 45 条第 2 项 b 目），不预设审批结果和新卡期限；递交从下一季起进入评估。审理期间的居住能否计入入籍年限，取决于延期最终获批（PD-124）。到期前 ${b.renewalWindowMonths} 个月内受理是游戏设定。`,
-      `Apply before the card ends and it is deemed to continue until the Ausländerbehörde decides (SRC-100 § 81 Abs. 4). The game records only the filing and the fee of ${eur(values.extensionFee.value)} (SRC-410 § 45 Nr. 2 Buchst. b); it does not assume the decision or a new card's term, and the filing joins the assessment from the next quarter. Whether residence while it is pending counts towards naturalisation depends on the renewal being granted (PD-124). Taking applications in the last ${b.renewalWindowMonths} months is a game setting.`,
+      `到期前递交延期申请，原卡在外管局决定前视为继续有效（SRC-100 第 81 条第 4 款）。游戏只记递交与手续费 ${eur(values.extensionFee.value)}（SRC-410 第 45 条第 2 项 b 目），不预设审批结果和新卡期限；递交从下一季起进入评估。审理期间按合法居留计入入籍年限；入籍当天只凭待决的延期申请，算不算持有 StAG 第 10 条第 1 款第 1 句第 2 项所需的许可有争议，由入籍机关核对（PD-124）。到期前 ${b.renewalWindowMonths} 个月内受理是游戏设定。`,
+      `Apply before the card ends and it is deemed to continue until the Ausländerbehörde decides (SRC-100 § 81 Abs. 4). The game records only the filing and the fee of ${eur(values.extensionFee.value)} (SRC-410 § 45 Nr. 2 Buchst. b); it does not assume the decision or a new card's term, and the filing joins the assessment from the next quarter. For naturalisation the waiting period counts as lawful residence; whether the pending application alone meets the title requirement of StAG § 10 Abs. 1 Satz 1 Nr. 2 on the day of naturalisation is disputed, and the naturalisation office checks it (PD-124). Taking applications in the last ${b.renewalWindowMonths} months is a game setting.`,
     ),
     minutes: b.minutes.paperwork,
     oncePerDay: true,

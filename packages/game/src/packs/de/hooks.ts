@@ -186,12 +186,12 @@ export function actionDetails(state: DeState, action: DeActivity): void {
     );
     if (officePending(state, 'nat')) {
       action.label = t(
-        `递交入籍申请（手续费 ${eur(amount)}，SRC-101 第 38 条；居住年限待入籍机关核对）`,
-        `Apply for naturalisation (fee ${eur(amount)}, SRC-101 § 38; residence period to be checked by the office)`,
+        `递交入籍申请（手续费 ${eur(amount)}，SRC-101 第 38 条；入籍时的持证情况待入籍机关核对）`,
+        `Apply for naturalisation (fee ${eur(amount)}, SRC-101 § 38; holding a title on the day of naturalisation to be checked by the office)`,
       );
       action.note = t(
-        '评估里只剩居住年限待确认：蓝卡延期审理期间的居住能否计入，取决于延期最终获批（PD-124），由主管机关在审查时核对。',
-        'Only the residence period is pending in the assessment: whether residence while the Blue Card extension is pending counts depends on the renewal being granted (PD-124), and the authority checks it during review.',
+        '评估里只剩 DE-C55（居住与入籍时的持证）待确认，由主管机关核对 DE-C55。延期审理期间按合法居留计入入籍年限；有争议的是入籍当天只凭 § 81 Abs. 4 的延续效力，算不算持有 StAG 第 10 条第 1 款第 1 句第 2 项所需的许可（PD-124）。这一项也可能有别的待定原因，以主管机关核对为准。',
+        'Only DE-C55 (residence and the title held on the day) is pending in the assessment, and the authority checks DE-C55. For naturalisation the waiting period counts as lawful residence; what is disputed is whether the § 81 Abs. 4 continuation alone meets the title requirement of StAG § 10 Abs. 1 Satz 1 Nr. 2 on the day (PD-124). The item may also be pending for other reasons; the authority’s check decides.',
       );
     }
     action.effects = [{ type: 'money', delta: -amount }, ...action.effects];
