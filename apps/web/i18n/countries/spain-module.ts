@@ -25,6 +25,8 @@ export const zhCN = {
   'es.whatif.natRoute': '入籍居住年限类别',
   'es.whatif.dele': 'DELE A2 或以上西班牙语证书／法定免试已核实',
   'es.whatif.ccse': 'CCSE 公民知识考试合格且在有效期内',
+  'es.whatif.examHint':
+    '西班牙 ESO 学历、全部免试和司法免试同时免考 DELE 与 CCSE。任一考试选“否”或“不确定”时，一并假设没有这些免试，另一门考试和社会融合条件的结果可能随之改变。',
   'es.whatif.familySize': '家庭人数（含申请人，用于 IPREM 资源门槛）',
   'es.whatif.income': '可计入的固定家庭月收入（EUR／月）',
   'es.whatif.salary': '跨境迁居受雇年薪（EUR／年）',
@@ -68,6 +70,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'es.whatif.dele':
     'DELE A2+ Spanish certificate or statutory exemption confirmed',
   'es.whatif.ccse': 'Verified CCSE pass valid on the filing date',
+  'es.whatif.examHint':
+    'A Spanish ESO diploma, full dispensation or judicial exemption covers both DELE and CCSE. Choosing No or unsure for either exam also removes these exemptions, so the other exam and the integration condition may change too.',
   'es.whatif.familySize':
     'Household size (including applicant, for IPREM threshold)',
   'es.whatif.income': 'Eligible stable monthly household income (EUR/month)',

@@ -164,6 +164,31 @@ test('after a date change, yes/no controls show the new status and Yes assumes v
   expect(html).toContain('id="es-whatif-date-hint"');
 });
 
+test('the exam controls explain the shared exemptions and show their effect on the other exam', () => {
+  const draft: SpainDraft = {
+    ...base(['N']),
+    nationality: { birthDate: '1990-01-01', examRelief: 'spanish-eso-diploma' },
+  };
+  expect(['ES-N11', 'ES-N12'].map((id) => status(draft, id))).toEqual([
+    'MET',
+    'MET',
+  ]);
+  const withoutDele = compare(draft, { delePassed: false });
+  expect(status(withoutDele, 'ES-N11')).toBe('NOT_MET');
+  expect(status(withoutDele, 'ES-N12')).not.toBe('MET');
+  // The untouched CCSE control shows that its exemption went too.
+  expect(selected(draft, {}, 'es-whatif-ccse')).toBe('true');
+  expect(selected(draft, { delePassed: false }, 'es-whatif-ccse')).toBe('');
+  const html = render(<WhatIfView country={es} draft={draft} />);
+  for (const id of ['es-whatif-dele', 'es-whatif-ccse'])
+    expect(html).toMatch(
+      new RegExp(
+        `<select id="${id}"[^>]*aria-describedby="es-whatif-exam-hint"`,
+      ),
+    );
+  expect(html).toContain('id="es-whatif-exam-hint"');
+});
+
 test('yes and no knobs start from the baseline conditions and can return to unconfirmed', () => {
   const draft: SpainDraft = {
     ...base(['N', 'L']),

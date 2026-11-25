@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import {
   ES_NATIONALITY_ROUTES,
   type EsNationalityRoute,
@@ -15,6 +16,8 @@ import {
 } from '../../../lib/spain-whatif';
 import type { WhatIfControlsProps } from '../../../lib/whatif';
 import styles from '../../uk/whatif/whatif.module.css';
+
+const examHint = 'es-whatif-exam-hint';
 
 export function SpainWhatIfControls({
   afterDraft,
@@ -43,6 +46,8 @@ export function SpainWhatIfControls({
     field: 'delePassed' | 'ccsePassed' | 'healthCover' | 'conductCleared',
     id: string,
     label: TranslationKey,
+    hint?: string,
+    after?: ReactNode,
   ) {
     const value = knobs[field] === undefined ? shown[field] : knobs[field];
     return (
@@ -51,6 +56,7 @@ export function SpainWhatIfControls({
         <select
           id={id}
           value={value == null ? '' : String(value)}
+          aria-describedby={hint}
           onChange={(e) =>
             update({
               [field]: e.target.value === '' ? null : e.target.value === 'true',
@@ -61,6 +67,7 @@ export function SpainWhatIfControls({
           <option value="true">{t('form.yes')}</option>
           <option value="false">{t('form.no')}</option>
         </select>
+        {after}
       </div>
     );
   }
@@ -131,8 +138,16 @@ export function SpainWhatIfControls({
               ))}
             </select>
           </div>
-          {choice('delePassed', ids.dele, 'es.whatif.dele')}
-          {choice('ccsePassed', ids.ccse, 'es.whatif.ccse')}
+          {choice('delePassed', ids.dele, 'es.whatif.dele', examHint)}
+          {choice(
+            'ccsePassed',
+            ids.ccse,
+            'es.whatif.ccse',
+            examHint,
+            <p id={examHint} className={styles.hint}>
+              {t('es.whatif.examHint')}
+            </p>,
+          )}
         </>
       )}
       {hasResources && (
