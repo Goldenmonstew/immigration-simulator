@@ -303,6 +303,28 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test.each(['zh-CN', 'en'] as const)(
+  'the card reminders say the Ο.3 cannot be renewed in this game, in %s',
+  (locale) => {
+    for (const key of ['game.visaReminder', 'game.fastVisaWarning'] as const) {
+      const text = t(gameKey('gr', key), locale);
+      expect(text, key).toContain('Ο.3');
+      expect(text, key).toContain('Μ.3');
+      expect(text, key).toMatch(
+        locale === 'en' ? /cannot be renewed in this game/ : /在游戏里不能续期/,
+      );
+      // A lapsed card's date has already passed.
+      expect(text, key).not.toMatch(/跨过这一天|runs past that date/);
+    }
+    // Six months before her Ο.3 ends, the office has nothing to renew.
+    const spouse = settle(gr.newGame('spouse', 4, locale));
+    spouse.date = '2027-12-01';
+    spouse.result = gr.grRules.evaluate({ ...spouse, locale });
+    expect(gr.visaMonthsLeft(spouse)).toBe(6);
+    expect(gr.activities(visit(spouse, 'visa', 600), 'visa')).toEqual([]);
+  },
+);
+
 test('the Blue Card holder sees the missing integration requirement', () => {
   // A route with only a waiting date lists nothing else.
   expect(

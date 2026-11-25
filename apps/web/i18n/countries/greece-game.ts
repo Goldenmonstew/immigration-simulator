@@ -23,9 +23,9 @@ export const grGameZh = {
   'gr.game.visaUrgent': '居留卡即将到期',
   'gr.game.visaReminderTitle': '新一季，看看居留卡',
   'gr.game.visaReminder':
-    '居留卡还剩 {count} 个月。到期前可到移民局办事处续期，条件满足时也可以申请转为长期居留。',
+    '居留卡还剩 {count} 个月。蓝卡在续期期限内可到移民局办事处续期，条件满足后也可以在那里申请 Μ.1 长期居留；Ο.3 卡在游戏里不能续期，条件满足后到那里申请 Μ.3 永久居留卡。',
   'gr.game.fastVisaWarning':
-    '居留卡到 {date} 为止。快进会直接过完这一季、跨过这一天，先去移民局办事处看看吧。',
+    '居留卡有效期到 {date}，快进会直接过完这一季。蓝卡在续期期限内可以先去移民局办事处续期；Ο.3 卡在游戏里不能续期，条件满足后可以在那里申请 Μ.3。',
   'gr.game.fastVisaWarningNone':
     '当前没有有效的居留卡记录。快进会直接过完这一季，先去移民局办事处看看吧。',
   'gr.game.visaVisit': '去移民局办事处',
@@ -71,9 +71,9 @@ export const grGameEn: Record<keyof typeof grGameZh, string> = {
   'gr.game.visaUrgent': 'Residence card ending soon',
   'gr.game.visaReminderTitle': 'A new quarter: check your residence card',
   'gr.game.visaReminder':
-    'Your residence card has {count} month{count:s} left. Renew it at the migration office before it ends, or apply for long-term residence once you qualify.',
+    'Your residence card has {count} month{count:s} left. A Blue Card can be renewed at the migration office within the renewal period, and you can apply there for Μ.1 long-term residence once you qualify; an Ο.3 card cannot be renewed in this game, so apply there for the Μ.3 permanent card once you qualify.',
   'gr.game.fastVisaWarning':
-    'Your residence card runs until {date}. Fast-forwarding runs past that date to the end of the quarter, so visit the migration office first.',
+    'Your residence card is valid to {date}, and fast-forwarding runs to the end of the quarter. A Blue Card can be renewed at the migration office first while the renewal period lasts; an Ο.3 card cannot be renewed in this game, but you can apply there for the Μ.3 once you qualify.',
   'gr.game.fastVisaWarningNone':
     'No current residence card is recorded. Fast-forwarding runs to the end of the quarter, so visit the migration office first.',
   'gr.game.visaVisit': 'Visit the migration office',
