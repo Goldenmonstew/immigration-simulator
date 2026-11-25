@@ -258,6 +258,10 @@ export const zhCN = {
   'country.check.requirement': '申请条件',
   'country.check.factor': '审查因素',
   'country.check.information': '办理提示',
+  'country.check.time': '时间条件',
+  'country.check.budget': '费用预算',
+  'country.check.afterApproval': '批准后事项',
+  'country.check.alternative': '可选依据（满足其一即可）',
   'country.fee': '费用',
   'country.reducedFee': '可能适用的减额费用',
   'policyPage.title': '政策依据',
@@ -302,10 +306,6 @@ export const zhCN = {
   'hub.uk.paths': '定居 ILR · 现行法律与改革对比',
   'hub.uk.desc':
     '评估 Skilled Worker、BN(O)、Global Talent、家庭、保护与 10 年长居等路线的定居条件，并排对比现行 Immigration Rules 与已公布改革。',
-  'hub.au.code': 'AU',
-  'hub.au.paths': '转永居 PR · 回头签 RRV · 入籍',
-  'hub.au.desc':
-    '核对 191 和香港类别（189／191）的持签或居住时长、186 TRT 的持签时长、为担保雇主全职工作的时长及申请年龄，以及伴侣签永久阶段（801／100）的等待期。也核对回头签 RRV 的在境天数和入籍的居住时间。',
   'hub.ca.code': 'CA',
   'hub.ca.paths': '永居居住义务 · 入籍',
   'hub.ca.desc':
