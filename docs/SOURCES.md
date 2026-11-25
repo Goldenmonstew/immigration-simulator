@@ -409,6 +409,35 @@
 | SRC-493 | LAW | 欧盟法院 · Ogieriakhi，C-244/13，第三国配偶的永久居留权 | https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62013CJ0244 | 2014-07-10 | 2026-11-24 | `policy-sources/2014-07-10-pt-cjeu-c-244-13.pdf`（sha256 `5d818b90c74050a290d259aca87b753900b8b66a7719aacc9be8ad28adae14cd`） | archived |
 | SRC-494 | GUIDANCE | 欧委会 · C/2023/1392，欧盟公民及其家属自由流动指引 | https://eur-lex.europa.eu/eli/C/2023/1392/oj/eng | 2023-12-22 | 2026-11-24 | `policy-sources/2023-12-22-pt-eu-free-movement-guidance.pdf`（sha256 `fc3c76bbfc117d29c6f8f6061d3c51a181b759b2ce7eeb366ff55cce37390430`） | archived |
 | SRC-495 | LAW | 欧盟法院 · AT v Pensionsversicherungsanstalt，C-32/19，退休工作者提前取得永久权 | https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:62019CJ0032 | 2020-01-22 | 2026-11-24 | `policy-sources/2020-01-22-pt-cjeu-c-32-19.pdf`（sha256 `7522f78f46fb90b96b478e62c06984a75e48a9b2df7115dece6c49a62d5525ba`） | archived |
+| SRC-500 | LAW | 马来西亚 · 联邦宪法马来文译本（2020 年重印本，Part III 与附表一、二） | https://www.moha.gov.my/utama/images/akta-pekeliling-garispanduan/bhg-pendaftaran-negara-pertubuhan/akta/0.0_Perlembagaan-Persekutuan-Cetakan-Semula-2020-1.pdf | 2020-10-15 | 2026-11-24 | `policy-sources/2020-10-15-my-moha-federal-constitution-bm-reprint2020.pdf`（sha256 `5f371ab796314cb4e0907de7dbb60e7b6bf52f38273c7506d84adefcdb85cf6f`） | archived |
+| SRC-501 | LAW | 马来西亚 · Constitution (Amendment) Act 2025 [Act A1752] | https://lom.agc.gov.my/ilims/upload/portal/akta/outputaktap/2759695_BI/A1752%20Constitution%20(Amendment)%20Act%202025.pdf | 2025-03-20 | 2026-11-24 | `policy-sources/2025-03-20-my-lom-act-a1752-constitution-amendment-2025.pdf`（sha256 `381f0f0ca30d74c2502e9d4c68449c3a4c76bf785b11134cdbee6b90370fe104`） | archived |
+| SRC-502 | LAW | 马来西亚 · LOM 联邦宪法页面与修订表（A1752 生效状态） | https://lom.agc.gov.my/federal-constitution.php?language=BI ；https://lom.agc.gov.my/json-amendment-fc-2024.php | 网页见抓取日 | 2026-11-24 | `policy-sources/2026-11-24-my-lom-federal-constitution-page.html`（sha256 `94564a6c5c95ea63956f8ba84a95bba0c184499bbaf66960f74e6ddab27d731d`）；`policy-sources/2026-11-24-my-lom-fc-amendment-list-encrypted.json`（sha256 `1fe5ab6eaf6563c9e33b21608974deb75c7fa161eb8c2ad0f9a471f48bb0f92c`） | archived |
+| SRC-503 | LAW | 马来西亚 · Immigration Act 1959/63 [Act 155]（2006 年重印本） | https://lom.agc.gov.my/ilims/upload/portal/akta/LOM/EN/Act%20155.pdf | 2006-01-01 | 2026-11-24 | `policy-sources/2006-01-01-my-lom-immigration-act-155-reprint2006.pdf`（sha256 `aecca0465d43cfd7c2f9a9a77319336d90c1af17ae5885de9aff52c38bfc6ea2`） | archived |
+| SRC-504 | LAW | 马来西亚 · Immigration (Amendment) Regulations 2022 [P.U. (A) 56/2022]，MM2H 准证收费 | https://lom.agc.gov.my/ilims/upload/portal/akta/outputp/1725704/PUA56.pdf | 2022-03-15 | 2026-11-24 | `policy-sources/2022-03-15-my-lom-pua56-2022-immigration-amendment-regs.pdf`（sha256 `a8477cb0307e8d9ddb3790a4ec905c35c07db6b96113398f66f0a481e792d4f8`） | archived |
+| SRC-505 | GUIDANCE | 马来西亚 · 移民局《Buku Garis Panduan Permohonan Permit Masuk》第 3 版（Google Drive 托管，移民局页面链接） | https://drive.google.com/uc?export=download&id=1gAWRFlcz4HoZzOMDFaQHPftgx7rVjoSQ | 2025-09（封面）；附录 2025-10 | 2026-11-24 | `policy-sources/2026-11-05-my-imi-entry-permit-guideline-ebook.pdf`（sha256 `df199f159b62b26dcacdafbf02591651a162c128f2f036236f12f759ec604efb`） | archived |
+| SRC-506 | GUIDANCE | 马来西亚 · 移民局《Garis Panduan Permohonan Permit Masuk Kategori REP》 | https://www.imi.gov.my/wp-content/uploads/2026/11/GARIS-PANDUAN-REP.pdf | 2026-10-01 | 2026-11-24 | `policy-sources/2026-10-01-my-imi-rep-entry-permit-guideline.pdf`（sha256 `b7a53b24cec31629e22f9145d108b940725874838918c2af15de56e8cf578c08`） | archived |
+| SRC-507 | GUIDANCE | 马来西亚 · 移民局 Entry Permit / Permit Masuk 页（英文、马来文） | https://www.imi.gov.my/index.php/en/main-services/permit/ ；https://www.imi.gov.my/index.php/perkhidmatan-utama/permit-masuk/ | 网页见抓取日 | 2026-11-24 | `policy-sources/2026-11-24-my-imi-entry-permit-en.html`（sha256 `938adc9d8673d7cf3e670da6c366e80f98873751ce34bf9510561f7216cefe55`）；`policy-sources/2026-11-24-my-imi-permit-masuk-ms.html`（sha256 `f63983d82b56cb4b81a790b2fd9e504becc5cefe283014379903c8c8e3e25298`） | archived |
+| SRC-508 | GUIDANCE | 马来西亚 · 移民局 Residence Pass 页 | https://www.imi.gov.my/index.php/en/main-services/pass/residence-pass/ | 网页见抓取日 | 2026-11-24 | `policy-sources/2026-11-24-my-imi-residence-pass-en.html`（sha256 `e09a299fc19b2987c5ca6f1d8ff0eb4c76b4a7313d76a16cd153ee531bdb680c`） | archived |
+| SRC-509 | GUIDANCE | 马来西亚 · 移民局 Long-Term Social Visit Pass 页与公民配偶新申请、续签 | https://www.imi.gov.my/index.php/en/main-services/pass/visitor-pass/social-visit-pass/long-term-social-visit-pass/ ；https://www.imi.gov.my/index.php/permohonan-baru-isteri-atau-suami-kepada-warganegara/ ；https://www.imi.gov.my/index.php/en/applications-for-extension-of-visit-for-citizens-spouses/ | 网页见抓取日 | 2026-11-24 | `policy-sources/2026-11-24-my-imi-ltsvp-en.html`（sha256 `691176a08a181c8615acb56c455e2c73641a34ebc526efc4732a2b07bb94c100`）；`policy-sources/2026-11-24-my-imi-spouse-new-application-ms.html`（sha256 `207814598795fa1459552b0f33cd3efd8449b5d87f1d1d6c1c76285bb59ab9c7`）；`policy-sources/2026-11-24-my-imi-spouse-extension-en.html`（sha256 `78e7696dccc69e897780de2be827eb05a7b7b3bfec7e0ff6b88021654fcedd9c`） | archived |
+| SRC-510 | GUIDANCE | 马来西亚 · 移民局 Security Bond / Bank Guarantee 费率 | https://www.imi.gov.my/index.php/en/main-services/visa/security-bond-bank-guarantee-rates/ | 网页见抓取日 | 2026-11-24 | `policy-sources/2026-11-24-my-imi-security-bond-rates-en.html`（sha256 `e994df4a6b7bb1e16a9615b0cfabfa4d6c9513cbfd88c514866c43147952617f`） | archived |
+| SRC-511 | GUIDANCE | 马来西亚 · 内政部 Permit Masuk 上诉所需文件与上诉阶段更换担保人表 | https://www.moha.gov.my/utama/images/akta-pekeliling-garispanduan/bhg-imigresen/borang/SENARAI_DOKUMEN_DIPERLUKAN_BAGI_PERMOHONAN_RAYUAN_PERMIT_MASUK.pdf ；https://www.moha.gov.my/utama/images/akta-pekeliling-garispanduan/bhg-imigresen/borang/BORANG_PERMOHONAN_PERTUKARAN_PENAJA_-_RAYUAN_PERMIT_MASUK.pdf | 2024-11-26；2026-06-10 | 2026-11-24 | `policy-sources/2024-11-26-my-moha-entry-permit-appeal-documents.pdf`（sha256 `9911b369a9107c591ed1edd7d3f40c259faff2a8980e50e0e0aed2a19b21d15e`）；`policy-sources/2026-06-10-my-moha-entry-permit-appeal-sponsor-change.pdf`（sha256 `ee0b49330b3de91ccb115c374c5320bb486d06a3dbb0cc7cb6d1168c95a4758b`） | archived |
+| SRC-512 | GUIDANCE | 马来西亚 · 国民登记局（JPN）Art. 19 归化页与清单 | https://www.jpn.gov.my/en/services/citizenship/application-for-citizenship-status-under-article-19-of-the-federal-constitution-aged-21-years-or-above/ ；https://www.jpn.gov.my/wp-content/uploads/2026/05/checklist_perkara19_2025.pdf | 网页见抓取日；清单 2025-01-01 | 2026-11-24 | `policy-sources/2026-11-24-my-jpn-art19-en.html`（sha256 `0a6f693c9cf29886c318549c9fb47e73c0a4c98cc53f7e7d0b376d0534416bb4`）；`policy-sources/2025-01-01-my-jpn-checklist-art19.pdf`（sha256 `2f478f5c3f07dac0ea0af32b737f174b057fcc360009aacba8065980c14071dc`） | archived |
+| SRC-513 | GUIDANCE | 马来西亚 · JPN Art. 15(1) 公民之妻登记页与清单 | https://www.jpn.gov.my/en/services/citizenship/application-for-citizenship-status-under-article-151-of-the-federal-constitution-wife-of-a-citizen/ ；https://www.jpn.gov.my/wp-content/uploads/2026/05/Checklist_Perkara_151.pdf | 网页见抓取日；清单 2019-12-20 | 2026-11-24 | `policy-sources/2026-11-24-my-jpn-art15-1-en.html`（sha256 `424c9d34b7be969100220fb07f6450326c7723acddcb6e3a7e68a60fce8d0835`）；`policy-sources/2019-12-20-my-jpn-checklist-art15-1.pdf`（sha256 `ce9e739d25f9c364f48bcafe55862461f1962d40f51b8baafcb8cd3fe5611246`） | archived |
+| SRC-514 | GUIDANCE | 马来西亚 · JPN Art. 15(2)、Art. 15A 子女登记页 | https://www.jpn.gov.my/en/services/citizenship/application-for-citizenship-status-under-article-152-of-the-federal-constitution-child-of-a-citizen-under-the-age-of-21/ ；https://www.jpn.gov.my/perkhidmatan/warganegara/permohonan-taraf-kewarganegaraan-di-bawah-perkara-15a-perlembagaan-persekutuan-pendaftaran-kewarganegaraan-dalam-keadaan-khas/ | 网页见抓取日 | 2026-11-24 | `policy-sources/2026-11-24-my-jpn-art15-2-en.html`（sha256 `8b2d2bff583a13017860ed91a6aba2842fed3435da0ce4f5adc09e1246a6f61f`）；`policy-sources/2026-11-24-my-jpn-art15a-ms.html`（sha256 `607d0bb3a146193b9abb5ff745adc06c03e786013fe7b52bb339bccb8e5a618a`） | archived |
+| SRC-515 | GUIDANCE | 马来西亚 · JPN 公民身份常见问题 | https://www.jpn.gov.my/en/faq/citizenship/ | 网页见抓取日 | 2026-11-24 | `policy-sources/2026-11-24-my-jpn-faq-citizenship-en.html`（sha256 `70d2297af19ad6d2bbaf6d667d0e3424df99d7e5f6e36139a4623f61cad9e296`） | archived |
+| SRC-516 | POLICY | 马来西亚 · 执法机构诚信委员会（EAIC）媒体声明，归化足球员公民审批调查 | https://www.eaic.gov.my/phocadownloadpap/KENYATAAN%20MEDIA%20EAIC%20100726.pdf | 2026-07-10 | 2026-11-24 | `policy-sources/2026-07-10-my-eaic-media-statement-naturalisation.pdf`（sha256 `9c3d664750fc3435ed7db24a6180db1f5b04e3a564872f4f0bfe5adce9e34b90`） | archived |
+| SRC-517 | GUIDANCE | 马来西亚 · 旅游、艺术与文化部（MOTAC）MM2H 新资格条件（Platinum、Gold、Silver） | https://www.motac.gov.my/wp-content/uploads/2025/12/Syarat-%E2%80%93-Syarat-Kelayakan-Baharu-Penyertaan-Program-MM2H.pdf | 2024-06-14 | 2026-11-24 | `policy-sources/2024-06-14-my-motac-mm2h-new-eligibility-conditions.pdf`（sha256 `c6689cca7c05abde59db89949f49f267ef9584c26d41e2aef9e4a5c4b6863040`） | archived |
+| SRC-518 | GUIDANCE | 马来西亚 · MOTAC MM2H 经济特区／金融特区（SEZ/SFZ）特别条件 | https://www.motac.gov.my/wp-content/uploads/2025/12/Syarat-%E2%80%93-Syarat-Khas-Peserta-Program-MM2H-Di-Bawah-Zon-Ekonomi-Khas-Zon-Kewangan-Khas.pdf | 2024-06-15 | 2026-11-24 | `policy-sources/2024-06-15-my-motac-mm2h-sez-sfz-conditions.pdf`（sha256 `dbd9f557d52201f58354b8653716ef0406eb4e5875e36f515a2cadf1c0e6de6c`） | archived |
+| SRC-519 | GUIDANCE | 马来西亚 · MOTAC MM2H 申请清单 | https://www.motac.gov.my/wp-content/uploads/2025/12/Senarai-Semak-Permohonan-MM2H.pdf | 2024-01-28 | 2026-11-24 | `policy-sources/2024-01-28-my-motac-mm2h-application-checklist.pdf`（sha256 `8ca4a9af185cf5083aa8c00f49d2d051790d0a42ec21ee03060a620c9aca1033`） | archived |
+| SRC-520 | GUIDANCE | 马来西亚 · MOTAC《Guide Malaysia My Second Home》 | https://www.motac.gov.my/wp-content/uploads/2025/12/Guide-Malaysia-My-Second-Home.pdf | 2025-01-13 | 2026-11-24 | `policy-sources/2025-01-13-my-motac-mm2h-guide.pdf`（sha256 `44130b99bd4db1310473983df8f2e87cfa622d1cb48b12f03715d6d8511dedce`） | archived |
+| SRC-521 | GUIDANCE | 马来西亚 · MOTAC《Insights on The Categories》 | https://www.motac.gov.my/wp-content/uploads/2025/12/Insights-on-The-Categories.pdf | 2025-01-15 | 2026-11-24 | `policy-sources/2025-01-15-my-motac-mm2h-category-insights.pdf`（sha256 `a52e0cdce327db09f49c5db69b100f62a819de94fe29561ecb5ad9694db4f604`） | archived |
+| SRC-522 | GUIDANCE | 马来西亚 · MOTAC MM2H 最新公告（购房、Forest City、定存提取、PDRM 面谈） | https://www.motac.gov.my/wp-content/uploads/2025/12/Pengumuman-Terkini-Program-MM2H.pdf | 2025-05-28 | 2026-11-24 | `policy-sources/2025-05-28-my-motac-mm2h-announcement.pdf`（sha256 `a01c100c0bcf52bcc510b33ffe7ba89ac944297f94533e28665d396544f851a4`） | archived |
+| SRC-523 | GUIDANCE | 马来西亚 · MOTAC MM2H 信息管理系统公告 | https://www.motac.gov.my/wp-content/uploads/2025/12/Pengumuman-Terkini-Sistem-MM2H.pdf | 2025-08-01 | 2026-11-24 | `policy-sources/2025-08-01-my-motac-mm2h-system-announcement.pdf`（sha256 `6f0903d5361c16d8d8d7c6467706a892f612e8830f8e1046410133cc7eb8be69`） | archived |
+| SRC-524 | GUIDANCE | 马来西亚 · MM2H 官网类别总表与申请规定 | https://www.mm2h.gov.my/category/overview ；https://www.mm2h.gov.my/apply/guidelines | 网页见抓取日（站点标 Last Update 2026-02-10） | 2026-11-24 | `policy-sources/2026-11-24-my-mm2h-category-overview.html`（sha256 `604bf92f1154cf0c663819aac6a4dac3b847b6f09ab25a5901d1b4cec3a29470`）；`policy-sources/2026-11-24-my-mm2h-guidelines.html`（sha256 `cebc5338e6421b79e105acf31a747fbffce8f9cdbe13aa31dc37ab0461bf2d4a`） | archived |
+| SRC-525 | GUIDANCE | 马来西亚 · TalentCorp Residence Pass-Talent（RP-T）页 | https://www.talentcorp.com.my/our-initiatives/for-professionals/rpt/ | 网页见抓取日 | 2026-11-24 | `policy-sources/2026-11-24-my-talentcorp-rpt.html`（sha256 `ccdb1b74b0ad15c3cbfc4be661ed041f92afa16d738cbf69dbe77f9809cf898f`） | archived |
+| SRC-526 | GUIDANCE | 马来西亚 · TalentCorp Returning Expert Programme（REP）页 | https://www.talentcorp.com.my/our-initiatives/for-professionals/rep/ | 网页见抓取日 | 2026-11-24 | `policy-sources/2026-11-24-my-talentcorp-rep.html`（sha256 `a8e236861efa70c1676e5dc2579cdb34a5c7d385e6a0da1aef0d615be7fa70fa`） | archived |
+| SRC-527 | GUIDANCE | 马来西亚 · 移民局外籍服务司（ESD）《Revised Expatriate Salary Booklet》 | https://esd.imi.gov.my/portal/pdf/Revised_Expatriate_Salary_Policy.pdf | 2026-06-01 生效；PDF 2026-08-07 | 2026-11-24 | `policy-sources/2026-08-07-my-esd-revised-expatriate-salary-policy.pdf`（sha256 `19e813ad52c807f7fc0cdfc152732a1197033aaea19c095d625b1c9b882303e6`） | archived |
+| SRC-528 | GUIDANCE | 马来西亚 · MDEC DE Rantau Nomad Pass FAQ（第 11 版、第 10 版） | https://mdec.my/api/media/file/DE-Rantau_Pass_FAQ_Version-11_%2029102026.pdf ；https://www.mdec.my/api/media/file/DE-Rantau_Pass_FAQ_v10.pdf | 2026-11-01；2026-08-28 | 2026-11-24 | `policy-sources/2026-11-01-my-mdec-derantau-faq-v11.pdf`（sha256 `df83e358482888c8edd42e30c7cd29dca6cdec9bc34bf3d79615b85cfe6c282d`）；`policy-sources/2026-08-28-my-mdec-derantau-faq-v10.pdf`（sha256 `b6b731ddb2d755f3a959667f7427a7e6f9df7fe3437656c22fc9d894c0a7b473`） | archived |
 
 ## 登记备注（按 SRC）
 
@@ -2969,3 +2998,193 @@ R5.125(a) 涵盖任一申请人的亲生或收养受抚养子女。(b) 规定未
 - SRC-377 · 欧委会 C/2023/1392 第 2.2.2.4 节（第 15 页）说明以未满 21 岁或受养为依据取得的家属居留。第 2.2.2.5 节（第 16 页）确认行使自由流动权的欧盟未成年子女所依赖的非欧盟主要照护人享有派生居留权。第 5.2.4 节（第 36 页）要求子女在以自给自足为依据的居留期间具备供养双方的资源和覆盖双方的全面医保，资源与保险可来自任一方，子女取得永久权后免核这两项。第 2.2.3 节（第 17 页）说明获认可的扩展成员可以援用指令。第 9.1–9.2 节（第 44–45 页）说明合格居留要求及永久权自连续五年完成时取得。[欧盟公报原件](https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:C_202301392)
 - SRC-378 · ν. 4800/2021 第 7(1) 条（第 3 页）重述民法典第 1510 条首句，父母对子女的亲权以子女未成年为前提。与 SRC-089 国籍法典第 5(1)(δ) 条合读，用于以在希出生的希腊籍子女亲权申请归化的分支。[希腊公报原件](https://api.et.gr/apiFEK/1/2021/81/pdf#page=3)
 - SRC-379 · ν. 1329/1983 第 3 条重述民法典第 127 条，满 18 岁成年。见 PDF 第 2 页左栏（公报第 430 页）。[希腊公报原件](https://api.et.gr/apiFEK/1/1983/25/pdf#page=2)
+
+## 马来西亚完整版来源登记（第 20 阶段，任务 113）
+
+调研基准日 2026-11-24。快照与调研档案 `sources.sha256` 逐一核对一致。PDF 定位按物理页序（`pdftotext -f N -l N`）；下面各条写明与印刷页码的换算。马来西亚法律库（LOM）英文宪法 2025 年重印本与 Immigration Regulations 1963 合并文本无法取得，PVIP 官网（pvip.imi.gov.my）、国会网站连接被关闭，相关数字未写入，见 PD-400–429。
+
+### SRC-500 马来西亚 · 联邦宪法马来文译本（2020 年重印本，Part III 与附表一、二）
+
+内政部网站发布的总检察署马来文译本，重印至 2020-10-15（最后修订 Act A1603）。封面注明在依 Art. 160B 宣布为权威文本之前不是法律文本；英文权威重印本在 LOM 返回 HTTP 500，故用本译本加 SRC-501 原文。2020 年后 LOM 修订表在 A1603 与 A1752 之间只列 A1663（2022），其内容未核对。印刷页与物理页的差值不固定（插有修订注释页），常用定位：Art. 15、15A p39–40；Art. 19(1)–(2) p44，19(3)、(9) p46；Art. 24 p51；Art. 25(1)(c) p52；Art. 25(2)、26(2) p54；附表一誓词 p359；附表二第三部分 s.20 p372–373。
+
+- `policy-sources/2020-10-15-my-moha-federal-constitution-bm-reprint2020.pdf` → <https://www.moha.gov.my/utama/images/akta-pekeliling-garispanduan/bhg-pendaftaran-negara-pertubuhan/akta/0.0_Perlembagaan-Persekutuan-Cetakan-Semula-2020-1.pdf>
+
+moha.gov.my 证书链缺中间证书，系统 curl（LibreSSL）握手失败，调研时用 Python 补 GlobalSign 中间证书下载。
+
+### SRC-501 马来西亚 · Constitution (Amendment) Act 2025 [Act A1752]
+
+s.1(2) p3 生效日由最高元首刊宪指定；s.2 p3–4（Art. 15(1) 加马来语、15(2) 年龄 21→18）；s.3 p4（15A）；s.6 p5（Art. 19 年龄）；s.8 p6（Art. 26(2) 起算点）；s.12 p8（待审申请按旧法）。物理页即 PDF 页序。
+
+- `policy-sources/2025-03-20-my-lom-act-a1752-constitution-amendment-2025.pdf` → <https://lom.agc.gov.my/ilims/upload/portal/akta/outputaktap/2759695_BI/A1752%20Constitution%20(Amendment)%20Act%202025.pdf>
+
+### SRC-502 马来西亚 · LOM 联邦宪法页面与修订表（A1752 生效状态）
+
+修订表是对 `json-amendment-fc-2024.php` 的 POST 响应（参数 start=100），内容经 AES-256-GCM 加密。用页面快照里的 `SEARCH_RESPONSE_KEY` 按 LOM `js/responseCrypto.js` 的格式（Base64 解码后前 12 字节为 IV、其后 16 字节为 tag、余下为密文）解密，A1752 两条记录为 `"COMMENCEMENTREMARK": "NOT YET IN FORCE"` 与 `"BELUM BERKUAT KUASA"`，御准日 07/03/2025，刊宪日 2025-03-20。任务 113 复核解密结果一致。每周核对用 GET 取不到相同响应，该文件报"变"或抓取失败属预期，须按本方法人工复核。
+
+- `policy-sources/2026-11-24-my-lom-federal-constitution-page.html` → <https://lom.agc.gov.my/federal-constitution.php?language=BI>
+- `policy-sources/2026-11-24-my-lom-fc-amendment-list-encrypted.json` → <https://lom.agc.gov.my/json-amendment-fc-2024.php>
+
+### SRC-503 马来西亚 · Immigration Act 1959/63 [Act 155]（2006 年重印本）
+
+物理页与印刷页相同。s.8(3) p12–14；s.10(2)–(3) p18。2006 年后的修正法令未合并核对，引用以 2006 年文本为准。
+
+- `policy-sources/2006-01-01-my-lom-immigration-act-155-reprint2006.pdf` → <https://lom.agc.gov.my/ilims/upload/portal/akta/LOM/EN/Act%20155.pdf>
+
+### SRC-504 马来西亚 · Immigration (Amendment) Regulations 2022 [P.U. (A) 56/2022]，MM2H 准证收费
+
+reg. 1(2) 2022-03-16 起施行；附表三 V(vii)、(viia) 英文本 p5–6（马来文本 p2–3）。Immigration Regulations 1963 合并文本无法取得，Permit Masuk 与 Residence Pass 的条例收费没有条例原文快照，改引 SRC-505、SRC-508。
+
+- `policy-sources/2022-03-15-my-lom-pua56-2022-immigration-amendment-regs.pdf` → <https://lom.agc.gov.my/ilims/upload/portal/akta/outputp/1725704/PUA56.pdf>
+
+### SRC-505 马来西亚 · 移民局《Buku Garis Panduan Permohonan Permit Masuk》第 3 版（Google Drive 托管，移民局页面链接）
+
+文件托管在 drive.google.com，非政府域名；SRC-507 两个移民局官方页面直接链接其所在文件夹（https://drive.google.com/drive/folders/1cnNg9Gkr4nN7ifE-7jxao7ydUtiR92De），据此作为官方文件存档。封面"SEPT '25"、文件名"(V3)"，附录标"Dikemaskini pada: Oktober 2025"，Drive 文件名标"(OKT '26)"，快照文件日期取 PDF 生成日 2026-11-05。物理页 = 印刷页 + 2：§§2.4–2.6 p12；§3.10–3.15 p14；免责声明 p15；§4 p17；§5.1 p18；§5.2 p19；§5.3 p20；§5.4 p21；§6 p22；§7 p24；§8 p25；§9 p26；§10 p28；§11 p29；§§13–15 p32–34；附录 A2 p44；B1–B2 p53–56；B3 押金表 p57；C1 p59；C3 p61。流程图与附录清单为图片，无文字层，按渲染页目读。
+
+- `policy-sources/2026-11-05-my-imi-entry-permit-guideline-ebook.pdf` → <https://drive.google.com/uc?export=download&id=1gAWRFlcz4HoZzOMDFaQHPftgx7rVjoSQ>
+
+### SRC-506 马来西亚 · 移民局《Garis Panduan Permohonan Permit Masuk Kategori REP》
+
+全书为图片，无文字层，按渲染页目读。物理页 = 印刷页 + 2：§4、§5.1–5.3 p16；§5.4–5.7 p17；§11 收费 p25。§11.1 写 Permit Masuk 费"RM120 setahun"，与 SRC-505 §9.1 的一次性写法不一致（PD-404）。
+
+- `policy-sources/2026-10-01-my-imi-rep-entry-permit-guideline.pdf` → <https://www.imi.gov.my/wp-content/uploads/2026/11/GARIS-PANDUAN-REP.pdf>
+
+### SRC-507 马来西亚 · 移民局 Entry Permit / Permit Masuk 页（英文、马来文）
+
+页面正文定位：英文页"highest privilege granted by the Government of Malaysia"，马来文页"anugerah tertinggi"；两页的指南下载链接指向 SRC-505 的 Google Drive 文件夹。
+
+- `policy-sources/2026-11-24-my-imi-entry-permit-en.html` → <https://www.imi.gov.my/index.php/en/main-services/permit/>
+- `policy-sources/2026-11-24-my-imi-permit-masuk-ms.html` → <https://www.imi.gov.my/index.php/perkhidmatan-utama/permit-masuk/>
+
+### SRC-508 马来西亚 · 移民局 Residence Pass 页
+
+定位用页内小节标题：Residence Pass Categories（Category 3–5）、Conditions to apply for a Residence Pass (other categories)、Payment Rates、General Information。
+
+- `policy-sources/2026-11-24-my-imi-residence-pass-en.html` → <https://www.imi.gov.my/index.php/en/main-services/pass/residence-pass/>
+
+### SRC-509 马来西亚 · 移民局 Long-Term Social Visit Pass 页与公民配偶新申请、续签
+
+LTSVP 页定位用 Introduction 与 Conditions and Regulations for Permission to Work（Spouse of a Malaysian Citizen）；新申请页为马来文"Permohonan Baru Isteri Atau Suami Kepada Warganegara"文件清单及注；续签页为英文清单。
+
+- `policy-sources/2026-11-24-my-imi-ltsvp-en.html` → <https://www.imi.gov.my/index.php/en/main-services/pass/visitor-pass/social-visit-pass/long-term-social-visit-pass/>
+- `policy-sources/2026-11-24-my-imi-spouse-new-application-ms.html` → <https://www.imi.gov.my/index.php/permohonan-baru-isteri-atau-suami-kepada-warganegara/>
+- `policy-sources/2026-11-24-my-imi-spouse-extension-en.html` → <https://www.imi.gov.my/index.php/en/applications-for-extension-of-visit-for-citizens-spouses/>
+
+### SRC-510 马来西亚 · 移民局 Security Bond / Bank Guarantee 费率
+
+页面列 RM2,000、RM1,500、RM1,000、RM750、RM500、RM300、RM200 七档及"其他国家 RM1,500"。日本、韩国、澳门、香港同时列在 RM1,000 与 RM750 两档（PD-411）。页面未写适用于哪类准证；公民配偶 LTSVP 新申请清单（SRC-509）列有 Security bond。
+
+- `policy-sources/2026-11-24-my-imi-security-bond-rates-en.html` → <https://www.imi.gov.my/index.php/en/main-services/visa/security-bond-bank-guarantee-rates/>
+
+### SRC-511 马来西亚 · 内政部 Permit Masuk 上诉所需文件与上诉阶段更换担保人表
+
+上诉文件为扫描件，单页，按渲染页目读；第 3 栏标题为"Kategori Sistem Mata / Warga Asing Sepenuhnya"。更换担保人表单页，用于上诉获准后担保人死亡或离婚的情形。两份文件与 SRC-500 同在 moha.gov.my，下载方式相同。
+
+- `policy-sources/2024-11-26-my-moha-entry-permit-appeal-documents.pdf` → <https://www.moha.gov.my/utama/images/akta-pekeliling-garispanduan/bhg-imigresen/borang/SENARAI_DOKUMEN_DIPERLUKAN_BAGI_PERMOHONAN_RAYUAN_PERMIT_MASUK.pdf>
+- `policy-sources/2026-06-10-my-moha-entry-permit-appeal-sponsor-change.pdf` → <https://www.moha.gov.my/utama/images/akta-pekeliling-garispanduan/bhg-imigresen/borang/BORANG_PERMOHONAN_PERTUKARAN_PENAJA_-_RAYUAN_PERMIT_MASUK.pdf>
+
+### SRC-512 马来西亚 · 国民登记局（JPN）Art. 19 归化页与清单
+
+网页定位用 Conditions、Fees；清单单页（2025-01-01 更新），第 2 项申请人文件、第 4 项推荐人条件、第 5 项辅助文件、"Peringatan"第 5、7 点。清单注 5 把"mandatori"定义为曾持有该文件者须提交。
+
+- `policy-sources/2026-11-24-my-jpn-art19-en.html` → <https://www.jpn.gov.my/en/services/citizenship/application-for-citizenship-status-under-article-19-of-the-federal-constitution-aged-21-years-or-above/>
+- `policy-sources/2025-01-01-my-jpn-checklist-art19.pdf` → <https://www.jpn.gov.my/wp-content/uploads/2026/05/checklist_perkara19_2025.pdf>
+
+### SRC-513 马来西亚 · JPN Art. 15(1) 公民之妻登记页与清单
+
+网页定位用 Description、Fees；清单单页（2019-12-20 更新）第 2(a) 项把 MyPR 标为"mandatori"，注 5 的定义同 SRC-512。
+
+- `policy-sources/2026-11-24-my-jpn-art15-1-en.html` → <https://www.jpn.gov.my/en/services/citizenship/application-for-citizenship-status-under-article-151-of-the-federal-constitution-wife-of-a-citizen/>
+- `policy-sources/2019-12-20-my-jpn-checklist-art15-1.pdf` → <https://www.jpn.gov.my/wp-content/uploads/2026/05/Checklist_Perkara_151.pdf>
+
+### SRC-514 马来西亚 · JPN Art. 15(2)、Art. 15A 子女登记页
+
+定位用 Conditions / Syarat 与 Fees / Bayaran。
+
+- `policy-sources/2026-11-24-my-jpn-art15-2-en.html` → <https://www.jpn.gov.my/en/services/citizenship/application-for-citizenship-status-under-article-152-of-the-federal-constitution-child-of-a-citizen-under-the-age-of-21/>
+- `policy-sources/2026-11-24-my-jpn-art15a-ms.html` → <https://www.jpn.gov.my/perkhidmatan/warganegara/permohonan-taraf-kewarganegaraan-di-bawah-perkara-15a-perlembagaan-persekutuan-pendaftaran-kewarganegaraan-dalam-keadaan-khas/>
+
+### SRC-515 马来西亚 · JPN 公民身份常见问题
+
+定位用问题"I have fulfilled all application requirements, but why was my application unsuccessful and can I submit an appeal?"。
+
+- `policy-sources/2026-11-24-my-jpn-faq-citizenship-en.html` → <https://www.jpn.gov.my/en/faq/citizenship/>
+
+### SRC-516 马来西亚 · 执法机构诚信委员会（EAIC）媒体声明，归化足球员公民审批调查
+
+调查结论与建议，不是规则。p2 记录 Art. 19(2) 与附表二 s.20(1)(e) 的适用、JIM 安全审查与 JPN 的马来语知识测试（UPBM）；p3 建议为 Art. 19(2) 与放弃原国籍制定 SOP 并设期限；p4 建议安全审查 SOP。
+
+- `policy-sources/2026-07-10-my-eaic-media-statement-naturalisation.pdf` → <https://www.eaic.gov.my/phocadownloadpap/KENYATAAN%20MEDIA%20EAIC%20100726.pdf>
+
+### SRC-517 马来西亚 · 旅游、艺术与文化部（MOTAC）MM2H 新资格条件（Platinum、Gold、Silver）
+
+文件内文确认至 2024-06-14，2025-12 上载。一般条件 p1；Platinum p2–6；Gold p7–11；Silver p12–16（每类依次为财务、参与费、购房、最低停留、受养人、准证、工作与续签）。
+
+- `policy-sources/2024-06-14-my-motac-mm2h-new-eligibility-conditions.pdf` → <https://www.motac.gov.my/wp-content/uploads/2025/12/Syarat-%E2%80%93-Syarat-Kelayakan-Baharu-Penyertaan-Program-MM2H.pdf>
+
+### SRC-518 马来西亚 · MOTAC MM2H 经济特区／金融特区（SEZ/SFZ）特别条件
+
+年龄与定存、参与费 p1；购房、最低停留、受养人 p2–3；准证期 p3；工作与续签 p4–5。
+
+- `policy-sources/2024-06-15-my-motac-mm2h-sez-sfz-conditions.pdf` → <https://www.motac.gov.my/wp-content/uploads/2025/12/Syarat-%E2%80%93-Syarat-Khas-Peserta-Program-MM2H-Di-Bawah-Zon-Ekonomi-Khas-Zon-Kewangan-Khas.pdf>
+
+### SRC-519 马来西亚 · MOTAC MM2H 申请清单
+
+单页，内文"Dikemaskini sehingga 28.01.2024"，PDF 生成于 2025-02-03。第 5 项良民证，末段虚假陈述罚则（引 Act 155 s.56(1)(f)，未在 SRC-503 逐字核对）。
+
+- `policy-sources/2024-01-28-my-motac-mm2h-application-checklist.pdf` → <https://www.motac.gov.my/wp-content/uploads/2025/12/Senarai-Semak-Permohonan-MM2H.pdf>
+
+### SRC-520 马来西亚 · MOTAC《Guide Malaysia My Second Home》
+
+PDF 为对开页，物理 p12 含印刷页 22–23（健康保险，60 岁及以下）、物理 p26 含印刷页 50–51 的获批后文件清单。
+
+- `policy-sources/2025-01-13-my-motac-mm2h-guide.pdf` → <https://www.motac.gov.my/wp-content/uploads/2025/12/Guide-Malaysia-My-Second-Home.pdf>
+
+### SRC-521 马来西亚 · MOTAC《Insights on The Categories》
+
+单页表格。子女上限写 35 岁、定存提取写"after 1 year"，与 SRC-517、SRC-524 不一致（PD-421）。
+
+- `policy-sources/2025-01-15-my-motac-mm2h-category-insights.pdf` → <https://www.motac.gov.my/wp-content/uploads/2025/12/Insights-on-The-Categories.pdf>
+
+### SRC-522 马来西亚 · MOTAC MM2H 最新公告（购房、Forest City、定存提取、PDRM 面谈）
+
+第 A–C 点 p1，第 D–E 点 p2，落款 2025-05-28。
+
+- `policy-sources/2025-05-28-my-motac-mm2h-announcement.pdf` → <https://www.motac.gov.my/wp-content/uploads/2025/12/Pengumuman-Terkini-Program-MM2H.pdf>
+
+### SRC-523 马来西亚 · MOTAC MM2H 信息管理系统公告
+
+单页：2025-08-01 起新申请经 MM2H 系统，处理费 RM500（不含 SST）。
+
+- `policy-sources/2025-08-01-my-motac-mm2h-system-announcement.pdf` → <https://www.motac.gov.my/wp-content/uploads/2025/12/Pengumuman-Terkini-Sistem-MM2H.pdf>
+
+### SRC-524 马来西亚 · MM2H 官网类别总表与申请规定
+
+总表定位用行名（Fixed Deposit、MM2H Term、Age Requirement、Participating Fee、Processing Fee、Minimum Days in Malaysia、Renewal Fee）；申请规定定位用编号小节（01 Fixed Deposit、03 Minimum Stay、13 Terms of Renewal of MM2H Pass 等）。页面含访客计数等动态内容。
+
+- `policy-sources/2026-11-24-my-mm2h-category-overview.html` → <https://www.mm2h.gov.my/category/overview>
+- `policy-sources/2026-11-24-my-mm2h-guidelines.html` → <https://www.mm2h.gov.my/apply/guidelines>
+
+### SRC-525 马来西亚 · TalentCorp Residence Pass-Talent（RP-T）页
+
+定位用 Eligibility 与其后四项权益。页面载明 RP-T 由 TalentCorp 与内政部、移民局于 2011 年 4 月共同推出。
+
+- `policy-sources/2026-11-24-my-talentcorp-rpt.html` → <https://www.talentcorp.com.my/our-initiatives/for-professionals/rpt/>
+
+### SRC-526 马来西亚 · TalentCorp Returning Expert Programme（REP）页
+
+定位用权益第 04 项（外籍配偶与 18 岁以下子女可申请 PR，须在递交 REP 申请前已结婚，PR 只适用于半岛）。
+
+- `policy-sources/2026-11-24-my-talentcorp-rep.html` → <https://www.talentcorp.com.my/our-initiatives/for-professionals/rep/>
+
+### SRC-527 马来西亚 · 移民局外籍服务司（ESD）《Revised Expatriate Salary Booklet》
+
+物理页 = 印刷页（"Page 01"起）+ 2：At a Glance 与 EP 特征 p3；主要变化 p4；雇佣期 p5；分类表 p6（印刷 Page 04）。
+
+- `policy-sources/2026-08-07-my-esd-revised-expatriate-salary-policy.pdf` → <https://esd.imi.gov.my/portal/pdf/Revised_Expatriate_Salary_Policy.pdf>
+
+### SRC-528 马来西亚 · MDEC DE Rantau Nomad Pass FAQ（第 11 版、第 10 版）
+
+第 11 版页眉"Version 11.0 (Nov 1, 2026)"：Section A Q1–Q8 p1–2、Q13 p3；Section B Q3 p4；Section D 收费 p14–15。第 10 版（2026-08-28）Section A Q3 p1 科技类门槛 USD24,000。
+
+- `policy-sources/2026-11-01-my-mdec-derantau-faq-v11.pdf` → <https://mdec.my/api/media/file/DE-Rantau_Pass_FAQ_Version-11_%2029102026.pdf>
+- `policy-sources/2026-08-28-my-mdec-derantau-faq-v10.pdf` → <https://www.mdec.my/api/media/file/DE-Rantau_Pass_FAQ_v10.pdf>
