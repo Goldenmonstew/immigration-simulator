@@ -102,3 +102,43 @@
 - `game.prepare-<菜谱 ID>` 文案键是全站共用的，澳大利亚菜谱用了带特色的 ID（`flathead-and-chips`、`bbq-corn` 等）以免与其他国家冲突；建议其他国家也避开 `fish-and-chips`、`salad` 这类通用 ID。
 - `public/sw.js` 的缓存版本改为 `2026-11-24-v7`（新增离线页 `/australia/game`），`about-page.test.tsx` 同步；新西兰、加拿大合并时会在这一行冲突，按最后合并的版本号处理即可。
 - 建议在 `policy-data` 补 491 签证的停留期限（SRC-200 Sch 2 第 491 类）及移民体检、警方证明的官方收费来源，游戏即可按参数设置到期日与收费。
+
+## 合入 main 与试点修正跟进
+
+brief：`brief-103c`。本分支原本建在日本试点（任务 111）与澳大利亚页面（任务 93）的早期版本上，两者合入 main 后分别又经过 review111-1 至 111-3 与 review93-1、93-2 的修正。本节先合入 main，再按 brief 列的五项与 Fable 补充的两点（来自美国游戏任务 106 的跟进）逐项核对澳大利亚游戏。第 1–4 节里与本节不符的说法以本节为准：PROGRESS 行号 520–524 改为 1000–1004（与 main 上任务 93 审核修正的同号行冲突，内容不变）；菜谱做法键现为 `au.game.prepare-<ID>`（不是共用的 `game.prepare-<ID>`）；缓存版本现为 `2026-11-25-augame`；游戏内评估与进度详情现在经结果页同一后处理显示。PROGRESS 新行从 1005 起，提交前查过所有本地与远端分支及各 worktree 的 PROGRESS（10xx 段只有本分支的 1000–1004 与任务 107 的 1040–1043），1005–1008 没有被占用。
+
+### 1. 做了什么（按 commit）
+
+| PROGRESS | commit | 对应 | 内容 |
+|---|---|---|---|
+| — | `Merge: 合入 main` | brief 第 1 项 | 冲突 4 处：`site-countries.ts` 的 `pagesByCountry` 每国一行，澳大利亚取带 `'game'` 的那行，其余照 main；`sw.js` 与 `about-page.test.tsx` 缓存版本改为 `2026-11-25-augame`；`PROGRESS.md` 取并集，本分支的 520–524 依次改号为 1000–1004，main 的 514–522 保留。共用外壳（`app/game-shell/`）、`game.ts`、`content-pack.ts`、`model.ts` 没有冲突，以 main 为准；本分支对外壳本来就没有改动（五项属性都用外壳已有的图标），不需要重加。`game-page.tsx`、`lib/game-country.ts`、`packages/game/package.json` 的国家登记自动合并为日本与澳大利亚的并集，i18n 自动合并。 |
+| 1005 | `Fix: 澳大利亚菜谱做法文案改用国家前缀键` | review111-1 问题 3 | 6 道菜的做法键由 `game.prepare-<ID>` 改为 `au.game.prepare-<ID>`，外壳 `gameKey` 优先取用，不会再被英国或别国同 ID 的不带前缀文案覆盖。 |
+| 1006 | `Fix: 澳大利亚结局链接按结果页回读，游戏内评估与结果页一致` | review111-1 问题 1、review111-2 问题 1、补充两点 | 澳大利亚结果页经 review93-1 修正后，会给每个检查项标上分类（时间条件、费用预算等），日期标签为「预计满足评估条件的日期」；游戏内原来直接显示引擎原始结果，没有分类，进度详情的日期标签是共用的「最早可申请日期（推算）」。`australia-module.ts` 把分类这段抽成 `presentAustraliaResult`（`run` 改为评估后调用它，结果页行为不变）；游戏的移民代理评估、结局评估与进度详情都经它显示（`shownResult`），进度详情的日期标签用 `earliestLabelFor(pathway, australiaModule.earliestLabel)`。澳大利亚结果页不改路径结论（没有多阶段取舍），所以进度条结论直接取引擎状态即与结果页一致，单测逐状态核对。 |
+| 1007 | `Test: 澳大利亚递交 191 与签证过期结局的文案和评估` | review111-1 问题 2、review111-3 | 两项核对后不需要改代码，补单测。问题 2：每位角色只有一种申请（护士 191、毕业生 191 香港类别，路径开局即定），`endingText` 的 `settled` 直接取角色自己的文案、不读任何申请旗标，不存在"`ending` 效果先定稿、`actionFlags` 后写旗标"的错位，所以没有加 `beforeAction`。review111-3：时间线里没有单独的"身份有效""续签待决"字段，签证的到期日（`visas` 最后一项的 `to`）就是身份状态；过期结局在新季首日评估，引擎按 Sch 1 item 1139(3) 不再认定递交时持有合资格签证，把持签年限判为未满足，路径为未满足，结果页对同一草稿也是未满足。游戏没有建模过桥签证，所以没有"续签待决"要写为否。 |
+| 1008 | `Docs: 任务 103 合入 main 与试点修正跟进报告` | brief 第 3 项 | 本节与 PROGRESS。 |
+| — | `Merge: 合入 main（加拿大完整版页面 #84）` | brief 第 1 项 | 跟进期间 main 又合入了加拿大完整版页面，提交完整验收前再合一次。冲突同样 4 处：`pagesByCountry` 澳大利亚保留带 `'game'` 的行、加拿大照 main；缓存版本保持 `2026-11-25-augame`；`PROGRESS.md` 取并集。加拿大改动不涉及澳大利亚模块与共用游戏外壳。 |
+
+brief 第 2 项第 3 条（季中按当天日期写进时间线的事）核对结果：澳大利亚时间线里带日期的只有出境记录，而出境由共用 `game.ts` 在回国所在季的季首才写入（`recordReturn` 要求 `state.date ≥ trip.to`），所以写进时间线时返回日不晚于评估日；体检、无犯罪证明、评税通知都是不带日期的状态，季中办完后游戏立即按季首日期重新评估，结局草稿用同一份时间线与同一模拟日期。游戏内评估（`auRules.evaluate`）与结局链接草稿（`gameDraft`）本来就是同一份评估日时间线，第 1006 项的回读单测覆盖了"同季办完体检和无犯罪证明后离开"与"探亲回来"两种状态。补充第 2 点（只留该路径问卷会问的答案）：191 的问卷显示第 0、1、4、6 步，时间线只有这四步的字段，各步内的字段不按路径再隐藏；分享编码本身也会按 `activeAustraliaAnswers` 去掉隐藏步骤的答案，回读得到的草稿与 `gameDraft` 完全相等，说明没有被剪掉的答案，所以没有加裁剪代码。
+
+### 2. 怎么验证的
+
+- 每项先写回归测试并确认失败，再修：
+  - 1005：网页单测「Australian recipes keep their own cooking steps in %s」，修前 `gameKey('au', 'game.prepare-flathead-and-chips')` 返回不带前缀的键；修后中英文通过，澳大利亚沙拉是「切块，挤一点柠檬汁」，英国沙拉仍是「轻轻拌匀 / Toss gently」。
+  - 1006：网页单测「the ending link opens the same %s timeline on the Australia result page」按角色循环：开局、探亲一个月回来（下一季）、同季在车站体检并到邮局办无犯罪证明后离开、证件齐全在路径满足时递交 191（护士 2027-12-01，毕业生 2027-09-01）、证件齐全却在签证到期前没有递交（护士 2029-09-01 季，毕业生 2029-06-01 季）。每个状态用结果页同一入口 `readPageResult(australiaModule, 'zh-CN', 片段, 'result')` 回读：无更正提示，草稿等于 `gameDraft(state)`、模拟日期等于季首日期、停在第 6 步；路径 status、earliestDate、timeEarliestDate 与各检查项的 status、kind 和游戏内显示（`shownResult`）一致，进度条结论等于结果页结论；递交为满足，过期为未满足。修前（合入 main 后）草稿与回读一致、无更正提示，但每个检查项的分类游戏内是空、结果页是 `time`/`requirement`/`budget`。状态栏用例补两条断言：移民代理的评估里有「时间条件」「费用预算」分类，进度详情的日期标签是「预计满足评估条件的日期」；把 `shell.tsx` 临时恢复原样运行，这两个用例与回读用例共 4 项失败，恢复修改后通过。
+  - 1007：内容包单测「the %s lodges once the engine finds the stream met」补断言结局日志只有一条 `settled`、文案是角色自己的；新增「when the %s visa ends unlodged, the ending assessment shows the 191 not met」：证件齐全、到期前一季路径为满足，睡到季末得到 `overstayed`，结局评估的持签年限（`AU-191-time-held` / `AU-191-HK-time-held`）与路径都是未满足，进度条为未满足。首次运行即通过（核对项，代码未改）。
+  - 每个 commit 前跑了受影响包的 `tsc --noEmit`、ESLint、Prettier 检查与 `au-pack`、`australia-game` 测试文件；1006 另跑了澳大利亚页面单测 `australia.test.tsx`、`australia-questionnaire.test.tsx`（与游戏单测共 42 项通过），确认抽出 `presentAustraliaResult` 后结果页不变。
+- 整链（HEAD `4d52d8ee`，即第二次合入 main 之后、本报告提交前）：`export VITEST_MAX_WORKERS=2` 后 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，`GATE EXIT 0`：error-report 2、policy-data 23、engine 6,006（既有 1 项按默认跳过）、game 1,372（澳大利亚内容包单测 8 → 10）、web 1,097（澳大利亚游戏网页单测 7 → 9）项通过，英国与日本游戏既有单测全部通过；构建生成 66 个静态页面，`apps/web/out/australia/game.html` 已生成。
+- 浏览器 e2e：确认 4484 端口空闲后 `cd apps/e2e && E2E_PORT=4484 npx playwright test tests/game.spec.ts tests/life.spec.ts tests/japan-game.spec.ts tests/australia-game.spec.ts --project=desktop --reporter=line`，31 项全部通过（英国 `game.spec.ts` 14、`life.spec.ts` 7，日本 5，澳大利亚 5），退出码 0；服务由 Playwright 的 webServer 起停，跑完端口已释放，`apps/e2e/test-results` 已删除。
+- 视觉检查：用临时 Playwright 脚本（放在 `apps/e2e/tests/` 下跑完即删，未入库）无头截图。护士开局点开 191 进度条：详情里「时间条件最早满足 2027-11-04」「预计满足评估条件的日期 尚无法确定」，与结果页的日期标签一致。在金合欢湾站离开澳大利亚后的结局评估：「还差什么」列持签年限、ATO 评税通知、移民体检、警方证明，日期标为「预计满足评估条件的日期」，每个检查项后标「时间条件」「申请条件」「费用预算」，与结果页的分组写法相同。弹窗标题仍是共用外壳的「进入新一年前 → 进入新一年后」（见第 4 段第 2 条）。脚本里从结局点「在模拟器里打开这条时间线」那一步没有点到链接（超时），结果页本身没有截图，回读一致性由第 1006 项单测核对。
+
+### 3. 没做或没验证的
+
+- 试点"其他国家照做的要点"里不在本 brief 范围内的几条，澳大利亚还没跟上（见第 4 段第 1 条），按范围未改。
+- 游戏按季首日期评估，季中可玩日晚于签证到期日时理论上会出现"签证已过期仍可递交"。核对后澳大利亚不会出现：政府服务中心只在工作日开门，每季唯一的工作日是季首后第 8–14 天的周二，两位角色签证到期的那一季（护士 2029-09-01 季，到期 2029-11-03；毕业生 2029-06-01 季，到期 2029-07-14）工作日都在到期日前。没有为此加单测。
+- 没有跑 a11y 等其他 e2e spec 与 mobile project；英国 e2e 截图基线本机仍忽略，没有比对。
+
+### 4. 发现与建议（范围外，未实现）
+
+1. 试点 review111-1 建议 1 的几处英国语境，澳大利亚仍用共用文案：日记与旅程的抛竿地点（内容包没设 `fishingSpot`，写成"池塘抛竿"，澳大利亚是码头）；空厨房提示 `game.kitchenNoIngredients`（"河鲈要去池塘钓"，澳大利亚是鲬鱼与码头）；结局"一点点布置的家"的家具名（没设 `furnishingNames`，结局写英国的家具名，澳大利亚商店卖的是藤编扶手椅、遮光窗帘、台灯）。各是一两行改动。
+2. 共用外壳点开进度条时，详情弹窗的标题是 `game.progressChanges`「进入新一年前 → 进入新一年后」，与弹窗内容（某条路径的当前结论）不符；英国、日本、美国、澳大利亚都一样（美国任务 106 已报告），属共用外壳，本任务未改。
+3. `sw.js` 缓存版本每次合并都会冲突，按最后合并的版本号处理即可。
