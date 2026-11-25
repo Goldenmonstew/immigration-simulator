@@ -1605,9 +1605,9 @@ describe('no earliest date while no pass is held (review113-3 #1, risk 4)', () =
   });
 
   test('back on a pass after the break, the date is when holding resumed', () => {
-    expect(
-      at('my.pr.was', 'my.pr.qualifying-pass', was('2026-06-15')),
-    ).toEqual(['MET', 'MET', '2026-06-01']);
+    expect(at('my.pr.was', 'my.pr.qualifying-pass', was('2026-06-15'))).toEqual(
+      ['MET', 'MET', '2026-06-01'],
+    );
     expect(
       at('my.pr.husband', 'my.pr.spouse-pass', husband('2026-06-15')),
     ).toEqual(['MET', 'MET', '2026-06-01']);
@@ -1617,10 +1617,7 @@ describe('no earliest date while no pass is held (review113-3 #1, risk 4)', () =
 describe('Residence Pass years need the category (review113-3 #2)', () => {
   // SRC-508: Category 3 needs three years on a long-term pass, Category 4
   // five, Category 5 no stated period; all need a valid pass when applying.
-  const rp = (
-    passes: MyFullRequest['passes'],
-    tie?: 'former-citizen',
-  ) => {
+  const rp = (passes: MyFullRequest['passes'], tie?: 'former-citizen') => {
     const p = path('my.rp.family', {
       simulationDate: day,
       family: { tie },
@@ -1656,6 +1653,158 @@ describe('Residence Pass years need the category (review113-3 #2)', () => {
         'former-citizen',
       ),
     ).toEqual(['NOT_MET', 'FUTURE', '2027-01-01']);
+  });
+});
+
+describe('timing agrees with the pass held on every date (review113-3)', () => {
+  // Seeded pass histories with breaks under, at and over six months, passes
+  // entered for later, and dates before, inside and after each pass and
+  // inside each break.
+  let seed = 113;
+  const rand = (n: number) => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return Math.floor((seed / 2147483648) * n);
+  };
+  const histories = Array.from({ length: 60 }, () => {
+    let from = addDays('2016-01-01', rand(3650));
+    return Array.from({ length: 1 + rand(3) }, () => {
+      const to = addDays(from, 60 + rand(2400));
+      const gap = [0, 1 + rand(200), 182, 183, 184, 200 + rand(700)][rand(6)];
+      const span = { from, to, next: addDays(to, 1 + gap) };
+      from = span.next;
+      return span;
+    });
+  });
+  const datesFor = (h: { from: string; to: string; next: string }[]) => [
+    addDays(h[0].from, -30),
+    ...h.flatMap((s) => [
+      s.from,
+      addDays(s.to, -1),
+      s.to,
+      addDays(s.to, 1),
+      addDays(
+        s.to,
+        Math.floor((Date.parse(s.next) - Date.parse(s.to)) / 2 / 864e5),
+      ),
+    ]),
+    addDays(h[0].from, rand(4000)),
+  ];
+  const routes: {
+    id: MyPathwayId;
+    key: string;
+    kind: 'employment' | 'ltsvp-spouse';
+    req: Partial<MyFullRequest>;
+    years?: boolean;
+  }[] = [
+    {
+      id: 'my.pr.was',
+      key: 'my.pr.qualifying-pass',
+      kind: 'employment',
+      req: { family: { tie: 'none' } },
+    },
+    ...(['husband', 'wife'] as const).map((s) => ({
+      id: `my.pr.${s}` as const,
+      key: 'my.pr.spouse-pass',
+      kind: 'ltsvp-spouse' as const,
+      req: {
+        family: {
+          tie: `${s}-of-citizen` as const,
+          marriedOn: '2000-01-01',
+          marriageRegistration: 'malaysia' as const,
+          separatedOrDivorced: false,
+        },
+      },
+    })),
+    ...(['parent-of-citizen', 'spouse-of-pr', 'former-citizen'] as const).map(
+      (tie) => ({
+        id: 'my.rp.family' as const,
+        key: 'my.rp.long-term-pass',
+        kind: 'employment' as const,
+        req: { family: { tie, separatedOrDivorced: false } },
+        years: tie !== 'former-citizen',
+      }),
+    ),
+    {
+      id: 'my.pass.rpt',
+      key: 'my.pass.work-years',
+      kind: 'employment',
+      req: {},
+    },
+  ];
+  const run = (
+    r: (typeof routes)[number],
+    passes: MyFullRequest['passes'],
+    simulationDate: string,
+  ) => {
+    const p = path(r.id, { simulationDate, passes, ...r.req });
+    return {
+      check: p.checks.find((c) => c.id === r.key)!.status,
+      time: p.timeStatus,
+      date: p.timeEarliestDate,
+      assumptions: p.assumptions,
+    };
+  };
+
+  test('met only when the pass condition is met, and no date without a pass', () => {
+    for (const h of histories) {
+      for (const r of routes) {
+        const passes = h.map((s) => ({ kind: r.kind, from: s.from, to: s.to }));
+        const end = h[h.length - 1].to;
+        const held = (d: string) => h.some((s) => s.from <= d && d <= s.to);
+        for (const d of datesFor(h)) {
+          const at = run(r, passes, d);
+          const label = `${r.id} ${r.req.family?.tie ?? ''} ${d} ${JSON.stringify(h)}`;
+          expect(at.time === 'MET', label).toBe(at.check === 'MET');
+          if (at.date === undefined) continue;
+          if (!held(at.date)) {
+            // Only past the last pass, and then renewal is assumed.
+            expect(
+              [at.time, at.date > end, at.assumptions.length],
+              label,
+            ).toEqual(['FUTURE', true, 1]);
+            continue;
+          }
+          const then = run(r, passes, at.date);
+          expect([then.check, then.time, then.date], label).toEqual([
+            'MET',
+            'MET',
+            at.date,
+          ]);
+          if (r.years !== false) {
+            const before = run(r, passes, addDays(at.date, -1));
+            expect([before.time, before.date], label).toEqual([
+              'FUTURE',
+              at.date,
+            ]);
+          }
+        }
+      }
+    }
+  });
+
+  test('without the Residence Pass category only "no pass now or later" is certain', () => {
+    const r = {
+      id: 'my.rp.family',
+      key: 'my.rp.long-term-pass',
+      kind: 'employment',
+      req: {},
+    } as const;
+    for (const h of histories) {
+      const passes = h.map((s) => ({ kind: r.kind, from: s.from, to: s.to }));
+      for (const d of datesFor(h)) {
+        const at = run(r, passes, d);
+        const now = h.some((s) => s.from <= d && d <= s.to);
+        const later = h.some((s) => d <= s.to);
+        expect(
+          [at.check, at.time, at.date],
+          `${d} ${JSON.stringify(h)}`,
+        ).toEqual([
+          now ? 'UNKNOWN' : 'NOT_MET',
+          later ? 'UNKNOWN' : 'NOT_MET',
+          undefined,
+        ]);
+      }
+    }
   });
 });
 
