@@ -572,40 +572,46 @@ function filled(seed: number, sparse: boolean): IrelandDraft {
   };
 }
 const samples = [0, 1, 2, 3, 4, 5].map((seed) => filled(seed, seed >= 3));
+// Each sample runs all 16 pathways; CI runners are about three times slower.
+const slow = 30_000;
 
-test('each pathway sees every answer the engine reads for it, whatever else is selected', () => {
-  const differences: string[] = [];
-  for (const [seed, draft] of samples.entries()) {
-    const together = ie.run(draft, 'en').columns[0].pathways;
-    for (const id of IRELAND_PATHWAYS) {
-      const request = irelandRequest(draft, id);
-      // The same answers without removing questions hidden for this pathway.
-      const unpruned = evaluateIrelandFull({
-        ...draft,
-        permissions: draft.permissions ?? [],
-        trips: draft.trips ?? [],
-        registration: {
-          ...draft.registration,
-          stage: request.registration?.stage,
-        },
-        pathways: [id],
-        locale: 'en',
-      }).columns[0].pathways[0];
-      const pruned = evaluateIrelandFull({ ...request, locale: 'en' })
-        .columns[0].pathways[0];
-      if (JSON.stringify(pruned) !== JSON.stringify(unpruned))
-        differences.push(`hidden answer read: seed ${seed} ${id}`);
-      const alone = ie.run({ ...draft, pathways: [id] }, 'en').columns[0]
-        .pathways[0];
-      if (
-        JSON.stringify(alone) !==
-        JSON.stringify(together.find((pathway) => pathway.id === id))
-      )
-        differences.push(`depends on other pathways: seed ${seed} ${id}`);
+test(
+  'each pathway sees every answer the engine reads for it, whatever else is selected',
+  () => {
+    const differences: string[] = [];
+    for (const [seed, draft] of samples.entries()) {
+      const together = ie.run(draft, 'en').columns[0].pathways;
+      for (const id of IRELAND_PATHWAYS) {
+        const request = irelandRequest(draft, id);
+        // The same answers without removing questions hidden for this pathway.
+        const unpruned = evaluateIrelandFull({
+          ...draft,
+          permissions: draft.permissions ?? [],
+          trips: draft.trips ?? [],
+          registration: {
+            ...draft.registration,
+            stage: request.registration?.stage,
+          },
+          pathways: [id],
+          locale: 'en',
+        }).columns[0].pathways[0];
+        const pruned = evaluateIrelandFull({ ...request, locale: 'en' })
+          .columns[0].pathways[0];
+        if (JSON.stringify(pruned) !== JSON.stringify(unpruned))
+          differences.push(`hidden answer read: seed ${seed} ${id}`);
+        const alone = ie.run({ ...draft, pathways: [id] }, 'en').columns[0]
+          .pathways[0];
+        if (
+          JSON.stringify(alone) !==
+          JSON.stringify(together.find((pathway) => pathway.id === id))
+        )
+          differences.push(`depends on other pathways: seed ${seed} ${id}`);
+      }
     }
-  }
-  expect(differences).toEqual([]);
-});
+    expect(differences).toEqual([]);
+  },
+  slow,
+);
 
 test('minors on the Irish associations and public service routes can be represented', () => {
   const minor: IrelandDraft = {
@@ -790,3 +796,75 @@ test('the legacy Stamp 1G clock and other checks that do not decide a pathway st
   for (const check of [...route.checks, ...vetting.checks])
     expect(check.kind, check.id).toBeDefined();
 });
+
+test(
+  'the policy page lists every pending detail a condition can show in results',
+  () => {
+    const listed = new Map(
+      ie.policy.rules['ie.current-law-2026-11'].map((rule) => [
+        rule.id,
+        rule.pendingDetails ?? [],
+      ]),
+    );
+    const empty: IrelandDraft = {
+      ...ie.createDraft(),
+      simulationDate: day,
+      pathways: [...IRELAND_PATHWAYS],
+      permissions: [],
+      trips: [],
+    };
+    const drafts: IrelandDraft[] = [
+      ...samples,
+      ...[6, 7, 8, 9].map((seed) => filled(seed, true)),
+      empty,
+      {
+        ...empty,
+        workStage: 'renewal',
+        stamp5Stage: 'renewal',
+        ltrStage: 'renewal',
+        euStage: 'renewal',
+        waStage: 'renewal',
+      },
+      { ...empty, workStage: 'first' },
+      // Family renewal and first registration, and a spouse whose posting is
+      // not yet confirmed (review99-1).
+      {
+        ...empty,
+        family: {
+          relationship: 'child',
+          application: { registrationStage: 'renewal' },
+        },
+      },
+      {
+        ...empty,
+        family: {
+          relationship: 'spouse',
+          sponsorIrish: true,
+          application: { registrationStage: 'renewal' },
+        },
+      },
+      {
+        ...empty,
+        family: {
+          application: { channel: 'ordinary', registrationStage: 'first' },
+        },
+      },
+      {
+        ...empty,
+        marriedOn: '2020-01-01',
+        permissions: [{ kind: 'stamp4', from: '2025-01-01' }],
+        trips: [{ departed: '2025-12-01', returned: '2026-03-31' }],
+        citizenship: { spouse: { postingUnconfirmed: true } },
+      },
+    ];
+    const missing = new Set<string>();
+    for (const draft of drafts)
+      for (const route of ie.run(draft, 'en').columns[0].pathways)
+        for (const check of route.checks)
+          for (const detail of check.pendingDetails ?? [])
+            if (!listed.get(check.id)?.includes(detail))
+              missing.add(`${check.id} ${detail}`);
+    expect([...missing].sort()).toEqual([]);
+  },
+  slow,
+);
