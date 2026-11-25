@@ -233,10 +233,25 @@ export const malaysiaSteps: MalaysiaStep[] = [
         fields: [
           date('simulationDate', { required: true, hint: 'simulationDate' }),
           {
-            ...base('nationality', { hint: 'nationality' }),
+            ...base('nationality', {
+              hint: 'nationality',
+              for: ['pr-was', 'pr-rep', 'pass-spouse', 'pass-de-rantau'],
+            }),
             type: 'country',
           },
-          date('dateOfBirth', { past: true }),
+          date('dateOfBirth', {
+            past: true,
+            for: [
+              'pr-child',
+              'pr-rep',
+              'rp-family',
+              'cit-naturalisation',
+              'cit-wife',
+              'cit-child',
+              'pass-mm2h',
+              'pass-de-rantau',
+            ],
+          }),
           date('passportExpiry', {
             for: [...ALL_PR, 'rp-family', 'pass-de-rantau'],
           }),

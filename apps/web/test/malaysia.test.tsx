@@ -300,7 +300,6 @@ test('the questionnaire renders the fields the end-to-end flow uses', () => {
   const first = step({ ...draft, step: 0 });
   for (const id of [
     'my-simulationDate',
-    'my-nationality',
     'my-dateOfBirth',
     'my-targets',
     'my-target-cit-naturalisation',
@@ -310,11 +309,14 @@ test('the questionnaire renders the fields the end-to-end flow uses', () => {
     expect(first).toContain(`id="${id}"`);
   // Passport validity is asked only for routes that read it.
   expect(first).not.toContain('id="my-passportExpiry"');
-  expect(first).toMatch(/<option value="CN"[^>]*>中国<\/option>/);
-  expect(first).toContain(
+  // Nationality is asked for the routes that read it.
+  expect(first).not.toContain('id="my-nationality"');
+  const deposit = step({ ...draft, step: 0, targets: ['pr-was'] });
+  expect(deposit).toMatch(/<option value="CN"[^>]*>中国<\/option>/);
+  expect(deposit).toContain(
     `<option value="stateless">${t('my.form.stateless')}</option>`,
   );
-  expect(first).not.toContain('<option value="MY">');
+  expect(deposit).not.toContain('<option value="MY">');
   expect(step({ ...draft, step: 0, targets: ['pr-wife'] })).toContain(
     'id="my-passportExpiry"',
   );
@@ -385,6 +387,35 @@ test('the questionnaire renders the fields the end-to-end flow uses', () => {
   expect(rep).toContain('id="my-rep-participantSponsor"');
   expect(rep).toContain('id="my-was-citizenSponsor"');
   expect(rep).not.toContain('id="my-rep-marriedBeforeRepApplication"');
+});
+
+// review114-1 suggestion 2: the date of birth and nationality are asked only
+// for the routes that read them.
+test('the date of birth and nationality show only for the routes that read them', () => {
+  const first = (targets: MyTarget[]) =>
+    step({ ...naturalisationDraft(targets), step: 0 });
+  for (const target of [
+    'pass-pvip',
+    'pass-employment',
+    'pass-rpt',
+    'pr-wife',
+  ] as const) {
+    expect(first([target]), target).not.toContain('id="my-nationality"');
+    expect(first([target]), target).not.toContain('id="my-dateOfBirth"');
+  }
+  expect(first(['pr-was'])).toContain('id="my-nationality"');
+  expect(first(['pr-was'])).not.toContain('id="my-dateOfBirth"');
+  expect(first(['cit-naturalisation'])).toContain('id="my-dateOfBirth"');
+  expect(first(['cit-naturalisation'])).not.toContain('id="my-nationality"');
+  for (const target of ['pr-rep', 'pass-de-rantau'] as const) {
+    expect(first([target]), target).toContain('id="my-nationality"');
+    expect(first([target]), target).toContain('id="my-dateOfBirth"');
+  }
+  const active = activeMalaysiaAnswers(
+    naturalisationDraft(['pass-employment']),
+  );
+  expect(active.nationality).toBeUndefined();
+  expect(active.dateOfBirth).toBeUndefined();
 });
 
 test('separation and divorce, permanent residence and refusals reach the engine as answered', () => {
@@ -646,9 +677,10 @@ test('drafts round-trip in their country envelope and reject other countries', (
     my.decodeDraft({ ...draft, citizenship: { prHeld: 'yes' } }),
   ).toBeUndefined();
   // Nationality is an ISO code from the list, or stateless.
+  const was = { ...draft, targets: [...draft.targets, 'pr-was' as const] };
   for (const nationality of [7, 'ZZ', 'MY'])
-    expect(my.decodeDraft({ ...draft, nationality })).toBeUndefined();
-  expect(my.decodeDraft({ ...draft, nationality: 'stateless' })).toBeDefined();
+    expect(my.decodeDraft({ ...was, nationality })).toBeUndefined();
+  expect(my.decodeDraft({ ...was, nationality: 'stateless' })).toBeDefined();
 });
 
 test('opening a Malaysian share link keeps the local draft and result links carry the scenario', () => {
@@ -666,7 +698,7 @@ test('opening a Malaysian share link keeps the local draft and result links carr
   const shared = naturalisationDraft();
   const page = readPageResult(my, 'zh-CN', encodeDraft(my, shared));
   expect(page.shared).toBe(true);
-  expect(page.draft?.nationality).toBe('CN');
+  expect(page.draft?.dateOfBirth).toBe('1985-06-01');
   expect(JSON.parse(storage.get('my-immigration-draft-v1')!)).toEqual(local);
   expect(draftStorage(my).draft).toEqual(local);
   expect(linkedResultDraft(my, `#draft=${encodeDraft(my, shared)}`)).toEqual({

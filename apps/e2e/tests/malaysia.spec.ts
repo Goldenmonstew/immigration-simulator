@@ -44,9 +44,11 @@ async function begin(page: Page, dict: Dict) {
     dict['my.form.routeError'],
   );
   await page.locator('#my-simulationDate').fill('2026-11-25');
-  await page.locator('#my-nationality').selectOption('CN');
-  await page.locator('#my-dateOfBirth').fill('1985-06-01');
+  // Naturalisation reads the date of birth, not the nationality.
+  await expect(page.locator('#my-dateOfBirth')).toHaveCount(0);
   await page.locator('#my-target-cit-naturalisation').check();
+  await expect(page.locator('#my-nationality')).toHaveCount(0);
+  await page.locator('#my-dateOfBirth').fill('1985-06-01');
 }
 
 async function next(page: Page, dict: Dict, last = false) {
