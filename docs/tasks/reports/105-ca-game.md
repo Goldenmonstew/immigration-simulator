@@ -102,3 +102,62 @@
 - CELPIP 报名费 CA$280、各种物价与收入都是游戏设定，不是政策数字；考试的 CLB 等级按聘书岗位要求记录。
 - 其他国家合并时注意：`app/game-page.tsx`、`lib/game-country.ts`、`lib/site-countries.ts`、`public/sw.js` 与 `test/about-page.test.tsx` 的缓存版本、`packages/game/package.json` 的入口、`PROGRESS.md` 都是一行一项的登记，按并集合并即可。
 - 缺的素材：加拿大角色与镇民的 64×64 三表情立绘和 16px 行走图；IRCC、医院、安家服务中心、移民顾问的招牌；海鱼（鲭鱼、青鳕、比目鱼、条纹鲈）、蓝莓、枫糖浆、枫糖太妃、龙虾卷、纳奈莫条、南瓜派、poutine 的图标；冬季冰面、雪堆与木栈道瓦片；海鸥、海豹等本地动物。
+
+## 合入 main 与试点修正跟进
+
+brief：`brief-105c`。本分支原本建在日本试点（任务 111）与加拿大页面（任务 95）的早期版本上，两者合入 main 后分别又经过 review111-1 至 111-3 与 review95-1、95-2 的修正。本节先合入 main，再按 brief 列的五项、Fable 补充的五点（来自美国任务 106、澳大利亚任务 103 的跟进）与途中追加的一点（行程不得错过必须在国内当天办的手续，来自希腊、美国第二轮审核）逐项核对加拿大游戏。第 1–4 节里与本节不符的说法以本节为准：
+
+- PROGRESS 行号 580–584 改为 1120–1124（main 上任务 95 审核修正已用 578–589，同号重复），内容不变；新行从 1125 起，提交前查过所有本地与远端分支及各 worktree 的 PROGRESS（11xx 段只有任务 106 的 1100–1105），1120–1133 没有被占用。brief 的补充说原有行"与 main 不冲突，保留"，合并时发现同号，按澳大利亚任务 103 的做法改号。
+- 缓存版本现为 `2026-11-25-cagame`；菜谱做法键现为 `ca.game.prepare-<ID>`。
+- CELPIP 成绩日、入籍签署日、宣誓日与 AIP 递交日现在是当天日期（例如签署 2027-09-14、递交 2026-06-09、宣誓 2028-03-14），不是季首日期；签署、宣誓、递交记在游戏字段 `filed`，不直接写进问卷答案。
+- 开局入籍进度条现在是"无法确定"（结果页对同一草稿的结论），不是"最早 2027-06-22 满足条件"；2027-06-22 只出现在进度详情的时间条件行和移民局的下一步提示里。签署后本季的入籍评估仍是签署前的状态，下一季才只剩 CA-R11。
+
+### 1. 做了什么（按 commit）
+
+| PROGRESS | commit | 对应 | 内容 |
+|---|---|---|---|
+| — | `Merge: 合入 main` | brief 第 1 项 | 冲突 4 处：`site-countries.ts` 的 `pagesByCountry` 每国一行，加拿大取带 `'game'` 的那行，其余照 main；`sw.js` 与 `about-page.test.tsx` 缓存版本改为 `2026-11-25-cagame`；`PROGRESS.md` 取并集，本分支 580–584 改号为 1120–1124。共用外壳（`app/game-shell/`）、`game.ts`、`content-pack.ts` 没有冲突，以 main 为准；本分支对共用外壳本来就没有改动（蓝莓图标改在加拿大自己的 `shell.tsx`），不需要重加。`game-page.tsx`、`lib/game-country.ts`、`packages/game/package.json` 的国家登记与 i18n 自动合并为日本与加拿大的并集。合并后加拿大问卷经 review95-1 只读可见答案（`activeAnswers`），原有的结局链接单测因此失败（草稿里多了问卷不问的空 `federal.applications`），在第 1128 项修好。 |
+| 1125 | `Fix: 加拿大菜谱做法文案改用国家前缀键` | review111-1 问题 3 | 7 道菜的做法键由 `game.prepare-<ID>` 改为 `ca.game.prepare-<ID>`，外壳 `gameKey` 优先取用；美国也有 `garden-salad`，两国合并后不再互相覆盖。草莓酱原先沿用英国「搅一搅，熬成酱」，补本国做法「加糖慢熬，装进梅森罐」。 |
+| 1126 | `Fix: 加拿大当天办理的事按当天日期记录，评估与结局链接取同一评估日时间线` | review111-1 风险 2、review111-2 问题 1、补充第 3 点 | 原来 CELPIP 成绩日、入籍签署日、宣誓授予日、AIP 递交与缴费日都记季首 `state.date`。改为当天 `state.day.date`：CELPIP 成绩日直接写进问卷答案；签署、宣誓、递交记在游戏字段 `filed`（`citizenship`、`oath`、`aip`）。`caRequest(timeline, date)` 是唯一的"评估日视图"：成绩日晚于评估日的语言成绩先不放入，`filed` 里晚于评估日的事先不展开成问卷答案（签署日与费用、宣誓与授予日、AIP 递交日、申请表与生物识别）。游戏内评估（季首）与结局链接草稿都经它取答案，季中办的事下一季进入评估。能否签署或递交改为按当天评估"今天递交"的假设（`filingToday`），居住天数、担保有效期、语言成绩两年有效期都按当天判断；CELPIP 重考原来看季首评估里的 CA-R58，而未递交时这一项恒为待确认，过期成绩永远不能重考，现改看当天递交假设里的 CA-R58；担保过期后重新申请与下一步提示也按当天日期。在小镇里结束的一局（宣誓、递交 AIP、离开加拿大）在 `beforeAction` 记下结束日 `endedOn`，最后一次评估与结局链接按这一天（`assessedOn`），所以 AIP 结局仍只剩收件后才安排的体检 CA-R24；过期与到时结局仍按季首。 |
+| 1127 | `Fix: 加拿大工作许可过期结局反映身份失效` | review111-3 | `caRules.expired` 判定工作许可过期时，把时间线写为身份失效：工作随许可结束（在职经历记到许可到期日，不再延到评估前一天并标为有授权），`workingInCanada` 与安家资金豁免依据 `fundsExemptionAuthorization`（持有有效工作许可）写为否，逾期停留是否构成不合规交官员认定（`federal.protectionAndCompliance: 'under-review'`，SRC-261 IRPA ss.39–42）。结局评估里 AIP 的 CA-R25（不合规等）、CA-R59（安家资金）由已满足变为待确认。 |
+| 1128 | `Fix: 加拿大结局链接按结果页回读，游戏内结论与结果页一致` | review111-1 问题 1、补充第 1、2 点 | 加拿大结果页经 review95-1、95-2 后对引擎结果有后处理：只留所选路径、时间条件行按 CA-R03/R08、已满足或不推算日期的路径不显示日期行、检查项分类。`canada-module.ts` 把这段抽成 `presentCanadaResult`，`run` 改为评估后调用它（结果页行为不变，页面单测 39 项照常通过）。游戏的移民顾问评估、结局评估与进度详情都经它显示（`shownResult`）；进度详情的行与结果页相同（时间条件、按 `earliestLabel` 的日期标签），删去不再使用的 `ca.game.timeDate`。进度条结论原来在居住天数未到时显示时间条件的 `FUTURE`，现取路径本身的结论（结果页不改结论，内容包直接取引擎状态即等价，回读单测逐状态核对），仍按居住天数填充；进度百分比与移民局提示的日期改取居住天数检查本身的日期（结果页时间行用的那个，`presenceCheck`）。`gameDraft` 经 `activeCanadaAnswers` 只留所选路径问卷会问的答案。 |
+| 1129 | `Test: 加拿大宣誓与 AIP 递交结局的文案` | review111-1 问题 2（核对） | 每位角色只能递交一种申请：婉宁只能签入籍、以宣誓结束，阿迪蒂只能递交 AIP、以递交结束（两组动作分别 `when: [citizen]`、`when: [atlantic]`）。`endingText` 的 `settled` 直接取角色自己的文案、不读申请旗标，不存在 `ending` 效果先定稿、`actionFlags` 后写旗标的错位，所以没有另记申请种类（`beforeAction` 现在只记结束日）。补单测核对两条结局各只有一条 `settled` 日志、文案是角色自己的。 |
+| 1130 | `Fix: 加拿大补齐仍带英国语境的共用文案` | 补充第 5 点 | 内容包设 `fishingSpot`（钓鱼码头 / the fishing wharf），日记与旅程不再写"池塘抛竿"；导出 `caFurnishingNames`（马斯科卡木椅、保暖窗帘、台灯），商店标签同源、显示不变，`GameCountry.furnishingNames` 用它，结局"一点点布置的家"不再写阅读椅、厚窗帘；新增 `ca.game.kitchenNoIngredients`（社区菜园、青鳕和比目鱼、钓鱼码头）。 |
+| 1131 | `Fix: 加拿大当天递交假设补返回类型，game 包声明构建通过` | — | 第一次完整验收在 `pnpm build` 报 TS4058：`filingToday` 的推断返回类型引用引擎未导出的 `CaFullPathway`（与原第 580 项 `pathwayOf` 同类），补返回类型。 |
+| 1132 | `Fix: 加拿大持工作许可的行程赶得上最后一个可递交 AIP 的工作日` | Fable 跟进补充（希腊、美国第二轮审核） | 共用外壳里行程要到季首日期不早于回程日才结束，回程落在季中时整季都在国外。`canTravel` 原来只要求回程日不晚于 PR 卡或工作许可到期日；持工作许可时现在还要求行程在"许可到期前最后一个工作日所在季度"开头之前结束，否则不提供。例如许可 2028-06-30 到期，2028-03-14 只能探亲 1 个月，原来 3 个月（回程 06-14）也提供，整季错过 06-13 这个最后可以递交 AIP 的工作日，下一季直接以逾期结束。行程说明写明这一点，以及整个春季在外会错过当年的免费报税诊所（报税只在春季开放，`tax-return`）。加拿大其余在国内办的手续没有当天期限：入籍考试与宣誓在收到通知后的任何一季都能办（通知在 `afterQuarter` 里每季补发，直到读到为止），担保与 CELPIP 过期可以重办；PR 卡到期不关闭任何手续，婉宁的行程只受卡的到期日限制。 |
+| 1133 | `Docs: 任务 105 合入 main 与试点修正跟进报告` | brief 第 3 项 | 本节与 PROGRESS。 |
+
+补充第 4 点（个案裁量不预设最有利）核对结果：AIP 在递交时结束，游戏不预设 PR 获批；入籍的签署由引擎按当天判断全部条件（只留收件后才安排的考试），考试按游戏内公民知识判定，通过后的宣誓邀请与授予时仍合资格（`stillEligibleAtGrant`）对应 Citizenship Act s.5(1) 合资格即授予（SRC-260），没有另设裁量结果。省担保在申请后的下一季寄到，这是省里的决定，游戏没有办法交给引擎（引擎只判断担保在递交时是否有效、是否被撤销）；不寄到 AIP 就无法递交，所以保留，见第 3 段。工作许可过期后的合规审查原来默认"无问题"，现在按待决记录（第 1127 项）。
+
+### 2. 怎么验证的
+
+- 每项先写回归测试并确认失败，再改：
+  - 1125：网页单测「Canadian recipes keep their own cooking steps in %s」，修前 `gameKey('ca', 'game.prepare-poutine')` 返回不带前缀的键。修后中英文通过，加拿大沙拉是「切块，淋上枫糖油醋汁」，英国沙拉仍是「轻轻拌匀 / Toss gently」，7 道菜的文案都不等于共用键的文案。
+  - 1126：内容包单测「what the player does on a day carries that day and joins the next quarter」：阿迪蒂 2026-03-10 考 CELPIP，成绩日为 2026-03-10，本季（2026-03-01）的问卷答案里没有语言成绩，下一季有；婉宁 2027-09-14 签署，本季入籍评估仍缺 CA-R11、CA-R17，下一季只缺 CA-R11。修前成绩日是 2026-03-01。「day-count limits are checked on the day itself」：居住天数最早 2027-06-22 满足，2027-06-01 季的可玩日为 2027-06-21 时不能签、2027-06-22 时可以签；2026-03-10 的 CELPIP 成绩在 2028-03-09 不能重考、2028-03-14 可以重考；2026-06-01 签发、2026-12-01 到期的担保，当天 2026-12-01 不能重新申请、2026-12-08 可以。修前 2027-06-22 仍不能签署（用例停在第一个断言）；为确认后两组断言本身有效，又把重考、担保两处判断分别临时改回原写法运行这条用例，分别在「expected [] to include 'exam'」与「expected [ 'work' ] to include 'endorsement-request'」失败，随后恢复。原有 AIP 与入籍全流程用例改为断言 `filed` 与 `endedOn`（递交 2026-06-09、宣誓 2028-03-14），AIP 结局仍只剩 CA-R24，宣誓结局入籍为 `MET`。网页单测「a story that ends in town opens on the result page as of its last day」：阿迪蒂当天考 CELPIP 后离开，链接草稿的模拟日期为 2026-03-10、带当天的成绩，结果页 AIP 各检查项与游戏内一致；修前模拟日期是 2026-03-01。
+  - 1127：内容包单测「a lapsed work permit ends the story, and the assessment shows the lapse」：证件齐全但许可 2026-07-30 到期，2026-09-01 以 `overstayed` 结束，时间线 `job` 已删、在职经历到 2026-07-30、`workingInCanada` 与 `fundsExemptionAuthorization` 为否、`protectionAndCompliance` 为 `under-review`，AIP 未满足项包含 CA-R25、CA-R59，路径不是 `MET`。修前 `job` 仍在。
+  - 1128：网页单测「the citizen’s / graduate’s ending links open the same timeline on the result page」。婉宁：开局、探亲一个月回来、2027-09-14 签署后当天离开、考试通过后宣誓；阿迪蒂：当天办齐聘书、安家计划、担保申请、警证申请与 CELPIP（未结束）、同日离开、下一季递交 AIP、许可过期。每个状态用结果页同一入口 `readPageResult(canadaModule, 'zh-CN', 片段, 'result')` 回读：无更正，草稿等于 `gameDraft(state)`，模拟日期等于 `assessedOn(state)`；所选路径的 status、earliestDate、timeStatus、timeEarliestDate、travelDate 与每个检查项的 status、kind 和游戏内显示（`shownResult`）一致；两列进度条结论等于结果页对应路径的结论。宣誓结局入籍为 `MET`，递交结局 AIP 的申请条件只剩 CA-R24，过期结局 AIP 不是 `MET`。修前（合入 main 后）婉宁开局就不一致（游戏内是引擎原始结果：10 条路径、检查项没有分类），阿迪蒂开局草稿与回读不等（多了问卷不问的空 `federal.applications`）。状态栏用例改为断言入籍条是「无法确定」、不含 2027-06-22，进度详情含「时间条件：最早 2027-06-22 满足条件」；内容包开局用例的入籍条改为 `UNKNOWN`、73%。加拿大页面单测 `canada.test.tsx` 39 项照常通过，确认抽出 `presentCanadaResult` 后结果页不变。
+  - 1129：两条 settled 结局的日志断言第一次运行即通过（核对项，代码未改）。
+  - 1130：内容包单测「the diary casts a line off the fishing wharf, not at a pond」与网页单测「the kitchen hint and ending furniture use Canadian wording in %s」，修前抛竿日志写"池塘"、厨房提示等于英国文案。修后日志为「在钓鱼码头抛竿」「钓鱼码头抛竿 1 次。」，结局家具为马斯科卡木椅、保暖窗帘、台灯，与商店标签一致。
+  - 1131：第一次完整验收（HEAD `778faf28`）lint、typecheck、test 全部通过，`pnpm build` 在 game 包的声明构建报 TS4058；补返回类型后 `tsc -p tsconfig.build.json` 退出码 0。
+  - 1132：内容包单测「a trip on a work permit is back for the last workday to file」：阿迪蒂在 2028-03-14 的渡轮码头只有 `travel-1`，2027-12-14 有 `travel-1`、`travel-3`（6 个月回程 2028-06-14 不提供）；婉宁在 2030-03-12 仍有 1 个月与 3 个月探亲。修前 2028-03-14 也提供 `travel-3`。
+  - 每个 commit 前跑了受影响包的 `tsc --noEmit`、ESLint、Prettier 检查与 `ca-pack`、`canada-game` 两个测试文件。
+- 整链：`export VITEST_MAX_WORKERS=2` 后 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`。第一次（HEAD `778faf28`）在 build 失败，见第 1131 项；第二次（HEAD `0b653b01`）`GATE EXIT 0`；收到跟进补充、提交第 1132 项后在 HEAD `fe333df6` 再跑一次，`GATE EXIT 0`：error-report 2、policy-data 23、engine 6,007（既有 1 项按默认跳过）、game 1,373（加拿大内容包单测 7 → 11）、web 1,119（加拿大游戏网页单测 8 → 13）项通过，英国与日本游戏既有单测全部通过；构建生成 70 个静态页面，`apps/web/out/canada/game.html` 已生成。
+- 浏览器 e2e：确认 4489 端口空闲后 `cd apps/e2e && E2E_PORT=4489 npx playwright test tests/game.spec.ts tests/life.spec.ts tests/japan-game.spec.ts tests/canada-game.spec.ts --project=desktop --reporter=line`，在 `0b653b01` 与 `fe333df6` 的构建上各跑一次，都是 31 项全部通过（英国 `game.spec.ts` 14、`life.spec.ts` 7，日本 5，加拿大 5），退出码 0；服务由 Playwright 的 webServer 起停，跑完端口已释放，`apps/e2e/test-results` 已删除。
+- 视觉检查：用临时 Playwright 脚本（放在 `apps/e2e/tests/` 下跑完即删，未入库）在 `fe333df6` 的构建上无头截图。婉宁开局：入籍条「无法确定」，下方「还差：实际居住及例外 · 公民知识考试 · 入籍费用」，永久居民条「已满足条件」；点开入籍条，详情为「普通入籍（s.5(1)）· 无法确定」「时间条件 最早 2027-06-22 满足条件」「预计满足条件的日期 尚无法确定」，与结果页对同一草稿的行一致；英文界面同样三行、无中文。弹窗标题仍是共用外壳的「进入新一年前 → 进入新一年后」（见第 4 段第 2 条）。
+
+### 3. 没做或没验证的
+
+- 结束日评估是本国的取舍，需要统筹确认：日本、美国、澳大利亚的结局评估与链接都按季首日期；加拿大在小镇里结束的一局（宣誓、递交 AIP、离开）按结束那天评估（`endedOn`），因为 AIP 在递交当天结束，按季首评估会把刚递交的申请排除在外，结局评估就成了"未递交"（签名、费用、收件时担保与语言成绩有效等都待确认），与结局文案不符。过期与到时结局仍按季首。
+- 没有日期的问卷答案仍在办完当天就进入本季评估：聘书、安家计划、春季报税（`taxYears` 只记"已报"）、入籍考试结果（`test.outcome`）。问卷没有这些事的日期，与澳大利亚的体检、无犯罪证明同样处理。省担保信与无犯罪证明寄到时按季首日期记签发日（请求在上一季提出，信在本季工作日寄到），没有改。
+- 工作许可过期结局里 AIP 是"待确认"，不是 brief 写的"未满足"：加拿大引擎对 AIP 没有"在境内持有效临时身份"的条件（联邦申请的说明写"另行维持临时身份"），身份失效在问卷里能反映的是失去安家资金豁免与合规待审，引擎据此判为待确认。要判为未满足，得把逾期停留预设为官员已认定的不合规（`protectionAndCompliance: 'inadmissible'`），这属于预设个案结果，没有这样做。
+- 补充第 4 点里省担保的签发保留为申请后下一季寄到；入籍宣誓时 `stillEligibleAtGrant` 仍记为是（邀请只在考试通过后寄出，此时引擎已判入籍各条件满足）；聘书的 `genuine` 等事实答案仍按角色设定。
+- 入籍考试只记 `passed` / `retry`、不计次数，PR 卡不能续办，沿用第 3 段原有说明，本轮未改。
+- 没有跑 mobile project 与 a11y e2e；英国 e2e 截图基线本机仍忽略，没有比对。
+
+### 4. 发现与建议（范围外，未实现）
+
+1. `timeout` 结局文案固定为"申请表还在抽屉里"。婉宁签署入籍后在等考试或宣誓时到了时间上限，文案与事实不符；可按 `cit-applied`、`cit-test-passed` 选文案（美国任务 106 报告第 4 段第 2 条同类）。
+2. 共用外壳点开进度条时，详情弹窗标题是 `game.progressChanges`「进入新一年前 → 进入新一年后」，与弹窗内容（某条路径的当前结论）不符；美国、澳大利亚已报告，加拿大同样，属共用外壳。
+3. 季度唯一工作日的规则（季首后第 8 天起的第一个周二）写在共用 `game.ts` 的 `beginDay` 里，没有导出；英国内容包与本轮加拿大的 `canTravel` 各自照写一份。建议在 `calendar.ts` 导出这一函数，共用规则改动时各国不会走样。
+4. 若 IRCC 对在境内递交 AIP 的人另有"持有效临时身份"的要求，建议在 `policy-data` 与引擎登记来源；届时工作许可过期结局就能由引擎判为未满足，游戏不必改。
+5. 报税只在春季开放，整个春季在外的那一年永远报不了；可考虑让报税诊所在之后的季度也能补报上一年（问卷按年份记"已报"即可）。
