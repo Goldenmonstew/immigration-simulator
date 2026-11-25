@@ -62,7 +62,7 @@ export function itemIcon(id: string) {
 export function gameDraft(state: JpState): JapanDraft {
   return {
     ...createJapanDraft(),
-    ...structuredClone(state.timeline),
+    ...structuredClone(jpGame.timelineOn(state.timeline, state.date)),
     simulationDate: state.date,
     residenceEvidenceOn: jpGame.evidenceDay(state.date),
     step: 5,

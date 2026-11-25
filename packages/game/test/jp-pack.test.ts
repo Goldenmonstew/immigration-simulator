@@ -173,6 +173,8 @@ test('a move and its address notice are recorded on the day they happen', () => 
   expect(
     late.timeline.permanentResidence.evidence.addressNotices![0].notifiedOn,
   ).toBe(late.day.date);
+  // The late notice joins the assessment next quarter, as the move did.
+  expect(addressCheck(late)).toBe('UNKNOWN');
   expect(addressCheck(quarterLater(late))).toBe('NOT_MET');
 });
 

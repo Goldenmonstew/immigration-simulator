@@ -96,6 +96,32 @@ function progress(state: JpState): Progress<JpColumn, JpOutcome> {
   return { pr: entry('pr'), nat: entry('nat') };
 }
 
+/**
+ * The timeline as it stood on the assessment date. Address changes and notices
+ * carry the day they happen, which is after the quarter's first day, so they
+ * join the assessment in the next quarter, as trips do on return.
+ */
+export function timelineOn(timeline: JpTimeline, date: IsoDate): JpTimeline {
+  const evidence = timeline.permanentResidence.evidence;
+  if (!evidence.addressNotices) return timeline;
+  return {
+    ...timeline,
+    permanentResidence: {
+      ...timeline.permanentResidence,
+      evidence: {
+        ...evidence,
+        addressNotices: evidence.addressNotices
+          .filter((notice) => notice.eventOn <= date)
+          .map((notice) =>
+            notice.notifiedOn && notice.notifiedOn > date
+              ? { eventOn: notice.eventOn }
+              : notice,
+          ),
+      },
+    },
+  };
+}
+
 export const jpRules: EvaluationAdapter<
   JpTimeline,
   JpFullResult,
@@ -106,7 +132,7 @@ export const jpRules: EvaluationAdapter<
 > = {
   evaluate: ({ date, timeline, locale }) =>
     evaluateJapanFull({
-      ...timeline,
+      ...timelineOn(timeline, date),
       simulationDate: date,
       residenceEvidenceOn: evidenceDay(date),
       locale,

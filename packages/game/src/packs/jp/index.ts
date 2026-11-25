@@ -115,6 +115,7 @@ export const achievements = hooks.jpAchievements;
 export { jpCharacters, jpFurnishingNames, jpRules };
 export {
   evidenceDay,
+  timelineOn,
   pathwayOf,
   status,
   type JpColumn,

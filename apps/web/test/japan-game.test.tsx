@@ -98,6 +98,62 @@ test.each(['engineer', 'spouse'])(
   },
 );
 
+test.each(['engineer', 'spouse'])(
+  'the ending link opens after %s moves and reports mid-quarter',
+  (id) => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    });
+    const visit = (state: State, place: string, minute: number) => {
+      state = settle(state);
+      if (state.day.minute < minute)
+        state = settle(jp.tick(state, minute - state.day.minute));
+      return settle(jp.enter(state, place));
+    };
+    const quarterLater = (from: State) => {
+      let next = from;
+      for (let i = 0; i < 12 && next.date === from.date; i++)
+        next = settle(jp.sleep(next));
+      return next;
+    };
+    const leave = (state: State) =>
+      jp.doActivity(visit(state, 'station', 900), 'leave');
+    const view = (result: CountryResult) =>
+      result.columns[0].pathways.map((pathway) => ({
+        id: pathway.id,
+        status: pathway.status,
+        earliestDate: pathway.earliestDate,
+        timeEarliestDate: pathway.timeEarliestDate,
+        checks: pathway.checks.map((check) => [check.id, check.status]),
+      }));
+    const opening = settle(jp.newGame(id, 7, 'zh-CN'));
+    const moved = settle(
+      jp.doActivity(visit(opening, 'home', 480), 'rent-brighter-home'),
+    );
+    const report = (state: State) =>
+      settle(jp.doActivity(visit(state, 'ward', 600), 'address-notice'));
+    const reported = report(moved);
+    // Reported a quarter late, then left in that same quarter.
+    const late = report(quarterLater(moved));
+    expect(late.date).not.toBe(moved.date);
+    const endings = [leave(moved), leave(reported), leave(late)];
+    for (const state of endings) {
+      expect(state.ending).toBe('left');
+      const page = readPageResult(
+        japanModule,
+        'zh-CN',
+        jpCountry.resultHref(state).split('#s=')[1],
+        'result',
+      );
+      expect(page.correction).toBeUndefined();
+      expect(page.draft).toEqual(gameDraft(state));
+      expect(view(page.result!)).toEqual(view(state.result));
+    }
+  },
+);
+
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak Japanese residence in %s',
   (locale) => {
