@@ -1398,6 +1398,76 @@ describe('deadlines and missing birth dates in the timeline (review113-2 #4)', (
   });
 });
 
+describe('citizenship timelines and oaths (review113-2 risks 1, 3)', () => {
+  const timeOf = (id: MyPathwayId, req: MyFullRequest) => {
+    const p = path(id, req);
+    return [p.timeStatus, p.timeEarliestDate];
+  };
+
+  test('the search reaches a late 21st birthday or a planned permanent residence', () => {
+    // Born 2018-01-01, 21 on 2039-01-01, with permanent residence since 2020.
+    expect(
+      timeOf('my.cit.naturalisation', {
+        simulationDate: day,
+        dateOfBirth: '2018-01-01',
+        passes: [],
+        trips: [],
+        citizenship: { permanentResidentSince: '2020-01-01' },
+      }),
+    ).toEqual(['FUTURE', '2039-01-01']);
+    const wifeReg = (
+      permanentResidentSince: string,
+      trips: MyFullRequest['trips'] = [],
+    ) =>
+      timeOf('my.cit.wife-registration', {
+        ...wife,
+        passes: [],
+        trips,
+        citizenship: { permanentResidentSince },
+      });
+    // Issued 2027-06-01: two years throughout on 2029-06-01.
+    expect(wifeReg('2027-06-01')).toEqual(['FUTURE', '2029-06-01']);
+    expect(
+      timeOf('my.cit.naturalisation', {
+        simulationDate: day,
+        dateOfBirth: '1980-01-01',
+        passes: [],
+        trips: [],
+        citizenship: { permanentResidentSince: '2027-06-01' },
+      }),
+    ).toEqual(['FUTURE', '2037-06-01']);
+    // Abroad for another reason from 2026-06-01 until 2027-12-01: two years
+    // throughout again from 2029-12-01, past the old two-year window.
+    expect(
+      wifeReg('2020-01-01', [
+        { departed: '2026-06-01', returned: '2027-12-01', reason: 'other' },
+      ]),
+    ).toEqual(['FUTURE', '2029-12-01']);
+  });
+
+  test('without a birth date a registration oath is not known to be needed', () => {
+    // SRC-500 Art. 18(1) p42: only those aged 18 or over take the oath.
+    const oath = (id: MyPathwayId, family: MyFullRequest['family']) =>
+      cond(id, 'my.cit.renunciation-oath', {
+        simulationDate: day,
+        family,
+        citizenship: { renounceOtherNationality: 'no' },
+      });
+    for (const [id, tie] of [
+      ['my.cit.child-registration', 'child-of-citizen'],
+      ['my.cit.wife-registration', 'wife-of-citizen'],
+    ] as const) {
+      const c = oath(id, { tie });
+      expect([c.status, c.pendingDetails], id).toEqual(['UNKNOWN', undefined]);
+      expect(c.explanation, id).toContain('未填生日');
+    }
+    // Naturalisation always needs the oath (Art. 19(9)).
+    expect(oath('my.cit.naturalisation', { tie: 'none' }).status).toBe(
+      'NOT_MET',
+    );
+  });
+});
+
 describe('29 February birthdays (review113-1 #10)', () => {
   test('earliest dates and deadlines follow the age in full years', () => {
     // Born 2004-02-29: 20 on 2025-02-28, 21 on 2025-03-01.

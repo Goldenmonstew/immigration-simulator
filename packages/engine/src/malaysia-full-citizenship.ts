@@ -76,6 +76,21 @@ const answered = (r: Residence) => r.prKnown && r.tripsKnown;
 const consentPending = (r: Residence) =>
   r.prKnown && r.tripsKnown && r.passesKnown;
 
+/**
+ * The last day to search: `years` after the latest of `from`, the permanent
+ * residence start and every return. By then the `years` before lie wholly in
+ * permanent residence with no long absence.
+ */
+function horizon(ctx: MyContext, from: IsoDate, years: number) {
+  const since = ctx.req.citizenship?.permanentResidentSince;
+  const last = [
+    from,
+    ...(since ? [since] : []),
+    ...(ctx.req.trips ?? []).map((t) => t.returned),
+  ].reduce((a, b) => (a > b ? a : b));
+  return addYears(last, years);
+}
+
 function firstDay(
   from: IsoDate,
   to: IsoDate,
@@ -128,10 +143,15 @@ const residenceRules = (ctx: MyContext) =>
 function oath(ctx: MyContext, registration: boolean): MyCheck {
   const { req, date, L } = ctx;
   const answer = req.citizenship?.renounceOtherNationality;
+  const years = age(req.dateOfBirth, date);
+  // Art. 18(1): registration needs the oath only from 18.
+  const ageUnknown = registration && years === undefined && answer === 'no';
   const c = check(
     'my.cit.renunciation-oath',
     L('宣誓与放弃原国籍', 'Oath and giving up other nationality'),
-    answer === undefined || answer === 'unsure' ? undefined : answer === 'yes',
+    answer === undefined || answer === 'unsure' || ageUnknown
+      ? undefined
+      : answer === 'yes',
     [
       registration ? v.registrationOathAge.sources[0] : fc('Art. 19(9) p46'),
       fc('附表一 p359'),
@@ -150,10 +170,15 @@ function oath(ctx: MyContext, registration: boolean): MyCheck {
       L(
         '誓词放弃对任何外国的一切效忠；宪法不承认双重国籍，自愿取得外国国籍可被褫夺。放弃原国籍的期限与证明方式未公布。',
         ' renounces all allegiance to any other country. The Constitution does not recognise dual citizenship, and voluntarily acquiring another may lead to deprivation. No deadline or proof for renouncing the old nationality is published.',
-      ),
-    ['PD-418'],
+      ) +
+      (ageUnknown
+        ? L(
+            `未填生日，无法确认是否已满 ${v.registrationOathAge.value} 岁而须宣誓。`,
+            ` No date of birth is entered, so whether the applicant is ${v.registrationOathAge.value} or over and must take the oath is unknown.`,
+          )
+        : ''),
+    ageUnknown ? [] : ['PD-418'],
   );
-  const years = age(req.dateOfBirth, date);
   return registration &&
     years !== undefined &&
     years < v.registrationOathAge.value
@@ -206,7 +231,9 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
         : ''),
   );
 
-  const r = residence(ctx, addYears(date, n.windowYears + 1));
+  const start = adult && adult > date ? adult : date;
+  const until = horizon(ctx, start, n.windowYears);
+  const r = residence(ctx, addDays(until, 1));
   const test = (d: IsoDate) =>
     verdict(
       r,
@@ -216,10 +243,7 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
         fullyCovered(s, addMonths(d, -n.recentMonths), d),
     );
   const met = test(date);
-  const start = latest(date, adult ?? date) as IsoDate;
-  const first = answered(r)
-    ? firstDay(start, addYears(date, n.windowYears), test)
-    : undefined;
+  const first = answered(r) ? firstDay(start, until, test) : undefined;
   const residenceCheck = check(
     'my.cit.residence',
     L('居住年限', 'Residence period'),
@@ -467,13 +491,12 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
     'my.cit.marriage-registration',
     [fc('Art. 15(5) p39–40'), ref('SRC-513', 'Description；清单第 2(d) 项')],
   );
-  const r = residence(ctx, addYears(date, w.residenceYears + 1));
+  const until = horizon(ctx, date, w.residenceYears);
+  const r = residence(ctx, addDays(until, 1));
   const test = (d: IsoDate) =>
     verdict(r, (s) => fullyCovered(s, addYears(d, -w.residenceYears), d));
   const met = test(date);
-  const first = answered(r)
-    ? firstDay(date, addYears(date, w.residenceYears), test)
-    : undefined;
+  const first = answered(r) ? firstDay(date, until, test) : undefined;
   const residenceCheck = check(
     'my.cit.residence',
     L('居住年限', 'Residence period'),
