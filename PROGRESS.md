@@ -683,3 +683,4 @@
 | 619.9 | 任务 96 审核修正（review96-1）：报告补“审核修正”一节，逐条对应问题 1–10、风险 1–6、建议 1–4，列出验证结果与待任务 93 共用修正的条目。 | docs/tasks/reports/96-us-pages.md |
 | 619.10 | 任务 96 接入共用选项：美国模块设 `scenarioLinks`，结果、编辑与对比链接带场景片段，打开分享链接不覆盖本机草稿；“跳到主要内容”在美国问卷、结果与对比页改为移焦，不洗掉 `#s=`。 | apps/web/{lib/united-states-module.ts,components/site-shell.tsx,test/united-states.test.tsx} |
 | 619.11 | 任务 96 接入共用选项：共用 `earliestLabel` 可按路径 id 设标签（`earliestLabelFor`），结果页、“还差什么”与对比页都按路径读取；美国返美路径的日期标为“计划返美日”，其他路径仍为“最早可申请日期（推算）”；去掉摘要里重复的返美日句子，已返美（非 FUTURE）时不显示日期。 | apps/web/{lib/{country-module,united-states-module}.ts,components/{gap-summary,whatif-lab}.tsx,i18n/countries/united-states.ts,test/united-states.test.tsx} |
+| 619.12 | 任务 96 接入共用选项：美国检查项按共用 `kind` 分组：`US-TIME-*` 为时间条件，C44／C45 费用为费用预算，引擎标 `informational` 的为办理提示，其余为申请条件；“还差什么”只列申请条件与时间条件。宣誓（C12）是 N-400 上就问的核准条件，不作批准后事项；引擎没有“满足其一即可”的分列检查，不设可选依据。 | apps/web/{lib/united-states-module.ts,test/united-states.test.tsx} |

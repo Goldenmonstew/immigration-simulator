@@ -980,10 +980,10 @@ test('results show the approval stage and keep procedural notes out of the gaps 
   const kind = (id: string) =>
     pathway.checks.find((check) => check.id === id)?.kind;
   expect(kind('US-C18-REGISTRATION')).toBe('information');
-  expect(kind('US-TIME-TRAVEL')).toBe('requirement');
+  expect(kind('US-TIME-TRAVEL')).toBe('time');
   for (const check of pathway.checks)
     if (/^US-C4[45]-/.test(check.id))
-      expect(check.kind, check.id).toBe('information');
+      expect(check.kind, check.id).toBe('budget');
   expect(gapRules(pathway)).toEqual([]);
   // The return date is named as the planned return (#6, task 93 shared fix).
   expect(pathwayDate(pathway, us.earliestLabel)?.label).toBe(
@@ -1122,4 +1122,53 @@ test('a planned return is labelled as the return date, other pathways keep the f
       />,
     ),
   ).toContain(t('result.earliest'));
+});
+
+test('checks are grouped as time, requirement, budget or information, and only the first two are gaps (task 93 shared fix)', () => {
+  const kinds = (draft: UsDraft) =>
+    Object.fromEntries(
+      pathwayOf(draft).checks.map((check) => [check.id, check.kind]),
+    );
+  const notes = travelDraft();
+  delete notes.travel!.registration;
+  delete notes.travel!.feeForm;
+  for (const draft of [notes, naturalizationDraft, conditionsDraft])
+    for (const [id, kind] of Object.entries(kinds(draft)))
+      expect(kind, id).toBe(
+        id.startsWith('US-TIME-')
+          ? 'time'
+          : /^US-C4[45]-/.test(id)
+            ? 'budget'
+            : [
+                  'US-C05-N648',
+                  'US-C18-REGISTRATION',
+                  'US-C19-ADDRESS',
+                  'US-C19-REPLACEMENT',
+                ].includes(id)
+              ? 'information'
+              : 'requirement',
+      );
+  expect(kinds(notes)['US-C44-TRAVEL-FORM']).toBe('budget');
+  // The oath is an approval requirement asked on the N-400, not a step after
+  // approval, so it stays a gap.
+  expect(kinds(naturalizationDraft)['US-C12-OATH']).toBe('requirement');
+  // Budget and procedural notes are not gaps; unmet time requirements are.
+  expect(gapRules(pathwayOf(notes))).toEqual([]);
+  const short = pathwayOf({
+    ...naturalizationDraft,
+    permanentResident: '2024-03-01',
+  });
+  expect(
+    gapRules(short).find((rule) => rule.id === 'US-TIME-LPR'),
+  ).toMatchObject({ kind: 'time', status: 'NOT_MET' });
+  const html = render(
+    <ResultView country={us} result={us.run(notes, 'zh-CN')} draft={notes} />,
+  );
+  for (const key of [
+    'country.check.time',
+    'country.check.budget',
+    'country.check.information',
+    'country.check.requirement',
+  ] as const)
+    expect(html, key).toContain(`· ${t(key)}`);
 });

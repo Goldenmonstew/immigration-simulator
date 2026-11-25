@@ -23,12 +23,16 @@ function run(draft: UsDraft, locale: Locale): UsFullResult {
   const result = evaluateUnitedStatesFull(unitedStatesRequest(draft, locale));
   const separator = locale === 'zh-CN' ? '' : ' ';
   for (const pathway of result.columns[0].pathways) {
-    // Fees and procedural reminders do not decide the pathway.
+    // Fees and procedural reminders do not decide the pathway, so only time
+    // and other requirements are gaps.
     for (const check of pathway.checks)
-      check.kind =
-        check.informational || /^US-C4[45]-/.test(check.id)
-          ? 'information'
-          : 'requirement';
+      check.kind = check.id.startsWith('US-TIME-')
+        ? 'time'
+        : /^US-C4[45]-/.test(check.id)
+          ? 'budget'
+          : check.informational
+            ? 'information'
+            : 'requirement';
     // The travel pathway's date is the planned return (earliestLabel). A
     // completed return has none to show.
     if (pathway.id === 'US-TRAVEL' && pathway.status !== 'FUTURE')
