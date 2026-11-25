@@ -19,6 +19,10 @@ export interface CountryDraft {
 // Result pages can explain an invalid share without importing it.
 export type DraftReadMode = boolean | 'show-correction';
 
+// One label for every pathway, or labels by pathway id.
+export type EarliestLabel =
+  TranslationKey | Readonly<Partial<Record<string, TranslationKey>>>;
+
 export interface CountryModule<D extends CountryDraft, K> {
   id: CountryId;
   version: number;
@@ -43,7 +47,7 @@ export interface CountryModule<D extends CountryDraft, K> {
   principal?(draft: D, locale: Locale): CountryResult | undefined;
   resultNotes?(draft?: D): { notices: TranslationKey[]; dependant?: boolean };
   // Label for a pathway's earliestDate where it is not an application date.
-  earliestLabel?: TranslationKey;
+  earliestLabel?: EarliestLabel;
   advice?: {
     text: TranslationKey;
     sourceId: string;
@@ -82,9 +86,19 @@ export function pathwayTitle(
       );
 }
 
+export function earliestLabelFor(
+  pathway: CountryPathway,
+  label?: EarliestLabel,
+): TranslationKey {
+  return (
+    (typeof label === 'string' ? label : label?.[pathway.id]) ??
+    'result.earliest'
+  );
+}
+
 export function pathwayDate(
   pathway?: CountryPathway,
-  earliestLabel: TranslationKey = 'result.earliest',
+  earliestLabel?: EarliestLabel,
 ) {
   if (!pathway || pathway.travelDate === null) return undefined;
   return pathway.travelDate
@@ -92,5 +106,8 @@ export function pathwayDate(
         label: `country.${pathway.travelDate.kind}` as const,
         date: pathway.travelDate.date,
       }
-    : { label: earliestLabel, date: pathway.earliestDate };
+    : {
+        label: earliestLabelFor(pathway, earliestLabel),
+        date: pathway.earliestDate,
+      };
 }
