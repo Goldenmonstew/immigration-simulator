@@ -485,7 +485,8 @@ const partner: PtCharacter = {
         stable: true,
         solidarityReliance: false,
       },
-      { kind: 'foreign-portuguese-school', recognized: true },
+      // Whether foreign Portuguese schooling is accepted is for the authority.
+      { kind: 'foreign-portuguese-school' },
     ),
     permanentOperation: 'grant',
     partner: {

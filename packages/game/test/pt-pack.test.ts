@@ -220,6 +220,14 @@ test('the application is not offered once the card has ended by the playable day
   expect(pt.activities(office, 'visa').map(({ id }) => id)).toEqual([]);
 });
 
+test('the partner’s foreign schooling is left for the authority to recognise', () => {
+  const partner = pt.newGame('partner', 5, 'en');
+  expect(partner.timeline.residence?.language).toEqual({
+    kind: 'foreign-portuguese-school',
+  });
+  expect(checks(partner, 'pr')['PT-B05']).toBe('UNKNOWN');
+});
+
 test('permanent residence goes in at AIMA with only the means assessment open, and pays the fee', () => {
   const start = settle(pt.newGame('worker', 5, 'en'));
   const closed = visit(on(structuredClone(start), '2026-12-01'), 'visa', 600);
