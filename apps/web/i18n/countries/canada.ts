@@ -1,7 +1,9 @@
 import { caFormEn, caFormZh } from './canada-form';
+import { caGameEn, caGameZh } from './canada-game';
 
 export const zhCN = {
   ...caFormZh,
+  ...caGameZh,
   'ca.name': '加拿大',
   'hub.ca.code': 'CA',
   'hub.ca.paths':
@@ -110,6 +112,7 @@ export const zhCN = {
 
 export const en: Record<keyof typeof zhCN, string> = {
   ...caFormEn,
+  ...caGameEn,
   'ca.name': 'Canada',
   'hub.ca.code': 'CA',
   'hub.ca.paths':

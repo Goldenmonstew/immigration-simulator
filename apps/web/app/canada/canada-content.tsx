@@ -5,6 +5,7 @@ import { PolicyStatus } from '../../components/policy-status';
 import { SavedScenarios } from '../../components/saved-scenarios';
 import { useTranslation } from '../../i18n/locale';
 import { canadaModule } from '../../lib/canada-module';
+import { gameArt, gameAsset } from '../../lib/game-country';
 import { countryPath } from '../../lib/site-countries';
 import styles from '../site.module.css';
 
@@ -30,6 +31,17 @@ export default function CanadaContent() {
           </Link>
           <Link href={countryPath('ca', 'policy')}>{t('site.policy')}</Link>
         </div>
+        <Link className={styles.gameEntry} href={countryPath('ca', 'game')}>
+          <span
+            className={styles.gameBanner}
+            style={{
+              backgroundImage: `url("${gameAsset('ca', gameArt.ca.banner)}")`,
+            }}
+            aria-hidden="true"
+          />
+          <span className={styles.gameEntryTitle}>{t('ca.game.entry')}</span>
+          <span className={styles.gameEntryDesc}>{t('ca.game.entryDesc')}</span>
+        </Link>
         <section className={styles.section}>
           <h2>{t('home.before')}</h2>
           <p>{t('ca.prepare')}</p>

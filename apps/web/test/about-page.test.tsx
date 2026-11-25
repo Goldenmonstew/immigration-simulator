@@ -143,5 +143,5 @@ test('the service worker precaches about and uses the new cache version', async 
   );
   expect(await offlinePages().json()).toContain('/uk/about');
   expect(source).toContain("fetch(at('/offline-pages.json')");
-  expect(source).toContain('2026-11-25-ie5');
+  expect(source).toContain('2026-11-25-cagame');
 });
