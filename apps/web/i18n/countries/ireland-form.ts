@@ -199,6 +199,14 @@ const messages = {
     'Verified start and end dates of reckonable lawful residence without an IRP (for example as an EEA, Swiss or UK citizen). They must cover the departure, time abroad and return for any trip relied on.',
   ],
   'ie.hint.to': ['仍在持续可留空。', 'Leave blank if ongoing.'],
+  'ie.hint.minor': [
+    '申请人未满 18 岁时填写。Irish associations 与境外公共服务路径只问是否由获授权者代为申请。',
+    'Complete if the applicant is under 18. The Irish associations and public service routes only ask whether an authorised person applies on their behalf.',
+  ],
+  'ie.hint.protection': [
+    '有难民、无国籍或其他保护身份时填写。身份证明与发证费豁免适用于所有入籍路径，认定日与居住豁免只用于难民或无国籍人入籍。',
+    'Complete if you have refugee, stateless or other protection status. Identity evidence and the certification fee exemption apply on every naturalisation route; the recognition date and residence waiver only on the refugee or stateless route.',
+  ],
   'ie.hint.waivedResidenceConditions': [
     '不勾选任何一项而直接留空，表示正式决定同时豁免两项居住条件。',
     'Leaving this unanswered means the decision waived both residence requirements.',

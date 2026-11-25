@@ -1,6 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
-import { IRELAND_CONDITION_IDS } from '@uk-immigration/engine';
+import {
+  IRELAND_CONDITION_IDS,
+  evaluateIrelandFull,
+} from '@uk-immigration/engine';
 import IrelandPage from '../app/ireland/page';
 import IrelandPolicyPage from '../app/ireland/policy/page';
 import IrelandSimulatePage from '../app/ireland/simulate/page';
@@ -14,6 +17,7 @@ import { LocaleContext } from '../i18n/locale';
 import {
   IRELAND_PATHWAYS,
   activeIrelandAnswers,
+  irelandRequest,
   irelandSteps,
   type IrelandDraft,
 } from '../lib/ireland-draft';
@@ -484,4 +488,174 @@ test('the Ireland policy page lists pathways, conditions and only Irish sources'
   }
   expect(cited).toContain('SRC-094');
   for (const id of cited) expect(html).toContain(`data-source="${id}"`);
+});
+
+// A filled-in draft with every question answered (or, when sparse, about two
+// thirds of the optional ones), varied by seed so that different engine
+// branches run.
+const sample = ['2015-03-01', '2020-06-15', '2025-01-10', '2026-11-23', '2027-03-01'];
+function filled(seed: number, sparse: boolean): IrelandDraft {
+  let n = seed;
+  const next = () => (n = (n * 1103515245 + 12345) % 2147483648);
+  const fill = (fields: IrelandFields) => {
+    const record: Record<string, unknown> = {};
+    for (const [name, field] of Object.entries(fields)) {
+      if (sparse && !field.required && next() % 3 === 0) continue;
+      const pick = next();
+      switch (field.type) {
+        case 'boolean':
+          record[name] = pick % 2 === 0;
+          break;
+        case 'choice':
+          record[name] = field.options[pick % field.options.length];
+          break;
+        case 'multi':
+          record[name] = field.options.filter((_, i) => (pick >> i) & 1);
+          break;
+        case 'date':
+          record[name] = sample[pick % sample.length];
+          break;
+        case 'datetime':
+          record[name] = '2020-12-31T23:00Z';
+          break;
+        case 'number':
+          record[name] = [0.2, 3, 60000][pick % 3];
+          break;
+        case 'integer':
+          record[name] = [0, 2, 12][pick % 3];
+          break;
+        case 'numbers':
+          record[name] = [60000, 70000, 80000];
+          break;
+        case 'dates':
+          record[name] = [sample[pick % sample.length]];
+          break;
+        case 'group':
+          record[name] = fill(field.fields);
+          break;
+        case 'list':
+          record[name] = [fill(field.fields), fill(field.fields)];
+      }
+    }
+    // Validation keeps end dates on or after their start.
+    for (const [first, last] of [
+      ['from', 'to'],
+      ['departed', 'returned'],
+      ['leftOn', 'returnedOn'],
+      ['offerFrom', 'offerEnd'],
+    ]) {
+      const [from, to] = [record[first], record[last]] as string[];
+      if (from && to && to < from) [record[first], record[last]] = [to, from];
+    }
+    return record;
+  };
+  return {
+    ...(fill(topFields) as Partial<IrelandDraft>),
+    version: 1,
+    step: 0,
+    completed: true,
+    simulationDate: day,
+    dateOfBirth: seed % 2 ? '2012-05-01' : '1985-01-01',
+    // Realistic records keep the residence clocks quick to project.
+    permissions:
+      seed % 2
+        ? [{ kind: 'stamp4', from: '2016-01-01' }]
+        : [
+            { kind: 'stamp1-csep', from: '2020-06-15', to: '2022-06-14' },
+            { kind: 'stamp4', from: '2022-06-15' },
+          ],
+    trips: seed % 2 ? [] : [{ departed: '2025-07-01', returned: '2025-07-20' }],
+    pathways: [...IRELAND_PATHWAYS],
+  };
+}
+const samples = [0, 1, 2, 3, 4, 5].map((seed) => filled(seed, seed >= 3));
+
+test('each pathway sees every answer the engine reads for it, whatever else is selected', () => {
+  const differences: string[] = [];
+  for (const [seed, draft] of samples.entries()) {
+    const together = ie.run(draft, 'en').columns[0].pathways;
+    for (const id of IRELAND_PATHWAYS) {
+      const request = irelandRequest(draft, id);
+      // The same answers without removing questions hidden for this pathway.
+      const unpruned = evaluateIrelandFull({
+        ...draft,
+        permissions: draft.permissions ?? [],
+        trips: draft.trips ?? [],
+        registration: {
+          ...draft.registration,
+          stage: request.registration?.stage,
+        },
+        pathways: [id],
+        locale: 'en',
+      }).columns[0].pathways[0];
+      const pruned = evaluateIrelandFull({ ...request, locale: 'en' })
+        .columns[0].pathways[0];
+      if (JSON.stringify(pruned) !== JSON.stringify(unpruned))
+        differences.push(`hidden answer read: seed ${seed} ${id}`);
+      const alone = ie.run({ ...draft, pathways: [id] }, 'en').columns[0]
+        .pathways[0];
+      if (
+        JSON.stringify(alone) !==
+        JSON.stringify(together.find((pathway) => pathway.id === id))
+      )
+        differences.push(`depends on other pathways: seed ${seed} ${id}`);
+    }
+  }
+  expect(differences).toEqual([]);
+});
+
+test('minors on the Irish associations and public service routes can be represented', () => {
+  const minor: IrelandDraft = {
+    ...naturalisationDraft,
+    dateOfBirth: '2014-03-01',
+    citizenship: {
+      ...naturalisationDraft.citizenship,
+      minor: { authorisedRepresentative: true },
+    },
+  };
+  for (const id of ['IE-IRISH-ASSOCIATIONS', 'IE-PUBLIC-SERVICE'] as const) {
+    const draft = { ...minor, pathways: [id] };
+    const a01 = pathway(draft, id).checks.find((c) => c.id === 'IE-A01');
+    expect(a01?.status).toBe('MET');
+    const html = render(
+      IrelandSimulatePage().props.children({
+        draft,
+        errors: {},
+        update: () => {},
+      }),
+    );
+    expect(html).toContain('id="ie-citizenship-minor-authorisedRepresentative"');
+    // Questions and sections only other routes use stay hidden.
+    expect(html).not.toContain('id="ie-citizenship-minor-characterWaived"');
+    expect(html).not.toContain(t('ie.form.section.natSpouse'));
+    // The result does not change when another minor route is also selected.
+    expect(
+      pathway({ ...draft, pathways: [id, 'IE-MINOR-BORN-IN-STATE'] }, id),
+    ).toEqual(pathway(draft, id));
+  }
+});
+
+test('a recognised refugee on ordinary naturalisation can confirm the fee exemption', () => {
+  const draft: IrelandDraft = {
+    ...naturalisationDraft,
+    citizenship: {
+      ...naturalisationDraft.citizenship,
+      protection: {
+        kind: 'convention-refugee',
+        validRecognition: true,
+        certificationFeeExemptionConfirmed: true,
+      },
+    },
+  };
+  const a10 = pathway(draft, 'IE-NATURALISATION').checks.find(
+    (c) => c.id === 'IE-A10',
+  )!;
+  expect(a10.status).toBe('MET');
+  expect(a10.explanation).toContain('€0');
+  expect(
+    pathway(
+      { ...draft, pathways: ['IE-NATURALISATION', 'IE-PROTECTION'] },
+      'IE-NATURALISATION',
+    ),
+  ).toEqual(pathway(draft, 'IE-NATURALISATION'));
 });

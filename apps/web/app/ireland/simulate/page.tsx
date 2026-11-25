@@ -6,6 +6,7 @@ import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import {
   irelandSteps,
+  shownField,
   stepFields,
   type IrelandDraft,
 } from '../../../lib/ireland-draft';
@@ -96,12 +97,14 @@ function IrelandStep({ draft, errors, update }: StepProps) {
       topFields[name as keyof typeof topFields],
     ]),
   );
-  // Each section belongs to a top-level group shown on this step.
+  // Each section belongs to a top-level group shown on this step and has at
+  // least one question for the selected pathways.
   const visible = (stepSections[step] ?? []).filter((section) => {
     const top = topFields[section.path[0] as keyof typeof topFields];
     return (
       stepFields(step).includes(section.path[0] as never) &&
-      (!top.paths || top.paths.some((id) => draft.pathways.includes(id)))
+      shownField(top, draft) &&
+      Object.values(section.fields).some((field) => shownField(field, draft))
     );
   });
   const pathwayError = errors['ie-pathways'];

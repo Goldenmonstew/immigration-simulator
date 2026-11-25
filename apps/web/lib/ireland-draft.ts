@@ -145,9 +145,15 @@ export function activeIrelandAnswers(draft: IrelandDraft): IrelandDraft {
   };
 }
 
-/** The engine request for the answers that the selected pathways use. */
-export function irelandRequest(draft: IrelandDraft): IrelandFullRequest {
-  const active = activeIrelandAnswers(draft);
+/**
+ * The engine request for one pathway, with only the answers that pathway's
+ * questions show: its result does not depend on what else is selected.
+ */
+export function irelandRequest(
+  draft: IrelandDraft,
+  pathway: IrelandFullPathwayId,
+): IrelandFullRequest {
+  const active = activeIrelandAnswers({ ...draft, pathways: [pathway] });
   const request: Partial<IrelandDraft> = { ...active };
   delete request.version;
   delete request.step;
@@ -155,8 +161,7 @@ export function irelandRequest(draft: IrelandDraft): IrelandFullRequest {
   return {
     ...(request as Omit<IrelandDraft, keyof CountryDraft>),
     simulationDate: active.simulationDate,
-    // Results follow the pathway order, whatever order they were ticked in.
-    pathways: IRELAND_PATHWAYS.filter((id) => active.pathways.includes(id)),
+    pathways: [pathway],
     permissions: active.permissions ?? [],
     trips: active.trips ?? [],
   };

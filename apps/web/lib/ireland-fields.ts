@@ -268,21 +268,34 @@ export const citizenshipSections = {
   natMinor: {
     minor: group<Minor>(
       {
+        // Irish associations and public service read it for applicants under 18.
         authorisedRepresentative: bool(),
-        listedSeriousOffence: bool(),
-        backgroundFormPrepared: bool(),
-        characterWaived: bool(),
-        declarationWaived: bool(),
+        listedSeriousOffence: bool({ paths: ['IE-MINOR-BORN-IN-STATE'] }),
+        backgroundFormPrepared: bool({ paths: ['IE-MINOR-BORN-IN-STATE'] }),
+        characterWaived: bool({ paths: ['IE-MINOR-BORN-IN-STATE'] }),
+        declarationWaived: bool({ paths: ['IE-MINOR-BORN-IN-STATE'] }),
         naturalisedParentCertificateOn: date({
           paths: ['IE-MINOR-NATURALISED-PARENT'],
         }),
-        relationshipAndConsentEvidence: bool(),
-        childResidenceAndSchoolEvidence: bool(),
+        relationshipAndConsentEvidence: bool({
+          paths: ['IE-MINOR-NATURALISED-PARENT'],
+        }),
+        childResidenceAndSchoolEvidence: bool({
+          paths: ['IE-MINOR-NATURALISED-PARENT'],
+        }),
         parentRouteWaiverGranted: bool({
           paths: ['IE-MINOR-NATURALISED-PARENT'],
         }),
       },
-      { paths: ['IE-MINOR-BORN-IN-STATE', 'IE-MINOR-NATURALISED-PARENT'] },
+      {
+        hint: 'minor',
+        paths: [
+          'IE-MINOR-BORN-IN-STATE',
+          'IE-MINOR-NATURALISED-PARENT',
+          'IE-IRISH-ASSOCIATIONS',
+          'IE-PUBLIC-SERVICE',
+        ],
+      },
     ),
   },
   natAssociation: {
@@ -315,6 +328,8 @@ export const citizenshipSections = {
     ),
   },
   natProtection: {
+    // Identity evidence and the certification fee exemption apply on every
+    // naturalisation route; the residence rules only on the refugee route.
     protection: group<Protection>(
       {
         kind: choice(
@@ -328,7 +343,7 @@ export const citizenshipSections = {
           ],
           { label: 'protectionKind' },
         ),
-        grantOn: date({ label: 'protectionGrantOn' }),
+        grantOn: date({ label: 'protectionGrantOn', paths: ['IE-PROTECTION'] }),
         validRecognition: bool(),
         identityEvidence: group<NonNullable<Protection['identityEvidence']>>({
           nationalPassportUnavailable: bool(),
@@ -337,13 +352,14 @@ export const citizenshipSections = {
           witnessedPassportAffidavit: bool(),
         }),
         certificationFeeExemptionConfirmed: bool(),
-        waiverGranted: bool(),
-        waiverPending: bool(),
+        waiverGranted: bool({ paths: ['IE-PROTECTION'] }),
+        waiverPending: bool({ paths: ['IE-PROTECTION'] }),
         waivedResidenceConditions: multi(['continuous', 'prior'], {
           hint: 'waivedResidenceConditions',
+          paths: ['IE-PROTECTION'],
         }),
       },
-      { paths: ['IE-PROTECTION'] },
+      { hint: 'protection' },
     ),
   },
   natPublicService: {

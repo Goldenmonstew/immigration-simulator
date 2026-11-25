@@ -2,6 +2,7 @@ import { evaluateIrelandFull, type Locale } from '@uk-immigration/engine';
 import { t } from '../i18n';
 import type { CountryModule } from './country-module';
 import {
+  IRELAND_PATHWAYS,
   activeIrelandAnswers,
   createIrelandDraft,
   decodeIrelandDraft,
@@ -14,7 +15,21 @@ import { irelandPolicy, irelandTimeRuleTitles } from './ireland-policy';
 import { irelandWhatIf, type IrelandWhatIf } from './ireland-whatif';
 
 function run(draft: IrelandDraft, locale: Locale) {
-  const result = evaluateIrelandFull({ ...irelandRequest(draft), locale });
+  const result = evaluateIrelandFull({
+    simulationDate: draft.simulationDate,
+    permissions: [],
+    trips: [],
+    pathways: [],
+    locale,
+  });
+  // Each pathway is assessed on its own answers, in the fixed pathway order.
+  result.columns[0].pathways = IRELAND_PATHWAYS.filter((id) =>
+    draft.pathways.includes(id),
+  ).flatMap(
+    (id) =>
+      evaluateIrelandFull({ ...irelandRequest(draft, id), locale }).columns[0]
+        .pathways,
+  );
   for (const pathway of result.columns[0].pathways) {
     // A projected date assumes the documents are still valid on that day.
     if (pathway.status === 'FUTURE')
