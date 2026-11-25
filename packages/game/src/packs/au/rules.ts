@@ -8,7 +8,7 @@ import {
   type CountryResult,
 } from '@uk-immigration/engine';
 import { auRegionalParameters } from '@uk-immigration/policy-data';
-import { addMonths } from '../../calendar';
+import { addDays, addMonths, firstWeekday } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
 import type { GameState, IsoDate, Locale, Progress } from '../../model';
 import { auBalance as b } from './balance';
@@ -123,6 +123,18 @@ function visaMonthsLeft(state: AuState): number {
   return months;
 }
 
+/**
+ * The first workday after a trip ending on `through`. The shared game brings
+ * the player home at the first quarter start on or after the return date and
+ * plays that quarter from its workday, the first Tuesday after its first week
+ * (game.ts beginDay); the government service centre opens only on workdays.
+ */
+function workdayAfter(state: AuState, through: IsoDate): IsoDate {
+  let quarter = state.date;
+  while (quarter < through) quarter = addMonths(quarter, b.monthsPerQuarter);
+  return firstWeekday(addDays(quarter, 7), 2);
+}
+
 function progress(state: AuState): Progress<AuColumn, AuOutcome> {
   const pathway = pathwayOf(currentResult(state));
   const start = Date.parse(currentVisa(state).from);
@@ -155,8 +167,9 @@ export const auRules: EvaluationAdapter<
   progress,
   route: (state) => state.timeline.pathway,
   visaMonthsLeft,
-  // The trip must end while the current visa is still in effect.
-  canTravel: (state, through) => through <= currentVisa(state).to!,
+  // Back before the visa ends, in time for a workday on which to lodge.
+  canTravel: (state, through) =>
+    workdayAfter(state, through) <= currentVisa(state).to!,
   recordAbsence(state, trip) {
     state.timeline.trips.push({ departed: trip.from, returned: trip.to });
   },

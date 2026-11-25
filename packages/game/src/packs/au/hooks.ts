@@ -188,8 +188,8 @@ export function actionDetails(state: AuState, action: AuActivity): void {
     action.label = t('冬天下海游一圈（冷！）', 'A winter dip (cold!)');
   if (action.id.startsWith('travel-') && state.timeline.pathway === 'AU-191-HK')
     action.note = t(
-      '须在当前签证到期前回到澳洲。香港类别离境后是否仍算连续通常居住须个案判断（PD-108）：回来后评估会一直把这一项显示为待确认，进度条也不再给出日期；其他条件都满足后，仍可在政府服务中心递交，由内政部核对。',
-      'Be back before your current visa ends. Whether the Hong Kong streams still treat you as continuously usually resident after a trip is a case-by-case call (PD-108): from then on the assessment shows it as unknown and the progress bar gives no date. Once everything else is met, you can still lodge at the service centre and Home Affairs decides it.',
+      `${action.note!.zhCN}香港类别离境后是否仍算连续通常居住须个案判断（PD-108）：回来后评估会一直把这一项显示为待确认，进度条也不再给出日期；其他条件都满足后，仍可在政府服务中心递交，由内政部核对。`,
+      `${action.note!.en} Whether the Hong Kong streams still treat you as continuously usually resident after a trip is a case-by-case call (PD-108): from then on the assessment shows it as unknown and the progress bar gives no date. Once everything else is met, you can still lodge at the service centre and Home Affairs decides it.`,
     );
 }
 

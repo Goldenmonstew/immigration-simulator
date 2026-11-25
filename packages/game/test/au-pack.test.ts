@@ -339,3 +339,37 @@ test('after a trip home, the Hong Kong stream can be lodged once only usual resi
     'settle',
   );
 });
+
+test.each([
+  ['nurse', '2029-03-01', 2, '2029-06-12'],
+  ['graduate', '2028-12-01', 1, '2029-03-13'],
+] as const)(
+  'the %s cannot take a trip that would miss the last workday before the visa ends',
+  (id, date, quarter, workday) => {
+    const start = settle(au.newGame(id, 5, 'en'));
+    Object.assign(start.timeline.publicInterest, {
+      health: 'cleared',
+      policeDocuments: 'supplied',
+    });
+    start.timeline.regional.assessmentYears = [2025, 2026, 2027, 2028];
+    // Play into the next quarter's workday.
+    let state = at(start, date, quarter);
+    state = nextDay(nextDay(nextDay(state)));
+    expect(state.day.date).toBe(workday);
+    const trips = au
+      .activities(visit(state, 'station', 600), 'station')
+      .filter(({ id }) => id.startsWith('travel-'));
+    // A month away comes back in time for the next quarter's workday; three
+    // months would skip it, and the visa ends before the one after.
+    expect(trips.map(({ id }) => id)).toEqual(['travel-1']);
+    expect(trips[0].note?.en).toContain('workday');
+    const back = settle(
+      au.doActivity(visit(state, 'station', 600), 'travel-1'),
+    );
+    expect(back.ending).toBeUndefined();
+    expect(back.day.date <= au.currentVisa(back).to!).toBe(true);
+    expect(
+      au.activities(visit(back, 'visa', 600), 'visa').map(({ id }) => id),
+    ).toContain('settle');
+  },
+);

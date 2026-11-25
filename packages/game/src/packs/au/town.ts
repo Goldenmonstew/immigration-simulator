@@ -569,8 +569,8 @@ export const auActions: Activity<AuEffect, AuFestival>[] = [
       `Visit home for ${months} month${months === 1 ? '' : 's'}`,
     ),
     note: t(
-      '须在当前签证到期前回到澳洲。',
-      'Be back in Australia before your current visa ends.',
+      '回来后要赶得上签证到期前的一个工作日（政府服务中心只在工作日开门），赶不上的行程不提供。',
+      'You must be back in time for a workday before your current visa ends (the service centre opens only on workdays); trips that would miss it are not offered.',
     ),
     minutes: 0,
     effects: [
