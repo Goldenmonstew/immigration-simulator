@@ -348,6 +348,23 @@ test('what-if controls adjust simulation date, household size, income, absences 
   expect(whatifHtml).toContain('ES-E05');
 });
 
+test('the family rules on the policy page link to Hoja 52, as the engine does', () => {
+  const family = es
+    .run({ ...longTermMetDraft(), targets: ['F'] }, 'en')
+    .columns[0].pathways[0].checks.find((check) => check.id === 'ES-F01')!;
+  const hoja52 = family.sources.find(
+    (source) => source.srcId === 'SRC-345' && source.url,
+  )?.url;
+  expect(hoja52).toMatch(/duplicar-0$/);
+  const html = render(<SpainPolicyPage />, 'en');
+  const rules = html.split('<li data-rule="');
+  for (const id of ['ES-F01', 'ES-F02', 'ES-F03', 'ES-F04']) {
+    const rule = rules.find((part) => part.startsWith(`${id}"`))!;
+    expect(rule, id).toContain(`href="${hoja52}"`);
+    expect(rule, id).not.toContain(`href="${sourceUrls['SRC-345']}"`);
+  }
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'questionnaire, result view and policy page render in %s with only Spanish sources',
   (locale) => {
