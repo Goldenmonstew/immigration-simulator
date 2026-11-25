@@ -875,3 +875,4 @@
 | 919 | 任务 95 审核修正（review95-2 风险 3）。魁省担保群组（表 B）不再提供“确认没有记录”：新担保至少有本次新增一组；本机草稿或分享链接里该列表为空时按未答处理，CA-R78 为待确认，不再按 0 计入表 B。其他清单不变。 | apps/web/lib/canada-{fields,draft}.ts、apps/web/app/canada/simulate/fields.tsx、apps/web/test/canada.test.tsx |
 | 920 | 任务 95 审核修正（review95-2 建议 2）。加拿大“适用／不适用”分组（如安省近期毕业）选“适用”后，清空最后一个子项时仍保留“适用”（存为空记录），不再无提示退回未答、隐藏子项。 | apps/web/app/canada/simulate/fields.tsx、apps/web/test/canada.test.tsx |
 | 921 | 任务 95 审核修正（review95-2）报告：逐条对应问题 1、风险 1–3、建议 1–3，风险 4 与签署日对比跳转列入发现与建议／未做；同步报告中已过时的共用组件、结果说明与缓存版本（建议 1）。 | docs/tasks/reports/95-ca-pages.md |
+| 1220 | 任务 116 共用游戏修正：进度条详情弹窗标题改为该路径名（原为"进入新一年前 → 进入新一年后"，与内容不符；美国、澳大利亚游戏报告提出），日本 e2e 核对弹窗名 | `apps/web/app/game-shell/game-client.tsx`、`apps/e2e/tests/japan-game.spec.ts` |

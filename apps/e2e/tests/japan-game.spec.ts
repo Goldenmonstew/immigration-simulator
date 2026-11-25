@@ -108,6 +108,14 @@ test('the English interface shows the period of stay and Japanese study', async 
   await walkTo(page, 'Minatozaka Shrine');
 });
 
+test('the progress detail is titled with its pathway', async ({ page }) => {
+  await startJapanGame(page, characters[0].en, 'en');
+  await page.getByRole('button', { name: /Permanent residence/ }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'Permanent residence' }),
+  ).toBeVisible();
+});
+
 test.describe('at phone width', () => {
   test.use({ viewport: { width: 375, height: 812 }, hasTouch: true });
   test('the town is playable from the places drawer', async ({ page }) => {
