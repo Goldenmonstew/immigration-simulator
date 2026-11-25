@@ -125,9 +125,11 @@ export function actionAvailable(
       reportableToday(state, action.minutes) &&
       affordable(state, action.effects)
     );
-  // The fee joins the effects only in actionDetails, after this check.
+  // The fee joins the effects only in actionDetails, after this check. A move
+  // made this quarter is not assessed yet, so its notice is checked here.
   if (action.id === 'settle')
     return (
+      !state.flags.includes('address-notice-due') &&
       (pathwayOf(state.result, 'pr')?.status === 'MET' ||
         longestPending(state)) &&
       affordable(state, [{ type: 'money', delta: -prFee(state) }])

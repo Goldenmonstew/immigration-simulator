@@ -178,6 +178,27 @@ test('a move and its address notice are recorded on the day they happen', () => 
   expect(addressCheck(quarterLater(late))).toBe('NOT_MET');
 });
 
+test('a move made this quarter keeps the application closed until it is reported', () => {
+  const state = settle(jp.newGame('engineer', 5, 'en'));
+  state.date = '2034-06-01';
+  state.day.date = '2034-06-13';
+  state.timeline.permanentResidence.evidence.japaneseB1Confirmed = true;
+  Object.assign(jp.status(state), {
+    grantedPeriodMonths: values.longestPeriod.value.deemedMonths,
+    expiresOn: '2036-03-31',
+  });
+  state.result = jp.jpRules.evaluate(state);
+  const moved = jp.doActivity(visit(state, 'home', 480), 'rent-brighter-home');
+  expect(moved.flags).toContain('address-notice-due');
+  // The quarter is assessed from its first day, so the move is not in it yet.
+  expect(addressCheck(moved)).toBe('MET');
+  const ids = (state: State) =>
+    jp.activities(visit(state, 'visa', 720), 'visa').map(({ id }) => id);
+  expect(ids(moved)).not.toContain('settle');
+  const reported = jp.doActivity(visit(moved, 'ward', 600), 'address-notice');
+  expect(ids(reported)).toContain('settle');
+});
+
 test('moving is offered only while the ward office can take the notice that day', () => {
   const start = settle(jp.newGame('engineer', 5, 'en'));
   const at = (minute: number) => visit(start, 'home', minute);
