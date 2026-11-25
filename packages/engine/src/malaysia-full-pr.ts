@@ -1247,8 +1247,9 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
     tie === 'husband-of-citizen' ||
     tie === 'spouse-of-pr';
   const subsists = marriageSubsists(ctx);
-  // A citizen's divorcee with a Malaysian citizen biological child is in
-  // Category 3 on that basis (SRC-508), which is not asked.
+  // A citizen's divorcee granted court custody of a Malaysian citizen
+  // biological child is in Category 3(iii) on that basis (SRC-508), which is
+  // not asked.
   const divorcee = spouse && cat === 3 && subsists.divorced;
   const checks: MyCheck[] = [
     check(
@@ -1292,8 +1293,8 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
         (spouse ? subsists.text : '') +
         (divorcee
           ? L(
-              '离婚者有马来西亚公民亲生子女时属第 3 类的另一情形，本工具未问，待确认。',
-              ' A divorcee with a biological child who is a Malaysian citizen is in Category 3 on that basis, which is not asked here.',
+              '离婚者有马来西亚公民亲生子女、并经法院判给该子女的完全或共同监护权时，属第 3 类（iii）的另一情形，本工具未问，待确认。',
+              ' A divorcee with a biological child who is a Malaysian citizen, granted full or joint custody of that child by a court, is in Category 3(iii) on that basis, which is not asked here.',
             )
           : ''),
       spouse ? subsists.pending : [],

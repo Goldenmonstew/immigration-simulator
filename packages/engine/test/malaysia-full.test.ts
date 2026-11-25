@@ -1575,6 +1575,11 @@ describe('a subsisting marriage across the spouse pathways (review113-2 risk 4)'
       );
       expect(at(true, true).status, id).toBe(divorced.status);
     }
+    // Category 3(iii) also needs court custody of the citizen child (SRC-508;
+    // review114-2 risk 2).
+    expect(
+      cond('my.rp.family', 'my.rp.category', as(false, true)).explanation,
+    ).toContain('经法院判给该子女的完全或共同监护权');
     // A permanent resident's former spouse has no Category 4 basis.
     expect(
       cond('my.rp.family', 'my.rp.category', {
