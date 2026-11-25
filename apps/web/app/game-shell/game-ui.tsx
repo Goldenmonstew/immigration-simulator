@@ -1,12 +1,26 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useTranslation } from '../../../i18n/locale';
-import { type StatKey, type Text } from '@uk-immigration/game';
-import styles from './game.module.css';
+import type { TranslationKey } from '../../i18n';
+import { useTranslation } from '../../i18n/locale';
+import { zhCN } from '../../i18n/zh-CN';
+import type { Text } from '@uk-immigration/game/core';
+import styles from '../uk/game/game.module.css';
 
 export function localText(text: Text, locale: string) {
   return locale === 'en' ? text.en : text.zhCN;
+}
+/** A country can reword a shared game string under `<country>.game.…`. */
+export function gameKey(country: string, key: TranslationKey) {
+  const own = `${country}.${key}`;
+  return (own in zhCN ? own : key) as TranslationKey;
+}
+export function useGameText(country: string) {
+  const { t, locale } = useTranslation();
+  return {
+    locale,
+    t: (key: TranslationKey) => t(gameKey(country, key)),
+  };
 }
 export const iconPaths = {
   check: 'M5 12l4 4L19 6',
@@ -22,6 +36,7 @@ export const iconPaths = {
   mood: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z M8 9h.01 M16 9h.01 M8 14q4 5 8 0',
   health: 'M12 21S2 15 2 8a5 5 0 0 1 10-1A5 5 0 0 1 22 8c0 7-10 13-10 13z',
   english: 'M3 3h7q2 0 2 2 0-2 2-2h7v16h-7q-2 0-2 2-0-2-2-2H3z M12 5v16',
+  japanese: 'M3 3h7q2 0 2 2 0-2 2-2h7v16h-7q-2 0-2 2-0-2-2-2H3z M12 5v16',
   career: 'M3 7h18v14H3z M8 7V3h8v4 M3 12q9 6 18 0 M12 12v4',
   visa: 'M5 2h14v20H5z M16 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0z M8 18h8',
   sunny:
@@ -60,17 +75,17 @@ export const dayDate = (date: string, locale: string) =>
     day: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(date));
-export function money(value: number) {
-  return `£${value.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`;
+export function signedWith(money: (value: number) => string) {
+  return (value: number, key: string) =>
+    `${value > 0 ? '+' : value < 0 ? '−' : ''}${key === 'money' ? money(Math.abs(value)) : Math.abs(value)}`;
 }
-export function signed(value: number, key: StatKey) {
-  return `${value > 0 ? '+' : value < 0 ? '−' : ''}${key === 'money' ? money(Math.abs(value)) : Math.abs(value)}`;
-}
+// Pathway statuses from every country result share these colours.
 export function outcomeColor(outcome: string) {
-  return outcome === 'LIKELY_ELIGIBLE'
+  return outcome === 'LIKELY_ELIGIBLE' || outcome === 'MET'
     ? '#00703c'
     : outcome === 'LIKELY_NOT_ELIGIBLE' ||
-        outcome === 'REQUIRES_REGULATED_REVIEW'
+        outcome === 'REQUIRES_REGULATED_REVIEW' ||
+        outcome === 'NOT_MET'
       ? '#b52b1a'
       : '#956d00';
 }
