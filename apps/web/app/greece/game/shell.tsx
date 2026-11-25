@@ -1,0 +1,226 @@
+import type { CountryResult } from '@uk-immigration/engine';
+import * as grGame from '@uk-immigration/game/gr';
+import type {
+  GrColumn,
+  GrEffect,
+  GrFestival,
+  GrOutcome,
+  GrState,
+  GrTimeline,
+} from '@uk-immigration/game/gr';
+import { CountryAssessmentColumns } from '../../../components/result-view';
+import { isDecisionOutcome, pathwayTitle } from '../../../lib/country-module';
+import {
+  activeGreeceAnswers,
+  createGreeceDraft,
+  greeceSteps,
+  type GreeceDraft,
+} from '../../../lib/greece-draft';
+import { greeceModule } from '../../../lib/greece-module';
+import { encodeDraft } from '../../../lib/share';
+import { countryPath } from '../../../lib/site-countries';
+import { createGameShell } from '../../game-shell/shell';
+import type { GameCountry } from '../../game-shell/types';
+import styles from '../../uk/game/game.module.css';
+import { grArt, grAsset, grStorageKey } from './country';
+import * as sound from './sound';
+
+export type GrKinds = {
+  timeline: GrTimeline;
+  result: CountryResult;
+  effect: GrEffect;
+  rule: GrColumn;
+  decision: GrOutcome;
+  festival: GrFestival;
+};
+
+const files: Record<string, string> = {
+  sardine: '/assets/meadow-town/fish/roach.svg',
+  'red-mullet': '/assets/meadow-town/fish/carp.svg',
+  'sea-bream': '/assets/meadow-town/fish/bream.svg',
+  mackerel: '/assets/meadow-town/fish/pike.svg',
+  'old-boot': '/assets/meadow-town/junk/old-boot.svg',
+  'shopping-trolley': '/assets/meadow-town/junk/shopping-trolley.svg',
+  'mountain-tea': '/assets/items/tea.png',
+  koulouri: '/assets/items/biscuits.png',
+  loukoumades: '/assets/items/biscuits.png',
+  baklava: '/assets/items/cake.png',
+  vasilopita: '/assets/items/cake.png',
+  tsoureki: '/assets/items/cake.png',
+  flowers: '/assets/items/flowers.png',
+  souvlaki: '/assets/items/meal.png',
+  gemista: '/assets/items/meal.png',
+  horiatiki: '/assets/meadow-town/dishes/salad.svg',
+  'lemon-potatoes': '/assets/meadow-town/dishes/baked-potato.svg',
+  'grilled-sardines': '/assets/meadow-town/dishes/fish-and-potatoes.svg',
+  kakavia: '/assets/meadow-town/dishes/turnip-soup.svg',
+  'spoon-sweet': '/assets/meadow-town/dishes/strawberry-jam.svg',
+  'grilled-corn': '/assets/meadow-town/dishes/summer-corn.svg',
+};
+/** Greece's items drawn with the shared CC0 icons. */
+export function itemIcon(id: string) {
+  const crop = id.replace(/^seed-/, '');
+  if (grArt.crops.includes(crop)) return grAsset(`/assets/crops/${crop}.png`);
+  return grAsset(files[id] ?? '/assets/indoor/item.png');
+}
+
+/** The game timeline as a completed questionnaire for the result page. */
+export function gameDraft(state: GrState): GreeceDraft {
+  const { nationality, ...timeline } = structuredClone(
+    grGame.timelineOn(state.timeline, state.date),
+  );
+  const { incomeByTaxYear, ...rest } = nationality;
+  const draft: GreeceDraft = {
+    ...createGreeceDraft(),
+    ...timeline,
+    nationality: {
+      ...rest,
+      incomeYears: Object.entries(incomeByTaxYear).map(([year, row]) => ({
+        year: Number(year),
+        ...row,
+      })),
+    },
+    simulationDate: state.date,
+    // The game records every trip.
+    tripsComplete: true,
+    completed: true,
+  };
+  // The questionnaire keeps only the answers its pathways ask for.
+  return activeGreeceAnswers({
+    ...draft,
+    step: greeceSteps(draft).at(-1)!.step,
+  });
+}
+
+/** Past the late renewal period: no renewal is left, so say how it ends. */
+function lapsed(state: GrState) {
+  const { late } = grGame.renewalWindow(state.timeline.currentCardExpiresOn);
+  return {
+    zhCN: `蓝卡的逾期补交期已于 ${late} 截止，移民局不能再续期。这一季若没有递交其他申请或离开希腊，季末故事会以居留卡过期收场。`,
+    en: `The Blue Card’s late renewal period ended on ${late}, so the migration office can no longer renew it. Unless you file another application or leave Greece this quarter, the story ends with the lapsed card at the end of the quarter.`,
+  };
+}
+
+export const grCountry: GameCountry<GrKinds> = {
+  id: 'gr',
+  game: grGame,
+  evaluate: (input) => grGame.grRules.evaluate(input),
+  sound,
+  art: grArt,
+  asset: grAsset,
+  storageKey: grStorageKey,
+  money: (value) =>
+    `€${value.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`,
+  moneySymbol: '€',
+  moneyMeter: 20_000,
+  stats: ['money', 'mood', 'health', 'greek', 'career'],
+  ruleColumns: [
+    { id: 'pr', label: 'gr.game.prColumn' },
+    { id: 'nat', label: 'gr.game.natColumn' },
+  ],
+  outcomeLabel: ({ outcome, earliestDate }, t) =>
+    isDecisionOutcome(outcome)
+      ? t(`outcome.${outcome}`)
+      : t(`country.status.${outcome}`).replace(
+          '{date}',
+          earliestDate ?? t('result.undetermined'),
+        ),
+  missingRules(state, id) {
+    // Timing shows in the bar itself. A FUTURE route only waits for dates, a
+    // MET route lacks nothing, and a reporting fine (C-06) does not bar filing.
+    const pathway = grGame.pathwayOf(state.result, id);
+    if (pathway?.status === 'FUTURE' || pathway?.status === 'MET')
+      return undefined;
+    const titles = pathway?.checks
+      .filter(
+        (check) =>
+          check.status !== 'MET' &&
+          !check.id.includes('TIME') &&
+          check.id !== 'C-06',
+      )
+      .map((check) => check.title);
+    return titles?.length ? [...new Set(titles)] : undefined;
+  },
+  visaStatus: (state) => ({
+    months: grGame.visaMonthsLeft(state),
+    renewed: state.flags.includes('quarter-visa-renewed'),
+    validTo: state.timeline.currentCardExpiresOn,
+  }),
+  absences: (state) =>
+    state.timeline.trips.map((trip) => ({
+      from: trip.departed,
+      to: trip.returned,
+    })),
+  itemIcon,
+  diaryText: {
+    harvest: { zhCN: '市立菜园收获', en: 'Garden plot harvest' },
+    catch: { zhCN: '防波堤钓鱼', en: 'Fishing off the breakwater' },
+  },
+  resultHref: (state) =>
+    `${countryPath('gr', 'result')}#s=${encodeDraft(greeceModule, gameDraft(state))}`,
+  assessment: (state, idPrefix) => (
+    <CountryAssessmentColumns
+      country={greeceModule}
+      result={state.result}
+      simulationDate={state.date}
+      idPrefix={idPrefix}
+    />
+  ),
+  endingAssessment: (state) => (
+    <CountryAssessmentColumns
+      country={greeceModule}
+      result={state.result}
+      simulationDate={state.date}
+      idPrefix="ending-"
+    />
+  ),
+  progressDetail(state, id, t) {
+    const pathway = grGame.pathwayOf(state.result, id);
+    if (!pathway)
+      return <p className={styles.lead}>{t('result.undetermined')}</p>;
+    return (
+      <>
+        <p className={styles.lead}>
+          {pathway.title} · {pathwayTitle(pathway, t)}
+        </p>
+        <dl className={styles.facts}>
+          <div>
+            <dt>{t('gr.game.cardValidTo')}</dt>
+            <dd>{state.timeline.currentCardExpiresOn}</dd>
+          </div>
+          <div>
+            <dt>{t('result.earliest')}</dt>
+            <dd>{pathway.earliestDate ?? t('result.undetermined')}</dd>
+          </div>
+        </dl>
+      </>
+    );
+  },
+  visaNotice: (state) =>
+    grGame.renewalClosed(state) ? lapsed(state) : undefined,
+  placeNote(state, place) {
+    if (place !== 'visa') return undefined;
+    const expiry = state.timeline.currentCardExpiresOn;
+    if (grGame.renewalClosed(state))
+      return {
+        zhCN: `蓝卡到 ${expiry}。${lapsed(state).zhCN}`,
+        en: `Blue Card valid to ${expiry}. ${lapsed(state).en}`,
+      };
+    if (grGame.isBlueCard(state)) {
+      const { early, late } = grGame.renewalWindow(expiry);
+      return {
+        zhCN: `蓝卡到 ${expiry}；${early} 起可递交续期，逾期补交截至 ${late}。`,
+        en: `Blue Card valid to ${expiry}; renew from ${early}, or late until ${late}.`,
+      };
+    }
+    const date = grGame.pathwayOf(state.result, 'pr')?.earliestDate;
+    return {
+      zhCN: `Ο.3 居留卡到 ${expiry}。条件满足后可在这里申请 Μ.3 永久居留卡${date ? `（最早 ${date}）` : ''}。`,
+      en: `Ο.3 card valid to ${expiry}. Apply here for the Μ.3 permanent card once you qualify${date ? ` (from ${date})` : ''}.`,
+    };
+  },
+  furnishingNames: grGame.grFurnishingNames,
+  loadTownCanvas: () => import('./town-canvas'),
+};
+
+export const grShell = createGameShell(grCountry);

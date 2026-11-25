@@ -819,12 +819,14 @@ export function createGameClient<K extends GameKinds>(
                     visaExpiresThisSeason(current) && (
                       <>
                         <p role="status" className={styles.urgent}>
-                          {c.visaStatus(current).validTo
-                            ? t('game.fastVisaWarning').replace(
-                                '{date}',
-                                c.visaStatus(current).validTo!,
-                              )
-                            : t('game.fastVisaWarningNone')}
+                          {c.visaNotice?.(current)
+                            ? localText(c.visaNotice(current)!, locale)
+                            : c.visaStatus(current).validTo
+                              ? t('game.fastVisaWarning').replace(
+                                  '{date}',
+                                  c.visaStatus(current).validTo!,
+                                )
+                              : t('game.fastVisaWarningNone')}
                         </p>
                         <button
                           className={styles.secondary}

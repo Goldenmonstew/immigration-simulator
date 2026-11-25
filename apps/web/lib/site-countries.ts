@@ -7,7 +7,7 @@ export const siteCountries = [
   { id: 'ca', slug: 'canada', nameKey: 'ca.name', hasGame: false },
   { id: 'us', slug: 'united-states', nameKey: 'us.name', hasGame: false },
   { id: 'es', slug: 'spain', nameKey: 'es.name', hasGame: false },
-  { id: 'gr', slug: 'greece', nameKey: 'gr.name', hasGame: false },
+  { id: 'gr', slug: 'greece', nameKey: 'gr.name', hasGame: true },
   { id: 'ie', slug: 'ireland', nameKey: 'ie.name', hasGame: false },
   { id: 'pt', slug: 'portugal', nameKey: 'pt.name', hasGame: false },
   { id: 'jp', slug: 'japan', nameKey: 'jp.name', hasGame: true },
@@ -46,7 +46,7 @@ const pagesByCountry: Partial<Record<CountryId, string[]>> = {
   pt: calculatorPages,
   nz: calculatorPages,
   jp: [...calculatorPages, 'game'],
-  gr: calculatorPages,
+  gr: [...calculatorPages, 'game'],
   de: calculatorPages,
   us: calculatorPages,
 };
