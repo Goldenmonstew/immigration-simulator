@@ -296,3 +296,14 @@ export type { NzFamilyAnswers } from './new-zealand-family';
 
 export { evaluateUnitedStatesFull } from './united-states-full';
 export type * from './united-states-full';
+export { MY_FULL_PATHWAYS, evaluateMalaysiaFull } from './malaysia-full';
+export type {
+  MyFamilyTie,
+  MyFullRequest,
+  MyMm2hCategory,
+  MyPassKind,
+  MyPassPeriod,
+  MyPathway,
+  MyPathwayId,
+  MyTrip,
+} from './malaysia-full';

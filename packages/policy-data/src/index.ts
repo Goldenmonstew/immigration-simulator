@@ -62,6 +62,7 @@ export {
   germany2026_11,
   germanyFull2026_11,
 } from './parameters/germany-2026-11';
+export { malaysiaFull2026_11 } from './parameters/malaysia-2026-11';
 export { publicFundsBenefits } from './data/public-funds-benefits';
 export type { Benefit } from './data/public-funds-benefits';
 export { annexCOccupations, careWorkerOccupations } from './data/occupations';
