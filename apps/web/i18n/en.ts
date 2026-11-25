@@ -343,10 +343,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.es.paths': 'Long-term residence · Citizenship by residence',
   'hub.es.desc':
     'Check residence periods for national long-term residence and citizenship by residence (10-, 5-, 2- and 1-year tracks) using your permits, stays for study and travel record.',
-  'hub.gr.code': 'GR',
-  'hub.gr.paths': 'Long-term residence · Golden visa · Naturalisation',
-  'hub.gr.desc':
-    'Use your permits, including golden visas, and travel record to check residence periods for long-term residence (Μ1) and the 7-, 3- and 12-year naturalisation tracks, plus golden visa (Β.5) renewal timing.',
   'hub.ie.code': 'IE',
   'hub.ie.paths': 'Stamp 4 / 5 · Naturalisation · Spouse route',
   'hub.ie.desc':
