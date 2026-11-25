@@ -1233,3 +1233,145 @@ test.each(['result', 'simulate', 'whatif', 'policy', ''])(
     );
   },
 );
+
+test('fees, the oath, reporting duties and the two renewal windows are labelled apart and left out of the gaps', () => {
+  const pathway = (draft: GreeceDraft) =>
+    gr.run(draft, 'zh-CN').columns[0].pathways[0];
+  const kinds = (draft: GreeceDraft) =>
+    Object.fromEntries(pathway(draft).checks.map((c) => [c.id, c.kind]));
+  const gaps = (draft: GreeceDraft) =>
+    gapRules(pathway(draft)).map((c) => c.id);
+
+  // Μ.1: time summaries are time conditions. The change-reporting duty only
+  // risks a fine and does not bar filing, so an unanswered one is not a gap.
+  const longTermUnreported = { ...longTermDraft(), changes: undefined };
+  expect(pathway(longTermUnreported).status).toBe('FUTURE');
+  expect(kinds(longTermUnreported)).toMatchObject({
+    'LT-TIME-RESIDENCE': 'time',
+    'GR-LONG-TERM-TIME': 'time',
+    'C-FILING': 'requirement',
+    'LT-06': 'requirement',
+    'C-06': 'information',
+  });
+  expect(gaps(longTermUnreported)).toEqual([
+    'LT-TIME-RESIDENCE',
+    'GR-LONG-TERM-TIME',
+  ]);
+
+  // Β.5 late renewal: the ordinary and the late window are alternatives.
+  const lateRenewal = routeDraft({
+    pathways: ['GR-GOLDEN-VISA'],
+    permits: [{ kind: 'investor', from: '2021-10-01', to: '2026-10-01' }],
+    goldenVisa: { stage: 'renewal' },
+  });
+  expect(pathway(lateRenewal).checks.map((c) => [c.id, c.status])).toEqual(
+    expect.arrayContaining([
+      ['GV-TIME-RENEWAL', 'NOT_MET'],
+      ['GV-TIME-LATE', 'MET'],
+      ['GR-GOLDEN-VISA-TIME', 'MET'],
+    ]),
+  );
+  expect(kinds(lateRenewal)).toMatchObject({
+    'GV-TIME-RENEWAL': 'alternative',
+    'GV-TIME-LATE': 'alternative',
+    'GR-GOLDEN-VISA-TIME': 'time',
+  });
+  expect(gaps(lateRenewal)).not.toContain('GV-TIME-RENEWAL');
+  // A renewal filing window is a time condition as well.
+  const e4Renewal = routeDraft({
+    pathways: ['GR-WORK'],
+    currentCardExpiresOn: '2027-03-01',
+    work: { permit: 'E4', stage: 'renewal' },
+  });
+  expect(pathway(e4Renewal).checks.map((c) => c.id)).toContain('C-07-window');
+  expect(kinds(e4Renewal)['C-07-window']).toBe('time');
+
+  // Naturalisation: the fee note is a budget once the receipt is ready, the
+  // oath follows the decision, and the wait after a rejection is a time condition.
+  const nationality = (feeReceiptReady: boolean) =>
+    routeDraft({
+      ...nationalityDraft,
+      filingDocuments: { formReady: true, feeReceiptReady },
+    });
+  expect(kinds(nationality(true))).toMatchObject({
+    'NAT-10': 'budget',
+    'NAT-11': 'time',
+    'NAT-12': 'afterApproval',
+    'GR-NATIONALITY-TIME': 'time',
+  });
+  expect(gaps(nationality(true))).not.toContain('NAT-10');
+  expect(gaps(nationality(true))).not.toContain('NAT-12');
+  // A missing fee receipt, or an open oath on the oath stage, still bars the
+  // route, so it stays a requirement and is listed.
+  expect(kinds(nationality(false))['NAT-10']).toBe('requirement');
+  expect(gaps(nationality(false))).toContain('NAT-10');
+  const oath = routeDraft({
+    pathways: ['GR-NATIONALITY'],
+    route: 'general',
+    nationality: { stage: 'oath' },
+  });
+  expect(kinds(oath)['NAT-12']).toBe('requirement');
+  expect(gaps(oath)).toContain('NAT-12');
+
+  // Other fee checks: a budget when the amount is known, a requirement while
+  // the engine still needs a birth date to work it out.
+  for (const [draft, id] of [
+    [e4Draft, 'WK-09'],
+    [greekFamilyDraft, 'GF-06'],
+    [
+      routeDraft({
+        pathways: ['GR-TEN-YEAR'],
+        tenYear: { stage: 'initial', basis: 'residence' },
+      }),
+      'TY-06',
+    ],
+    [sponsorDraft, 'FT-06'],
+    [
+      routeDraft({
+        pathways: ['GR-GOLDEN-VISA'],
+        goldenVisa: {
+          stage: 'initial',
+          family: [{ kind: 'spouse', birthDate: '1986-01-01' }],
+        },
+      }),
+      'GV-07',
+    ],
+  ] as const) {
+    expect(kinds(draft)[id], id).toBe('budget');
+    expect(gaps(draft), id).not.toContain(id);
+  }
+  const unknownFee = routeDraft({
+    pathways: ['GR-GOLDEN-VISA'],
+    goldenVisa: { stage: 'initial', family: [{ kind: 'spouse' }] },
+  });
+  expect(kinds(unknownFee)['GV-07']).toBe('requirement');
+  expect(gaps(unknownFee)).toContain('GV-07');
+
+  const html = render(
+    <ResultView
+      country={gr}
+      result={gr.run(lateRenewal, 'zh-CN')}
+      draft={lateRenewal}
+    />,
+  );
+  for (const kind of ['alternative', 'time', 'requirement'] as const)
+    expect(html).toContain(`· ${t(`country.check.${kind}`)}`);
+});
+
+test('case-by-case pending details are not presented as details awaiting a government decision', () => {
+  const draft = routeDraft({
+    pathways: ['GR-GOLDEN-VISA'],
+    goldenVisa: { stage: 'initial', family: [{ kind: 'spouse' }] },
+  });
+  const result = gr.run(draft, 'zh-CN');
+  expect(
+    result.columns[0].pathways[0].checks.find((c) => c.id === 'GV-03')
+      ?.pendingDetails,
+  ).toEqual(['PD-307']);
+  const html = render(
+    <ResultView country={gr} result={result} draft={draft} />,
+  );
+  expect(html).toContain(t('pilot.pending'));
+  expect(html).not.toContain(t('result.pendingDetails'));
+  expect(html).not.toContain(t('gap.pending'));
+});
