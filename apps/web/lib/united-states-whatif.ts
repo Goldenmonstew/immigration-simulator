@@ -204,11 +204,18 @@ export const unitedStatesWhatIf: CountryWhatIf<UsDraft, UnitedStatesWhatIf> = {
     const invalid =
       !Object.keys(errors).length && invalidUnitedStatesStep(draft);
     if (invalid) {
-      // Only the return date control changes trips.
-      const trip = Object.entries(
-        validateUnitedStatesStep({ ...draft, step: invalid.step }),
-      ).find(([id]) => id.startsWith('us-trips-'));
+      // Only the return date control changes trips, and only the decision
+      // date control moves the decision before the I-485 receipt.
+      const stepErrors = validateUnitedStatesStep({
+        ...draft,
+        step: invalid.step,
+      });
+      const trip = Object.entries(stepErrors).find(([id]) =>
+        id.startsWith('us-trips-'),
+      );
       if (returnControl && trip) errors.returnOn = trip[1];
+      else if (stepErrors['us-admission-decisionOn'])
+        errors.decision = stepErrors['us-admission-decisionOn'];
       else errors.date = 'us.whatif.invalid';
     }
     return errors;

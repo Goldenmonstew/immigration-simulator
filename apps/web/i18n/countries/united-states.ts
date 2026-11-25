@@ -60,6 +60,7 @@ export const zhCN = {
   'us.error.number': '请填写零或正数。',
   'us.error.integer': '请填写整数。',
   'us.error.order': '这个日期不能早于开始的日期。',
+  'us.error.decisionBeforeI485': '预计裁决日不能早于 I-485 收件日。',
   'us.error.beforeGreenCard': '只填取得绿卡之后的出境。',
   'us.error.overlap': '这次出境与前面的出境日期重叠。',
   'us.error.principalOrder': '主申请人的日期不能晚于你取得绿卡的日期。',
@@ -139,6 +140,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.error.number': 'Enter zero or a positive number.',
   'us.error.integer': 'Enter a whole number.',
   'us.error.order': 'This date cannot be before the start date.',
+  'us.error.decisionBeforeI485':
+    'The expected decision date cannot be before the I-485 receipt date.',
   'us.error.beforeGreenCard': 'Enter only trips after you got your green card.',
   'us.error.overlap': 'This trip overlaps an earlier one.',
   'us.error.principalOrder':

@@ -248,11 +248,27 @@ function checkFields(
 const date = (value: unknown) =>
   typeof value === 'string' && validDate(value) ? value : undefined;
 
-function checkOrder(errors: Errors, id: string, start: unknown, end: unknown) {
+function checkOrder(
+  errors: Errors,
+  id: string,
+  start: unknown,
+  end: unknown,
+  error: TranslationKey = 'us.error.order',
+) {
   const from = date(start);
   const to = date(end);
-  if (from && to && to < from) errors[id] ??= 'us.error.order';
+  if (from && to && to < from) errors[id] ??= error;
 }
+
+// The engine does not use a decision date before the I-485 receipt.
+const checkDecision = (admission: UsAdmissionDraft, errors: Errors) =>
+  checkOrder(
+    errors,
+    'us-admission-decisionOn',
+    admission.i485FiledOn,
+    admission.decisionOn,
+    'us.error.decisionBeforeI485',
+  );
 
 function checkTrips(draft: UsDraft, errors: Errors) {
   const trips = Array.isArray(draft.trips) ? draft.trips : [];
@@ -464,8 +480,12 @@ function checkStep(draft: UsDraft, step: number, submitting: boolean): Errors {
     );
     checkWages(draft, errors);
   }
+  if (title === 'humanitarian' && draft.admission)
+    checkDecision(draft.admission, errors);
   if (title === 'process' && draft.admission) {
     checkTables(draft.admission, 'us-admission', errors);
+    if (draft.admission.process === 'adjustment')
+      checkDecision(draft.admission, errors);
     if (
       draft.admission.process === 'consular' &&
       draft.admission.petitionStatus === 'filed-with-i485'

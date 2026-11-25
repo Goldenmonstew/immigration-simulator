@@ -1248,6 +1248,39 @@ test('results show the approval stage and keep procedural notes out of the gaps 
     expect(pathwayOf(draft).summary).not.toMatch(/。 /);
 });
 
+test('an expected decision before the I-485 receipt is flagged (review96-2 suggestion 3)', () => {
+  const error = { 'us-admission-decisionOn': 'us.error.decisionBeforeI485' };
+  // The I-485 receipt is 2026-10-01.
+  const process = (decisionOn: string, extra: UsDraft['admission'] = {}) =>
+    us.validateStep({
+      ...spouseAdjustment({ decisionOn, ...extra }),
+      step: 10,
+    });
+  expect(process('2026-09-30')).toEqual(error);
+  expect(process('2026-10-01')).toEqual({});
+  // A consular case has no I-485 receipt, whatever an earlier answer left.
+  expect(process('2026-09-30', { process: 'consular' })).not.toHaveProperty(
+    'us-admission-decisionOn',
+  );
+  const refugee = (decisionOn: string): UsDraft => ({
+    ...us.createDraft(),
+    simulationDate: '2026-11-21',
+    step: 9,
+    pathway: 'US-HUMANITARIAN',
+    admission: { i485FiledOn: '2026-10-01', decisionOn },
+  });
+  expect(us.validateStep(refugee('2026-09-30'))).toMatchObject(error);
+  expect(us.validateStep(refugee('2026-10-01'))).not.toHaveProperty(
+    'us-admission-decisionOn',
+  );
+  // The comparison shows the conflict on the decision date control.
+  const draft = spouseAdjustment({ decisionOn: '2027-02-01' });
+  const knobs = { ...us.whatif.initial(draft), decisionOn: '2026-09-30' };
+  expect(us.whatif.validate(us.whatif.apply(draft, knobs), knobs)).toEqual({
+    decision: 'us.error.decisionBeforeI485',
+  });
+});
+
 // Filing (or return) by approval: the outcome shown for each pair.
 const approvalStages = [
   undefined,
