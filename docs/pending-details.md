@@ -669,7 +669,7 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 | PD-417 | Act A1752 已御准刊宪，生效日未定（SRC-502 修订表"NOT YET IN FORCE"）。生效后 Art. 15(1) 加马来语、15(2)、15A、19 年龄 21→18、26(2) 改自取得公民身份起算（SRC-501 ss.2–3、6、8 p3–6）；生效前已递交的申请按旧法（s.12(2) p8） | 生效日公布前一律按旧法判断，结果附修正案说明；是否另列"修正案生效后"一栏待定。 |
 | PD-418 | Art. 15(1) 宪法未写须先取得永久居留，JPN 清单把 MyPR 标为"mandatori"，注 5 又把"mandatori"定义为曾持有者须交（SRC-513 清单第 2(a) 项）；放弃原国籍的时限与证明（SRC-516 p3 建议设期限） | 居住按永久居留期间计算，只有计入准证期间才满足时为 `UNKNOWN`；放弃时限 `UNKNOWN`。 |
 | PD-419 | Art. 19 证书费 RM200（默迪卡日 1957-08-31 在联邦）与 RM300 的区分，JPN 页面无生效日期或调整规则；规定表格与收费的 Citizenship Rules 1964 未取得官方原文，公民身份各项费用只据 JPN 页面。SRC-512 Fees；SRC-513 Fees；SRC-514 Fees | 未答"默迪卡日在联邦"时按 RM300 展示，并标待确认。 |
-| PD-420 | MM2H 50 岁以上是否免每年 90 天停留：官网写 50 岁以下须停留（SRC-524 申请规定 03、总表），资格条件原文未单列 50 岁以上（SRC-517 p3、p8、p13） | 按官网展示，注明出处差异。 |
+| PD-420 | MM2H 50 岁以上是否免每年 90 天停留：官网写 50 岁以下须停留（SRC-524 申请规定 03、总表），资格条件原文未单列 50 岁以上（SRC-517 p3、p8、p13） | 50 岁及以上每年在马达 90 天为 `MET`；未达 90 天或未填为 `UNKNOWN` 并注明出处差异（审核 review113-1）。 |
 | PD-421 | MM2H 子女上限 34 岁（SRC-517 p4、SRC-524）与 35 岁（SRC-521）；定存提取"获批后"（SRC-517 p2）与"1 年后"（SRC-521） | 采用 SRC-517，注明冲突。 |
 | PD-422 | MM2H 各项费用的叠加关系（参与费、条例准证费、系统处理费、续签费）与健康保险最低保额。SRC-517、SRC-518、SRC-504 p5–6、SRC-523、SRC-520 p12 | 分项展示，不求和；保额 `UNKNOWN`。 |
 | PD-423 | SEZ/SFZ 类购房底价由柔佛州政策决定，无公开数字。SRC-518 p2；SRC-522 第 B 点 p1 | 购房价 `UNKNOWN`。 |
@@ -679,3 +679,5 @@ dependant 随主申请人定居（SRC-001 Ch.5）时，原文未规定、引擎�
 | PD-427 | 公民配偶 LTSVP 首次与续签获批期限的实际规则；RM90／年是否适用于普通公民配偶（只见于 REP 指南）。SRC-509 LTSVP Introduction；SRC-506 §11.1 p25 | 期限按用户填写；费用注明"REP 指南所载"。 |
 | PD-428 | 公民之妻、之夫改持 Residence Pass Category 3 后，是否仍算持公民配偶 LTSVP（妻须超过 12 个月且递交时有效，夫须连续 5 年）。SRC-505 §5.1(d) p18、§5.2(d) p19；SRC-508 | 妻在近 12 个月内、夫在近 5 年内持过 Residence Pass 而 LTSVP 条件不满足时为 `UNKNOWN`，两类同口径（审核 review113-1），提示两条路线并行的风险。 |
 | PD-429 | 引擎的计日口径：出境"少于 6 个月"按历月判断，返回日早于出境日加 6 个月为短期出境；"至少 N 年""超过 12 个月"按周年日判断；归化"12 年内累计 10 年"按申请日前 10 个历年的日数比较；Residence Pass 的长期准证年数是否须连续未写。SRC-500 Art. 19(3) p46、附表二第三部分 s.20(1)(a) p372；SRC-505 §5.1(d) p18；SRC-508 | 按上述口径计算，不因口径本身输出 `UNKNOWN`；Residence Pass 年数只在累计满足、连续不满足时为 `UNKNOWN`。 |
+| PD-430 | DE Rantau 年龄与收入的边界：Section A Q8 写主申请人须"over eighteen (18) years old"，18 岁生日当天是否符合未写明；Section A Q3 写"The minimum annual income is USD36,000 / USD60,000"（第 10 版为 USD24,000），Section B Q3–Q4 写">USD36,000 / >USD60,000"（第 10 版">USD24,000"），收入恰为门槛时前后不一致。SRC-528 v11 Section A Q3 p1、Q8 p2、Section B Q3 p4、Q4 p5；v10 Section A Q3 p1、Section B Q3 p4 | 18 岁生日之后、收入高于门槛为 `MET`；18 岁生日当天、收入恰为门槛为 `UNKNOWN`（审核 review113-1）。 |
+| PD-431 | RP-T"Has worked in Malaysia for a minimum of three (3) consecutive years"未限定准证种类；持公民配偶 LTSVP、Residence Pass 等可工作的准证期间能否计入，引擎也不问持其他准证期间是否实际工作。SRC-525 Eligibility | 连续持就业准证满 3 年为 `MET`；连同其他准证连续在马满 3 年而就业准证不足 3 年为 `UNKNOWN`（审核 review113-1）。 |

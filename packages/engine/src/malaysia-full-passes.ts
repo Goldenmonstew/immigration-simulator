@@ -1,12 +1,13 @@
 import { addMonths, addYears } from './dates';
+import type { IsoDate } from './types';
 import { marriageRegistration } from './malaysia-full-pr';
 import {
   age,
   all,
   assemble,
   atLeast,
+  birthday,
   check,
-  currentPass,
   heldRun,
   inapplicable,
   info,
@@ -16,10 +17,25 @@ import {
   withFee,
   type MyCheck,
   type MyContext,
+  type MyPassKind,
   type MyPathway,
 } from './malaysia-full-shared';
 
 const guide = (locator: string) => ref('SRC-505', locator);
+const ANY_PASS: MyPassKind[] = [
+  'ltsvp-spouse',
+  'ltsvp-other',
+  'employment',
+  'student',
+  'professional-visit',
+  'residence',
+  'dependant',
+  'mm2h',
+  'pvip',
+  'plks',
+  'unhcr',
+  'imm13',
+];
 
 export function assessSpouseLtsvp(ctx: MyContext): MyPathway {
   const { req, L } = ctx;
@@ -260,13 +276,14 @@ export function assessMm2h(ctx: MyContext): MyPathway {
       years === undefined
         ? undefined
         : years >= stay.exemptAge
-          ? true
+          ? atLeast(m.daysPerYear, stay.days) || undefined
           : atLeast(m.daysPerYear, stay.days),
       v.mm2hStay.sources,
       L(
-        `每年须累计在马 ${stay.days} 天，${stay.exemptAge} 岁以下由主申请人或受养人满足即可；官网写 ${stay.exemptAge} 岁及以上不设要求，资格条件原文未单列。`,
-        `${stay.days} days a year in total, which the main applicant or dependants may meet when under ${stay.exemptAge}. The website exempts those aged ${stay.exemptAge} or over; the conditions document does not say so separately.`,
+        `每年须累计在马 ${stay.days} 天，${stay.exemptAge} 岁以下由主申请人或受养人满足即可。官网写 ${stay.exemptAge} 岁及以上不设要求，资格条件原文未写这一豁免，${stay.exemptAge} 岁及以上未达 ${stay.days} 天时待确认。`,
+        `${stay.days} days a year in total, which the main applicant or dependants may meet when under ${stay.exemptAge}. The website exempts those aged ${stay.exemptAge} or over but the conditions document does not, so below ${stay.days} days from ${stay.exemptAge} needs confirmation.`,
       ),
+      years !== undefined && years >= stay.exemptAge ? ['PD-420'] : [],
     ),
     check(
       'my.pass.good-conduct',
@@ -420,13 +437,21 @@ export function assessRpt(ctx: MyContext): MyPathway {
   const p = v.rpt.value;
   const src = v.rpt.sources;
   const run = heldRun(req.passes, ['employment'], date);
-  const ep = currentPass(req, date);
+  // The page says "worked in Malaysia" without naming a pass, and work on
+  // other passes is not asked (PD-431).
+  const anyPass = heldRun(req.passes, ANY_PASS, date);
   const r = req.rpt;
   const checks: MyCheck[] = [
     check(
       'my.pass.work-years',
       L('在马连续工作年数', 'Continuous years working in Malaysia'),
-      !run ? undefined : run.valid && date >= addYears(run.start, p.workYears),
+      !run
+        ? undefined
+        : run.valid && date >= addYears(run.start, p.workYears)
+          ? true
+          : anyPass?.valid && date >= addYears(anyPass.start, p.workYears)
+            ? undefined
+            : false,
       src,
       L(
         `递交时须已在马来西亚连续工作至少 ${p.workYears} 年。`,
@@ -437,15 +462,26 @@ export function assessRpt(ctx: MyContext): MyPathway {
               `当前就业准证自 ${run.start} 起连续持有。`,
               ` The current Employment Pass run began on ${run.start}.`,
             )
+          : '') +
+        (anyPass?.valid && anyPass.start < (run?.valid ? run.start : date)
+          ? L(
+              `连同其他准证自 ${anyPass.start} 起连续在马；持其他准证期间的工作能否计入待确认。`,
+              ` Counting other passes, the stay has been unbroken since ${anyPass.start}; whether work on other passes counts needs confirmation.`,
+            )
           : ''),
+      ['PD-431'],
     ),
     check(
       'my.pass.ep-validity',
       L('就业准证剩余效期', 'Employment Pass validity left'),
       req.passes === undefined
         ? undefined
-        : ep?.kind === 'employment' &&
-            ep.to > addMonths(date, p.epValidityMonths),
+        : req.passes.some(
+            (e) =>
+              e.kind === 'employment' &&
+              e.from <= date &&
+              e.to > addMonths(date, p.epValidityMonths),
+          ),
       src,
       L(
         `递交时就业准证须还有超过 ${p.epValidityMonths} 个月效期。`,
@@ -630,25 +666,37 @@ export function assessDeRantau(ctx: MyContext): MyPathway {
     check(
       'my.pass.age',
       L('主申请人年龄', 'Main applicant’s age'),
-      years === undefined ? undefined : years >= p.minAge,
+      years === undefined
+        ? undefined
+        : years < p.minAge
+          ? false
+          : date === birthday(req.dateOfBirth as IsoDate, p.minAge)
+            ? undefined
+            : true,
       [ref('SRC-528', 'v11 Section A Q8 p2')],
       L(
-        `主申请人须年满 ${p.minAge} 岁（FAQ 写"over eighteen"）。`,
-        `The main applicant must be ${p.minAge} or over (the FAQ says "over eighteen").`,
+        `FAQ 写主申请人须"over eighteen (18) years old"，${p.minAge} 岁生日之后符合，生日当天是否符合待确认。`,
+        `The FAQ says the main applicant must be "over eighteen (18) years old": met after the ${p.minAge}th birthday; the birthday itself needs confirmation.`,
       ),
+      ['PD-430'],
     ),
     check(
       'my.pass.income',
       L('年收入', 'Annual income'),
-      threshold === undefined
+      threshold === undefined || d.annualIncomeUsd === undefined
         ? undefined
-        : atLeast(d.annualIncomeUsd, threshold),
-      v.deRantauIncomeUsd.sources,
+        : d.annualIncomeUsd === threshold
+          ? undefined
+          : d.annualIncomeUsd > threshold,
+      [
+        ...v.deRantauIncomeUsd.sources,
+        ref('SRC-528', 'v11 Section B Q3 p4、Q4 p5'),
+      ],
       L(
-        `科技类（软件、云、网络安全、人工智能、数码营销等）至少 USD${tech}，非科技类（列明的管理、财务、营销、法律等职位）至少 USD${income.nonTech}。科技类门槛自 ${income.techFrom} 版 FAQ 起由 USD${income.techBefore} 提高。`,
-        `Tech talent (software, cloud, cybersecurity, AI, digital marketing and similar) needs at least USD${tech}; listed non-tech roles (management, finance, marketing, legal and similar) USD${income.nonTech}. The tech threshold rose from USD${income.techBefore} in the FAQ dated ${income.techFrom}.`,
+        `科技类（软件、云、网络安全、人工智能、数码营销等）USD${tech}，非科技类（列明的管理、财务、营销、法律等职位）USD${income.nonTech}。科技类门槛自 ${income.techFrom} 版 FAQ 起由 USD${income.techBefore} 提高。Section A 写最低收入为该数，Section B 写须高于该数，收入恰为门槛时待确认。`,
+        `Tech talent (software, cloud, cybersecurity, AI, digital marketing and similar) USD${tech}; listed non-tech roles (management, finance, marketing, legal and similar) USD${income.nonTech}. The tech threshold rose from USD${income.techBefore} in the FAQ dated ${income.techFrom}. Section A calls the figure the minimum while Section B asks for more than it, so income exactly at the threshold needs confirmation.`,
       ),
-      ['PD-426'],
+      d.annualIncomeUsd === threshold ? ['PD-430'] : ['PD-426'],
     ),
     employer,
     check(

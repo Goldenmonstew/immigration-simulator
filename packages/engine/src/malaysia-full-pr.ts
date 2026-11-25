@@ -373,7 +373,11 @@ function commonChecks(ctx: MyContext, route: PrRoute): MyCheck[] {
   const sponsor = check(
     'my.pr.sponsor',
     L('担保人', 'Sponsor'),
-    req.citizenSponsor,
+    route === 'rep'
+      ? req.rep?.participantSponsor
+      : route === 'was'
+        ? req.was?.citizenSponsor
+        : req.citizenSponsor,
     route === 'rep'
       ? [repGuide('§5.5 p17')]
       : [guide(sponsorParagraph[route]), guide('§2.6 p12'), guide('§3.10 p14')],
@@ -1217,7 +1221,7 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
     check(
       'my.rp.sponsor',
       L('担保人', 'Sponsor'),
-      req.citizenSponsor,
+      req.residencePassSponsor,
       src,
       L(
         `由年满 ${p.sponsorMinAge} 岁的马来西亚公民担保（沙巴、砂拉越须由当地籍公民担保），递交时双方须到场。`,

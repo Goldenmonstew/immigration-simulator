@@ -94,8 +94,17 @@ export interface MyFullRequest {
     /** For a child of a citizen. */
     childRelation?: 'biological' | 'step' | 'adopted';
   };
-  /** A qualifying citizen sponsor will sponsor and attend with the applicant. */
+  /**
+   * The citizen spouse or parent the category names will sponsor and attend
+   * (permanent residence as a wife, husband or child; spouse LTSVP). Other
+   * pathways name other sponsors and ask separately.
+   */
   citizenSponsor?: boolean;
+  /**
+   * A Malaysian aged 21 or over, of Sabah or Sarawak origin for applications
+   * there, will sponsor a Residence Pass and attend.
+   */
+  residencePassSponsor?: boolean;
   /** Citizens who will provide their MyKad as referees for permanent residence. */
   citizenReferees?: number;
   /** 'listed': on the Immigration Department's suspect list or blacklist. */
@@ -110,12 +119,19 @@ export interface MyFullRequest {
     malaysianTaxReturns?: boolean;
   };
   language?: { malay?: Level; english?: Level };
-  was?: { regulatorRecognition?: boolean; criticalOccupation?: boolean };
+  was?: {
+    regulatorRecognition?: boolean;
+    criticalOccupation?: boolean;
+    /** A Malaysian citizen will sponsor and attend. */
+    citizenSponsor?: boolean;
+  };
   rep?: {
     relation?: 'wife' | 'husband' | 'child' | 'none';
     participantHasSatk?: boolean;
     approvalLetterValidUntil?: IsoDate;
     marriedBeforeRepApplication?: boolean;
+    /** The REP participant spouse or parent will sponsor and attend. */
+    participantSponsor?: boolean;
     /** Citizen referees aged 21 or over. */
     referees?: number;
   };
@@ -355,10 +371,6 @@ export function heldRun(
     total,
   };
 }
-
-/** The pass covering `date`, if any. */
-export const currentPass = (req: MyFullRequest, date: IsoDate) =>
-  req.passes?.find((p) => p.from <= date && date <= p.to);
 
 // ---------- Pathway assembly ----------
 

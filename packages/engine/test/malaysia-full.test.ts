@@ -86,7 +86,7 @@ describe('result shape', () => {
         for (const s of c.sources)
           expect(register, s.srcId).toContain(`| ${s.srcId} |`);
         for (const pd of c.pendingDetails ?? []) {
-          expect(pd).toMatch(/^PD-4[0-2]\d$/);
+          expect(pd).toMatch(/^PD-4[0-3]\d$/);
           expect(pending).toContain(`| ${pd} |`);
         }
       }
@@ -586,6 +586,7 @@ describe('Residence Pass', () => {
   test('category 3 needs three years on a long-term pass', () => {
     const met = path('my.rp.family', {
       ...wife,
+      residencePassSponsor: true,
       passes: [{ kind: 'ltsvp-spouse', from: '2023-11-24', to: '2027-12-31' }],
     });
     expect(met.status).toBe('MET');
@@ -1158,14 +1159,20 @@ describe('long-term passes', () => {
       'UNKNOWN',
       ['PD-423'],
     ]);
-    // From 50 no stay is required; over 60 no insurance.
-    expect(
+    // From 50 only the website waives the stay (review113-1 risk 5); over
+    // 60 no insurance.
+    const stay = (daysPerYear?: number) =>
       cond(
         'my.pass.mm2h',
         'my.pass.minimum-stay',
-        m({ daysPerYear: 0 }, '1976-11-24'),
-      ).status,
-    ).toBe('MET');
+        m({ daysPerYear }, '1976-11-24'),
+      );
+    expect([stay(0).status, stay(0).pendingDetails]).toEqual([
+      'UNKNOWN',
+      ['PD-420'],
+    ]);
+    expect(stay(undefined).status).toBe('UNKNOWN');
+    expect(stay(90).status).toBe('MET');
     expect(
       cond(
         'my.pass.mm2h',
@@ -1223,6 +1230,35 @@ describe('long-term passes', () => {
     ]);
   });
 
+  test('the Employment Pass is found among overlapping passes (review113-1 risk 1)', () => {
+    const req = {
+      ...rpt,
+      passes: [
+        { kind: 'dependant', from: '2020-01-01', to: '2028-12-31' },
+        { kind: 'employment', from: '2021-01-01', to: '2028-12-31' },
+      ],
+    } satisfies MyFullRequest;
+    expect(cond('my.pass.rpt', 'my.pass.ep-validity', req).status).toBe('MET');
+    expect(path('my.pass.rpt', req).status).toBe('MET');
+  });
+
+  test('three years of work on other passes are pending (review113-1 risk 3)', () => {
+    // SRC-525 says "worked in Malaysia", not "held an Employment Pass".
+    const before = (from: string) =>
+      cond('my.pass.rpt', 'my.pass.work-years', {
+        ...rpt,
+        passes: [
+          { kind: 'ltsvp-spouse', from, to: '2024-06-30' },
+          { kind: 'employment', from: '2024-07-01', to: '2028-12-31' },
+        ],
+      });
+    expect([
+      before('2023-11-24').status,
+      before('2023-11-24').pendingDetails,
+    ]).toEqual(['UNKNOWN', ['PD-431']]);
+    expect(before('2023-11-25').status).toBe('NOT_MET');
+  });
+
   test('PVIP has no official parameters', () => {
     const p = path('my.pass.pvip', { simulationDate: day });
     expect(p.status).toBe('UNKNOWN');
@@ -1236,7 +1272,7 @@ describe('long-term passes', () => {
     passportExpiry: '2028-01-25',
     deRantau: {
       talent: 'tech',
-      annualIncomeUsd: 36_000,
+      annualIncomeUsd: 36_001,
       workType: 'remote-employee',
       employerRegisteredInMalaysia: false,
       contractStart: '2026-08-24',
@@ -1266,9 +1302,26 @@ describe('long-term passes', () => {
       cond(
         'my.pass.de-rantau',
         'my.pass.income',
-        n({ annualIncomeUsd: 24_000 }, { applicationDate: '2026-10-31' }),
+        n({ annualIncomeUsd: 24_001 }, { applicationDate: '2026-10-31' }),
       ).status,
     ).toBe('MET');
+    // Exactly the threshold: "minimum" in Section A, ">" in Section B
+    // (review113-1 risk 6).
+    for (const [talent, annualIncomeUsd, applicationDate] of [
+      ['tech', 36_000, day],
+      ['non-tech', 60_000, day],
+      ['tech', 24_000, '2026-10-31'],
+    ] as const) {
+      const c = cond(
+        'my.pass.de-rantau',
+        'my.pass.income',
+        n({ talent, annualIncomeUsd }, { applicationDate }),
+      );
+      expect([c.status, c.pendingDetails], `${annualIncomeUsd}`).toEqual([
+        'UNKNOWN',
+        ['PD-430'],
+      ]);
+    }
     expect(
       cond(
         'my.pass.de-rantau',
@@ -1422,7 +1475,27 @@ describe('direct answers', () => {
       { ...wife, passportExpiry: '2027-05-24' },
       { ...wife, passportExpiry: '2027-05-23' },
     ],
-    ['my.rp.family', 'my.rp.sponsor', wife, { ...wife, citizenSponsor: false }],
+    [
+      'my.rp.family',
+      'my.rp.sponsor',
+      { ...wife, residencePassSponsor: true },
+      { ...wife, residencePassSponsor: false },
+      wife,
+    ],
+    [
+      'my.pr.was',
+      'my.pr.sponsor',
+      { ...wife, was: { citizenSponsor: true } },
+      { ...wife, was: { citizenSponsor: false } },
+      wife,
+    ],
+    [
+      'my.pr.rep-family',
+      'my.pr.sponsor',
+      { ...rep, rep: { ...rep.rep, participantSponsor: true } },
+      { ...rep, rep: { ...rep.rep, participantSponsor: false } },
+      rep,
+    ],
     [
       'my.pass.spouse-ltsvp',
       'my.pass.sponsor',
@@ -1471,8 +1544,11 @@ describe('direct answers', () => {
     [
       'my.pass.de-rantau',
       'my.pass.age',
-      { simulationDate: day, dateOfBirth: '2008-11-24' },
+      // "Over eighteen": met the day after the 18th birthday.
+      { simulationDate: day, dateOfBirth: '2008-11-23' },
       { simulationDate: day, dateOfBirth: '2008-11-25' },
+      // On the 18th birthday itself (review113-1 risk 6).
+      { simulationDate: day, dateOfBirth: '2008-11-24' },
     ],
   ];
   test.each(cases)('%s %s', (id, key, yes, no, unknown) => {
