@@ -306,6 +306,23 @@ test('applying for naturalisation ends with the naturalisation text', () => {
   expect(ended.log.find(({ kind }) => kind === 'ending')?.text).toEqual(text);
 });
 
+test('the diary casts a line on the Ōoka River, not at a pond', () => {
+  const riverbank = visit(jp.newGame('engineer', 5, 'en'), 'pond', 600);
+  const cast = jp.fish(riverbank, false);
+  expect(cast.log.at(-1)).toMatchObject({
+    id: 'fishing',
+    text: { zhCN: '在大冈川抛竿', en: 'Cast at the Ōoka River' },
+  });
+  const diary = jp.narrative(cast);
+  expect(diary.map(({ zhCN }) => zhCN).join('\n')).toContain(
+    '大冈川抛竿 1 次。',
+  );
+  expect(diary.map(({ en }) => en).join('\n')).toContain(
+    '1 cast at the Ōoka River',
+  );
+  expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
+});
+
 test('a lapsed period of stay ends the story', () => {
   let state = settle(jp.newGame('spouse', 5, 'en'));
   jp.status(state).expiresOn = '2026-04-30';

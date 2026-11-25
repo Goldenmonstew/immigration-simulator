@@ -344,6 +344,13 @@ const renewalNote = t(
   `The game treats this as a timely renewal that is granted, recorded as ${deemedMonths} months: the permanent residence guideline treats that period as the longest until ${transitionOn} (SRC-114 2-5(6) note 4). The immigration office decides the actual period, which the game cannot predict. After ${transitionOn}, permanent residence needs the longest period of stay for your status (SRC-440, Appended Table II), so the assessment shows that requirement as pending and the office checks it when you apply. This game does not charge a renewal fee or model how early you may file.`,
 );
 
+/** The shared furniture, as Minatozaka's shop sells it. */
+export const jpFurnishingNames: Record<string, Text> = {
+  'reading-chair': t('和室座椅', 'Floor chair'),
+  'warm-curtains': t('遮光窗帘', 'Blackout curtains'),
+  'desk-lamp': t('台灯', 'Desk lamp'),
+};
+
 export const jpActions: Activity<JpEffect, JpFestival>[] = [
   {
     id: 'rest',
@@ -484,24 +491,16 @@ export const jpActions: Activity<JpEffect, JpFestival>[] = [
     ],
   },
   ...[
-    [
-      'reading-chair',
-      '和室座椅（每季心情、健康各加一点）',
-      'Floor chair (+1 mood and health/quarter)',
-    ],
-    [
-      'warm-curtains',
-      '遮光窗帘（每季心情加一点）',
-      'Blackout curtains (+1 mood/quarter)',
-    ],
-    ['desk-lamp', '台灯（每季健康加一点）', 'Desk lamp (+1 health/quarter)'],
+    ['reading-chair', '每季心情、健康各加一点', '+1 mood and health/quarter'],
+    ['warm-curtains', '每季心情加一点', '+1 mood/quarter'],
+    ['desk-lamp', '每季健康加一点', '+1 health/quarter'],
   ].map(([id, zhCN, en]): Activity<JpEffect, JpFestival> => ({
     id: `furnish-${id}`,
     place: 'shop',
     minutes: b.minutes.buy,
     label: t(
-      `添置${zhCN} · ${yen(b.furnishings[id].price)}，限一件`,
-      `Buy a ${en} · ${yen(b.furnishings[id].price)}, one per home`,
+      `添置${jpFurnishingNames[id].zhCN}（${zhCN}） · ${yen(b.furnishings[id].price)}，限一件`,
+      `Buy a ${jpFurnishingNames[id].en} (${en}) · ${yen(b.furnishings[id].price)}, one per home`,
     ),
     effects: [{ type: 'money', delta: -b.furnishings[id].price }],
   })),

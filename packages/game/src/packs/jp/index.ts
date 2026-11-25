@@ -17,6 +17,7 @@ import {
 import {
   jpActions,
   jpFestivals,
+  jpFurnishingNames,
   jpItems,
   jpNotices,
   jpPlaces,
@@ -34,6 +35,7 @@ export const jpGameContent: GameContentPack<
   characters: jpProfiles,
   loadCharacter: async (id) => hooks.characterOf(id),
   characterOf: hooks.characterOf,
+  fishingSpot: { zhCN: '大冈川', en: 'the Ōoka River' },
   places: jpPlaces,
   actions: jpActions,
   informationAction: { id: 'assessment', place: 'council' },
@@ -110,7 +112,7 @@ export const items = jpItems;
 export const recipes = jpRecipes;
 export const festivals = jpFestivals;
 export const achievements = hooks.jpAchievements;
-export { jpCharacters, jpRules };
+export { jpCharacters, jpFurnishingNames, jpRules };
 export {
   evidenceDay,
   pathwayOf,

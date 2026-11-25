@@ -40,6 +40,8 @@ export const jpGameZh = {
   'jp.game.settlementSource.brighterHome': '朝南的公寓',
   'jp.game.settlementSource.walkingClub': '河边健走会',
   'jp.game.noSeeds': '背包里没有当季种子，去商店街杂货铺看看吧。',
+  'jp.game.kitchenNoIngredients':
+    '现在凑不齐任何一道菜的食材：蔬菜来自市民农园的收成，鲈鱼要去大冈川钓。',
   'jp.game.rentFirst': '先在市民农园租一块地。',
 } as const;
 
@@ -85,5 +87,7 @@ export const jpGameEn: Record<keyof typeof jpGameZh, string> = {
   'jp.game.settlementSource.brighterHome': 'A south-facing flat',
   'jp.game.settlementSource.walkingClub': 'Riverside walking club',
   'jp.game.noSeeds': 'No seeds for this season. Try the shopping-street store.',
+  'jp.game.kitchenNoIngredients':
+    'You do not have the ingredients for any dish yet: vegetables come from community garden harvests, and sea bass from the Ōoka River.',
   'jp.game.rentFirst': 'Rent a plot at the community garden first.',
 };

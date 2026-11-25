@@ -87,7 +87,12 @@ export function createSession<K extends GameKinds>(c: GameCountry<K>) {
         frame: 2,
         frames: 3,
       },
-    ].filter((item) => state.flags.includes(`furnished-${item.id}`));
+    ]
+      .filter((item) => state.flags.includes(`furnished-${item.id}`))
+      .map((item) => ({
+        ...item,
+        name: c.furnishingNames?.[item.id] ?? item.name,
+      }));
     // Harvest logs retain the crop's bilingual name, but no item ID.
     const crops = game.items.filter(
       (item) =>

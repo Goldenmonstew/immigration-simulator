@@ -123,6 +123,7 @@ export const jpCountry: GameCountry<JpKinds> = {
     harvest: { zhCN: '市民农园收获', en: 'Community garden harvest' },
     catch: { zhCN: '大冈川钓鱼', en: 'Fishing on the Ōoka' },
   },
+  furnishingNames: jpGame.jpFurnishingNames,
   resultHref: (state) =>
     `${countryPath('jp', 'result')}#s=${encodeDraft(japanModule, gameDraft(state))}`,
   assessment: (state, idPrefix) => (
