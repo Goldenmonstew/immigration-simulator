@@ -72,6 +72,8 @@ export type UsEffect =
   | { type: 'n400' }
   /** Passing the English and civics tests at the N-400 interview. */
   | { type: 'interview' }
+  /** A second failed test denies the N-400, which leaves the record. */
+  | { type: 'n400Denied' }
   /** A change of address, to report to USCIS. */
   | { type: 'moved' }
   | { type: 'addressReport' }
@@ -297,6 +299,9 @@ export const usRules: EvaluationAdapter<
       case 'interview':
         state.timeline.filed.interview = state.day.date;
         setFlags(state, ['interview-passed']);
+        return true;
+      case 'n400Denied':
+        delete state.timeline.filed.n400;
         return true;
       // Moves and reports carry the day they happen, as trips do.
       case 'moved':

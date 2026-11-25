@@ -286,6 +286,10 @@ export function actionDetails(state: UsState, action: UsActivity): void {
   if (action.id === 'interview') {
     if (state.stats.english >= b.interviewScore)
       action.effects = [{ type: 'interview' }];
+    // A second failure denies the N-400 (SRC-292, 12 USCIS-PM E.2(F)); as an
+    // effect, the denial is assessed at once.
+    else if (state.flags.includes('interview-retest'))
+      action.effects = [{ type: 'n400Denied' }];
     action.note = t(
       `游戏内英语·公民 ${state.stats.english} / ${b.interviewScore}。${interviewNote.zhCN}`,
       `In-game English and civics ${state.stats.english} / ${b.interviewScore}. ${interviewNote.en}`,
@@ -367,7 +371,6 @@ export function afterActionAwards(
     next.flags = next.flags.filter(
       (flag) => flag !== 'n400-filed' && flag !== 'interview-retest',
     );
-    delete next.timeline.filed.n400;
     next.outcome.text = t(
       `补考还是没过，这次的 N-400 被拒了。准备好以后可以重新递交（游戏内英语·公民 ${state.stats.english} / ${b.interviewScore}）。`,
       `The retest didn’t go your way, and this N-400 is denied. You can file again when you’re ready (in-game English and civics ${state.stats.english} / ${b.interviewScore}).`,

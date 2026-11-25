@@ -1,4 +1,4 @@
-import { beforeAll, expect, test } from 'vitest';
+import { beforeAll, expect, test, vi } from 'vitest';
 import { evaluateUnitedStatesFull } from '@uk-immigration/engine';
 import {
   unitedStates2026_11,
@@ -612,7 +612,19 @@ test('failing the interview twice denies the N-400, which can be filed again', (
   expect(ids(first, 'visa')).toEqual([]);
   const retest = playTo(first, '2028-12-01');
   retest.stats.english = 40;
-  const denied = us.doActivity(visit(retest, 'visa', 600), 'interview');
+  const room = visit(retest, 'visa', 600);
+  // The denial is assessed at once, without the denied N-400's filing date.
+  const evaluate = us.usRules.evaluate;
+  const assessed: (string | undefined)[] = [];
+  const spy = vi.spyOn(us.usRules, 'evaluate').mockImplementation((input) => {
+    assessed.push(input.timeline.filed.n400);
+    return evaluate(input);
+  });
+  const denied = us.doActivity(room, 'interview');
+  spy.mockRestore();
+  expect(denied.timeline.filed.n400).toBeUndefined();
+  expect(assessed.length).toBeGreaterThan(0);
+  expect(assessed.at(-1)).toBeUndefined();
   expect(denied.flags).not.toContain('n400-filed');
   expect(ids(visit(denied, 'visa', 700), 'visa')).toEqual(['n400']);
 });
