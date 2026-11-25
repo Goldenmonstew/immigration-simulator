@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { PolicyStatus } from '../../components/policy-status';
 import { SavedScenarios } from '../../components/saved-scenarios';
 import { useTranslation } from '../../i18n/locale';
+import { gameArt, gameAsset } from '../../lib/game-country';
 import { germanyModule } from '../../lib/germany-module';
 import { countryPath } from '../../lib/site-countries';
 import styles from '../site.module.css';
@@ -30,6 +31,17 @@ export default function GermanyContent() {
           </Link>
           <Link href={countryPath('de', 'policy')}>{t('site.policy')}</Link>
         </div>
+        <Link className={styles.gameEntry} href={countryPath('de', 'game')}>
+          <span
+            className={styles.gameBanner}
+            style={{
+              backgroundImage: `url("${gameAsset('de', gameArt.de.banner)}")`,
+            }}
+            aria-hidden="true"
+          />
+          <span className={styles.gameEntryTitle}>{t('de.game.entry')}</span>
+          <span className={styles.gameEntryDesc}>{t('de.game.entryDesc')}</span>
+        </Link>
         <section className={styles.section}>
           <h2>{t('home.before')}</h2>
           <p>{t('de.prepare')}</p>

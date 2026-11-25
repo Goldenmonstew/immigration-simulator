@@ -72,7 +72,7 @@ export const dePlaces: Place[] = [
     id: 'council',
     name: t('移民咨询处', 'Migration advice centre'),
     kind: 'building',
-    hours: { opens: 540, closes: 1080, dayKinds: ['workday'] },
+    hours: { opens: 540, closes: 1080, dayKinds: ['workday', 'weekend'] },
   },
   {
     id: 'ward',
