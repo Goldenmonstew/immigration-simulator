@@ -85,11 +85,17 @@ function PortugalStep(props: StepProps) {
               const next = updateAnswer(values, name, value);
               // The simulation date stays a string, as every draft has one.
               if (name === 'simulationDate') next.simulationDate ??= '';
-              update(
-                clearHiddenPortugalAnswers(
-                  writePath(draft, section.path, next),
-                ),
+              const updated = clearHiddenPortugalAnswers(
+                writePath(draft, section.path, next),
               );
+              // The shell merges the patch into the draft, so answers removed
+              // at the draft root are sent as undefined.
+              update({
+                ...Object.fromEntries(
+                  Object.keys(draft).map((key) => [key, undefined]),
+                ),
+                ...updated,
+              });
             }}
           />
         );

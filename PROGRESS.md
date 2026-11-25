@@ -668,3 +668,4 @@
 | 787 | 任务 102 审核修正（review102-1）问题 5 与风险：欧盟长期居民以蓝卡为依据时也问“是否已获国际保护”，C09-FEE 可据此判定（获保护申请日、连续性、撤销结论仍只在国际保护依据下显示）；“身份保持与恢复”的默认手续与引擎一致，只看生效日不晚于模拟日期的长期居民证。 | apps/web/lib/portugal-fields.ts、apps/web/test/portugal.test.tsx、PROGRESS.md |
 | 788 | 任务 102 审核修正（review102-1）风险与建议：收入旋钮不再关联需主管机关结论的 D02、E02，只选 ARI 时不显示；居留葡语旋钮初值按引擎读 PLA 等级与认可、基础课程认可和特殊安排；“无出境”旋钮文案写明不含离开欧盟记录；多选题报错时仍关联提示。 | apps/web/lib/portugal-whatif.ts、apps/web/app/portugal/whatif/controls.tsx、apps/web/i18n/countries/portugal-module.ts、apps/web/app/portugal/simulate/evidence-fields.tsx、apps/web/test/portugal.test.tsx、PROGRESS.md |
 | 789 | 任务 102 审核修正（review102-1）：离线缓存版本改为 `2026-11-25-pt`，关于页单测同步。 | apps/web/public/sw.js、apps/web/test/about-page.test.tsx、PROGRESS.md |
+| 790 | 任务 102 审核修正（review102-1）e2e 发现：问卷清空草稿根层的答案（删除唯一一条出境记录或居留证件、清空在审递交日、出生日期，以及随之隐藏的 emancipação 生效日）时，问卷外壳按补丁合并会把旧值带回；改为把根层删除的答案以 undefined 送出。 | apps/web/app/portugal/simulate/page.tsx、apps/e2e/tests/portugal.spec.ts、PROGRESS.md |

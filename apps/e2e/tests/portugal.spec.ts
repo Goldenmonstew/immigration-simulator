@@ -163,6 +163,16 @@ test('a Portuguese questionnaire reaches results, saves and shares them and focu
   await record.selectOption('conviction');
   await expect(page.locator('#pt-nationality-crime-years')).toHaveValue('');
   await record.selectOption('none');
+  // Answers at the draft root are cleared as well.
+  await openSection(page, zhCN['pt.section.natFiling']);
+  const emancipation = page.locator('#pt-emancipation');
+  await emancipation.selectOption('recognized');
+  await page.locator('#pt-emancipationFrom').fill('2008-01-01');
+  await emancipation.selectOption('none');
+  await expect(page.locator('#pt-emancipationFrom')).toHaveCount(0);
+  await emancipation.selectOption('recognized');
+  await expect(page.locator('#pt-emancipationFrom')).toHaveValue('');
+  await emancipation.selectOption('');
   await next(page, zhCN);
   await fillPartner(page, zhCN);
   await next(page, zhCN, true);
