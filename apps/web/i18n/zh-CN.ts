@@ -311,10 +311,6 @@ export const zhCN = {
     '按居住入籍 · 国内与欧盟长期居留 · 跨境迁居与家属 · 恢复长居 · 欧盟自由流动永居',
   'hub.es.desc':
     '核对八条路径的居留年限、离境连续性、DELE 与 CCSE 考试、IPREM 家庭资源、SMI 薪资、医保、品格安全及获批后办卡与宣誓条件。支持情景对比、分享链接与官方来源核查。',
-  'hub.ie.code': 'IE',
-  'hub.ie.paths': 'Stamp 4 / 5 · 入籍 · 配偶入籍',
-  'hub.ie.desc':
-    '按各段 Stamp 居留许可与出入境记录，核对 Stamp 4 升级、Stamp 5（满 96 个月）、一般入籍及爱尔兰公民配偶或民事伴侣入籍的时间条件。',
   'site.skip': '跳到主要内容',
   'site.home': '首页',
   'site.language': '语言',

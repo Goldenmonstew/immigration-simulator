@@ -55,19 +55,16 @@ test('the service worker keeps the site pages available offline', async ({
     .poll(() => page.evaluate(() => !!navigator.serviceWorker.controller))
     .toBe(true);
   await context.setOffline(true);
-  for (const path of [
-    ...sitePagePaths.filter((path) => path !== countryPath('ie')),
-    countryPath('ie'),
-  ]) {
+  const last = countryPath('ie', 'simulate');
+  for (const path of [...sitePagePaths.filter((path) => path !== last), last]) {
     expect((await page.goto(path))?.ok()).toBe(true);
   }
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  // The last page's script is cached too: the Ireland form works offline.
-  await page
-    .getByRole('group', { name: '许可 1' })
-    .getByLabel('生效日期')
-    .fill('2021-03-01');
-  await page.getByLabel('要计算的许可').selectOption('none');
-  await page.getByRole('button', { name: '计算' }).click();
-  await expect(page.getByRole('heading', { name: '计算结果' })).toBeFocused();
+  // The last page's script is cached too: the Ireland questionnaire works offline.
+  await page.locator('#ie-simulationDate').fill('2026-11-23');
+  await page.locator('#ie-pathway-IE-NATURALISATION').check();
+  await page.getByRole('button', { name: '继续', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { level: 1, name: '许可、出入境与登记' }),
+  ).toBeFocused();
 });
