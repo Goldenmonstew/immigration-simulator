@@ -54,6 +54,7 @@ export const grGameContent: GameContentPack<
   beforeAction: hooks.beforeAction,
   afterAction: hooks.afterAction,
   afterActionAwards: hooks.afterActionAwards,
+  afterQuarter: hooks.afterQuarter,
   quarterEffects: (played) => [
     { type: 'stat', key: 'greek', delta: played % 2 ? 0 : -b.greekDecay },
   ],

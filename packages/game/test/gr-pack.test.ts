@@ -414,6 +414,27 @@ test('a late address report needs the money for its fine', () => {
   expect(report(exact).after.stats.money).toBe(0);
 });
 
+test('a lease that ends on a low balance is a move to report', () => {
+  const c06 = (state: State) =>
+    gr.pathwayOf(state.result, 'pr')!.checks.find(({ id }) => id === 'C-06')!
+      .status;
+  const { after } = report(movedOnDayOne());
+  // The quarter's pay leaves too little for the next rent.
+  const ended = nextQuarter({ ...after, stats: { ...after.stats, money: 0 } });
+  expect(ended.flags).not.toContain('brighter-home');
+  expect(ended.timeline.changes).toEqual([
+    { kind: 'ordinary', occurredOn: '2026-03-10', reportedOn: '2026-03-10' },
+    { kind: 'ordinary', occurredOn: '2026-06-01' },
+  ]);
+  expect(ended.flags).toContain('change-report-due');
+  expect(ended.result).toEqual(gr.grRules.evaluate({ ...ended, locale: 'en' }));
+  // Reported on the quarter's working day, in time and free.
+  const reported = report(ended);
+  expect(reported.after.stats.money).toBe(reported.office.stats.money);
+  expect(c06(nextQuarter(reported.after))).toBe('MET');
+  expect(c06(nextQuarter(ended))).toBe('NOT_MET');
+});
+
 test('a JSON save round trip continues the same quarter after a trip', () => {
   const station = visit(gr.newGame('spouse', 21, 'en'), 'station', 600);
   const state = settle(gr.doActivity(station, 'travel-1'));

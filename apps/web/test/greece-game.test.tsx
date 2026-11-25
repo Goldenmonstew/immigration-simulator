@@ -155,6 +155,29 @@ test.each(['bluecard', 'spouse'])(
   },
 );
 
+test('the ending link opens after a low balance ends the lease', () => {
+  const moved = settle(
+    gr.doActivity(
+      visit(settle(gr.newGame('bluecard', 7, 'zh-CN')), 'home', 480),
+      'rent-brighter-home',
+    ),
+  );
+  let state = settle(gr.doActivity(visit(moved, 'visa', 600), 'report-change'));
+  state = { ...state, stats: { ...state.stats, money: 0 } };
+  for (let i = 0; i < 12 && state.date === moved.date; i++)
+    state = settle(gr.sleep(state));
+  expect(state.timeline.changes.at(-1)).toEqual({
+    kind: 'ordinary',
+    occurredOn: state.date,
+  });
+  const left = gr.doActivity(visit(state, 'station', 900), 'leave');
+  const page = openResult(left);
+  expect(page.correction).toBeUndefined();
+  expect(page.draft).toEqual(gameDraft(left));
+  expect(page.draft!.changes).toHaveLength(2);
+  expect(view(page.result!)).toEqual(view(left.result));
+});
+
 test('a lapsed Blue Card ending shows both routes unmet on the result page', () => {
   let state = settle(gr.newGame('bluecard', 7, 'zh-CN'));
   state.date = '2029-12-01';

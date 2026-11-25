@@ -14,6 +14,7 @@ import type {
 import { grBalance as b } from './balance';
 import { grCharacters } from './characters';
 import {
+  grRules,
   isBlueCard,
   pathwayOf,
   renewalWindow,
@@ -270,6 +271,28 @@ export function actionDetails(state: GrState, action: GrActivity): void {
     );
     action.effects = [{ type: 'money', delta: -fine }, ...action.effects];
   }
+}
+
+/**
+ * The shared quarter settlement ends the sea-view lease when the balance runs
+ * low. Moving back is a change of address too, made as the new quarter begins,
+ * so it can be reported on the quarter's working day.
+ */
+export function afterQuarter(
+  state: GrState,
+  previousFlags: string[],
+  { setFlags }: GrTools,
+): void {
+  const leaseEnded = state.log.some(
+    (entry) =>
+      entry.id === 'brighter-home-return' &&
+      entry.year === state.year &&
+      entry.quarter === state.quarter,
+  );
+  if (!leaseEnded) return;
+  state.timeline.changes.push({ kind: 'ordinary', occurredOn: state.date });
+  setFlags(state, ['change-report-due']);
+  state.result = grRules.evaluate(state);
 }
 
 // Record which application is filed before its ending text is written.
