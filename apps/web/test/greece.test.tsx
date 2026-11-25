@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
+import { usePathname } from 'next/navigation';
 import GreecePage from '../app/greece/page';
 import GreecePolicyPage from '../app/greece/policy/page';
 import GreeceSimulatePage from '../app/greece/simulate/page';
@@ -8,6 +9,7 @@ import Home from '../app/page';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';
 import { t, type TranslationKey } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
@@ -35,10 +37,18 @@ import {
   workSections,
   type GreeceField,
 } from '../lib/greece-fields';
+import { gapRules } from '../lib/gap-summary';
 import { greeceModule as gr } from '../lib/greece-module';
 import { japanModule } from '../lib/japan-module';
-import { decodeDraft, encodeDraft } from '../lib/share';
+import { readPageResult } from '../lib/page-result';
+import { decodeDraft, encodeDraft, linkedResultDraft } from '../lib/share';
 import { draftStorage, readScenarios, saveScenario } from '../lib/storage';
+import site from '../app/site.module.css';
+
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  usePathname: vi.fn(),
+}));
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -1172,3 +1182,54 @@ test('list rows, alternatives and hints have their own accessible names (review9
   );
   expect(eu).toContain('（2020-05-01）');
 });
+
+// Shared options from task 93 (Australia), wired in after merging main.
+test('a Greek share link keeps the local draft and result links carry the scenario', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local = routeDraft({
+    completed: false,
+    simulationDate: '2026-10-01',
+    pathways: ['GR-NATIONALITY'],
+  });
+  draftStorage(gr, local);
+  const shared = longTermDraft();
+  const encoded = encodeDraft(gr, shared);
+  const page = readPageResult(gr, 'zh-CN', encoded);
+  expect(page.shared).toBe(true);
+  expect(page.draft).toEqual(shared);
+  expect(draftStorage(gr).draft).toEqual(local);
+
+  // The result's edit and comparison links (#draft=) and a shared result
+  // (#s=) both reopen the assessed answers.
+  expect(linkedResultDraft(gr, `#draft=${encoded}`)).toEqual({
+    draft: shared,
+    resultHash: '',
+  });
+  expect(linkedResultDraft(gr, `#s=${encoded}`)).toEqual({
+    draft: shared,
+    resultHash: `#s=${encoded}`,
+  });
+});
+
+test.each(['result', 'simulate', 'whatif', 'policy', ''])(
+  'skipping the header on /greece/%s keeps a scenario fragment where pages carry one',
+  (sub) => {
+    vi.mocked(usePathname).mockReturnValue(sub ? `/greece/${sub}` : '/greece');
+    const html = render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    );
+    const scenarioPage = ['result', 'simulate', 'whatif'].includes(sub);
+    expect(html.includes(`<button type="button" class="${site.skip}">`)).toBe(
+      scenarioPage,
+    );
+    expect(html.includes(`class="${site.skip}" href="#main"`)).toBe(
+      !scenarioPage,
+    );
+  },
+);

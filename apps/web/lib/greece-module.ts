@@ -55,6 +55,7 @@ function run(draft: GreeceDraft, locale: Locale) {
 export const greeceModule: CountryModule<GreeceDraft, GreeceWhatIf> = {
   id: 'gr',
   version: 1,
+  scenarioLinks: true,
   createDraft: createGreeceDraft,
   activeAnswers: activeGreeceAnswers,
   restoreStoredDraft: restoreStoredGreeceDraft,

@@ -684,3 +684,4 @@
 | 792 | 任务 98 审核修正（review98-1）问卷：计算与分享前去掉被隐藏问题的答案；离境行程、其他成员国期间的离境、随配偶外派期间统一用列表的“已列全”确认（未确认的其他成员国离境不送引擎）；同一纳税年度只能填一行；列表删除按钮、`date-or` 复选框带上所属问题名，列表提示与字段集关联；年度汇总提示的起算日按引擎回退到抵达日或首卡签发日。 | apps/web/lib/greece-{draft,fields}.ts、apps/web/app/greece/simulate/{page,evidence-fields}.tsx、apps/web/i18n/countries/greece-form.ts、apps/web/test/greece.test.tsx |
 | 793 | 任务 98 审核修正（review98-1）：`sw.js` 缓存版本改为 `2026-11-25-gr`，`about-page.test.tsx` 同步。 | apps/web/public/sw.js、apps/web/test/about-page.test.tsx |
 | 794 | 任务 98 审核修正（review98-1）报告：逐条对应问题 1–4、风险与建议，记录验收与 e2e 结果及未处理的罕见映射。 | docs/tasks/reports/98-gr-pages.md |
+| 795 | 任务 98 合入 main 后接入共用选项：希腊模块设 `scenarioLinks`，结果、编辑、对比链接带场景片段，打开分享链接不覆盖本机草稿；`site-shell.tsx` 的场景路径加入希腊，“跳到主要内容”不洗掉 `#s=`。 | apps/web/lib/greece-module.ts、apps/web/components/site-shell.tsx、apps/web/test/greece.test.tsx |
