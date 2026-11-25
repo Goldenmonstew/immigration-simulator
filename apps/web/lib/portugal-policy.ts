@@ -45,8 +45,9 @@ const set: PolicyRuleSet = {
   ],
 };
 
-// Fields of the nested parameters, with EUR amounts (fees to the cent) and
-// shares shown as percentages.
+// Fields of the nested parameters, with EUR amounts (fees to the cent, kept on
+// one line; tables name the currency in their headings) and shares shown as
+// percentages.
 type Field = readonly [TranslationKey, ('eur' | 'fee' | 'share')?];
 const opposition: Record<string, Field> = {
   relationship: ['pt.param.oppositionRelationship'],
@@ -166,7 +167,8 @@ const fields: Record<string, Record<string, Field>> = {
   },
 };
 const routes = ['cplp', 'eu', 'eea', 'other', 'stateless'] as const;
-// Each AIMA charge has the published left and right columns.
+// Each AIMA charge has the published standard (left) and reduced (right,
+// fee table point XIV) columns.
 const feeTables = [
   'aimaOrdinaryFees',
   'aimaBlueFees',
@@ -179,17 +181,17 @@ function displayParameter(
   locale: Locale,
 ): PolicyParameterValue | undefined {
   const label = (key: TranslationKey) => t(key, locale);
+  const cents = (amount: number) =>
+    amount.toLocaleString(locale, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   const format = (value: number | string, unit?: Field[1]) =>
     typeof value === 'string' || !unit
       ? value
       : unit === 'share'
         ? value.toLocaleString(locale, { style: 'percent' })
-        : `EUR ${value.toLocaleString(
-            locale,
-            unit === 'fee'
-              ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-              : {},
-          )}`;
+        : `EUR\u00a0${unit === 'fee' ? cents(value) : value.toLocaleString(locale)}`;
   const value = (values as Record<string, { value: unknown }>)[name]
     ?.value as Record<string, number | string | readonly number[]>;
   if (name === 'nationalityYears' || name === 'nationalityIntervalYears')
@@ -198,25 +200,39 @@ function displayParameter(
       [label('pt.param.years')]: value[route] as number,
     }));
   if (feeTables.includes(name))
-    return Object.entries(value).map(([item, amounts]) => {
+    return Object.entries(
+      value as Record<string, number | readonly number[]>,
+    ).map(([item, amounts]) => {
+      // The protected-status charge is one amount for both columns.
       const [left, right] =
         typeof amounts === 'number' ? [amounts, amounts] : amounts;
       return {
         [label('pt.param.feeItem')]: label(
           `pt.param.fee.${item}` as TranslationKey,
         ),
-        [label('pt.option.feeColumn.left')]: format(left, 'fee'),
-        [label('pt.option.feeColumn.right')]: format(right, 'fee'),
+        [label('pt.param.leftColumn')]: cents(left),
+        [label('pt.param.rightColumn')]: cents(right),
       };
     });
   const layout = fields[name];
   if (!layout) return undefined;
-  return Object.fromEntries(
-    Object.entries(layout).map(([field, [key, unit]]) => [
-      label(key),
-      format(value[field] as number | string, unit),
-    ]),
-  );
+  const shown = (entries: [string, Field][]) =>
+    entries.map(
+      ([field, [key, unit]]) =>
+        [label(key), format(value[field] as number | string, unit)] as const,
+    );
+  const entries = Object.entries(layout);
+  if (name !== 'freeMovementFees') return Object.fromEntries(shown(entries));
+  // The free-movement charges form a table below the dates and ages.
+  return {
+    ...Object.fromEntries(shown(entries.filter(([, f]) => f[1] !== 'fee'))),
+    [label('pt.param.charges')]: entries
+      .filter(([, f]) => f[1] === 'fee')
+      .map(([field, [key]]) => ({
+        [label('pt.param.feeItem')]: label(key),
+        [label('pt.param.amountEur')]: cents(value[field] as number),
+      })),
+  };
 }
 
 export const portugalPolicy = withPolicySources({

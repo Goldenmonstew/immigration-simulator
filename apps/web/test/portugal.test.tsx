@@ -1217,7 +1217,8 @@ test.each(['zh-CN', 'en'] as const)(
 );
 
 // Shared option from task 93: nested parameters are shown with labelled
-// fields, EUR amounts and percentages instead of raw keys and bare arrays.
+// fields, amounts in EUR (named in table headings, kept on one line elsewhere)
+// and percentages instead of raw keys and bare arrays.
 test.each(['zh-CN', 'en'] as const)(
   'the Portugal policy page shows nested parameters by meaning (%s)',
   (locale) => {
@@ -1248,15 +1249,21 @@ test.each(['zh-CN', 'en'] as const)(
     const fee = row('aimaOrdinaryFees');
     for (const key of [
       'pt.param.feeItem',
-      'pt.option.feeColumn.left',
-      'pt.option.feeColumn.right',
+      'pt.param.leftColumn',
+      'pt.param.rightColumn',
     ] as const)
       expect(fee).toContain(`<th scope="col">${l(key)}</th>`);
     expect(fee).toContain(
-      `<td>${l('pt.param.fee.analysis')}</td><td>EUR 133.00</td><td>EUR 99.80</td>`,
+      `<td>${l('pt.param.fee.analysis')}</td><td>133.00</td><td>99.80</td>`,
     );
     expect(row('aimaLongTermFees')).toContain(
-      `<td>${l('pt.param.fee.protected')}</td><td>EUR 0.00</td><td>EUR 0.00</td>`,
+      `<td>${l('pt.param.fee.protected')}</td><td>0.00</td><td>0.00</td>`,
+    );
+    expect(row('freeMovementFees')).toContain(
+      `<th scope="col">${l('pt.param.amountEur')}</th>`,
+    );
+    expect(row('freeMovementFees')).toContain(
+      `<td>${l('pt.param.olderDigital')}</td><td>15.00</td>`,
     );
     expect(row('nationalityYears')).toContain(
       `<td>${l('pt.option.route.other')}</td><td>10</td>`,
@@ -1265,10 +1272,10 @@ test.each(['zh-CN', 'en'] as const)(
       `${l('pt.param.firstAdult')} 100%`,
     );
     expect(row('ariFund')).toContain(
-      `${l('pt.param.minimumTransfer')} EUR 500,000`,
+      `${l('pt.param.minimumTransfer')} EUR\u00a0500,000`,
     );
     expect(row('minimumWage2026')).toContain(
-      `${l('pt.option.region.mainland')} EUR 920`,
+      `${l('pt.option.region.mainland')} EUR\u00a0920`,
     );
     // No Portuguese parameter is a calendar year; amounts keep their groups.
     expect(row('ariResearchEur')).toContain('500,000');
