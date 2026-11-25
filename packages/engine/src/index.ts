@@ -256,8 +256,14 @@ export {
   evaluateGermanyFull,
 } from './germany-full';
 export type { DeFullRequest, DeFullRoute } from './germany-full';
-export { evaluateIrelandFull } from './ireland-full';
+export {
+  IRELAND_CONDITION_IDS,
+  IRELAND_FULL_PATHWAY_TITLES,
+  evaluateIrelandFull,
+  irelandCondition,
+} from './ireland-full';
 export type {
+  IrelandConditionId,
   IrelandBurden,
   IrelandCharacter,
   IrelandCitizenship,

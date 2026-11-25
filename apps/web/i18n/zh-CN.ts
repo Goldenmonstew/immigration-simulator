@@ -307,18 +307,11 @@ export const zhCN = {
   'hub.uk.paths': '定居 ILR · 现行法律与改革对比',
   'hub.uk.desc':
     '评估 Skilled Worker、BN(O)、Global Talent、家庭、保护与 10 年长居等路线的定居条件，并排对比现行 Immigration Rules 与已公布改革。',
-  'hub.ca.code': 'CA',
-  'hub.ca.paths': '永居居住义务 · 入籍',
-  'hub.ca.desc':
-    '核对维持永久居民身份所需的居住天数，以及入籍所需的在加拿大天数。入籍计算包含可计入的永居前在境时间。',
   'hub.es.code': 'ES',
-  'hub.es.paths': '国内长期居留 · 按居住入籍',
+  'hub.es.paths':
+    '按居住入籍 · 国内与欧盟长期居留 · 跨境迁居与家属 · 恢复长居 · 欧盟自由流动永居',
   'hub.es.desc':
-    '按居留许可、学习停留与出入境记录，核对国内长期居留与按居住入籍（10 年、难民 5 年、拉美等 2 年、配偶 1 年）的居住时间。',
-  'hub.ie.code': 'IE',
-  'hub.ie.paths': 'Stamp 4 / 5 · 入籍 · 配偶入籍',
-  'hub.ie.desc':
-    '按各段 Stamp 居留许可与出入境记录，核对 Stamp 4 升级、Stamp 5（满 96 个月）、一般入籍及爱尔兰公民配偶或民事伴侣入籍的时间条件。',
+    '核对八条路径的居留年限、离境连续性、DELE 与 CCSE 考试、IPREM 家庭资源、SMI 薪资、医保、品格安全及获批后办卡与宣誓条件。支持情景对比、分享链接与官方来源核查。',
   'site.skip': '跳到主要内容',
   'site.home': '首页',
   'site.language': '语言',
