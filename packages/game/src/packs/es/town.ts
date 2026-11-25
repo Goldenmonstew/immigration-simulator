@@ -632,8 +632,8 @@ export const esActions: EsActivity[] = [
       `Visit home for ${months} month${months === 1 ? '' : 's'}`,
     ),
     note: t(
-      `须在居留卡到期前回来。长期居留的连续性看每次和累计的离境（SRC-083 art. 183.2）；入籍时，有离境记录的连续居留须由主管机关个案认定，游戏里会显示待确认（PD-100）。`,
-      `Return before your residence card expires. Long-term residence counts each absence and the total (SRC-083 art. 183.2); for nationality, any absence leaves continuity to the authority, shown as unconfirmed in the game (PD-100).`,
+      `须在居留卡到期前回来，且回来后还赶得上到期前的一个工作日去递交（外国人办公室和民事登记处只在工作日开门），否则不提供这趟行程。长期居留的连续性看每次和累计的离境（SRC-083 art. 183.2）；入籍时，有离境记录的连续居留须由主管机关个案认定，游戏里会显示待确认（PD-100）。`,
+      `Return before your residence card expires, with a working day still left before it ends to apply (the immigration office and civil registry open only on working days); otherwise the trip is not offered. Long-term residence counts each absence and the total (SRC-083 art. 183.2); for nationality, any absence leaves continuity to the authority, shown as unconfirmed in the game (PD-100).`,
     ),
     minutes: 0,
     effects: [

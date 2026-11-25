@@ -9,7 +9,7 @@ import {
   type EsTrip,
 } from '@uk-immigration/engine';
 import { spainFull2026_11 } from '@uk-immigration/policy-data';
-import { addDays, addMonths } from '../../calendar';
+import { addDays, addMonths, firstWeekday } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
 import type { GameState, IsoDate, Locale, Progress } from '../../model';
 import { esBalance as b } from './balance';
@@ -190,6 +190,18 @@ function visaMonthsLeft(state: EsState): number {
   return months;
 }
 
+/**
+ * The first working day of play after a trip ending on `through`. The shared
+ * game resumes at the first quarter start on or after the return and plays it
+ * from its workday, the first Tuesday after its first week (game.ts beginDay);
+ * the immigration office and the civil registry open only on workdays.
+ */
+function workdayAfter(state: EsState, through: IsoDate): IsoDate {
+  let quarter = state.date;
+  while (quarter < through) quarter = addMonths(quarter, b.monthsPerQuarter);
+  return firstWeekday(addDays(quarter, 7), 2);
+}
+
 // A home visit is an ordinary, lawful trip outside the EU.
 function recordAbsence(
   state: { timeline: EsTimeline },
@@ -238,7 +250,9 @@ export const esRules: EvaluationAdapter<
   evaluate,
   progress,
   visaMonthsLeft,
-  canTravel: (state, through) => through <= currentPermit(state).to!,
+  // Back with a valid card, in time for a working day on which to apply.
+  canTravel: (state, through) =>
+    workdayAfter(state, through) <= currentPermit(state).to!,
   earnings: (state) =>
     (b.salary[state.characterId] ?? 0) *
     b.promotionMultiplier **

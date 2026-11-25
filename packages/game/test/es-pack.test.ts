@@ -523,6 +523,18 @@ test('the late filing window closes on the next working day after a weekend', ()
   expect(es.lateFilingDeadline('2026-11-28')).toBe('2027-03-01');
 });
 
+test('a trip leaves a working day to apply before the card ends', () => {
+  // Yutong's card ends on 2027-04-30. Leaving on 2026-12-08, a three-month
+  // trip is back on 2027-03-08, after the 2027-03 quarter has begun: play
+  // resumes in the 2027-06 quarter, past the card.
+  const exporter = at(settle(es.newGame('exporter', 5, 'en')), '2026-12-01');
+  exporter.day.date = '2026-12-08';
+  const station = ids(visit(exporter, 'station', 600), 'station');
+  expect(station).toContain('travel-1');
+  expect(station).not.toContain('travel-3');
+  expect(station).not.toContain('travel-6');
+});
+
 test('a lapsed card ends the story unless long-term residence can still be filed', () => {
   const exporter = settle(es.newGame('exporter', 5, 'en'));
   // Within three months of the 2027-04-30 expiry (SRC-083 art. 184.2).
