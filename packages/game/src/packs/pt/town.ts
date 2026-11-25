@@ -35,13 +35,13 @@ export const ptPlaces: Place[] = [
   { id: 'home', name: t('公寓', 'Apartment'), kind: 'building' },
   {
     id: 'work',
-    name: t('旧瓷砖厂共享办公楼', 'The Tile Works'),
+    name: t('瓷砖厂工坊', 'The Tile Works'),
     kind: 'building',
     hours: { opens: 480, closes: 1200, dayKinds: ['workday'] },
   },
   {
     id: 'college',
-    name: t('社区中心葡语课', 'Community Portuguese class'),
+    name: t('葡语课教室', 'Portuguese class'),
     kind: 'building',
     hours: { opens: 600, closes: 1260 },
   },

@@ -1,9 +1,11 @@
 import { ptFormEn, ptFormZh } from './portugal-form';
 import { en as moduleEn, zhCN as moduleZh } from './portugal-module';
+import { ptGameEn, ptGameZh } from './portugal-game';
 
 export const zhCN = {
   ...ptFormZh,
   ...moduleZh,
+  ...ptGameZh,
   'pt.name': '葡萄牙',
   'hub.pt.code': 'PT',
   'hub.pt.paths':
@@ -24,6 +26,7 @@ export const zhCN = {
 export const en: Record<keyof typeof zhCN, string> = {
   ...ptFormEn,
   ...moduleEn,
+  ...ptGameEn,
   'pt.name': 'Portugal',
   'hub.pt.code': 'PT',
   'hub.pt.paths':
