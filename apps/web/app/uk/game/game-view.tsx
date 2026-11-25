@@ -1,8 +1,21 @@
+import { ukShell } from './shell';
+
 // Barrel kept so existing imports of './game-view' keep working.
-export * from './game-ui';
-export * from './character-select';
-export * from './hud';
-export * from './location-menu';
-export * from './event-card';
-export * from './quarter-summary';
-export * from './ending';
+export * from '../../game-shell/game-ui';
+export type { StateChange } from '../../game-shell/quarter-summary';
+export const {
+  CharacterSelect,
+  ControlHint,
+  InteractButton,
+  StatusBar,
+  ProgressBars,
+  ProgressDetail,
+  EffectHints,
+  LocationMenu,
+  EventNotes,
+  VisaReminder,
+  EventCard,
+  QuarterSummary,
+  LifeMemories,
+  Ending,
+} = ukShell;

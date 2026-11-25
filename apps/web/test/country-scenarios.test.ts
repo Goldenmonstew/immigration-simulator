@@ -132,7 +132,7 @@ test.each([ukModule, japanModule])(
       policyAsOf: first.simulationDate,
       columns: [],
     };
-    draftStorage(country, first);
+    draftStorage<CountryDraft>(country, first);
     rememberResult(country, first, result, 'en');
     const restored = draftStorage<CountryDraft>(country).draft!;
     expect(getRememberedResult(country, restored, 'en')).toBe(result);

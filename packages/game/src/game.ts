@@ -61,6 +61,7 @@ export function createGame<
     lifeAchievements = [],
     home = 'home',
     fishingPlace = 'pond',
+    fishingSpot = { zhCN: '池塘', en: 'the pond' },
     allotmentPlace = 'allotment',
   } = pack;
   const b = { ...defaultBalance, ...pack.balance };
@@ -920,8 +921,8 @@ export function createGame<
       });
     if (casts)
       pursuits.push({
-        zhCN: `池塘抛竿 ${casts} 次`,
-        en: `${casts} cast${casts === 1 ? '' : 's'} at the pond`,
+        zhCN: `${fishingSpot.zhCN}抛竿 ${casts} 次`,
+        en: `${casts} cast${casts === 1 ? '' : 's'} at ${fishingSpot.en}`,
       });
     if (catches)
       pursuits.push({
@@ -1669,8 +1670,8 @@ export function createGame<
     recordLife(
       next,
       'fishing',
-      fishingPlace === 'pond'
-        ? { zhCN: '在池塘抛竿', en: 'Cast at the pond' }
+      fishingPlace === 'pond' || pack.fishingSpot
+        ? { zhCN: `在${fishingSpot.zhCN}抛竿`, en: `Cast at ${fishingSpot.en}` }
         : { zhCN: '抛竿钓鱼', en: 'Cast a fishing line' },
     );
     if (!caught) {

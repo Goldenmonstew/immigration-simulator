@@ -10,7 +10,7 @@ export const siteCountries = [
   { id: 'gr', slug: 'greece', nameKey: 'gr.name', hasGame: false },
   { id: 'ie', slug: 'ireland', nameKey: 'ie.name', hasGame: false },
   { id: 'pt', slug: 'portugal', nameKey: 'pt.name', hasGame: false },
-  { id: 'jp', slug: 'japan', nameKey: 'jp.name', hasGame: false },
+  { id: 'jp', slug: 'japan', nameKey: 'jp.name', hasGame: true },
   { id: 'de', slug: 'germany', nameKey: 'de.name', hasGame: false },
 ] as const satisfies readonly {
   id: string;
@@ -40,7 +40,8 @@ const calculatorPages = ['', 'simulate', 'result', 'whatif', 'policy'];
 const pagesByCountry: Partial<Record<CountryId, string[]>> = {
   uk: [...calculatorPages, 'about', 'game'],
   au: calculatorPages,
-  jp: calculatorPages,
+  gr: calculatorPages,
+  jp: [...calculatorPages, 'game'],
   us: calculatorPages,
 };
 
