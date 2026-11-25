@@ -279,8 +279,9 @@ export function actionDetails(state: GrState, action: GrActivity): void {
 
 /**
  * The shared quarter settlement ends the sea-view lease when the balance runs
- * low. Moving back is a change of address too, made as the new quarter begins,
- * so it can be reported on the quarter's working day.
+ * low. Moving back is a change of address too, made as the quarter play
+ * resumes in begins, so it can be reported on that quarter's working day: at
+ * once, or after a trip that is still under way.
  */
 export function afterQuarter(
   state: GrState,
@@ -293,7 +294,9 @@ export function afterQuarter(
       entry.year === state.year &&
       entry.quarter === state.quarter,
   );
-  if (!leaseEnded) return;
+  if (leaseEnded) setFlags(state, ['moving-back']);
+  if (state.trip || !state.flags.includes('moving-back')) return;
+  state.flags = state.flags.filter((flag) => flag !== 'moving-back');
   state.timeline.changes.push({ kind: 'ordinary', occurredOn: state.date });
   setFlags(state, ['change-report-due']);
   state.result = grRules.evaluate(state);

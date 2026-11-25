@@ -504,6 +504,38 @@ test('the diary casts a line off the harbour breakwater, not at a pond', () => {
   expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
 });
 
+test('a lease that ends during a trip is a move to report on return', () => {
+  const c06 = (state: State) =>
+    gr.pathwayOf(state.result, 'pr')!.checks.find(({ id }) => id === 'C-06')!
+      .status;
+  const home = visit(gr.newGame('spouse', 7, 'en'), 'home', 480);
+  const { after } = report(settle(gr.doActivity(home, 'rent-brighter-home')));
+  let state = settle(
+    gr.doActivity(visit(after, 'station', after.day.minute), 'travel-6'),
+  );
+  for (let i = 0; i < 40 && state.trip; i++) state = settle(gr.sleep(state));
+  // Away from 2026-03-10 to 09-10; the lease ended on 06-01 while abroad.
+  expect(state.timeline.trips).toEqual([
+    {
+      departed: '2026-03-10',
+      returned: '2026-09-10',
+      familyAbsenceReason: 'ordinary',
+    },
+  ]);
+  expect(state.log.some(({ id }) => id === 'brighter-home-return')).toBe(true);
+  // Play resumes on 2026-12-01; the move back is dated then.
+  expect(state.date).toBe('2026-12-01');
+  expect(state.timeline.changes.at(-1)).toEqual({
+    kind: 'ordinary',
+    occurredOn: '2026-12-01',
+  });
+  expect(state.result).toEqual(gr.grRules.evaluate({ ...state, locale: 'en' }));
+  const back = report(state);
+  expect(back.action!.label.en).toBe('Report your new address');
+  expect(back.after.stats.money).toBe(back.office.stats.money);
+  expect(c06(nextQuarter(back.after))).toBe('MET');
+});
+
 test('a JSON save round trip continues the same quarter after a trip', () => {
   const station = visit(gr.newGame('spouse', 21, 'en'), 'station', 600);
   const state = settle(gr.doActivity(station, 'travel-1'));
