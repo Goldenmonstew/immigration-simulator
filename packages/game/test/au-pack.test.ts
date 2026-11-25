@@ -34,9 +34,10 @@ function visit(state: State, place: string, minute: number) {
   return settle(au.enter(state, place));
 }
 /** Move the timeline to another quarter start and reassess, as a later save would. */
-function at(state: State, date: string) {
+function at(state: State, date: string, quarter = state.quarter) {
   const next = structuredClone(state);
   next.date = date;
+  next.quarter = quarter;
   next.result = au.auRules.evaluate(next);
   return next;
 }
@@ -87,7 +88,8 @@ test('the Australian rules engine assesses each 191 stream and the time mileston
     'AU-PIC-POLICE',
     'AU-FEES-APPLICATION',
   ]);
-  expect(au.visaMonthsLeft(nurse)).toBe(44);
+  // From the first playable day, 2026-03-10.
+  expect(au.visaMonthsLeft(nurse)).toBe(43);
   const graduate = au.newGame('graduate', 5, 'zh-CN');
   expect(graduate.result.columns[0].pathways.map(({ id }) => id)).toEqual([
     'AU-191-HK',
@@ -258,3 +260,36 @@ test.each([
     expect(au.progress(state).pr.outcome).toBe('NOT_MET');
   },
 );
+
+test('a festival after the visa has ended shows the lapse, and leaving is assessed that day', () => {
+  const start = settle(au.newGame('graduate', 5, 'en'));
+  Object.assign(start.timeline.publicInterest, {
+    health: 'cleared',
+    policeDocuments: 'supplied',
+  });
+  // The winter quarter of 2029: the 485 ends on 14 July, the grand final is
+  // on 25 August.
+  let state = at(start, '2029-06-01', 3);
+  expect(au.pathwayOf(state.result)?.status).toBe('MET');
+  while (state.day.index < 2) state = nextDay(state);
+  expect([state.day.date, state.day.festival]).toEqual([
+    '2029-08-25',
+    'footy-final',
+  ]);
+  expect(au.currentVisa(state).to).toBe('2029-07-14');
+  expect(au.visaMonthsLeft(state)).toBe(0);
+  expect(au.assessedOn(state)).toBe('2029-08-25');
+  expect(au.pathwayOf(au.currentResult(state))?.status).toBe('NOT_MET');
+  expect(au.progress(state).pr.outcome).toBe('NOT_MET');
+  const left = au.doActivity(visit(state, 'station', 900), 'leave');
+  expect(left.ending).toBe('left');
+  expect(au.assessedOn(left)).toBe('2029-08-25');
+  expect(au.pathwayOf(au.currentResult(left))?.status).toBe('NOT_MET');
+  expect(au.currentResult(left)).toEqual(
+    evaluateAustraliaFull({
+      ...left.timeline,
+      simulationDate: '2029-08-25',
+      locale: 'en',
+    }),
+  );
+});

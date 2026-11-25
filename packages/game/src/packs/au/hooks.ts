@@ -15,6 +15,7 @@ import type {
 import { auBalance as b } from './balance';
 import { auCharacters } from './characters';
 import {
+  currentResult,
   lastIncomeYear,
   pathwayOf,
   type AuEffect,
@@ -106,7 +107,7 @@ export function actionAvailable(
   const { regional, publicInterest } = state.timeline;
   if (action.id === 'settle')
     return (
-      pathwayOf(state.result)?.status === 'MET' &&
+      pathwayOf(currentResult(state))?.status === 'MET' &&
       state.stats.money >= lodgementFee(state).fee
     );
   if (action.id === 'tax-return')

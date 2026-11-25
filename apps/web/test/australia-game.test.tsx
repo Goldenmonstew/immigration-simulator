@@ -152,6 +152,38 @@ test.each([
   },
 );
 
+test('leaving on a festival after the visa has ended links the lapse on that day', () => {
+  vi.stubGlobal('localStorage', {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  });
+  // The graduate's 485 ends on 2029-07-14; the grand final is on 2029-08-25.
+  let state = ready(settle(au.newGame('graduate', 7, 'zh-CN')), '2029-06-01');
+  state.quarter = 3;
+  while (state.day.index < 2) state = nextDay(state);
+  expect([state.day.date, state.day.festival]).toEqual([
+    '2029-08-25',
+    'footy-final',
+  ]);
+  const hud = render(<auShell.StatusBar state={state} />);
+  expect(hud).toContain(withCount(t('au.game.visa', 'zh-CN'), 'count', 0));
+  expect(view(shownResult(state))[0].status).toBe('NOT_MET');
+  const left = au.doActivity(visit(state, 'station', 900), 'leave');
+  expect(left.ending).toBe('left');
+  const page = readPageResult(
+    australiaModule,
+    'zh-CN',
+    auCountry.resultHref(left).split('#s=')[1],
+    'result',
+  );
+  expect(page.correction).toBeUndefined();
+  expect(page.draft).toEqual(gameDraft(left));
+  expect(page.draft!.simulationDate).toBe('2029-08-25');
+  expect(view(page.result!)).toEqual(view(shownResult(left)));
+  expect(view(page.result!)[0].status).toBe('NOT_MET');
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bar and assessment speak Australian residence in %s',
   (locale) => {

@@ -75,7 +75,7 @@ export function gameDraft(state: AuState): AustraliaDraft {
   return {
     ...createAustraliaDraft(),
     ...structuredClone(state.timeline),
-    simulationDate: state.date,
+    simulationDate: auGame.assessedOn(state),
     step: 6,
     completed: true,
   };
@@ -83,7 +83,7 @@ export function gameDraft(state: AuState): AustraliaDraft {
 
 /** The game's assessment as the result page shows it. */
 export const shownResult = (state: AuState) =>
-  presentAustraliaResult(structuredClone(state.result));
+  presentAustraliaResult(structuredClone(auGame.currentResult(state)));
 
 export const auCountry: GameCountry<AuKinds> = {
   id: 'au',
@@ -109,7 +109,7 @@ export const auCountry: GameCountry<AuKinds> = {
   // Fees are a budget, not a requirement (see the engine's eligibility checks).
   missingRules(state) {
     const titles = auGame
-      .pathwayOf(state.result)
+      .pathwayOf(auGame.currentResult(state))
       ?.checks.filter(
         (check) => check.status !== 'MET' && !check.id.startsWith('AU-FEES-'),
       )
@@ -138,7 +138,7 @@ export const auCountry: GameCountry<AuKinds> = {
     <CountryAssessmentColumns
       country={australiaModule}
       result={shownResult(state)}
-      simulationDate={state.date}
+      simulationDate={auGame.assessedOn(state)}
       idPrefix={idPrefix}
     />
   ),
@@ -146,7 +146,7 @@ export const auCountry: GameCountry<AuKinds> = {
     <CountryAssessmentColumns
       country={australiaModule}
       result={shownResult(state)}
-      simulationDate={state.date}
+      simulationDate={auGame.assessedOn(state)}
       idPrefix="ending-"
     />
   ),

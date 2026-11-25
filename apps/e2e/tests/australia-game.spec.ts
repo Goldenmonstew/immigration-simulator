@@ -59,7 +59,7 @@ test('a new resident walks to the lookout bench and watches the bay', async ({
 }) => {
   await startAustraliaGame(page);
   // The nurse's 491 runs to 2029-11-03 (see the content pack tests).
-  await expect(page.getByText('签证剩余 44 个月').first()).toBeVisible();
+  await expect(page.getByText('签证剩余 43 个月').first()).toBeVisible();
   const bench = await walkTo(page, '瞭望长椅');
   await bench.getByRole('button', { name: /坐着看海湾/ }).click();
   await expect
@@ -101,7 +101,7 @@ test('the English interface shows the visa, Aussie English and dollars', async (
 }) => {
   await startAustraliaGame(page, characters[0].en, 'en');
   const hud = page.locator('header').filter({ hasText: 'Maricel Dizon' });
-  await expect(hud.getByText('Visa: 44 months left')).toBeVisible();
+  await expect(hud.getByText('Visa: 43 months left')).toBeVisible();
   await expect(hud.getByText('Aussie English', { exact: true })).toBeVisible();
   await expect(hud.getByText('$15,000')).toBeVisible();
   expect(await hud.innerText()).not.toMatch(/[㐀-鿿]/);

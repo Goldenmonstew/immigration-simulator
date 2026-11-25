@@ -109,6 +109,8 @@ export const festivals = auFestivals;
 export const achievements = hooks.auAchievements;
 export { auCharacters, auFurnishingNames, auRules };
 export {
+  assessedOn,
+  currentResult,
   currentVisa,
   lastIncomeYear,
   pathwayOf,
