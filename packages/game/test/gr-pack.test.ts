@@ -165,6 +165,31 @@ test('a late renewal pays the monthly fine; past the late period the story ends'
   expect(state.date).toBe('2026-09-01');
 });
 
+test('a lapsed Blue Card ends the story with both routes unmet', () => {
+  let state = settle(gr.newGame('bluecard', 9, 'en'));
+  state.date = '2029-12-01';
+  state.timeline.currentCardExpiresOn = '2029-09-14';
+  state.timeline.integration = { basis: 'a2', a2Certificate: true };
+  state.result = gr.grRules.evaluate({ ...state, locale: 'en' });
+  // Still inside the late renewal period, time counts as renewed on time.
+  expect(gr.pathwayOf(state.result, 'pr')?.status).toBe('MET');
+  state = nextQuarter(state);
+  expect([state.date, state.ending]).toEqual(['2030-03-01', 'overstayed']);
+  expect(state.timeline.permits.at(-1)?.to).toBe('2029-09-14');
+  const pathways = state.result.columns[0].pathways;
+  expect(pathways.map(({ status }) => status)).toEqual(['NOT_MET', 'NOT_MET']);
+  expect(
+    pathways.flatMap(({ checks }) =>
+      checks
+        .filter(({ id }) => id.endsWith('-TIME-RESIDENCE'))
+        .map(({ id, status }) => [id, status]),
+    ),
+  ).toEqual([
+    ['LT-TIME-RESIDENCE', 'NOT_MET'],
+    ['NAT-TIME-RESIDENCE', 'NOT_MET'],
+  ]);
+});
+
 test('Easter is the spring festival on the square, with tsoureki and a diary flag', () => {
   expect(
     [2026, 2027, 2028, 2029, 2030].map((year) => gr.orthodoxEaster(year)),

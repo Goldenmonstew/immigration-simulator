@@ -155,6 +155,25 @@ test.each(['bluecard', 'spouse'])(
   },
 );
 
+test('a lapsed Blue Card ending shows both routes unmet on the result page', () => {
+  let state = settle(gr.newGame('bluecard', 7, 'zh-CN'));
+  state.date = '2029-12-01';
+  state.timeline.currentCardExpiresOn = '2029-09-14';
+  state.timeline.integration = { basis: 'a2', a2Certificate: true };
+  for (let i = 0; i < 12 && !gr.isOver(state); i++)
+    state = settle(gr.sleep(state));
+  expect([state.date, state.ending]).toEqual(['2030-03-01', 'overstayed']);
+  expect(state.result.columns[0].pathways.map(({ status }) => status)).toEqual([
+    'NOT_MET',
+    'NOT_MET',
+  ]);
+  const page = openResult(state);
+  expect(page.correction).toBeUndefined();
+  expect(page.draft).toEqual(gameDraft(state));
+  expect(page.draft!.permits?.at(-1)?.to).toBe('2029-09-14');
+  expect(view(page.result!)).toEqual(view(state.result));
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak Greek residence in %s',
   (locale) => {

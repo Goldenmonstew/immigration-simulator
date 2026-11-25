@@ -188,9 +188,15 @@ export const grRules: EvaluationAdapter<
     income.netEur = Math.round(income.netEur! * multiplier);
     return true;
   },
-  // Past the late renewal period, the card has lapsed and this story ends.
-  expired: (state) =>
-    renewalWindow(state.timeline.currentCardExpiresOn).late < state.date,
+  // Past the late renewal period the card has lapsed and this story ends.
+  // The permit ends on its expiry date, so the ending's assessment counts no
+  // lawful residence after it.
+  expired(state) {
+    const expiry = state.timeline.currentCardExpiresOn;
+    if (renewalWindow(expiry).late >= state.date) return false;
+    state.timeline.permits.at(-1)!.to ??= expiry;
+    return true;
+  },
   applyEffect(state, effect, { setFlags }) {
     const { timeline } = state;
     switch (effect.type) {
