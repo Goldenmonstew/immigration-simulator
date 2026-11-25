@@ -25,11 +25,9 @@ const common = (): DeTimeline['common'] => ({
   employmentAuthorisedOrNotRequired: true,
   permanentProfessionalPermissionOrNotRequired: true,
   provenGerman: 'A2',
-  housing: {
-    localMinimumM2: 35,
-    usableM2: 48,
-    qualityAndOccupancyConfirmed: true,
-  },
+  // The flat's own size and condition. The local minimum is a municipal
+  // standard the game has no figure for (PD-348), so the office checks it.
+  housing: { usableM2: 48, qualityAndOccupancyConfirmed: true },
 });
 
 const citizenship = (

@@ -113,7 +113,7 @@ export { deCharacters, deFurnishingNames, deRules };
 export {
   currentPermit,
   pathwayOf,
-  payYearPending,
+  officePending,
   timeDate,
   type DeColumn,
   type DeEffect,

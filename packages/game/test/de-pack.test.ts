@@ -196,12 +196,37 @@ test('a quarter of Blue Card work counts, months abroad do not, and a save round
   expect(quarterLater(restored)).toEqual(played);
 });
 
+test('housing has no invented local minimum, so the office checks the local standard', () => {
+  for (const { id } of de.characters)
+    expect(de.newGame(id, 5, 'en').timeline.common.housing).toEqual({
+      usableM2: 48,
+      qualityAndOccupancyConfirmed: true,
+    });
+  const state = certified(settle(de.newGame('bluecard', 5, 'en')));
+  state.date = '2026-12-01';
+  state.timeline.blueCardEmploymentMonths = 22;
+  state.result = de.deRules.evaluate(state);
+  const settlement = pathway(state, 'settle');
+  // Without a local minimum the engine leaves housing pending (PD-348).
+  expect(settlement.status).toBe('UNKNOWN');
+  expect(settlement.checks.find(({ id }) => id === 'DE-C10')!.status).toBe(
+    'UNKNOWN',
+  );
+  expect(de.officePending(state)).toEqual(['DE-C10']);
+  const apply = de
+    .activities(visit(state, 'visa', 600), 'visa')
+    .find(({ id }) => id === 'settle')!;
+  expect(apply.label.en).toContain('local housing standard');
+  expect(apply.note?.en).toContain('PD-348');
+});
+
 test('settling uses the engine’s assessment and the scheduled fee', () => {
   const state = certified(settle(de.newGame('bluecard', 5, 'en')));
   state.date = '2026-12-01';
   state.timeline.blueCardEmploymentMonths = 22;
   state.result = de.deRules.evaluate(state);
-  expect(pathway(state, 'settle').status).toBe('MET');
+  // Everything but the local housing standard is met (see the housing test).
+  expect(de.officePending(state)).toEqual(['DE-C10']);
   const office = visit(state, 'visa', 600);
   const apply = de
     .activities(office, 'visa')
@@ -227,7 +252,7 @@ test('settling uses the engine’s assessment and the scheduled fee', () => {
   expect(ids(visit(state, 'visa', 600), 'visa')).not.toContain('settle');
 });
 
-test('a year without a published Blue Card pay threshold leaves only that check to the office', () => {
+test('a year without a published Blue Card pay threshold leaves that check to the office too', () => {
   const state = certified(settle(de.newGame('bluecard', 5, 'en')));
   state.date = '2027-03-01';
   state.timeline.blueCardEmploymentMonths = 25;
@@ -237,7 +262,7 @@ test('a year without a published Blue Card pay threshold leaves only that check 
   expect(settlement.checks.find(({ id }) => id === 'DE-C21-pay')!.status).toBe(
     'UNKNOWN',
   );
-  expect(de.payYearPending(state)).toBe(true);
+  expect(de.officePending(state)).toEqual(['DE-C10', 'DE-C21-pay']);
   expect(de.progress(state).settle).toEqual({
     outcome: 'UNKNOWN',
     percent: 100,
@@ -246,13 +271,15 @@ test('a year without a published Blue Card pay threshold leaves only that check 
   const apply = de
     .activities(office, 'visa')
     .find(({ id }) => id === 'settle')!;
-  expect(apply.label.en).toContain('pay threshold');
+  expect(apply.label.en).toContain(
+    'the local housing standard and this year’s Blue Card pay threshold',
+  );
   expect(apply.note?.en).toContain('PD-350');
   // Any other open requirement keeps the window closed.
   state.timeline.common.orientationScore = undefined;
   state.timeline.citizenship.knowledge = { kind: 'none' };
   state.result = de.deRules.evaluate(state);
-  expect(de.payYearPending(state)).toBe(false);
+  expect(de.officePending(state)).toBeUndefined();
   expect(ids(visit(state, 'visa', 600), 'visa')).not.toContain('settle');
 });
 

@@ -107,7 +107,7 @@ function progress(state: DeState): Progress<DeColumn, DeOutcome> {
     const target = date && Date.parse(date);
     const percent =
       pathway?.status === 'MET' ||
-      (column === 'settle' && payYearPending(state))
+      (column === 'settle' && !!officePending(state))
         ? 100
         : target && target > start
           ? ((Date.parse(state.date) - start) / (target - start)) * 100
@@ -136,25 +136,25 @@ function monthsAbroad(state: DeState, from: IsoDate, to: IsoDate) {
 }
 
 /**
- * Pathways whose only open requirement is the Blue Card pay check for a year
- * whose salary threshold is not yet in the parameter table (PD-350). The
- * authority checks the pay when the application is made.
+ * The settlement checks the authority confirms when the application is made,
+ * if they are all that is open: the local housing standard, for which the
+ * game has no local figure (PD-348), and the Blue Card pay check for a year
+ * whose salary threshold is not yet in the parameter table (PD-350).
  */
-export function payYearPending(state: DeState) {
+export function officePending(state: DeState): string[] | undefined {
   const pathway = pathwayOf(state.result, state.timeline, 'settle');
-  const year = state.date.slice(0, 4);
-  return (
-    pathway?.id === 'DE-R03' &&
-    pathway.status === 'UNKNOWN' &&
-    !(year in values.blueCardStandardPay.value) &&
-    pathway.checks.every(
-      (check) =>
-        check.status === 'MET' ||
-        DE_PROCEDURE_CHECKS.has(check.id) ||
-        /^DE-C(6[5-9]|7[01])(-|$)/.test(check.id) ||
-        check.id === 'DE-C21-pay',
-    )
+  if (pathway?.status !== 'UNKNOWN') return;
+  const office = ['DE-C10'];
+  if (!(state.date.slice(0, 4) in values.blueCardStandardPay.value))
+    office.push('DE-C21-pay');
+  const open = pathway.checks.filter(
+    (check) =>
+      check.status !== 'MET' &&
+      !DE_PROCEDURE_CHECKS.has(check.id) &&
+      !/^DE-C(6[5-9]|7[01])(-|$)/.test(check.id),
   );
+  if (!open.length || open.some((check) => !office.includes(check.id))) return;
+  return open.map((check) => check.id);
 }
 
 export const deRules: EvaluationAdapter<

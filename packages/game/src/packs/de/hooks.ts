@@ -16,7 +16,7 @@ import { deBalance as b } from './balance';
 import { deCharacters } from './characters';
 import {
   pathwayOf,
-  payYearPending,
+  officePending,
   type DeEffect,
   type DeFestival,
   type DeState,
@@ -98,6 +98,24 @@ const testAnswers = (state: DeState) =>
     Math.floor(state.stats.german / b.germanPerTestAnswer),
   );
 
+/** What the office confirms for an application that only waits for it. */
+const officeItems: Record<string, { label: Text; note: Text }> = {
+  'DE-C10': {
+    label: t('当地住房标准', 'the local housing standard'),
+    note: t(
+      '住房是否达到当地的面积与占用标准，游戏没有当地数据（PD-348）',
+      'whether the flat meets the local space and occupancy standard, for which the game has no local figure (PD-348)',
+    ),
+  },
+  'DE-C21-pay': {
+    label: t('本年度蓝卡工资线', 'this year’s Blue Card pay threshold'),
+    note: t(
+      '本年度的蓝卡工资线，参数表还没有登记这一年（PD-350）',
+      'this year’s Blue Card pay threshold, not yet in the parameter table (PD-350)',
+    ),
+  },
+};
+
 export function actionAvailable(
   state: DeState,
   action: DeActivity,
@@ -107,7 +125,7 @@ export function actionAvailable(
   if (action.id === 'settle')
     return (
       (pathwayOf(state.result, state.timeline, 'settle')?.status === 'MET' ||
-        payYearPending(state)) &&
+        !!officePending(state)) &&
       affordable(state, [{ type: 'money', delta: -settleFee }])
     );
   if (action.id === 'naturalise')
@@ -131,14 +149,16 @@ export function actionDetails(state: DeState, action: DeActivity): void {
       `申请定居许可（手续费 ${eur(amount)}，SRC-410 第 44 条）`,
       `Apply for a settlement permit (fee ${eur(amount)}, SRC-410 § 44)`,
     );
-    if (payYearPending(state)) {
+    const pending = officePending(state);
+    if (pending) {
+      const items = pending.map((id) => officeItems[id]);
       action.label = t(
-        `申请定居许可（手续费 ${eur(amount)}，SRC-410 第 44 条；本年度蓝卡工资线待外管局核对）`,
-        `Apply for a settlement permit (fee ${eur(amount)}, SRC-410 § 44; this year’s Blue Card pay threshold to be checked by the office)`,
+        `申请定居许可（手续费 ${eur(amount)}，SRC-410 第 44 条；${items.map((item) => item.label.zhCN).join('、')}待外管局核对）`,
+        `Apply for a settlement permit (fee ${eur(amount)}, SRC-410 § 44; ${items.map((item) => item.label.en).join(' and ')} to be checked by the office)`,
       );
       action.note = t(
-        '评估里只剩"本年度工资线"待确认：参数表还没有登记这一年的蓝卡工资线（PD-350），由外管局在审查时核对。',
-        'Only this year’s pay threshold is pending in the assessment: the parameter table has no Blue Card threshold for this year yet (PD-350), so the office checks it during review.',
+        `评估里只剩这些待确认，由外管局在审查时核对：${items.map((item) => item.note.zhCN).join('；')}。`,
+        `Only these are pending in the assessment, and the office checks them during review: ${items.map((item) => item.note.en).join('; ')}.`,
       );
     }
     action.effects = [{ type: 'money', delta: -amount }, ...action.effects];

@@ -79,6 +79,8 @@ function reopen(state: State) {
   expect(page.correction).toBeUndefined();
   expect(page.draft).toEqual(gameDraft(state));
   expect(page.draft!.simulationDate).toBe(state.date);
+  // No invented local housing standard travels to the questionnaire.
+  expect(JSON.stringify(page.draft)).not.toContain('localMinimumM2');
   expect(view(page.result!)).toEqual(view(state.result));
 }
 
