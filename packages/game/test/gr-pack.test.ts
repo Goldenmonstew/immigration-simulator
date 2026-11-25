@@ -404,6 +404,16 @@ test('a second late address report pays the repeat fine', () => {
   expect(second.after.stats.money).toBe(second.office.stats.money - repeatFine);
 });
 
+test('a late address report needs the money for its fine', () => {
+  const { firstFine } = values.changeReporting.value;
+  const due = nextQuarter(movedOnDayOne());
+  const short = { ...due, stats: { ...due.stats, money: firstFine - 1 } };
+  expect(report(due).action).toBeDefined();
+  expect(ids(visit(short, 'visa', 600), 'visa')).not.toContain('report-change');
+  const exact = { ...due, stats: { ...due.stats, money: firstFine } };
+  expect(report(exact).after.stats.money).toBe(0);
+});
+
 test('a JSON save round trip continues the same quarter after a trip', () => {
   const station = visit(gr.newGame('spouse', 21, 'en'), 'station', 600);
   const state = settle(gr.doActivity(station, 'travel-1'));

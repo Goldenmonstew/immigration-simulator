@@ -184,6 +184,8 @@ export function actionAvailable(
       state.timeline.nationality.exam !== 'certificate' &&
       affordable(state, action.effects)
     );
+  if (action.id === 'report-change')
+    return state.stats.money >= (lateReport(state)?.fine ?? 0);
   if (action.id === 'tax-return') return unfiledTaxYear(state) !== undefined;
   if (action.id === 'extend') {
     const { early, late } = renewalWindow(state.timeline.currentCardExpiresOn);
