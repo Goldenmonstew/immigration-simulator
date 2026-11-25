@@ -769,3 +769,4 @@
 | 886 | 任务 113 第四轮审核修正（review113-4 建议 2）：MM2H 每年在马天数只在已填天数、不足 90 天且年满 50 岁时挂 PD-420，未填天数时待确认、不挂；PD-420 处理说明同步。 | packages/engine/src/malaysia-full-passes.ts、packages/engine/test/malaysia-full.test.ts、docs/pending-details.md |
 | 887 | 任务 113 第四轮审核修正（review113-4 建议 3）：Residence Pass 所填关系为"none"时，长期准证年数说明写"所填关系不属第 3–5 类"；REP 家属所填关系为"none"时，结婚年数说明写"所填不是 REP 参与者的配偶或子女"，不再写成未填。判定不变。 | packages/engine/src/malaysia-full-pr.ts、packages/engine/test/malaysia-full.test.ts |
 | 888 | 任务 113 第四轮审核修正（review113-4 建议 4）：公民配偶 LTSVP 担保金冲突说明中的 RM1000、RM750 改从 `securityBondRm.value.mdecOnly` 取值；永久居留子女类路径标题的年龄改从 `prChild.value.underAge` 取值，中文由"18 岁以下"改为"未满 18 岁"，与条件说明一致。输出金额不变。 | packages/engine/src/malaysia-full-passes.ts、packages/engine/src/malaysia-full-pr.ts |
+| 889 | 任务 113 第四轮审核修正报告（review113-4）：报告末尾加四段，逐条对应问题 1、风险 1–2、建议 1–4 与公民身份不变量测试，列出先失败后通过的回归测试、前四轮复现脚本的前后对比与完整验收结果；正文结果结构与归化居住口径同步。 | docs/tasks/reports/113-my-rules.md、PROGRESS.md |
