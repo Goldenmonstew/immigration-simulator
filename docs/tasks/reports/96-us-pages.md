@@ -7,8 +7,9 @@
 | 619 | `Feat: 接入美国九条路径完整版问卷、结果、对比与政策页` | `lib/united-states-{fields,draft,module,whatif,policy}.ts`，删除旧 `lib/united-states.ts`；`app/united-states/{united-states-content.tsx,simulate/{page.tsx,fields.tsx,questionnaire.module.css},result/page.tsx,whatif/{page.tsx,controls.tsx},policy/page.tsx}`；`i18n/countries/united-states{,-form}.ts`，`hub.us.*` 从 `i18n/{zh-CN,en}.ts` 移入本国字典并改为完整版范围；`lib/site-countries.ts` 登记五页；`public/sw.js` 离线缓存版本；`test/{united-states,about-page}.test.tsx`。 |
 | 619.1 | `Test: 验证美国问卷、分享、对比与政策页流程` | `apps/e2e/tests/united-states.spec.ts`。 |
 | 619.2 | `Docs: 任务 96 报告` | 本报告。 |
+| 619.3 | `Refactor: 政策页标题按国家通用（美国）` | 共用 `components/policy-page.tsx`：按 `<国家>.policy.pageTitle` 取标题（与任务 93 相同改动）。合入 main 时该文件取 main 的版本。 |
 
-三个 commit 各带 `PROGRESS.md` 对应行，尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。brief 分配的 600–609 已被任务 86 的审核轮次占用（见第 4 节），本次用美国号段剩下的 619 及小数行。
+四个 commit 各带 `PROGRESS.md` 对应行，尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。brief 分配的 600–609 已被任务 86 的审核轮次占用（见第 4 节），本次用美国号段剩下的 619 及小数行。
 
 ### 结构
 
@@ -78,7 +79,7 @@
 ## 3. 没做或没验证的
 
 - 按要求未跑 Playwright。e2e 两条用例的日期与状态先在单测中用 `run` 对同一草稿算出（返美 FUTURE 2026-12-20，改返美日后 2027-01-05；一般入籍 UNKNOWN，`C03-ENGLISH` 在缺口列表第 3 项），浏览器验收与截图交 Fable。
-- 政策页标题：按 Fable 约定没有改 `components/policy-page.tsx`，只加了 `us.policy.pageTitle`。本分支上美国政策页 h1 仍是通用“政策依据”，e2e 已按新约定断言“Policy basis for the United States”，合入澳大利亚分支的通用写法后才会通过。
+- 政策页标题：报告初稿写“没有改 `components/policy-page.tsx`”，与实际不符（review96-2 建议 1 更正）。初稿之后的 619.3（`68f1b40c`）按任务 93 的相同写法改了该共用组件，按 `<国家>.policy.pageTitle` 取标题；合入 main 时该文件取 main 的版本（见“合入 main 与共用选项接入”问题 9），美国政策页标题为“美国政策依据”／“Policy basis for the United States”。
 - 未做游戏；未改英国和其他国家页面；未改规则语义与参数。
 
 ## 4. 发现与建议（范围外，未实现）
@@ -89,3 +90,191 @@
 - 入籍路径只要有一项待确认，引擎就不给日期；仅时间的日期只在“假设”里的文字。可考虑像日本一样由引擎输出 `timeStatus`／`timeEarliestDate`，页面已支持显示。
 - 指定敌对期参数最后一段结束日为 `undefined`，政策页用“—”显示；参数类型若允许 `null` 会更清楚。
 - 返美路径的“最早日期”是计划返美日。结果卡片已不显示为“最早可申请日期”，但共用的“还差什么”摘要对 FUTURE 状态仍写“最早可申请日期（推算）”。改这段会影响日本再入国路径，本次未动，建议十国统一时按路径类型换措辞。
+
+## 审核修正（review96-1）
+
+对应 Gemini 4 Neon 只读审核 `review96-1`（问题 1–10、风险 1–6、建议 1–4）。统一规则：一个字段是否显示、是否裁剪、是否必填，都以引擎在该路径和依据下是否读取它为准。每类先在 `test/united-states.test.tsx` 写回归测试并确认失败，再修正。
+
+### 1. 做了什么（按 commit）
+
+| 进度 | commit message | 审核编号 | 文件（相对 `apps/web/`，另注明者除外） |
+|---|---|---|---|
+| 619.4 | `Fix: 美国问卷字段按引擎读取情况显示、裁剪与必填（review96-1）` | 问题 1、3、4、10，风险 1，建议 4（面谈日、空步骤） | `lib/united-states-fields.ts`、`i18n/countries/united-states-form.ts`、`test/united-states.test.tsx` |
+| 619.5 | `Fix: 美国工资与出境记录校验按引擎口径读取（review96-1）` | 问题 5，风险 3、4 | `lib/united-states-draft.ts`、`i18n/countries/united-states{,-form}.ts`、`test/united-states.test.tsx` |
+| 619.6 | `Fix: 美国对比页旋钮按裁决月与原评估日生效（review96-1）` | 问题 2、8，风险 2、5，建议 4（评估日提示） | `lib/united-states-whatif.ts`、`app/united-states/whatif/controls.tsx`、`i18n/countries/united-states.ts`、`test/united-states.test.tsx` |
+| 619.7 | `Fix: 美国结果区分核准阶段与办理提示，政策页补待决条件（review96-1）` | 问题 6、7，建议 4（中文摘要空格） | `lib/united-states-{module,policy}.ts`、`i18n/countries/united-states.ts`、`test/united-states.test.tsx` |
+| 619.8 | `Fix: 美国问卷标签、提示与行按钮的无障碍关联（review96-1）` | 建议 1、2、4（未用样式） | `app/united-states/simulate/{fields.tsx,page.tsx,questionnaire.module.css}`、`public/sw.js`、`test/{united-states,about-page}.test.tsx`、`apps/e2e/tests/united-states.spec.ts` |
+| 619.9 | `Docs: 任务 96 审核修正报告（review96-1）` | — | 本节 |
+
+每个 commit 带 `PROGRESS.md` 对应行，尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`，未 push。共用组件（`policy-page.tsx`、`country-module.ts`、`share.ts`、`page-result.ts`、结果页组件）未改。
+
+#### 字段可见性与裁剪（619.4）
+
+- **问题 1**：`visaAtDecisionByMonth` 对境内调整与领馆都显示并保留。引擎 `admission.ts` 对两种程序都只按裁决月读按月表，跨月时不回退单项答案。`visaAtFilingByMonth` 仍只问境内调整，领馆递交读当前排期 `visaAtFiling`。
+- **问题 3**：`petitionStatus` 只在职业类境内调整（`US-EMPLOYMENT`，或职业依据的 `US-ADJUSTMENT`）必填，因为三项都空时引擎 `immigrantPetitionReceipt` 会按 I-485 收件日推算 I-140／I-526 收件日。领馆、亲属、VAWA、SIJ、245(i) 与其他依据都可留空，由引擎按待确认处理。领馆仍不能选“与 I-485 一同递交”。
+- **问题 4**：`US-EMPLOYMENT` 的 EB-1A／NIW 选“非自申”时，显示并保留雇主人数与非营利（`fees.ts` 的 I-140 Asylum Program 附加费）。雇主类别照旧问雇主人数，因为支付能力的财务主管声明也读它。非营利只在职业路径问，因为只有该路径计 I-140 费。
+- **问题 10**：`hasFamilyPetition` 排除 `US-FAMILY` + VAWA，`hasEmploymentPetition` 排除 `US-EMPLOYMENT` + SIJ，与引擎 `adjustmentCategory` 一致（亲属路径只认 VAWA，职业路径只认 SIJ）。这两种组合不再出现步骤 7／8。调整依据的提示改为分别说明。
+- **风险 1**：境内调整换基、原依据为职业类且原依据资格未确认为“符合”时，显示并保留 `lawfulNonimmigrantStatusAtFiling` 与 `lawfulAdmissionFor245k`，`admission.ts` 用这两项核对原递交的 C34。
+- **建议 4**：`interviewOn` 只问领馆（引擎只在领馆程序读面谈日）；取消条件路径选一般绿卡时不再显示空的步骤 5。
+
+#### 工资与行程校验（619.5）
+
+- **问题 5（同年矛盾记录）**：留空的截止日在“年度记录覆盖至”（未填为评估日）所在年度按该日计，与引擎 `annualPay` 的截止口径一致。复现中两条 2026 年记录现报“期间重叠”。
+- **问题 5（同步递交优先日）**：优先日按引擎 `employmentPetitionDates` 取值。EB-1B／EB-1C／Schedule A 未填 I-140 收件日与优先日、请愿状态不是待审或已获批时，取候选收件日：境内调整取已递交的 I-485 收件日或 204(j) 待决起始日，否则取评估日。复现中第二条记录现报“须从 1 月 1 日起算”。
+- **风险 3**：按比例核算待定或留空时，优先年度从优先日起的记录只要不含净收入就接受：足额实付工资本身即可证明，年末净流动资产不随起算日变化，引擎对这类输入输出待确认或按足额工资满足。净收入仍须全年，以免漏计优先日前的亏损；按比例被拒时，当年所有记录都从 1 月 1 日起。错误与字段提示已改写。
+- **风险 4**：年度须为四位数（新错误 `us.error.year`）；出境重叠只比较起止日都有效的行程。
+
+#### 对比页（619.6）
+
+- **问题 2**：“裁决时排期”旋钮读写生效的裁决月（预计裁决日所在月，未填时为评估月）。初值取按月表中该月的值，同月时取单项答案。改动时写入按月表该月一行；同月时写单项答案并去掉同月行。旋钮与初值相同则不改草稿（review96-2 更正：实际比较的是旋钮值与改日期后新裁决月的答案，只动日期旋钮也会把旧月份的值写进新月份；619.16 改为只有改过“裁决时排期”旋钮才写入，见“审核修正（review96-2）”）。复现中 F2A 基线 2027-02 无名额改为有名额后，C33 由 `NOT_MET` 变为待确认；同月有名额时把裁决日改到下月，下月写入有名额，与旋钮显示一致。
+- **问题 8**：返美路径有行程且未勾“假设没有出境”时，清空返美日报 `us.error.date`。
+- **风险 2**：返美路径没有行程时，对比页在返美日旋钮的位置显示可聚焦的说明（同一 id `us-whatif-return`），提示勾选“假设没有出境记录”或回问卷补填。结果页“去 What-if 试试”落在这段说明上。
+- **风险 5**：改评估日时，按原评估日解释的答案随原日保留。跨月时，境内调整的 `visaAtFiling` 与 `visaAtDecision` 移入原评估月的按月表；难民在美天数未填截止日的，截止日固定为原评估日；雇主工资记录未填“年度记录覆盖至”的，固定为原评估日。改出的行程冲突挂在返美日旋钮，显示行程字段的原错误（例如“这个日期不能早于开始的日期。”），其他冲突仍挂评估日。
+- **建议 4**：评估日提示放进日期字段，以 `aria-describedby` 关联。
+- 未改旋钮时：单测对 8 份草稿（返美、一般入籍、三种排期写法、跨月绑定、难民、雇主工资）确认 `run(apply(draft, initial(draft)))` 与 `run(draft)` 完全相同，对比页显示“与当前情景相同”。
+
+#### 结果与政策页（619.7）
+
+- **问题 6（两阶段）**：递交 `MET` 而核准 `NOT_MET` 或 `UNKNOWN` 时，结论状态改取核准阶段的状态；摘要仍写“所填资料满足已评估的递交条件。核准阶段：未满足条件。”，最早递交日保留。“还差什么”因此列出核准缺口和“去 What-if 试试”（复现中的英语考试）。核准 `FUTURE` 仍按已满足处理。
+- **问题 6（非阻却项）**：`run` 给每项检查设 `kind`：引擎标 `informational` 的检查（N-648、登记、地址报备、换卡等）及 C44／C45 费用为 `information`，其余为 `requirement`。共用 `gapRules` 因此不把前者列入缺口，待确认徽章用“待定细节”，不再用英国的“待政府明确”／“政府未定细节”。
+- **问题 6（返美日）**：返美路径 `FUTURE` 时，摘要加“计划返美日：{date}。”。“还差什么”中的日期标签属共用键，见第 3 段。
+- **问题 7**：政策页样例给亲属境内调整与难民两组加 I-485 待决事件，条件由 104 个增至 105 个，两组来源合并。
+- **建议 4**：中文摘要拼接不加半角空格，英文仍以空格分句。
+
+#### 无障碍与清理（619.8）
+
+- **建议 1**：可选替代值的字段未选“填写日期／数字”时，选择框使用字段 id，标签、错误聚焦与 `aria-describedby` 都指向它；填写后输入框使用字段 id，选择框改用 `-mode` 并带 `aria-label`。日期列表行的输入框关联行错误；列表与日期行的“删除”按钮 `aria-label` 带字段名与行号。e2e 中 `travel-movedOn-mode` 相应改为 `travel-movedOn`。
+- **建议 2**：分节 key 改为 `路径:标题`。
+- **建议 4**：删除未用的 `.option` 样式。
+- `public/sw.js` 离线缓存版本改为 `2026-11-24-v2`，`test/about-page.test.tsx` 同步。
+
+### 2. 怎么验证的
+
+- 回归测试先失败后通过：新增 5 项、调整 4 项（`test/united-states.test.tsx` 共 22 项）。修正前确认失败：字段类与无障碍类的首个断言即失败（领馆裁决月表被裁剪；替代值选择框没有 id 与描述关联）；另三类改用软断言逐条确认，工资与行程类 6 处（同年矛盾、同步递交优先日、待定按比例的两种写法、两位数年份、空出境日误报重叠），对比页类 12 处（排期旋钮读写 5 处、跨月绑定 4 处、清空返美日、无行程说明、评估日提示关联），结果类 10 处（结论、摘要、缺口与链接、`kind`、返美日说明）；政策页条件数 104 ≠ 105。
+- `VITEST_MAX_WORKERS=2`（以 `export` 作用于整条命令）下 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，`GATE EXIT 0`：engine 6,006 项通过、1 项既有用例跳过；web 854、game 1,348、policy-data 23、error-report 2 项通过；静态构建 36 个页面。
+- `cd apps/e2e && E2E_PORT=4436 npx playwright test tests/united-states.spec.ts --project=desktop --reporter=line`：2 项通过（返美路径的结果、方案、分享、对比；英文手机宽度一般入籍与政策页）。跑完已删除 `apps/e2e/test-results`。
+- 内置浏览器打开同一静态构建（`apps/e2e/serve.ts`，端口 4437）：英语未通过的一般入籍结果页显示“未满足条件”、摘要两阶段与英语缺口链接，对比页英语旋钮获焦，改为已通过后结论由“未满足条件”变为“已满足条件”；无行程的返美路径从缺口链接进入对比页，焦点落在说明文字上，评估日 `aria-describedby="us-whatif-date-hint"`；问卷“最近搬家日期”在未填时标签指向选择框，选“填写日期”后指向日期框、选择框保留焦点。控制台只有内置浏览器拒绝注册 Service Worker 的报错（`/sw.js` 本身返回 200 且为 `2026-11-24-v2`），与本次改动无关。
+
+### 3. 没做或没验证的
+
+- **问题 9**（`PolicyPage` 未传 `id` 时标题为空）：共用组件，待任务 93 的共用修正合入后解决。
+- **风险 6**（打开美国分享链接覆盖本机草稿）：共用 `lib/page-result.ts`、`components/result-page.tsx`，待任务 93 的共用修正合入后解决。
+- **建议 3**（政策页年份显示为 `2,026`、结果页金额千分位）：按 brief 属共用组件，待任务 93 的共用修正合入后解决。
+- **问题 6 中“还差什么”的日期标签**：返美路径 `FUTURE` 时共用 `GapSummary` 仍写“最早可申请日期（推算）”，标签键由任务 93 加。本国已设好 `kind`，并在摘要写明计划返美日，待任务 93 的共用修正合入后解决。
+- 候选收件日是近似：评估日在年末且纸质递交顺延到次年，或境外行程推迟收件时，页面按评估日判断优先年度，可能与引擎差一年。I-485 未填裁决日时，对比页以评估月为裁决月；若引擎的候选收件日因同样原因落到下月，旋钮写在评估月。
+- 改评估日时，申报年龄（请愿人、受益人、担保人）没有“截至日”字段，仍按新评估日解读；领馆递交排期 `visaAtFiling` 没有按月表，沿用原答案。
+- 领馆案件未填预计裁决日时，引擎不核对裁决排期，“裁决时排期”旋钮不起作用，需先填裁决日旋钮。
+- 结论改取核准阶段后，只有核准条件待确认的路径会由“已满足条件”变为“无法确定”（例如窗口内递交但面谈等核准条件留空的取消条件），原单测已按新口径更新。
+- 未改规则语义与参数，未 push，未开 PR。
+
+### 4. 发现与建议（范围外，未实现）
+
+- 共用 `CountryPathway` 若加 `approvalStatus`／`approvalEarliestDate`，结果页与对比页可分行显示两阶段，不必由结论状态承载核准阶段。
+- `focusForRule` 只拿到条件 id 与路径 id，无法按草稿判断旋钮是否存在；若共用接口传入草稿，返美路径没有行程时可以直接不出链接。
+- 引擎在未接受按比例核算时，首年仍从优先日起核对，并跳过优先日前结束的记录（`annualPay`），页面只能靠校验挡住部分年度的净收入。若引擎在结论不是“已确认符合”时首年改从 1 月 1 日核对，页面校验可以放宽。
+- 结果明细里的金额（如 `USD 1440`）可在本国模块按日本 `formatCheckAmounts` 的做法分组，与共用千分位修正一并处理。
+
+## 合入 main 与共用选项接入
+
+对应 brief 96c：合入 main（澳大利亚完整版页面 #81），按 93 号报告“其他国家怎么接入这次的共用改动”一表接入共用选项，并逐条处理上节第 3 段标为“待任务 93 的共用修正合入后解决”的 4 条。
+
+### 1. 做了什么（按 commit）
+
+| 进度 | commit message | 对应条目 | 文件（相对 `apps/web/`，另注明者除外） |
+|---|---|---|---|
+| — | `Merge: 合入 main（澳大利亚完整版页面 #81）` | 问题 9 | 共用 `components/policy-page.tsx` 取 main 的版本；`lib/site-countries.ts`、`i18n/{zh-CN,en}.ts` 两边登记取并集；`public/sw.js` 与 `test/about-page.test.tsx` 缓存版本改为 `2026-11-25-us`；`PROGRESS.md` 两边的行都保留 |
+| 619.10 | `Fix: 美国分享链接不覆盖本机草稿，跳到正文不洗掉场景片段` | 风险 6 | `lib/united-states-module.ts`、`components/site-shell.tsx`、`test/united-states.test.tsx` |
+| 619.11 | `Fix: 美国返美路径的结果日期标为计划返美日` | 问题 6 的日期标签 | `lib/{country-module,united-states-module}.ts`、`components/{gap-summary,whatif-lab}.tsx`、`i18n/countries/united-states.ts`、`test/united-states.test.tsx` |
+| 619.12 | `Fix: 美国检查项分为时间条件、申请条件、费用预算与办理提示` | brief 的检查项 `kind` | `lib/united-states-module.ts`、`test/united-states.test.tsx` |
+| 619.13 | `Fix: 美国政策页按含义展示嵌套参数` | brief 的嵌套参数，建议 3（年份） | `lib/united-states-policy.ts`、`i18n/countries/united-states.ts`、`test/united-states.test.tsx` |
+| 619.14 | `Fix: 美国结果明细金额按千分位显示` | 建议 3（金额） | `lib/united-states-module.ts`、`test/united-states.test.tsx` |
+| 619.15 | `Docs: 任务 96 合入 main 与共用选项接入报告` | — | 本节 |
+
+合并提交没有单独的进度行；其余每个 commit 带 `PROGRESS.md` 对应行。全部 commit 尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`，未 push。合入后 `origin/main` 没有新的提交。
+
+原标为待处理的 4 条：
+
+- **问题 9**（`PolicyPage` 未传 `id` 时标题为空）：main 的 `PolicyPage` 在没有 `country.id`、或该国未登记 `<国家>.policy.pageTitle` 时回退到 `policyPage.title`（93 号报告问题 8）。合并时取 main 的版本即解决，main 带来的 `test/country-views.test.tsx` 回退用例通过。美国登记了 `us.policy.pageTitle`，标题仍为“美国政策依据”。
+- **风险 6**（打开美国分享链接覆盖本机草稿）：美国模块设 `scenarioLinks: true`。分享链接带 `#s=`，结果页去编辑与对比的链接带 `#draft=` 场景片段；本机已有草稿时，打开分享链接不覆盖它。`site-shell.tsx` 的场景路径判断加入美国的问卷、结果与对比页，“跳到主要内容”在这三页改为移焦，不洗掉片段。
+- **建议 3**（政策页年份 `2,026`、结果页金额千分位）：年份按 main 的字段语义规则自动生效，贫困线参数的键名是 `year`，显示 2026。结果明细的金额由本国 `run` 处理：说明中的 `USD 1440` 一类按语言分组为 `USD 1,440`，做法同日本 `formatCheckAmounts`；其他数字不动。
+- **问题 6 的日期标签**（返美路径 `FUTURE` 时“还差什么”写“最早可申请日期（推算）”）：美国 9 条路径中只有 `US-TRAVEL` 的日期是计划返美日，其余仍是最早递交日；main 的 `earliestLabel` 只能给整个国家设一个标签。所以共用 `earliestLabel` 放宽为“一个键，或按路径 id 的键表”，由新的 `earliestLabelFor` 取值，结果页事实表、“还差什么”与对比页都改读它。美国设 `earliestLabel: { 'US-TRAVEL': 'us.result.returnDate' }`（“计划返美日”／“Planned return date”）。澳大利亚仍传单个键，行为不变；未设置的国家与路径仍显示“最早可申请日期（推算）”。标签已写明日期含义，摘要里原先补的“计划返美日：{date}。”一句删去；已返美（非 `FUTURE`）时不显示日期。
+
+brief 的其他接入项：
+
+- **检查项 `kind`**：`US-TIME-*` 为 `time`；C44／C45 费用由上一轮的 `information` 改为 `budget`；引擎标 `informational` 的（N-648、登记、地址报备、换卡）为 `information`；其余为 `requirement`。“还差什么”只列申请条件与时间条件，结果页在每项标题后标出分组。没有设 `afterApproval`：入籍宣誓（C12）是 N-400 上就问、核准前须满足的条件，不是批准后事项，仍为申请条件。没有设 `alternative`：引擎没有“满足其一即可”的分列检查。
+- **政策页嵌套参数**：用 `displayParameter` 按含义展示。英语豁免为“年龄下限／永居年数下限”表，指定敌对期为“开始日／结束日”表；H.R. 1 与 EB-5 费率按“{生效日} 前／{生效日} 起”分列；费用表金额带 USD，递交渠道写“纸质递交／网上递交”，人数、年龄与比例不加 USD；INA 212(a) 款项列表写全款号（如 `INA 212(a)(5)(A)(i)`）。
+- 93 号报告表中的其余两项：政策页标题已在 619.3 登记；结果页时点说明（`resultNotes`）美国没有要另加的说明，未设。
+
+### 2. 怎么验证的
+
+- **回归测试先失败后通过**：逐个接入 commit，把该 commit 的 `test/united-states.test.tsx` 放到父提交的源码上运行，新增或改写的用例都失败；本分支最终源码上全部通过。
+  - 619.10：1 项失败（分享链接不覆盖本机草稿、跳到正文保留片段）。
+  - 619.11：2 项失败（返美路径的日期标签：事实表与“还差什么”；上一轮结果用例改为断言该标签）。
+  - 619.12：2 项失败（检查项分组与缺口；上一轮结果用例改为 C44／C45 为 `budget`）。
+  - 619.13：1 项失败（政策页嵌套参数与年份不分组）。
+  - 619.14：1 项失败（结果明细金额千分位）。
+- **完整验收**：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，`GATE EXIT 0`：error-report 2 项、policy-data 23 项、engine 6,006 项通过（1 项既有用例跳过）、game 1,348 项、web 884 项（46 个文件）通过；静态构建生成 40 个页面。
+- **浏览器 e2e**：`cd apps/e2e && E2E_PORT=4454 npx playwright test tests/united-states.spec.ts tests/australia.spec.ts tests/japan.spec.ts tests/site.spec.ts --project=desktop --reporter=line`，21 项全部通过（`E2E EXIT 0`），跑完已删除 `apps/e2e/test-results`。
+- **视觉验收**：内置浏览器打开同一静态构建（`apps/e2e/serve.ts`，端口 4455）。政策页标题为“美国政策依据”；英语豁免与敌对期为带列名的表，H.R. 1 与 EB-5 费率按生效日前后分列、金额带 USD 与千分位，INA 212(a) 款号写全，贫困线年份为 2026，参数区没有方括号或花括号。返美路径（返美 2026-12-20）结果页的事实表标签为“计划返美日”，“还差什么”为“计划返美日：2026-12-20，距模拟日还有约 0 年 1 个月”，明细标出时间条件、申请条件、费用预算、办理提示四种分组；对比页同样标“计划返美日”；对比页点“跳到主要内容”后焦点移到正文，`#draft=` 片段不变。看完已清除该页的本机草稿。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR。
+- e2e 只跑了 brief 指定的四个文件、desktop 项目；mobile 项目与其他国家的 e2e 未跑。
+- 共用 `earliestLabel` 放宽类型后，澳大利亚与日本的调用方式不变，由完整验收和两国 e2e 覆盖，没有另做两国页面的视觉检查。
+- `site-shell.tsx` 的场景路径判断沿用 `isJapanScenario` 的名字，按 93 号报告未改共用命名。
+
+### 4. 发现与建议（范围外，未实现）
+
+- `site-shell.tsx` 的场景路径表可以改由 `scenarioLinks` 推出（遍历设了该标记的国家），新国家就不必两处登记；`isJapanScenario` 也可改名。
+- 别的国家若也有“部分路径的日期不是申请日”的情况（如返程或居住义务类路径），可以直接用按路径的 `earliestLabel` 键表。
+
+## 审核修正（review96-2）
+
+对应第二轮只读审核 `review96-2`（问题 1–2、风险 1–2、建议 1–3）。每项先在 `test/united-states.test.tsx` 写回归测试并确认在修正前失败，再修正。共用组件未改，英国、日本、澳大利亚行为不变。
+
+### 1. 做了什么（按 commit）
+
+| 进度 | commit message | 审核编号 | 文件（相对 `apps/web/`） |
+|---|---|---|---|
+| 619.16 | `Fix: 美国对比页未改动的裁决时排期旋钮不改写排期（review96-2）` | 问题 1 | `lib/united-states-whatif.ts`、`app/united-states/whatif/controls.tsx`、`test/united-states.test.tsx` |
+| 619.17 | `Fix: 美国结论按递交与核准两阶段中决定结果的一方显示（review96-2）` | 问题 2 | `lib/united-states-module.ts`、`test/united-states.test.tsx` |
+| 619.18 | `Fix: 美国递交类路径的日期标为最早递交日（review96-2 建议 2）` | 建议 2 | `lib/united-states-module.ts`、`i18n/countries/united-states.ts`、`test/united-states.test.tsx` |
+| 619.19 | `Fix: 美国换基原依据已确认时仍可填原职业类调整禁令（review96-2 风险 1）` | 风险 1 | `lib/united-states-fields.ts`、`test/united-states.test.tsx` |
+| 619.20 | `Fix: 美国预计裁决日不得早于 I-485 收件日（review96-2 建议 3）` | 建议 3 | `lib/united-states-{draft,whatif}.ts`、`i18n/countries/united-states.ts`、`test/united-states.test.tsx` |
+| 619.21 | `Docs: 任务 96 审核修正报告（review96-2）` | 建议 1、风险 2 | 本报告（含第 1、3 节与 review96-1 一节的更正） |
+
+每个 commit 带 `PROGRESS.md` 对应行，尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`，未 push。
+
+- **问题 1（未改动的排期旋钮）**：对比旋钮加 `visaChanged` 标记，只有用户改过“裁决时排期”，`apply` 才把旋钮值写进生效的裁决月。未改动时不碰排期答案，引擎读问卷里新裁决月的按月表行（同月时为单项答案）；旋钮显示的也是 `decisionAvailability(afterDraft)`，随裁决日、评估日刷新。没有采用“旋钮值不同于初值才写入”的写法：旋钮显示新月份的答案后，用户若选回与初值相同的值，按初值比较会判为未改动，选择框又跳回原值。审核的三种复现现与问卷口径一致：A 改裁决日到 3 月（3 月无名额）核准 `NOT_MET`，反向 2 月无名额、3 月有名额为核准 `FUTURE 2027-03-10`；B 改裁决日到评估月，读单项“无名额”，核准 `NOT_MET`；C 只改评估日到 2027-01-15，11 月答案随原评估月移入按月表，1 月“无名额”一行保留，核准 `NOT_MET`。三种情况下旋钮都显示新月份的答案。改过旋钮再移动裁决日时，仍写入新的裁决月。
+- **问题 1（第一轮用例回放）**：上一轮的旋钮用例逐条重跑。改旋钮的用例（按月表无名额改有名额、空表改有名额）加 `visaChanged: true` 后结果不变；“同月有名额、把裁决日改到下月”按新规则改为下月没有答案、核准待确认，旋钮同时显示“待确认”（不再显示过时的“有名额”），改旋钮为“有名额”时写入下月；`bound` 用例去掉显式的 `visaAtDecision: undefined`，按真实页面的初值旋钮仍把评估月答案移入按月表。原 8 份草稿“未改旋钮时与当前情景相同”的用例照旧通过，新测试另对单项答案与评估日两份草稿确认同一点。
+- **问题 2（两阶段结论）**：新函数 `pathwayOutcome(filing, approval)`：不适用优先，其次未满足、待确认；两阶段都不是这三种时沿用递交（返美）阶段的状态和日期。所以递交 `FUTURE`、核准 `NOT_MET` 的一般入籍结论为“未满足条件”，对比页把评估日移到 2027-01-15 时结论前后都是“未满足条件”；递交 `FUTURE`、核准 `UNKNOWN` 的取消条件为“无法确定”；递交 `UNKNOWN`、核准 `NOT_MET` 也取“未满足条件”。递交满足而核准 `FUTURE` 仍为“已满足条件”（上一轮已定）。最早递交日保留在 `earliestDate`，事实表照常显示；“还差什么”通过时间条件列出（如“取得永居满 5 年（2027-03-01；可提前 90 天递交，即 2026-12-01 起）”）。
+- **建议 2（日期标签）**：除 `US-TRAVEL` 外 8 条路径在按路径的 `earliestLabel` 中设 `us.result.filingDate`（“最早递交日（推算）”／“Earliest projected filing date”）。结论为“未满足条件”或“无法确定”时，事实表的日期写明是递交日，不再是“最早可申请日期（推算）”；“还差什么”在 `FUTURE` 时同样用这个标签。
+- **风险 1（换基原依据已确认）**：原依据为职业类时，不论 `qualifyingBasisAtFiling` 是否为“符合”，都显示并保留 `lawfulNonimmigrantStatusAtFiling` 与 `lawfulAdmissionFor245k`。引擎 `carryForward` 对已确认的原依据只补空答案，已报告的禁令照样适用；回归测试中原依据已确认且两项为“否”时，C34 递交阶段为 `NOT_MET`。
+- **建议 3（裁决日早于收件日）**：境内调整的办理步骤（第 10 步）和人道路径第 9 步用 `checkOrder` 检查 `decisionOn` 不早于 `i485FiledOn`，新错误 `us.error.decisionBeforeI485`（“预计裁决日不能早于 I-485 收件日。”）。领馆案件没有 I-485 收件日，不查（编辑中的草稿可能留有之前填的收件日）。对比页把裁决日旋钮改到收件日之前时，这条错误挂在裁决日旋钮，不再落到评估日的通用提示。
+- **建议 1（报告描述）**：第 1 节提交表补 619.3（`68f1b40c`，改过共用 `components/policy-page.tsx`），第 3 节“没有改 `policy-page.tsx`”一句更正为实际经过；review96-1 一节第 2 段对“旋钮与初值相同则不改草稿”加更正说明。
+
+### 2. 怎么验证的
+
+- **回归测试先失败后通过**：逐个修正 commit，把该 commit 的 `test/united-states.test.tsx` 放到父提交的源码上运行，新增或改写的用例都失败；本分支最终源码上全部通过（该文件 60 项）。
+  - 619.16：2 项失败。新用例用软断言逐条确认了 16 处：改裁决日两个方向、改到评估月、只改评估日四种情形，各有按月表或单项答案被改写、结果与问卷改同一日期不一致、核准状态、旋钮显示 4 处。另有第一轮旋钮用例按新规则改写的部分（同月有名额后改裁决日到下月）。
+  - 619.17：33 项失败：状态组合表 30 项（修正前没有 `pathwayOutcome`），引擎组合逐一核对 1 项（软断言确认 4 处：递交 `UNKNOWN`／核准 `NOT_MET`、递交 `FUTURE`／核准 `NOT_MET`、递交 `FUTURE`／核准 `UNKNOWN` 三种结论，以及审核复现的一般入籍），取消条件与日期标签两项旧用例改为新口径。13 份草稿覆盖引擎能给出的 13 种组合：返美 `FUTURE`／无核准、返美 `MET`／无核准、不适用／不适用、待确认／待确认、`MET`／`NOT_MET`、`MET`／`MET`、`UNKNOWN`／`NOT_MET`、`NOT_MET`／`NOT_MET`、`FUTURE`／`NOT_MET`、`FUTURE`／`FUTURE`、`FUTURE`／`UNKNOWN`、`MET`／`FUTURE`、`MET`／`UNKNOWN`；每份先断言引擎原始的两阶段状态确为该组合，再断言结论取表中的值、`earliestDate` 与引擎一致。
+  - 619.18：1 项失败（8 条递交类路径的标签；事实表与“还差什么”的中英文标签）。
+  - 619.19：1 项失败（原依据已确认时两项字段被裁剪）。
+  - 619.20：1 项失败（第 10 步与人道路径第 9 步的裁决日顺序、领馆不查、对比页错误挂在裁决日旋钮）。
+- 审核复现脚本 `t30/r96-2/b.probe.test.tsx` 在修正后重跑：A、B、C 与问卷改同一日期的结论一致（`NOT_MET`）。
+- **完整验收**：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，`GATE EXIT 0`：error-report 2 项、policy-data 23 项、engine 6,006 项通过（1 项既有用例跳过）、game 1,348 项、web 917 项（46 个文件）通过；静态构建生成 40 个页面。
+- **浏览器 e2e**：先确认端口 4462 空闲，`cd apps/e2e && E2E_PORT=4462 npx playwright test tests/united-states.spec.ts tests/australia.spec.ts tests/japan.spec.ts --project=desktop --reporter=line`，16 项全部通过（`E2E EXIT 0`），跑完已删除 `apps/e2e/test-results`。
+- **视觉检查**：内置浏览器打开同一静态构建（`apps/e2e/serve.ts`，端口 4463），用分享链接载入两份草稿。审核复现的一般入籍（递交 `FUTURE`、英语未通过）结论为“未满足条件”，摘要写递交须等最早递交日、核准阶段未满足，“还差什么”列永居年限（含“即 2026-12-01 起”）、英语与核准居住年限三项及 What-if 链接，事实表为“最早递交日（推算）2026-12-01”。复现 A 的亲属境内调整在对比页只把预计裁决日改为 2027-03-10：“裁决时排期”旋钮随之显示“无名额”，结论“已满足条件 → 未满足条件”，C33 列入“翻转为未满足”，日期行标“最早递交日（推算）”。再把裁决日改为 2026-09-30，裁决日旋钮下显示“预计裁决日不能早于 I-485 收件日。”。看完已清除该页的本机草稿并关掉服务。
+
+### 3. 没做或没验证的
+
+- **风险 2（候选优先日与引擎收件日差一年）**：未改。页面对领馆案件或尚未递交的 I-485 用评估日作候选收件日；引擎纸质递交取下一个工作日，有境外行程时取返美后的收件日。评估日在年末（如 2026-12-31 纸质递交，引擎为 2027-01-04）时，页面按 2026 年校验优先年度记录，引擎按 2027 年核对。多数情况只会让页面多要求一条从 1 月 1 日起的记录，不会给出过早结论。要消除需在页面复算引擎的收件日（工作日、行程），超出本轮范围。
+- 只改评估日时，评估月的单项排期答案随原评估月移入按月表（上一轮风险 5 的设计）。新评估月若没有自己的答案，核准为待确认，旋钮显示“待确认”；这与在问卷里直接改评估日（单项答案改指新月份）不同，是有意保留的口径。
+- 其余与上一轮相同：领馆案件未填预计裁决日时引擎不核对裁决排期；改评估日时申报年龄仍按新评估日解读。
+- 未 push，未开 PR。e2e 只跑了 brief 指定的三个文件、desktop 项目；视觉检查只看了中文桌面宽度的上述两页。
+
+### 4. 发现与建议（范围外，未实现）
+
+- 共用 `GapSummary` 只在 `FUTURE` 时列出日期行。结论取核准阶段的“未满足条件”或“无法确定”后，最早递交日只出现在事实表和时间条件的说明里；若别国也有两阶段结论，可考虑让日期行不依赖结论状态。
+- `earliestLabel` 的按路径键表没有默认值，美国只得把 8 条递交类路径逐一列出；共用类型若允许“默认标签 + 例外路径”，配置可以更短。

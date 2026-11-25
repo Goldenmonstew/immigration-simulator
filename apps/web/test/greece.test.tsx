@@ -1,77 +1,1531 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, test } from 'vitest';
-import { evaluateGreece } from '@uk-immigration/engine';
+import { afterEach, expect, test, vi } from 'vitest';
+import { usePathname } from 'next/navigation';
 import GreecePage from '../app/greece/page';
-import { PilotResult } from '../app/pilot/pilot-result';
+import GreecePolicyPage from '../app/greece/policy/page';
+import GreeceSimulatePage from '../app/greece/simulate/page';
+import { GreeceWhatIfControls } from '../app/greece/whatif/controls';
 import Home from '../app/page';
-import { t } from '../i18n';
+import { GET as offlinePages } from '../app/offline-pages.json/route';
+import sitemap from '../app/sitemap';
+import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
+import { WhatIfView } from '../components/whatif-lab';
+import { t, type TranslationKey } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
-import { emptyGrForm, grRequest, validateGrForm } from '../lib/greece';
-import type { GrForm } from '../lib/greece';
-import { sourceUrls } from '../lib/sources';
+import {
+  activeGreeceAnswers,
+  createGreeceDraft,
+  decodeGreeceDraft,
+  GR_PATHWAYS,
+  greeceRequest,
+  greeceSteps,
+  type GreeceDraft,
+} from '../lib/greece-draft';
+import {
+  basicFields,
+  commonSections,
+  euFamilySections,
+  familyTcnSections,
+  goldenVisaSections,
+  greekFamilySections,
+  historyFields,
+  nationalitySections,
+  routeField,
+  settlementFields,
+  tripList,
+  workSections,
+  type GreeceField,
+} from '../lib/greece-fields';
+import { gapRules } from '../lib/gap-summary';
+import { greeceModule as gr } from '../lib/greece-module';
+import { japanModule } from '../lib/japan-module';
+import { readPageResult } from '../lib/page-result';
+import { decodeDraft, encodeDraft, linkedResultDraft } from '../lib/share';
+import { draftStorage, readScenarios, saveScenario } from '../lib/storage';
+import site from '../app/site.module.css';
 
-const render = (node: React.ReactNode, locale: 'zh-CN' | 'en') =>
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  usePathname: vi.fn(),
+}));
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
   renderToStaticMarkup(
     <LocaleContext value={{ locale, setLocale: () => {} }}>
       {node}
     </LocaleContext>,
   );
 
-const filled: GrForm = {
-  ...emptyGrForm('2026-11-21'),
-  permits: [{ kind: 'investor', from: '2020-06-01', to: '2027-05-31' }],
-  route: 'general',
-};
+// The same answers are entered by the e2e walk-through (apps/e2e/tests/greece.spec.ts).
+function longTermDraft(from = '2022-06-01'): GreeceDraft {
+  return {
+    ...createGreeceDraft(),
+    step: 3,
+    completed: true,
+    simulationDate: '2026-11-23',
+    birthDate: '1985-04-07',
+    citizenship: 'third-country',
+    pathways: ['GR-LONG-TERM'],
+    permits: [{ kind: 'regular', from }],
+    trips: [],
+    entry: 'permit',
+    passport: {
+      kind: 'recognised',
+      issuedOn: '2023-08-13',
+      expiresOn: '2033-08-12',
+      blankPages: 2,
+      expectedDeparture: '2033-05-12',
+    },
+    publicOrder: 'clear',
+    filingDocuments: { formReady: true, feeReceiptReady: true },
+    biometrics: 'awaiting-appointment',
+    changes: [],
+    insurance: { kind: 'public', coversFamily: true },
+    longTerm: {
+      stage: 'initial',
+      category: 'ordinary',
+      passportHistory: 'complete',
+    },
+    integration: { basis: 'language', greekLevel: 'B1' },
+    residenceIncome: {
+      netEur: 12880,
+      dependants: 0,
+      regularAndDocumented: true,
+    },
+  };
+}
 
-test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
-  const html = render(<GreecePage />, locale);
-  for (const key of [
-    'gr.title',
-    'gr.basics',
-    'gr.permits',
-    'gr.kind',
-    'gr.trips',
-    'gr.route',
-    'gr.submit',
-  ] as const)
-    expect(html).toContain(t(key, locale));
+const longTerm = (draft: GreeceDraft, locale: 'zh-CN' | 'en' = 'zh-CN') =>
+  gr.run(draft, locale).columns[0].pathways[0];
+
+test.each(['zh-CN', 'en'] as const)(
+  'the Greece home links to the questionnaire and policy page in %s',
+  (locale) => {
+    const html = render(<GreecePage />, locale);
+    expect(html).toContain(t('gr.title', locale));
+    expect(html).toContain('href="/greece/simulate"');
+    expect(html).toContain('href="/greece/policy"');
+    expect(render(<Home />, locale)).toContain(t('hub.gr.desc', locale));
+  },
+);
+
+test('all five Greece pages are in the offline list and the sitemap', async () => {
+  const offline = await offlinePages().json();
+  const paths = sitemap().map(({ url }) => new URL(url).pathname);
+  for (const path of ['', '/simulate', '/result', '/whatif', '/policy']) {
+    expect(offline).toContain('/greece' + path);
+    expect(paths).toContain('/greece' + path);
+  }
 });
 
-test('home links to Greece', () => {
-  expect(render(<Home />, 'zh-CN')).toContain('href="/greece"');
+test('every question, option and hint has Chinese and English text', () => {
+  const all: GreeceField[] = [
+    ...basicFields,
+    ...Object.values(historyFields).flat(),
+    tripList(true),
+    ...Object.values(commonSections(true, true)).flat(),
+    ...Object.values(settlementFields),
+    routeField,
+    ...[
+      nationalitySections,
+      goldenVisaSections,
+      greekFamilySections,
+      euFamilySections,
+      workSections,
+      familyTcnSections,
+    ].flatMap((sections) => Object.values(sections).flat()),
+  ];
+  const keys = new Set<string>();
+  const walk = (fields: GreeceField[]) => {
+    for (const field of fields) {
+      keys.add(`gr.field.${field.label}`);
+      if (field.hint) keys.add(`gr.hint.${field.hint}`);
+      if (field.type === 'group' || field.type === 'list') walk(field.fields);
+      if (field.type === 'choice' || field.type === 'choice-set')
+        for (const option of field.options)
+          keys.add(
+            `gr.option.${(field.type === 'choice' && field.labels?.[option]) || option}`,
+          );
+      if (field.type === 'boolean')
+        for (const option of field.extra ?? []) keys.add(`gr.option.${option}`);
+      if (field.type === 'date-or') keys.add(`gr.option.${field.alternative}`);
+    }
+  };
+  walk(all);
+  expect(keys.size).toBeGreaterThan(500);
+  for (const key of keys) {
+    expect(t(key as TranslationKey), key).toMatch(/\S/);
+    expect(t(key as TranslationKey, 'en'), key).toMatch(/\S/);
+  }
 });
 
-test('validation marks missing and out-of-order dates', () => {
+test('drafts round-trip through storage, saved scenarios and the share envelope', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const draft = longTermDraft();
+  draftStorage(gr, draft);
+  saveScenario(gr, '希腊长期居留', draft);
+  expect(JSON.parse(storage.get('gr-immigration-draft-v1')!)).toEqual(draft);
+  expect(readScenarios(gr).scenarios[0].draft).toEqual(draft);
+
+  const encoded = encodeDraft(gr, draft);
+  expect(decodeDraft(gr, encoded)).toEqual(draft);
+  // A Greek link is not read as a Japanese one, and vice versa.
+  expect(decodeDraft(japanModule, encoded)).toBeUndefined();
   expect(
-    validateGrForm({
-      ...emptyGrForm('2026-11-21'),
-      permits: [{ kind: 'regular', from: '2022-01-01', to: '2021-01-01' }],
-      trips: [{ departed: '2024-02-10', returned: '' }],
+    decodeDraft(gr, encodeDraft(japanModule, japanModule.createDraft())),
+  ).toBeUndefined();
+});
+
+test('decoding rejects malformed drafts and reopens incomplete result links', () => {
+  expect(decodeGreeceDraft({ ...longTermDraft(), version: 2 })).toBeUndefined();
+  expect(
+    decodeGreeceDraft({ ...longTermDraft(), pathways: 'GR-LONG-TERM' }),
+  ).toBeUndefined();
+  expect(
+    decodeGreeceDraft({ ...longTermDraft(), permits: {} }),
+  ).toBeUndefined();
+  // A step hidden by the selected routes cannot be the current step.
+  expect(decodeGreeceDraft({ ...longTermDraft(), step: 5 })).toBeUndefined();
+  const missing = {
+    ...longTermDraft(),
+    passport: { issuedOn: '2023-08-13' },
+  };
+  expect(decodeGreeceDraft(missing)).toBeUndefined();
+  expect(decodeGreeceDraft(missing, 'show-correction')).toMatchObject({
+    completed: false,
+    step: 2,
+  });
+  // An unfinished draft is kept as it is; its steps are checked as the user continues.
+  const inProgress = { ...missing, completed: false, step: 1 };
+  expect(decodeGreeceDraft(inProgress)).toEqual(inProgress);
+});
+
+test('each step validates its answers with Chinese and English messages', () => {
+  const blank = { ...createGreeceDraft(), simulationDate: '' };
+  expect(gr.validateStep(blank)).toEqual({
+    'gr-simulationDate': 'gr.error.required',
+    'gr-pathways': 'gr.error.pathways',
+  });
+  expect(
+    gr.validateStep({
+      ...longTermDraft(),
+      step: 0,
+      birthDate: '2027-01-01',
+    }),
+  ).toEqual({ 'gr-birthDate': 'gr.error.birthAfterSimulation' });
+  const history = {
+    ...longTermDraft(),
+    step: 1,
+    permits: [
+      { kind: 'regular' as const, from: '2022-06-01', to: '2021-01-01' },
+    ],
+    trips: [{ departed: '2024-03-01', returned: '' }],
+  };
+  expect(gr.validateStep(history)).toEqual({
+    'gr-permits-0-to': 'gr.error.order',
+    'gr-trips-0-returned': 'gr.error.required',
+    'gr-tripsComplete': 'gr.error.tripsComplete',
+  });
+  expect(
+    gr.validateStep({
+      ...longTermDraft(),
+      step: 2,
+      passport: { issuedOn: '2023-08-13' } as GreeceDraft['passport'],
+      changes: [
+        {
+          kind: 'ordinary',
+          occurredOn: '2025-02-01',
+          reportedOn: '2025-01-01',
+        },
+      ],
+      character: { finalSentenceMonths: -1 },
     }),
   ).toEqual({
-    // No route is picked for the user.
-    'gr-route': 'gr.error.route',
-    'gr-permit-0-to': 'gr.error.order',
-    'gr-trip-0-returned': 'gr.error.date',
+    'gr-passport-kind': 'gr.error.required',
+    'gr-changes-0-reportedOn': 'gr.error.order',
+    'gr-character-finalSentenceMonths': 'gr.error.number',
   });
-  expect(validateGrForm(filled)).toEqual({});
-});
-
-test('the request leaves out blank end dates', () => {
   expect(
-    grRequest(
-      { ...filled, permits: [{ kind: 'regular', from: '2020-01-01', to: '' }] },
-      'en',
-    ).permits,
-  ).toEqual([{ kind: 'regular', from: '2020-01-01' }]);
+    gr.validateStep({
+      ...longTermDraft(),
+      step: 3,
+      residenceIncome: { dependants: 1.5 },
+    }),
+  ).toEqual({ 'gr-residenceIncome-dependants': 'gr.error.integer' });
+  expect(gr.validateStep(longTermDraft())).toEqual({});
+  for (const key of [
+    'gr.error.required',
+    'gr.error.tripsComplete',
+    'gr.error.order',
+  ] as const)
+    expect(t(key, 'en')).not.toBe(t(key));
 });
 
-test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
-  const result = evaluateGreece(grRequest(filled, locale));
-  const html = render(<PilotResult result={result} />, locale);
-  expect(html.match(/data-pathway=/g)).toHaveLength(3);
-  expect(html).toContain('data-pathway="GR-GOLDEN-VISA" data-status="FUTURE"');
-  expect(html).toContain('data-pathway="GR-LONG-TERM" data-status="UNKNOWN"');
-  expect(html).toContain(`href="${sourceUrls['SRC-087']}"`);
-  expect(html).toContain('PD-104');
+test('steps follow the selected routes', () => {
+  const titles = (pathways: GreeceDraft['pathways']) =>
+    greeceSteps({ ...createGreeceDraft(), pathways }).map(({ step }) => step);
+  expect(titles([])).toEqual([0, 1, 2]);
+  expect(titles(['GR-LONG-TERM'])).toEqual([0, 1, 2, 3]);
+  expect(titles(['GR-NATIONALITY', 'GR-WORK'])).toEqual([0, 1, 2, 4, 7]);
+  expect(
+    titles([
+      'GR-GOLDEN-VISA',
+      'GR-GREEK-FAMILY-PR',
+      'GR-EU-FAMILY-PR',
+      'GR-FAMILY-TCN',
+    ]),
+  ).toEqual([0, 1, 2, 5, 6, 7]);
+});
+
+test('the request keeps answers for selected routes and keys income by tax year', () => {
+  const request = greeceRequest({
+    ...longTermDraft(),
+    pathways: ['GR-NATIONALITY'],
+    route: 'general',
+    trips: [
+      {
+        departed: '2025-01-01',
+        returned: '2025-01-10',
+        familyAbsenceReason: 'ordinary',
+      },
+    ],
+    tripsComplete: true,
+    goldenVisa: { stage: 'initial' },
+    nationality: {
+      stage: 'application',
+      incomeYears: [
+        { year: 2024, taxableEur: 15000, dependants: 1 },
+        { year: 2025, taxableEur: 16000, dependants: 1, welfareEur: 200 },
+      ],
+    },
+  });
+  expect(request.longTerm).toBeUndefined();
+  expect(request.integration).toBeUndefined();
+  expect(request.goldenVisa).toBeUndefined();
+  expect(request.trips).toEqual([
+    { departed: '2025-01-01', returned: '2025-01-10' },
+  ]);
+  expect(request.nationality).toEqual({
+    stage: 'application',
+    incomeByTaxYear: {
+      2024: { taxableEur: 15000, dependants: 1 },
+      2025: { taxableEur: 16000, dependants: 1, welfareEur: 200 },
+    },
+  });
+  expect(request).not.toHaveProperty('tripsComplete');
+  expect(request).not.toHaveProperty('step');
+  expect(activeGreeceAnswers(longTermDraft()).longTerm).toBeDefined();
+});
+
+test('run returns met, future and to-be-confirmed routes without repeating condition titles', () => {
+  const met = longTerm(longTermDraft('2018-01-01'));
+  expect(met.status).toBe('MET');
+  expect(met.earliestDate).toBe('2026-11-23');
+
+  const future = longTerm(longTermDraft());
+  expect(future.status).toBe('FUTURE');
+  expect(future.earliestDate).toBe('2027-06-01');
+  const residence = future.checks.find((c) => c.id === 'LT-TIME-RESIDENCE')!;
+  expect(residence.status).toBe('NOT_MET');
+  expect(residence.explanation).toBe('最早日期为 2027-06-01。');
+
+  const unknown = longTerm({ ...longTermDraft(), insurance: undefined });
+  expect(unknown.status).toBe('UNKNOWN');
+  expect(unknown.checks.find((c) => c.id === 'C-05')?.status).toBe('UNKNOWN');
+
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const result = gr.run({ ...longTermDraft(), longTerm: {} }, locale);
+    expect(result.columns[0].title).toBe(t('gr.policy.title', locale));
+    for (const check of result.columns[0].pathways[0].checks) {
+      expect(check.explanation, check.id).not.toBe(check.title);
+      expect(check.explanation, check.id).not.toContain(`“${check.title}”`);
+      expect(check.explanation, check.id).not.toContain(
+        `assess ${check.title}`,
+      );
+    }
+  }
+  expect(
+    longTerm(
+      { ...longTermDraft('2018-01-01'), longTerm: {} },
+      'en',
+    ).checks.find((c) => c.id === 'LT-STAGE')?.explanation,
+  ).toBe(t('gr.result.moreInformation', 'en'));
+});
+
+test('a trip list is used only once it is confirmed complete', () => {
+  const trips = [{ departed: '2025-01-01', returned: '2025-09-01' }];
+  const unconfirmed = longTerm({ ...longTermDraft('2018-01-01'), trips });
+  expect(unconfirmed.status).toBe('UNKNOWN');
+  expect(
+    unconfirmed.checks.find((c) => c.id === 'GR-LONG-TERM-TIME')?.status,
+  ).toBe('UNKNOWN');
+  const confirmed = longTerm({
+    ...longTermDraft('2018-01-01'),
+    trips,
+    tripsComplete: true,
+  });
+  expect(confirmed.status).toBe('FUTURE');
+  expect(confirmed.earliestDate).toBe('2030-09-01');
+});
+
+test('what-if knobs change a copy of the draft and point conditions at controls', () => {
+  const draft = longTermDraft();
+  const knobs = gr.whatif.initial(draft);
+  expect(knobs).toEqual({
+    simulationDate: '2026-11-23',
+    noTrips: false,
+    greekLevel: 'B1',
+    examPassed: undefined,
+    netEur: 12880,
+    grossAnnualEur: undefined,
+    grossPayEur: undefined,
+    sponsorPersonalNetEur: undefined,
+    sponsorEvidence: undefined,
+    qualifyingValueEur: undefined,
+    answered: {
+      language: false,
+      exam: false,
+      familyYears: false,
+      blueCardYears: false,
+    },
+  });
+  expect(gr.whatif.apply(draft, knobs)).toEqual(draft);
+
+  const later = gr.whatif.apply(draft, {
+    ...knobs,
+    simulationDate: '2027-07-01',
+  });
+  expect(draft.simulationDate).toBe('2026-11-23');
+  expect(longTerm(later).status).toBe('MET');
+  expect(longTerm(later).earliestDate).toBe('2027-07-01');
+
+  const a2 = gr.whatif.apply(draft, { ...knobs, greekLevel: 'A2' });
+  expect(a2.integration).toEqual({ basis: 'language', greekLevel: 'A2' });
+  expect(longTerm(a2).checks.find((c) => c.id === 'LT-04')?.status).toBe(
+    'NOT_MET',
+  );
+  expect(
+    gr.whatif.apply(draft, { ...knobs, netEur: 5000 }).residenceIncome?.netEur,
+  ).toBe(5000);
+
+  const travelled = {
+    ...longTermDraft('2018-01-01'),
+    trips: [{ departed: '2025-01-01', returned: '2025-09-01' }],
+    tripsComplete: true,
+  };
+  const stayed = gr.whatif.apply(travelled, {
+    ...gr.whatif.initial(travelled),
+    noTrips: true,
+  });
+  expect(stayed.trips).toEqual([]);
+  expect(longTerm(stayed).status).toBe('MET');
+
+  const nat = gr.whatif.apply(
+    {
+      ...draft,
+      pathways: ['GR-NATIONALITY'],
+      nationality: { exam: 'written' },
+    },
+    { ...knobs, examPassed: true },
+  );
+  expect(nat.nationality).toMatchObject({
+    exam: 'certificate',
+    knowledgeDocumentReady: true,
+  });
+  expect(gr.whatif.validate(draft, { ...knobs, simulationDate: '' })).toEqual({
+    date: 'gr.whatif.invalidDate',
+  });
+  expect(
+    gr.whatif.validate(draft, { ...knobs, qualifyingValueEur: -1 }),
+  ).toEqual({ qualifyingValueEur: 'gr.whatif.invalidAmount' });
+
+  expect(gr.whatif.focusForRule('LT-TIME-RESIDENCE', 'GR-LONG-TERM')).toBe(
+    'date',
+  );
+  expect(gr.whatif.focusForRule('GR-NATIONALITY-TIME', 'GR-NATIONALITY')).toBe(
+    'date',
+  );
+  expect(gr.whatif.focusForRule('LT-TIME-TOTAL-ABSENCE', 'GR-LONG-TERM')).toBe(
+    'trips',
+  );
+  expect(gr.whatif.focusForRule('LT-04', 'GR-LONG-TERM')).toBe('language');
+  expect(gr.whatif.focusForRule('NAT-05', 'GR-NATIONALITY')).toBe('exam');
+  expect(gr.whatif.focusForRule('WK-04', 'GR-WORK')).toBe('pay');
+  expect(gr.whatif.focusForRule('GV-01', 'GR-GOLDEN-VISA')).toBe('investment');
+  expect(gr.whatif.focusForRule('C-03', 'GR-WORK')).toBeUndefined();
+});
+
+test('the result and comparison views show the dates used by the e2e walk-through', () => {
+  const draft = longTermDraft();
+  const resultHtml = render(
+    <ResultView country={gr} result={gr.run(draft, 'zh-CN')} draft={draft} />,
+  );
+  expect(resultHtml).toContain(t('gr.pathway.GR-LONG-TERM'));
+  expect(resultHtml).toContain(
+    t('country.status.FUTURE').replace('{date}', '2027-06-01'),
+  );
+  expect(resultHtml).toContain('dateTime="2027-06-01"');
+  expect(resultHtml).toContain('focus=date');
+
+  const knobs = { ...gr.whatif.initial(draft), simulationDate: '2027-07-01' };
+  const whatIfHtml = render(
+    <WhatIfView
+      country={{ ...gr, whatif: { ...gr.whatif, initial: () => knobs } }}
+      draft={draft}
+    />,
+  );
+  expect(whatIfHtml).toContain('id="gr-whatif-date"');
+  expect(whatIfHtml).toContain(
+    '2027-06-01</span><span aria-hidden="true">→</span><span>2027-07-01',
+  );
+});
+
+test('the questionnaire renders the ids used by the e2e walk-through', () => {
+  const step = (draft: GreeceDraft, errors = {}) =>
+    render(
+      GreeceSimulatePage().props.children({
+        draft,
+        errors,
+        update: () => {},
+      }),
+    );
+  const draft = longTermDraft();
+  const ids = (html: string) =>
+    new Set([...html.matchAll(/ id="([^"]+)"/g)].map((match) => match[1]));
+  const step0 = ids(step({ ...draft, step: 0 }));
+  for (const id of [
+    'gr-simulationDate',
+    'gr-birthDate',
+    'gr-citizenship',
+    'gr-pathways',
+    'gr-pathway-GR-LONG-TERM',
+  ])
+    expect(step0, id).toContain(id);
+  const step1 = ids(
+    step({
+      ...draft,
+      step: 1,
+      trips: [{ departed: '2025-01-01', returned: '2025-01-10' }],
+    }),
+  );
+  for (const id of [
+    'gr-permits',
+    'gr-permits-0-kind',
+    'gr-permits-0-from',
+    'gr-trips',
+    'gr-trips-0-departed',
+    'gr-tripsComplete',
+    'gr-backlogRenewals',
+  ])
+    expect(step1, id).toContain(id);
+  const step2 = ids(step({ ...draft, step: 2 }));
+  for (const id of [
+    'gr-entry',
+    'gr-passport-kind',
+    'gr-passport-issuedOn',
+    'gr-passport-expiresOn',
+    'gr-passport-blankPages',
+    'gr-passport-expectedDeparture',
+    'gr-publicOrder',
+    'gr-filingDocuments-formReady',
+    'gr-filingDocuments-feeReceiptReady',
+    'gr-biometrics',
+    'gr-changes',
+    'gr-insurance-kind',
+    'gr-insurance-coversFamily',
+  ])
+    expect(step2, id).toContain(id);
+  const step3 = ids(step(draft));
+  for (const id of [
+    'gr-longTerm-stage',
+    'gr-longTerm-category',
+    'gr-longTerm-passportHistory',
+    'gr-integration-basis',
+    'gr-integration-greekLevel',
+    'gr-residenceIncome-netEur',
+    'gr-residenceIncome-dependants',
+    'gr-residenceIncome-regularAndDocumented',
+  ])
+    expect(step3, id).toContain(id);
+  expect(step3).not.toContain('id="gr-tenYear-stage"');
+
+  // Every route step renders without errors in English as well.
+  const all: GreeceDraft = {
+    ...createGreeceDraft(),
+    pathways: [
+      'GR-LONG-TERM',
+      'GR-GOLDEN-VISA',
+      'GR-NATIONALITY',
+      'GR-TEN-YEAR',
+      'GR-GREEK-FAMILY-PR',
+      'GR-EU-FAMILY-PR',
+      'GR-WORK',
+      'GR-FAMILY-TCN',
+    ],
+    greekFamily: { residenceFrom: '2021-03-15' },
+  };
+  for (const { step: number, title } of greeceSteps(all)) {
+    const html = renderToStaticMarkup(
+      <LocaleContext value={{ locale: 'en', setLocale: () => {} }}>
+        {GreeceSimulatePage().props.children({
+          draft: { ...all, step: number },
+          errors: {},
+          update: () => {},
+        })}
+      </LocaleContext>,
+    );
+    expect(html.length, title).toBeGreaterThan(500);
+    expect(html, title).not.toMatch(/gr\.(field|option|hint|section)\./);
+    if (number === 6) expect(html).toContain('(2021-03-15)');
+  }
+});
+
+test('the policy page lists Greek routes, conditions, parameters and only Greek sources', () => {
+  const { policy } = gr;
+  const id = policy.displayedRuleSets[0].id;
+  const ruleIds = policy.rules[id].map((rule) => rule.id);
+  for (const ruleId of [
+    'C-01',
+    'LT-TIME-RESIDENCE',
+    'NAT-TIME-RESIDENCE',
+    'GV-TIME-RENEWAL',
+    'NAT-BIRTH-EXEMPTION',
+    'GR-LAW-DATE',
+    'TY-05',
+    'EF-03',
+    'WK-INVITATION-AGE',
+    'FT-03',
+  ])
+    expect(ruleIds).toContain(ruleId);
+  expect(new Set(ruleIds).size).toBe(ruleIds.length);
+  expect(policy.rules[id].find((rule) => rule.id === 'TY-05')).toMatchObject({
+    pendingDetails: ['PD-312'],
+  });
+  expect(policy.pathways).toHaveLength(8);
+  for (const rule of policy.rules[id]) {
+    expect(rule.title, rule.id).toMatch(/\S/);
+    expect(rule.titleEn, rule.id).not.toMatch(/[㐀-鿿]/);
+    expect(rule.sources.length, rule.id).toBeGreaterThan(0);
+  }
+
+  const sources = new Set(Object.keys(policy.sourceUrls));
+  const assessed = gr.run(
+    {
+      ...longTermDraft(),
+      pathways: [
+        'GR-LONG-TERM',
+        'GR-GOLDEN-VISA',
+        'GR-NATIONALITY',
+        'GR-TEN-YEAR',
+        'GR-GREEK-FAMILY-PR',
+        'GR-EU-FAMILY-PR',
+        'GR-WORK',
+        'GR-FAMILY-TCN',
+      ],
+    },
+    'zh-CN',
+  );
+  for (const pathway of assessed.columns[0].pathways)
+    for (const check of pathway.checks)
+      for (const source of check.sources)
+        expect(sources.has(source.srcId), source.srcId).toBe(true);
+  expect(sources.has('SRC-086')).toBe(true);
+  expect(sources.has('SRC-001')).toBe(false);
+  expect(sources.has('SRC-110')).toBe(false);
+
+  const html = render(<GreecePolicyPage />);
+  expect(html).toContain('<h1>希腊政策依据</h1>');
+  expect(html).toContain('data-source="SRC-350"');
+  expect(html).not.toContain('data-source="SRC-001"');
+  expect(html.match(/data-policy-change=/g)).toHaveLength(6);
+  expect(render(<GreecePolicyPage />, 'en')).toContain(
+    '<h1>Policy basis for Greece</h1>',
+  );
+});
+
+// Review 98-1 reproductions. Each draft starts from the reviewer's inputs.
+function routeDraft(patch: Partial<GreeceDraft>): GreeceDraft {
+  return {
+    ...createGreeceDraft(),
+    completed: true,
+    simulationDate: '2026-11-24',
+    birthDate: '1985-01-01',
+    ...patch,
+  };
+}
+const checkOf = (draft: GreeceDraft, id: string) =>
+  gr
+    .run(draft, 'zh-CN')
+    .columns[0].pathways.flatMap((pathway) => pathway.checks)
+    .find((check) => check.id === id);
+const whatIfControls = (
+  draft: GreeceDraft,
+  knobs = gr.whatif.initial(draft),
+) => {
+  const afterDraft = gr.whatif.apply(draft, knobs);
+  return render(
+    <GreeceWhatIfControls
+      afterDraft={afterDraft}
+      knobs={knobs}
+      errors={gr.whatif.validate(afterDraft, knobs)}
+      update={() => {}}
+    />,
+  );
+};
+const e4Draft = routeDraft({
+  pathways: ['GR-WORK'],
+  entry: 'outside',
+  work: {
+    permit: 'E4',
+    stage: 'initial',
+    admission: 'ordinary',
+    contractMonths: 24,
+    contractDocumented: true,
+    fullTimeEmployment: true,
+    payBasis: 'monthly',
+    grossPayEur: 500,
+  },
+});
+const sponsorDraft = routeDraft({
+  pathways: ['GR-FAMILY-TCN'],
+  familyTcn: {
+    stage: 'initial',
+    sponsor: 'ordinary',
+    sponsorLawfulYears: 1,
+    sponsorPermitDurationYears: 2,
+    sponsorPermitLeadsToPermanentResidence: true,
+    sponsorPermitValid: true,
+  },
+});
+const autonomousDraft = routeDraft({
+  pathways: ['GR-FAMILY-TCN'],
+  trips: [],
+  familyTcn: {
+    stage: 'autonomous',
+    sponsor: 'ordinary',
+    member: 'spouse',
+    autonomousBasis: 'residence',
+    previousFamilyCard: true,
+    familyResidenceYears: 4,
+    yearsSinceFirstFamilyPermit: 4,
+  },
+});
+const euFamilyDraft = routeDraft({
+  pathways: ['GR-EU-FAMILY-PR'],
+  permits: [],
+  trips: [
+    {
+      departed: '2022-01-01',
+      returned: '2022-10-01',
+      familyAbsenceReason: 'ordinary',
+    },
+  ],
+  tripsComplete: true,
+  euFamily: {
+    stage: 'permanent',
+    relationship: 'spouse',
+    qualifyingNonGreekEuSponsor: true,
+    sponsorExercisedTreatyRights: true,
+    residenceFrom: '2019-01-01',
+    qualifyingResidenceDocumented: true,
+    priorCardIssued: true,
+    priorCardExpiry: '2026-12-31',
+    maxOrdinaryAnnualAbsenceMonths: 9,
+  },
+});
+const greekFamilyDraft = routeDraft({
+  pathways: ['GR-GREEK-FAMILY-PR'],
+  permits: [],
+  trips: [],
+  greekFamily: {
+    stage: 'permanent',
+    relationship: 'spouse',
+    residenceFrom: '2019-01-01',
+    qualifyingResidenceDocumented: true,
+    priorCardExpiry: '2025-12-31',
+    interruptionAfterExpiryYears: 3,
+  },
+});
+const nationalityDraft = routeDraft({
+  pathways: ['GR-NATIONALITY'],
+  route: 'general',
+  permits: [{ kind: 'regular', from: '2018-01-01' }],
+  trips: [],
+  nationality: { stage: 'application' },
+});
+
+test('each knob changes the answer its linked conditions read (review98-1 item 1)', () => {
+  // Ε.4: WK-04 compares monthly or daily pay with the minimum wage.
+  expect(checkOf(e4Draft, 'WK-04')?.status).toBe('NOT_MET');
+  expect(gr.whatif.focusForRule('WK-04', 'GR-WORK')).toBe('pay');
+  const pay = gr.whatif.initial(e4Draft);
+  expect(pay.grossPayEur).toBe(500);
+  expect(gr.whatif.apply(e4Draft, pay)).toEqual(e4Draft);
+  expect(
+    checkOf(gr.whatif.apply(e4Draft, { ...pay, grossPayEur: 920 }), 'WK-04')
+      ?.status,
+  ).toBe('MET');
+  const e4Html = whatIfControls(e4Draft);
+  expect(e4Html).toContain(
+    `<label for="gr-whatif-pay">${t('gr.whatif.payMonthly')}</label>`,
+  );
+  expect(e4Html).not.toContain('gr-whatif-salary');
+  expect(
+    whatIfControls({
+      ...e4Draft,
+      work: { ...e4Draft.work, payBasis: 'daily' },
+    }),
+  ).toContain(t('gr.whatif.payDaily'));
+
+  // Ε.1: WK-01 compares the annual salary only in a year with a published
+  // threshold. Other years stay unknown (PD-317), so no knob is linked.
+  expect(gr.whatif.focusForRule('WK-01', 'GR-WORK')).toBeUndefined();
+  const e1 = routeDraft({
+    pathways: ['GR-WORK'],
+    entry: 'outside',
+    work: {
+      permit: 'E1',
+      stage: 'initial',
+      admission: 'ordinary',
+      grossAnnualEur: 20000,
+    },
+  });
+  expect(checkOf(e1, 'WK-01')?.status).toBe('UNKNOWN');
+  expect(whatIfControls(e1)).not.toContain('gr-whatif-salary');
+  const published = { ...gr.whatif.initial(e1), simulationDate: '2024-06-01' };
+  expect(whatIfControls(e1, published)).toContain('id="gr-whatif-salary"');
+  expect(checkOf(gr.whatif.apply(e1, published), 'WK-01')?.status).toBe(
+    'NOT_MET',
+  );
+  expect(
+    checkOf(
+      gr.whatif.apply(e1, { ...published, grossAnnualEur: 60000 }),
+      'WK-01',
+    )?.status,
+  ).toBe('MET');
+
+  // Ο.1: FT-02 reads the sponsor's income on first grant and the tax and
+  // insurance evidence on renewal. The same focus lands on the one that applies.
+  expect(gr.whatif.focusForRule('FT-02', 'GR-FAMILY-TCN')).toBe('sponsor');
+  const renewal = routeDraft({
+    pathways: ['GR-FAMILY-TCN'],
+    familyTcn: {
+      stage: 'renewal',
+      sponsor: 'ordinary',
+      priorYearTaxAndInsuranceEvidence: false,
+    },
+  });
+  expect(checkOf(renewal, 'FT-02')?.status).toBe('NOT_MET');
+  const evidence = gr.whatif.initial(renewal);
+  expect(evidence.sponsorEvidence).toBe(false);
+  expect(gr.whatif.apply(renewal, evidence)).toEqual(renewal);
+  expect(
+    checkOf(
+      gr.whatif.apply(renewal, { ...evidence, sponsorEvidence: true }),
+      'FT-02',
+    )?.status,
+  ).toBe('MET');
+  expect(whatIfControls(renewal)).toContain('<select id="gr-whatif-sponsor"');
+  expect(whatIfControls(renewal)).not.toContain(t('gr.whatif.sponsorIncome'));
+  expect(whatIfControls(sponsorDraft)).toContain(
+    '<input id="gr-whatif-sponsor" type="number"',
+  );
+
+  // Every linked condition names a rendered control.
+  for (const [draft, id] of [
+    [e4Draft, 'WK-04'],
+    [renewal, 'FT-02'],
+    [sponsorDraft, 'FT-02'],
+    [autonomousDraft, 'FT-07'],
+    [euFamilyDraft, 'EF-03'],
+    [longTermDraft(), 'LT-02'],
+    [longTermDraft(), 'LT-04'],
+  ] as const) {
+    const focus = gr.whatif.focusForRule(id, draft.pathways[0])!;
+    const control = (gr.whatif.focusControls as Record<string, string>)[focus];
+    expect(whatIfControls(draft), id).toContain(`id="${control}"`);
+  }
+});
+
+test('the language and exam knobs keep answers they cannot express (review98-1 suggestion)', () => {
+  const written = routeDraft({
+    pathways: ['GR-NATIONALITY'],
+    nationality: { exam: 'written', languagePoints: 70 },
+  });
+  const knobs = gr.whatif.initial(written);
+  expect(knobs.examPassed).toBe('answered');
+  expect(gr.whatif.apply(written, knobs)).toEqual(written);
+  expect(whatIfControls(written)).toContain(
+    `<option value="answered" selected="">${t('gr.whatif.asAnswered')}</option>`,
+  );
+  expect(
+    gr.whatif.apply(written, { ...knobs, examPassed: true }).nationality,
+  ).toMatchObject({ exam: 'certificate', knowledgeDocumentReady: true });
+
+  const a2 = {
+    ...longTermDraft(),
+    integration: { basis: 'a2' as const, a2Certificate: true },
+  };
+  const level = gr.whatif.initial(a2);
+  expect(level.greekLevel).toBe('answered');
+  expect(gr.whatif.apply(a2, level)).toEqual(a2);
+  expect(whatIfControls(a2)).toContain(
+    `<option value="answered" selected="">${t('gr.whatif.asAnswered')}</option>`,
+  );
+  // An answer the knob can show directly has no extra option.
+  expect(whatIfControls(longTermDraft())).not.toContain('value="answered"');
+});
+
+test('assuming no time outside Greece clears each whole absence summary (review98-1 item 2)', () => {
+  const stayed = (draft: GreeceDraft) =>
+    gr.whatif.apply(draft, { ...gr.whatif.initial(draft), noTrips: true });
+  expect(checkOf(euFamilyDraft, 'EF-03')?.status).toBe('NOT_MET');
+  const euFamily = {
+    ...euFamilyDraft.euFamily,
+    maxOrdinaryAnnualAbsenceMonths: undefined,
+  };
+  for (const summary of [
+    { maxOrdinaryAnnualAbsenceMonths: 9 },
+    { seriousAbsenceCount: 1, maxSeriousAbsenceMonths: 14 },
+    {},
+  ]) {
+    const draft = { ...euFamilyDraft, euFamily: { ...euFamily, ...summary } };
+    expect(
+      checkOf(stayed(draft), 'EF-03')?.status,
+      JSON.stringify(summary),
+    ).toBe('MET');
+  }
+
+  // After an Ο.3 card expires, an interruption of residence is time outside Greece too.
+  expect(checkOf(greekFamilyDraft, 'GF-03')?.status).toBe('NOT_MET');
+  const greekFamily = {
+    ...greekFamilyDraft.greekFamily,
+    interruptionAfterExpiryYears: undefined,
+  };
+  for (const summary of [
+    { interruptionAfterExpiryYears: 3 },
+    { maxAnnualAbsenceMonths: 9 },
+    {
+      extendedAbsence: 'single-serious-reason' as const,
+      extendedAbsenceMonths: 14,
+    },
+    { longestAbsenceAfterPrYears: 3 },
+  ]) {
+    const draft = {
+      ...greekFamilyDraft,
+      greekFamily: { ...greekFamily, ...summary },
+    };
+    expect(
+      checkOf(stayed(draft), 'GF-03')?.status,
+      JSON.stringify(summary),
+    ).toBe('MET');
+  }
+});
+
+test('moving the date counts year answers from the start date they imply (review98-1 item 3)', () => {
+  const later = (draft: GreeceDraft, simulationDate: string) =>
+    gr.whatif.apply(draft, { ...gr.whatif.initial(draft), simulationDate });
+  // Ordinary sponsor: one year on 2026-11-24 means lawful residence since 2025-11-24.
+  expect(checkOf(sponsorDraft, 'FT-01')?.status).toBe('NOT_MET');
+  const moved = later(sponsorDraft, '2029-01-01');
+  expect(moved.familyTcn).not.toHaveProperty('sponsorLawfulYears');
+  expect(moved.familyTcn?.sponsorLawfulFrom).toBe('2025-11-24');
+  // The count then gives what the start date it implies gives.
+  const dated = {
+    ...sponsorDraft,
+    familyTcn: {
+      ...sponsorDraft.familyTcn,
+      sponsorLawfulYears: undefined,
+      sponsorLawfulFrom: '2025-11-24',
+    },
+  };
+  expect(checkOf(dated, 'FT-01')?.explanation).toContain('2027-11-24');
+  for (const [date, status] of [
+    ['2025-06-01', 'NOT_MET'],
+    ['2027-01-01', 'NOT_MET'],
+    ['2029-01-01', 'MET'],
+  ]) {
+    expect(checkOf(later(sponsorDraft, date), 'FT-01')?.status, date).toBe(
+      status,
+    );
+    expect(checkOf(later(dated, date), 'FT-01')?.status, date).toBe(status);
+  }
+  expect(
+    checkOf(later(sponsorDraft, '2027-01-01'), 'FT-01')?.explanation,
+  ).toContain('2027-11-24');
+
+  // Ο.2 residence: both year counts are as of the questionnaire date. Part
+  // months are dropped, so the start date is never earlier than the answer.
+  const autonomous = {
+    ...autonomousDraft,
+    familyTcn: {
+      ...autonomousDraft.familyTcn,
+      otherResidencePermitGranted: false,
+      yearsSinceFirstFamilyPermit: 4.99,
+    },
+  };
+  expect(checkOf(autonomous, 'FT-07')?.status).toBe('NOT_MET');
+  const autonomousLater = later(autonomous, '2028-12-01');
+  expect(autonomousLater.familyTcn).toMatchObject({
+    familyResidenceFrom: '2022-11-24',
+    firstFamilyPermitIssuedOn: '2021-12-24',
+  });
+  expect(autonomousLater.familyTcn).not.toHaveProperty('familyResidenceYears');
+  expect(autonomousLater.familyTcn).not.toHaveProperty(
+    'yearsSinceFirstFamilyPermit',
+  );
+  expect(checkOf(autonomousLater, 'FT-07')?.status).toBe('MET');
+  expect(checkOf(later(autonomous, '2027-11-23'), 'FT-07')?.status).toBe(
+    'NOT_MET',
+  );
+  // Residence before the sponsor's death does not change with the date.
+  const bereaved = {
+    ...autonomousDraft,
+    familyTcn: {
+      ...autonomousDraft.familyTcn,
+      autonomousBasis: 'bereavement' as const,
+      sponsorDiedOn: '2025-01-01',
+    },
+  };
+  expect(later(bereaved, '2028-12-01').familyTcn?.familyResidenceYears).toBe(4);
+  // Blue Card years have no start date. The engine reads them only for a
+  // renewal after unemployment, so only then are they left unknown.
+  const blue = routeDraft({
+    pathways: ['GR-WORK'],
+    work: {
+      permit: 'E1',
+      stage: 'renewal',
+      blueRenewalInterruption: 'unemployment',
+      blueCardYears: 1,
+    },
+  });
+  expect(later(blue, '2028-12-01').work).not.toHaveProperty('blueCardYears');
+  for (const work of [
+    { ...blue.work, blueRenewalInterruption: undefined },
+    { ...blue.work, permit: 'E4' as const },
+    { ...blue.work, stage: 'initial' as const },
+  ]) {
+    const kept = { ...blue, work };
+    expect(later(kept, '2028-12-01').work?.blueCardYears).toBe(1);
+    expect(whatIfControls(kept)).not.toContain(t('gr.whatif.blueCardYears'));
+  }
+  // The questionnaire date keeps every answer, and the knob explains the rule.
+  expect(later(sponsorDraft, '2026-11-24')).toEqual(sponsorDraft);
+  expect(whatIfControls(sponsorDraft)).toContain(t('gr.whatif.yearCounts'));
+  expect(whatIfControls(sponsorDraft)).not.toContain(
+    t('gr.whatif.blueCardYears'),
+  );
+  expect(whatIfControls(dated)).not.toContain(t('gr.whatif.yearCounts'));
+  expect(whatIfControls(blue)).toContain(t('gr.whatif.blueCardYears'));
+  expect(whatIfControls(blue)).not.toContain(t('gr.whatif.yearCounts'));
+});
+
+test('a moved date does not fall back to the card history behind year counts (review98-2 risk 1)', () => {
+  const later = (draft: GreeceDraft, simulationDate: string) =>
+    gr.whatif.apply(draft, { ...gr.whatif.initial(draft), simulationDate });
+  // Three years of residence on 2026-11-24, although a family card runs from 2020.
+  const card = (issuedOn: string) => ({
+    kind: 'regular' as const,
+    purpose: 'family-reunification' as const,
+    from: issuedOn,
+    to: '2028-01-01',
+    issuedOn,
+  });
+  const residence = routeDraft({
+    pathways: ['GR-FAMILY-TCN'],
+    permits: [card('2020-01-01')],
+    permitHistoryComplete: true,
+    familyTcn: {
+      stage: 'autonomous',
+      sponsor: 'ordinary',
+      member: 'spouse',
+      autonomousBasis: 'residence',
+      previousFamilyCard: true,
+      familyResidenceYears: 3,
+    },
+  });
+  for (const draft of [
+    residence,
+    { ...residence, trips: [], tripsComplete: true },
+  ]) {
+    expect(checkOf(draft, 'FT-07')?.status).toBe('NOT_MET');
+    for (const date of ['2025-06-01', '2026-11-25', '2028-11-23'])
+      expect(checkOf(later(draft, date), 'FT-07')?.status, date).not.toBe(
+        'MET',
+      );
+    // Counted from 2023-11-24, five years are complete on 2028-11-24.
+    expect(checkOf(later(draft, '2028-11-24'), 'FT-07')?.status).toBe('MET');
+  }
+
+  // Two years since the first family permit, although the history shows 2019.
+  const permit = routeDraft({
+    ...residence,
+    permits: [card('2019-01-01')],
+    familyTcn: {
+      ...residence.familyTcn,
+      familyResidenceYears: undefined,
+      familyResidenceFrom: '2019-01-01',
+      yearsSinceFirstFamilyPermit: 2,
+    },
+  });
+  expect(checkOf(permit, 'FT-07')?.status).toBe('NOT_MET');
+  for (const date of ['2025-06-01', '2026-11-25', '2029-11-23'])
+    expect(checkOf(later(permit, date), 'FT-07')?.status, date).not.toBe('MET');
+  expect(checkOf(later(permit, '2029-11-24'), 'FT-07')?.status).toBe('MET');
+});
+
+test('the comparison marks a date before birth and explains the income year (review98-1 risks)', () => {
+  const draft = longTermDraft();
+  const knobs = { ...gr.whatif.initial(draft), simulationDate: '1984-06-01' };
+  expect(gr.whatif.validate(gr.whatif.apply(draft, knobs), knobs)).toEqual({
+    date: 'gr.error.birthAfterSimulation',
+  });
+  expect(whatIfControls(draft, knobs)).toContain('aria-invalid="true"');
+  expect(whatIfControls(draft)).toContain(t('gr.whatif.incomeYear'));
+});
+
+test('the policy catalogue lists every condition a result shows (review98-1 item 4)', () => {
+  const id = gr.policy.displayedRuleSets[0].id;
+  const rules = new Map(gr.policy.rules[id].map((rule) => [rule.id, rule]));
+  expect(rules.get('GR-NATIONALITY-TIME')).toMatchObject({
+    pendingDetails: ['PD-106', 'PD-109'],
+  });
+  expect(rules.size).toBe(103);
+  // The engine attaches PD-314 to GF-03, PD-315 to EF-03 and PD-319 to C-02
+  // and FT-01, never to GF-08, EF-02 or WK-09.
+  for (const id of ['GF-08', 'EF-02', 'WK-09'])
+    expect(rules.get(id)?.pendingDetails, id).toEqual([]);
+
+  const stages = {
+    longTerm: ['initial', 'renewal', 'reacquisition'],
+    tenYear: ['initial', 'renewal'],
+    nationality: ['application', 'oath'],
+    goldenVisa: ['initial', 'renewal'],
+    greekFamily: ['initial', 'renewal', 'permanent', 'retained', 'maintain'],
+    euFamily: [
+      'initial',
+      'renewal',
+      'permanent',
+      'permanent-renewal',
+      'retained',
+      'maintain',
+    ],
+    work: ['initial', 'renewal'],
+    familyTcn: ['initial', 'renewal', 'autonomous'],
+  };
+  const histories: Partial<GreeceDraft>[] = [
+    {},
+    { permits: [{ kind: 'regular', from: '2018-01-01' }], trips: [] },
+    {
+      permits: [{ kind: 'investor', from: '2019-03-01', to: '2026-02-28' }],
+      trips: [{ departed: '2023-01-01', returned: '2023-03-01' }],
+      tripsComplete: true,
+    },
+  ];
+  const drafts: GreeceDraft[] = [
+    longTermDraft(),
+    nationalityDraft,
+    e4Draft,
+    sponsorDraft,
+    autonomousDraft,
+    euFamilyDraft,
+    greekFamilyDraft,
+  ];
+  for (const history of histories)
+    for (let i = 0; i < 6; i++) {
+      const pick = (list: string[]) => list[i % list.length] as never;
+      drafts.push(
+        routeDraft({
+          ...history,
+          pathways: GR_PATHWAYS,
+          route: 'general',
+          longTerm: { stage: pick(stages.longTerm) },
+          tenYear: { stage: pick(stages.tenYear), basis: 'residence' },
+          nationality: { stage: pick(stages.nationality) },
+          goldenVisa: { stage: pick(stages.goldenVisa) },
+          greekFamily: { stage: pick(stages.greekFamily) },
+          euFamily: { stage: pick(stages.euFamily) },
+          work: {
+            permit: i % 2 ? 'E1' : 'E4',
+            stage: pick(stages.work),
+            admission: 'ordinary',
+          },
+          familyTcn: { stage: pick(stages.familyTcn), sponsor: 'ordinary' },
+        }),
+      );
+    }
+  for (const draft of drafts)
+    for (const pathway of gr.run(draft, 'zh-CN').columns[0].pathways)
+      for (const check of pathway.checks)
+        expect(rules.has(check.id), `${pathway.id} ${check.id}`).toBe(true);
+});
+
+test('hidden answers and unconfirmed lists are not sent to the engine (review98-1 risks)', () => {
+  const hidden = routeDraft({
+    ...longTermDraft(),
+    permits: [{ kind: 'investor', from: '2020-01-01', purpose: 'other' }],
+    insurance: { kind: 'public', coversFamily: true, disabilityEur: 10000 },
+    integration: { basis: 'language', greekLevel: 'B1', a2Total: 30 },
+  });
+  const active = activeGreeceAnswers(hidden);
+  expect(active.permits).toEqual([{ kind: 'investor', from: '2020-01-01' }]);
+  expect(active.insurance).toEqual({ kind: 'public', coversFamily: true });
+  expect(active.integration).toEqual({ basis: 'language', greekLevel: 'B1' });
+  expect(greeceRequest(hidden).insurance).toEqual(active.insurance);
+
+  // Other lists of time abroad also need a complete-list confirmation.
+  const mobility = {
+    ...longTermDraft(),
+    blueCardMobility: {
+      otherMemberTrips: [{ departed: '2021-01-01', returned: '2021-02-01' }],
+    },
+  };
+  expect(gr.validateStep(mobility)).toEqual({
+    'gr-blueCardMobility-otherMemberTripsComplete':
+      'gr.error.otherMemberTripsComplete',
+  });
+  expect(greeceRequest(mobility).blueCardMobility).toEqual({});
+  const confirmed = {
+    ...mobility,
+    blueCardMobility: {
+      ...mobility.blueCardMobility,
+      otherMemberTripsComplete: true,
+    },
+  };
+  expect(gr.validateStep(confirmed)).toEqual({});
+  expect(greeceRequest(confirmed).blueCardMobility).toEqual({
+    otherMemberTrips: [{ departed: '2021-01-01', returned: '2021-02-01' }],
+  });
+  const posting = routeDraft({
+    pathways: ['GR-NATIONALITY'],
+    step: 4,
+    nationality: {
+      diplomaticSpouse: {
+        periods: [{ from: '2020-01-01', through: '2021-01-01' }],
+      },
+    },
+  });
+  expect(gr.validateStep(posting)).toEqual({
+    'gr-nationality-diplomaticSpouse-periodsComplete':
+      'gr.error.periodsComplete',
+  });
+  const html = render(
+    GreeceSimulatePage().props.children({
+      draft: posting,
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(html).toContain(
+    'id="gr-nationality-diplomaticSpouse-periodsComplete"',
+  );
+
+  // One row per tax year.
+  expect(
+    gr.validateStep({
+      ...posting,
+      nationality: {
+        incomeYears: [
+          { year: 2024, taxableEur: 15000, dependants: 0 },
+          { year: 2024, taxableEur: 16000, dependants: 0 },
+        ],
+      },
+    }),
+  ).toEqual({ 'gr-nationality-incomeYears-1-year': 'gr.error.duplicateYear' });
+});
+
+test('list rows, alternatives and hints have their own accessible names (review98-1 suggestions)', () => {
+  const html = render(
+    GreeceSimulatePage().props.children({
+      draft: {
+        ...longTermDraft(),
+        step: 1,
+        permits: [
+          { kind: 'regular', from: '2018-01-01' },
+          { kind: 'regular', from: '2021-01-01' },
+        ],
+      },
+      errors: {},
+      update: () => {},
+    }),
+  );
+  const permit = t('gr.field.permits');
+  expect(html).toContain(`aria-label="${t('gr.form.remove')} · ${permit} 2"`);
+  expect(html).toMatch(
+    /<fieldset[^>]*id="gr-permits"[^>]*aria-describedby="gr-permits-hint"/,
+  );
+  expect(html).toContain('<p id="gr-permits-hint"');
+
+  const nationality = render(
+    GreeceSimulatePage().props.children({
+      draft: routeDraft({ pathways: ['GR-NATIONALITY'], step: 4 }),
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(nationality).toContain(
+    `aria-label="${t('gr.option.none')} · ${t('gr.field.lastRejection')}"`,
+  );
+
+  // The annual summary hint names the EU family member's actual start of residence.
+  const eu = render(
+    GreeceSimulatePage().props.children({
+      draft: routeDraft({
+        pathways: ['GR-EU-FAMILY-PR'],
+        step: 6,
+        euFamily: { arrivedOn: '2020-05-01' },
+      }),
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(eu).toContain('（2020-05-01）');
+});
+
+// Shared options from task 93 (Australia), wired in after merging main.
+test('a Greek share link keeps the local draft and result links carry the scenario', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local = routeDraft({
+    completed: false,
+    simulationDate: '2026-10-01',
+    pathways: ['GR-NATIONALITY'],
+  });
+  draftStorage(gr, local);
+  const shared = longTermDraft();
+  const encoded = encodeDraft(gr, shared);
+  const page = readPageResult(gr, 'zh-CN', encoded);
+  expect(page.shared).toBe(true);
+  expect(page.draft).toEqual(shared);
+  expect(draftStorage(gr).draft).toEqual(local);
+
+  // The result's edit and comparison links (#draft=) and a shared result
+  // (#s=) both reopen the assessed answers.
+  expect(linkedResultDraft(gr, `#draft=${encoded}`)).toEqual({
+    draft: shared,
+    resultHash: '',
+  });
+  expect(linkedResultDraft(gr, `#s=${encoded}`)).toEqual({
+    draft: shared,
+    resultHash: `#s=${encoded}`,
+  });
+});
+
+test.each(['result', 'simulate', 'whatif', 'policy', ''])(
+  'skipping the header on /greece/%s keeps a scenario fragment where pages carry one',
+  (sub) => {
+    vi.mocked(usePathname).mockReturnValue(sub ? `/greece/${sub}` : '/greece');
+    const html = render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    );
+    const scenarioPage = ['result', 'simulate', 'whatif'].includes(sub);
+    expect(html.includes(`<button type="button" class="${site.skip}">`)).toBe(
+      scenarioPage,
+    );
+    expect(html.includes(`class="${site.skip}" href="#main"`)).toBe(
+      !scenarioPage,
+    );
+  },
+);
+
+test('fees, the oath, reporting duties and the two renewal windows are labelled apart and left out of the gaps', () => {
+  const pathway = (draft: GreeceDraft) =>
+    gr.run(draft, 'zh-CN').columns[0].pathways[0];
+  const kinds = (draft: GreeceDraft) =>
+    Object.fromEntries(pathway(draft).checks.map((c) => [c.id, c.kind]));
+  const gaps = (draft: GreeceDraft) =>
+    gapRules(pathway(draft)).map((c) => c.id);
+
+  // Μ.1: time summaries are time conditions. The change-reporting duty only
+  // risks a fine and does not bar filing, so an unanswered one is not a gap.
+  const longTermUnreported = { ...longTermDraft(), changes: undefined };
+  expect(pathway(longTermUnreported).status).toBe('FUTURE');
+  expect(kinds(longTermUnreported)).toMatchObject({
+    'LT-TIME-RESIDENCE': 'time',
+    'GR-LONG-TERM-TIME': 'time',
+    'C-FILING': 'requirement',
+    'LT-06': 'requirement',
+    'C-06': 'information',
+  });
+  expect(gaps(longTermUnreported)).toEqual([
+    'LT-TIME-RESIDENCE',
+    'GR-LONG-TERM-TIME',
+  ]);
+
+  // Β.5 late renewal: the ordinary and the late window are alternatives.
+  const lateRenewal = routeDraft({
+    pathways: ['GR-GOLDEN-VISA'],
+    permits: [{ kind: 'investor', from: '2021-10-01', to: '2026-10-01' }],
+    goldenVisa: { stage: 'renewal' },
+  });
+  expect(pathway(lateRenewal).checks.map((c) => [c.id, c.status])).toEqual(
+    expect.arrayContaining([
+      ['GV-TIME-RENEWAL', 'NOT_MET'],
+      ['GV-TIME-LATE', 'MET'],
+      ['GR-GOLDEN-VISA-TIME', 'MET'],
+    ]),
+  );
+  expect(kinds(lateRenewal)).toMatchObject({
+    'GV-TIME-RENEWAL': 'alternative',
+    'GV-TIME-LATE': 'alternative',
+    'GR-GOLDEN-VISA-TIME': 'time',
+  });
+  expect(gaps(lateRenewal)).not.toContain('GV-TIME-RENEWAL');
+  // A renewal filing window is a time condition as well.
+  const e4Renewal = routeDraft({
+    pathways: ['GR-WORK'],
+    currentCardExpiresOn: '2027-03-01',
+    work: { permit: 'E4', stage: 'renewal' },
+  });
+  expect(pathway(e4Renewal).checks.map((c) => c.id)).toContain('C-07-window');
+  expect(kinds(e4Renewal)['C-07-window']).toBe('time');
+
+  // Naturalisation: the fee note is a budget once the receipt is ready, the
+  // oath follows the decision, and the wait after a rejection is a time condition.
+  const nationality = (feeReceiptReady: boolean) =>
+    routeDraft({
+      ...nationalityDraft,
+      filingDocuments: { formReady: true, feeReceiptReady },
+    });
+  expect(kinds(nationality(true))).toMatchObject({
+    'NAT-10': 'budget',
+    'NAT-11': 'time',
+    'NAT-12': 'afterApproval',
+    'GR-NATIONALITY-TIME': 'time',
+  });
+  expect(gaps(nationality(true))).not.toContain('NAT-10');
+  expect(gaps(nationality(true))).not.toContain('NAT-12');
+  // A missing fee receipt, or an open oath on the oath stage, still bars the
+  // route, so it stays a requirement and is listed.
+  expect(kinds(nationality(false))['NAT-10']).toBe('requirement');
+  expect(gaps(nationality(false))).toContain('NAT-10');
+  const oath = routeDraft({
+    pathways: ['GR-NATIONALITY'],
+    route: 'general',
+    nationality: { stage: 'oath' },
+  });
+  expect(kinds(oath)['NAT-12']).toBe('requirement');
+  expect(gaps(oath)).toContain('NAT-12');
+
+  // Other fee checks: a budget when the amount is known, a requirement while
+  // the engine still needs a birth date to work it out.
+  for (const [draft, id] of [
+    [e4Draft, 'WK-09'],
+    [greekFamilyDraft, 'GF-06'],
+    [
+      routeDraft({
+        pathways: ['GR-TEN-YEAR'],
+        tenYear: { stage: 'initial', basis: 'residence' },
+      }),
+      'TY-06',
+    ],
+    [sponsorDraft, 'FT-06'],
+    [
+      routeDraft({
+        pathways: ['GR-GOLDEN-VISA'],
+        goldenVisa: {
+          stage: 'initial',
+          family: [{ kind: 'spouse', birthDate: '1986-01-01' }],
+        },
+      }),
+      'GV-07',
+    ],
+  ] as const) {
+    expect(kinds(draft)[id], id).toBe('budget');
+    expect(gaps(draft), id).not.toContain(id);
+  }
+  const unknownFee = routeDraft({
+    pathways: ['GR-GOLDEN-VISA'],
+    goldenVisa: { stage: 'initial', family: [{ kind: 'spouse' }] },
+  });
+  expect(kinds(unknownFee)['GV-07']).toBe('requirement');
+  expect(gaps(unknownFee)).toContain('GV-07');
+
+  const html = render(
+    <ResultView
+      country={gr}
+      result={gr.run(lateRenewal, 'zh-CN')}
+      draft={lateRenewal}
+    />,
+  );
+  for (const kind of ['alternative', 'time', 'requirement'] as const)
+    expect(html).toContain(`· ${t(`country.check.${kind}`)}`);
+});
+
+test('case-by-case pending details are not presented as details awaiting a government decision', () => {
+  const draft = routeDraft({
+    pathways: ['GR-GOLDEN-VISA'],
+    goldenVisa: { stage: 'initial', family: [{ kind: 'spouse' }] },
+  });
+  const result = gr.run(draft, 'zh-CN');
+  expect(
+    result.columns[0].pathways[0].checks.find((c) => c.id === 'GV-03')
+      ?.pendingDetails,
+  ).toEqual(['PD-307']);
+  const html = render(
+    <ResultView country={gr} result={result} draft={draft} />,
+  );
+  expect(html).toContain(t('pilot.pending'));
+  expect(html).not.toContain(t('result.pendingDetails'));
+  expect(html).not.toContain(t('gap.pending'));
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'policy parameters keep calendar years ungrouped and need no relabelling (%s)',
+  (locale) => {
+    const html = render(<GreecePolicyPage />, locale);
+    const row = (name: string) =>
+      html.match(new RegExp(`data-parameter="${name}">(.*?)</tr>`))![1];
+    const list = locale === 'en' ? ', ' : '、';
+    expect(row('workBlueSalary')).toContain(
+      `lastPublishedYear 2024${list}lastPublishedEur 31,918.83`,
+    );
+    expect(row('naturalisationIncome')).toContain(
+      [
+        'firstYear 2009',
+        'reducedFrom 2012',
+        'restoredFrom 2019',
+        'lastYear 2022',
+        'standard 7,500',
+      ].join(list),
+    );
+    // Amounts keep their grouping, including one that looks like a year.
+    expect(row('gvFees')).toContain('main 2,000');
+    // Every parameter is a single value or one level of named values, so the
+    // page shows no bare arrays and Greece needs no displayParameter.
+    expect(gr.policy.displayParameter).toBeUndefined();
+    for (const [name, { value }] of Object.entries(
+      gr.policy.parameters[gr.policy.displayedRuleSets[0].id].values,
+    ))
+      expect(
+        typeof value !== 'object' ||
+          (!Array.isArray(value) &&
+            Object.values(value).every((entry) => typeof entry !== 'object')),
+        name,
+      ).toBe(true);
+  },
+);
+
+test('the result date is the projected filing date, so Greece keeps the default label', () => {
+  const draft = longTermDraft();
+  const html = render(
+    <ResultView country={gr} result={gr.run(draft, 'zh-CN')} draft={draft} />,
+  );
+  expect(gr.earliestLabel).toBeUndefined();
+  expect(html).toContain(`<dt>${t('result.earliest')}</dt>`);
+  expect(html).toContain(`${t('result.earliest')}：2027-06-01`);
 });

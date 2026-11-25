@@ -7,9 +7,3 @@
 .section select {
   max-width: 100%;
 }
-
-.option {
-  display: block;
-  color: #505a5f;
-  font-size: 1rem;
-}

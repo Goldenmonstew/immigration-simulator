@@ -1,5 +1,6 @@
 import {
   evaluateUnitedStatesFull,
+  type Locale,
   type RuleMeta,
   type UsFullRequest,
 } from '@uk-immigration/engine';
@@ -96,6 +97,11 @@ const samples: UsFullRequest[] = [
   })),
   immigrant('US-FAMILY', 'adjustment', {
     family: { petitioner: 'citizen', relationship: 'spouse' },
+    admission: {
+      process: 'adjustment',
+      decisionOn: '2027-06-01',
+      i485PendingEvents: [{ on: '2027-02-01', kind: 'procedure' }],
+    },
     trips: [
       {
         departed: '2027-01-01',
@@ -128,6 +134,10 @@ const samples: UsFullRequest[] = [
     simulationDate: date,
     dateOfBirth: '1990-01-01',
     humanitarian: { status: 'refugee' },
+    admission: {
+      decisionOn: '2027-06-01',
+      i485PendingEvents: [{ on: '2027-02-01', kind: 'procedure' }],
+    },
     fees: { travelForm: 'refugee-document' },
   },
 ];
@@ -207,6 +217,95 @@ function shown(value: unknown): PolicyParameterValue {
   return (value ?? '—') as PolicyParameterValue;
 }
 
+// Counts, ages and ratios in the fee tables. Every other number is in USD.
+const feeCounts = new Set([
+  'smallEmployerMax',
+  'i485ChildAge',
+  'adultAge',
+  'waiverRatio',
+  'reducedRatio',
+]);
+const channels: Record<string, TranslationKey> = {
+  paper: 'us.policy.paper',
+  online: 'us.policy.online',
+};
+
+// Positional pairs and lists get named columns, fees their currency.
+function displayParameter(
+  name: string,
+  locale: Locale,
+): PolicyParameterValue | undefined {
+  const label = (key: TranslationKey) => t(key, locale);
+  const usd = (amount: number) => `USD ${amount.toLocaleString(locale)}`;
+  const dollars = (value: unknown, key = ''): PolicyParameterValue =>
+    typeof value === 'number'
+      ? feeCounts.has(key)
+        ? value
+        : usd(value)
+      : typeof value === 'object' && value
+        ? Object.fromEntries(
+            Object.entries(value).map(([field, entry]) => [
+              channels[field] ? label(channels[field]) : field,
+              dollars(entry, field),
+            ]),
+          )
+        : String(value);
+  // Amounts before and from the date a new schedule takes effect.
+  const byDate = (effective: string) => ({
+    before: label('us.policy.before').replace('{date}', effective),
+    from: label('us.policy.from').replace('{date}', effective),
+  });
+  if (name === 'englishExemptions')
+    return full.englishExemptions.value.map(({ age, lprYears }) => ({
+      [label('us.policy.minAge')]: age,
+      [label('us.policy.minLprYears')]: lprYears,
+    }));
+  if (name === 'military') {
+    const military = shown(full.military.value) as {
+      hostilities: string[][];
+    };
+    return {
+      ...military,
+      hostilities: military.hostilities.map(([start, end]) => ({
+        [label('us.policy.periodStart')]: start,
+        [label('us.policy.periodEnd')]: end,
+      })),
+    };
+  }
+  if (name === 'hr1Fees') {
+    const { effective, ...rates } = full.hr1Fees.value;
+    const { before, from } = byDate(effective);
+    return {
+      effective,
+      ...Object.fromEntries(
+        Object.entries(rates).map(([field, rate]) => [
+          field,
+          typeof rate === 'number'
+            ? usd(rate)
+            : { [before]: usd(rate[0]), [from]: usd(rate[1]) },
+        ]),
+      ),
+    };
+  }
+  if (name === 'eb5Fees') {
+    const { effective, old, current } = full.eb5Fees.value;
+    const { before, from } = byDate(effective);
+    return { effective, [before]: dollars(old), [from]: dollars(current) };
+  }
+  if (name === 'fees' || name === 'consularFees')
+    return dollars(full[name].value);
+  if (
+    name === 'otherImmigrationGrounds' ||
+    name === 'sijAdmissionExemptions' ||
+    name === 'vawaAdjustmentAdmissionExemptions' ||
+    name === 'vawaConsularAdmissionExemptions' ||
+    name === 'humanitarianAdmissionExemptions'
+  )
+    return full[name].value.map(
+      (ground) => `INA 212(a)(${ground.replace(/^\d+/, '$&)')}`,
+    );
+}
+
 const civics = full.civicsTest.value;
 export const unitedStatesPolicy = withPolicySources({
   ruleSets: [set],
@@ -228,6 +327,7 @@ export const unitedStatesPolicy = withPolicySources({
     },
   },
   rules: { [ruleSetId]: catalogue() },
+  displayParameter,
   changelog: [
     change(civics.switchDate, 'civics', full.civicsTest.sources, {
       bank: civics.current.bank,

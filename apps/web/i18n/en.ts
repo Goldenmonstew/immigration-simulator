@@ -283,6 +283,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'country.check.requirement': 'Requirement',
   'country.check.factor': 'Assessment factor',
   'country.check.information': 'Procedural information',
+  'country.check.time': 'Time requirement',
+  'country.check.budget': 'Fee budget',
+  'country.check.afterApproval': 'After approval',
+  'country.check.alternative': 'Alternative ground (one is enough)',
   'country.fee': 'Fee',
   'country.reducedFee': 'Possible reduced fee',
   'policyPage.title': 'Policy basis',
@@ -327,10 +331,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.uk.paths': 'Settlement (ILR) · Current law vs reforms',
   'hub.uk.desc':
     'Assess settlement across Skilled Worker, BN(O), Global Talent, family, protection and Long Residence routes, comparing current Immigration Rules with announced reforms.',
-  'hub.au.code': 'AU',
-  'hub.au.paths': 'Permanent residence · RRV · Citizenship',
-  'hub.au.desc':
-    'Check visa or residence periods for subclass 191 and the Hong Kong streams (189/191), visa and full-time sponsored employment periods and age at application for 186 TRT, and the wait for the permanent partner visa (801/100). Check days in Australia for a Resident Return visa and residence periods for citizenship.',
   'hub.nz.code': 'NZ',
   'hub.nz.paths': 'Permanent Resident Visa · Travel conditions · Citizenship',
   'hub.nz.desc':
@@ -343,10 +343,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.es.paths': 'Long-term residence · Citizenship by residence',
   'hub.es.desc':
     'Check residence periods for national long-term residence and citizenship by residence (10-, 5-, 2- and 1-year tracks) using your permits, stays for study and travel record.',
-  'hub.gr.code': 'GR',
-  'hub.gr.paths': 'Long-term residence · Golden visa · Naturalisation',
-  'hub.gr.desc':
-    'Use your permits, including golden visas, and travel record to check residence periods for long-term residence (Μ1) and the 7-, 3- and 12-year naturalisation tracks, plus golden visa (Β.5) renewal timing.',
   'hub.ie.code': 'IE',
   'hub.ie.paths': 'Stamp 4 / 5 · Naturalisation · Spouse route',
   'hub.ie.desc':
@@ -356,10 +352,6 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Naturalisation · Permanent residence · EU long-term · Golden visa',
   'hub.pt.desc':
     'Check residence periods for naturalisation under the 2026 nationality law, permanent residence and EU long-term resident status, plus minimum stays and renewal timing for a golden visa (ARI).',
-  'hub.de.code': 'DE',
-  'hub.de.paths': 'Settlement permit · EU long-term · Naturalisation',
-  'hub.de.desc':
-    'Check residence periods for a settlement permit (including skilled worker and EU Blue Card tracks), EU long-term residence and naturalisation, and pension contribution periods where applicable. See when a long trip ends your residence permit.',
   'site.skip': 'Skip to main content',
   'site.home': 'Home',
   'site.footer':

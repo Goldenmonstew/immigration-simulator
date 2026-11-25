@@ -1,4 +1,5 @@
 import type { Npc, Text } from '../../model';
+import { jpBalance as b } from './balance';
 import type { JpFestival } from './rules';
 
 type JpNpc = Npc<JpFestival>;
@@ -600,7 +601,7 @@ export const jpNpcs: JpNpc[] = [
       [
         '续签别拖到最后一周。照片、在职证明、课税证明，一样一样准备。',
         'Don’t leave renewal to the last week. Photo, employment letter, tax certificate: one at a time.',
-        { when: [{ visaMonthsLeftMax: 12 }] },
+        { when: [{ visaMonthsLeftMax: b.renewalWindowMonths }] },
       ],
       [
         '周末我在河边跑步，跑到樱花树那里就停下来拍照，所以永远跑不快。',

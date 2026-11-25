@@ -1149,8 +1149,8 @@ const messages = {
     'File Form I-485 in the U.S., or apply for an immigrant visa through NVC and a consulate.',
   ],
   'us.hint.adjustmentBasis': [
-    '亲属或职业路径只在 VAWA 或 SIJ 依据时需要另选。',
-    'For family or employment pathways, choose this only for a VAWA or SIJ basis.',
+    '亲属路径只在 VAWA 依据、职业路径只在 SIJ 依据时需要另选。',
+    'For the family pathway, choose this only for a VAWA basis. For the employment pathway, choose it only for an SIJ basis.',
   ],
   'us.hint.permanentResident': [
     '条件绿卡也填你本人取得条件身份的那天。',
@@ -1253,12 +1253,12 @@ const messages = {
     'Add at least one entry for each year from the priority-date year. When a year has several entries, their periods must not overlap. Year-to-date entries share the same start date.',
   ],
   'us.hint.wageFrom': [
-    '留空表示 1 月 1 日。未获准按比例核算时，优先日所在年度从 1 月 1 日起填写。',
-    'Blank means 1 January. Without accepted proration, entries for the priority-date year start on 1 January.',
+    '留空表示 1 月 1 日。未获准按比例核算时，优先日所在年度的净收入从 1 月 1 日起填写；按比例核算被拒时，当年所有记录都从 1 月 1 日起。',
+    'Blank means 1 January. Without accepted proration, net income for the priority-date year starts on 1 January. If proration was refused, every entry for that year starts on 1 January.',
   ],
   'us.hint.wageThrough': [
-    '留空表示年末，或当年记录截至的日期。',
-    'Blank means the end of the year, or the date the current year’s records cover.',
+    '留空表示年末；在“年度记录覆盖至”所在的年度，表示该日期（未填时为评估日）。',
+    'Blank means the end of the year. In the year of “Annual records cover through”, it means that date (or the assessment date if that is blank).',
   ],
   'us.hint.priorityYearProration': [
     'USCIS 按个案接受后，优先日所在年度可只核对优先日之后的部分。',

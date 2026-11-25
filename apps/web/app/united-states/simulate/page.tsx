@@ -62,7 +62,10 @@ function UnitedStatesStep({
         .map((section) => {
           const record = (valueAt(draft, section.path) ?? {}) as Answers;
           return (
-            <section key={section.path.join('.')} className={styles.section}>
+            <section
+              key={`${section.path.join('.')}:${section.title ?? ''}`}
+              className={styles.section}
+            >
               {section.title && <h2>{t(`us.section.${section.title}`)}</h2>}
               <UsFields
                 fields={section.fields}

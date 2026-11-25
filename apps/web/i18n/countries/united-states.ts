@@ -34,12 +34,24 @@ export const zhCN = {
   'us.policy.change.eb5': 'EB-5 申请费调整',
   'us.policy.change.eb5.summary':
     'I-526、I-526E、I-829 及区域中心诚信费按收件日适用新费率。',
+  'us.policy.minAge': '年龄下限',
+  'us.policy.minLprYears': '永居年数下限',
+  'us.policy.periodStart': '开始日',
+  'us.policy.periodEnd': '结束日',
+  'us.policy.before': '{date} 前',
+  'us.policy.from': '{date} 起',
+  'us.policy.paper': '纸质递交',
+  'us.policy.online': '网上递交',
   'us.result.approval': '核准阶段：{status}。',
+  'us.result.returnDate': '计划返美日',
+  'us.result.filingDate': '最早递交日（推算）',
   'us.whatif.date': '评估日期',
   'us.whatif.dateHint':
     '按这一天判断能否递交或返美。改动后请核对与日期有关的答案，例如面谈和裁决日。',
   'us.whatif.noTrips': '假设没有出境记录',
   'us.whatif.returnOn': '最近一次返美日期',
+  'us.whatif.noReturnTrip':
+    '问卷里没有出入境记录，没有可调整的返美日期。可以勾选“假设没有出境记录”，或回到问卷补填出境和返美日期。',
   'us.whatif.income': 'I-864 担保家庭年收入（美元）',
   'us.whatif.decisionOn': '预计裁决日',
   'us.whatif.invalid': '调整后的答案与问卷资料冲突，请核对日期和行程。',
@@ -50,16 +62,18 @@ export const zhCN = {
   'us.error.number': '请填写零或正数。',
   'us.error.integer': '请填写整数。',
   'us.error.order': '这个日期不能早于开始的日期。',
+  'us.error.decisionBeforeI485': '预计裁决日不能早于 I-485 收件日。',
   'us.error.beforeGreenCard': '只填取得绿卡之后的出境。',
   'us.error.overlap': '这次出境与前面的出境日期重叠。',
   'us.error.principalOrder': '主申请人的日期不能晚于你取得绿卡的日期。',
   'us.error.wageYear': '日期须在这条记录的年度内。',
+  'us.error.year': '请填写四位数的年份。',
   'us.error.wageOverlap':
     '同一年度的两条记录期间重叠。请合并，或拆成不重叠的期间；年初至今的累计记录请使用相同的开始日。',
   'us.error.wageCumulative':
     '同一开始日的累计工资不能随截止日期减少，请核对金额。',
   'us.error.wageProration':
-    '未获 USCIS 接受按比例核算时，优先日所在年度的记录须从 1 月 1 日开始，以便计入优先日前的亏损。',
+    '未获 USCIS 接受按比例核算时，优先日所在年度的净收入须从 1 月 1 日起算，以便计入优先日前的亏损；按比例核算被拒时，当年所有记录都从 1 月 1 日开始。',
   'us.error.ground': '请按 INA 212(a) 款项填写，例如 6 或 6(C)。',
   'us.error.duplicate': '这一项与前面的记录重复。',
   'us.error.consularPetition':
@@ -100,12 +114,24 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.policy.change.eb5': 'EB-5 fee adjustment',
   'us.policy.change.eb5.summary':
     'New amounts apply by receipt date to Forms I-526, I-526E and I-829 and the regional center integrity fee.',
+  'us.policy.minAge': 'Minimum age',
+  'us.policy.minLprYears': 'Minimum years as a permanent resident',
+  'us.policy.periodStart': 'Start',
+  'us.policy.periodEnd': 'End',
+  'us.policy.before': 'Before {date}',
+  'us.policy.from': 'From {date}',
+  'us.policy.paper': 'Paper',
+  'us.policy.online': 'Online',
   'us.result.approval': 'Approval stage: {status}.',
+  'us.result.returnDate': 'Planned return date',
+  'us.result.filingDate': 'Earliest projected filing date',
   'us.whatif.date': 'Assessment date',
   'us.whatif.dateHint':
     'Eligibility to file or return is tested on this date. Check date-related answers such as interview and decision dates after changing it.',
   'us.whatif.noTrips': 'Assume no trips abroad',
   'us.whatif.returnOn': 'Most recent return date',
+  'us.whatif.noReturnTrip':
+    'The questionnaire has no trips, so there is no return date to change. Tick “Assume no trips abroad”, or add the departure and return dates in the questionnaire.',
   'us.whatif.income': 'I-864 sponsor household income (USD per year)',
   'us.whatif.decisionOn': 'Expected decision date',
   'us.whatif.invalid':
@@ -117,17 +143,20 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.error.number': 'Enter zero or a positive number.',
   'us.error.integer': 'Enter a whole number.',
   'us.error.order': 'This date cannot be before the start date.',
+  'us.error.decisionBeforeI485':
+    'The expected decision date cannot be before the I-485 receipt date.',
   'us.error.beforeGreenCard': 'Enter only trips after you got your green card.',
   'us.error.overlap': 'This trip overlaps an earlier one.',
   'us.error.principalOrder':
     'The principal applicant’s date cannot be after the date you got your green card.',
   'us.error.wageYear': 'The date must be within this entry’s year.',
+  'us.error.year': 'Enter a four-digit year.',
   'us.error.wageOverlap':
     'Two entries for the same year overlap. Combine them or split them into periods that do not overlap. Year-to-date entries should share the same start date.',
   'us.error.wageCumulative':
     'Year-to-date wages from the same start date cannot fall as the end date moves later. Check the amounts.',
   'us.error.wageProration':
-    'Unless USCIS accepts proration, entries for the priority-date year must start on 1 January so that losses before the priority date are included.',
+    'Unless USCIS accepts proration, net income for the priority-date year must start on 1 January so that losses before the priority date are included. If proration was refused, every entry for that year starts on 1 January.',
   'us.error.ground': 'Use an INA 212(a) paragraph, such as 6 or 6(C).',
   'us.error.duplicate': 'This repeats an earlier entry.',
   'us.error.consularPetition':
