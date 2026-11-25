@@ -127,3 +127,64 @@
 - 问卷文案里仍有政策数字直接写在翻译中（如「上限 10 个工作日」「€16.08」「459 个月」），没有经参数文件生成，参数更新时容易不一致。
 - `spain-policy-rules.ts` 中 `ES-F01`–`ES-F04` 的 `SRC-345` 没有带引擎里 Hoja 52 的专属 URL，政策页会链到 Hoja 51。
 - 本轮只处理审核点名的两处「留空被当作确定值」，其他布尔证据未逐项排查。
+
+## 合入 main 与共用选项接入
+
+修正者：Claude Opus 5.5。PROGRESS 644–647（650 起已被任务 88 占用），尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。澳大利亚完整版页面（任务 93，#81）合入 main 后，按其报告“其他国家怎么接入这次的共用改动”一表接入西班牙。每项先写失败的回归测试再改。
+
+### 1. 做了什么
+
+| PROGRESS | Commit | 内容 |
+|---|---|---|
+| — | `3edb2bdb` Merge: 合入 main（澳大利亚完整版页面 #81） | `policy-page.tsx` 取 main 的版本：本分支对它的两处改动（标题按国家、非英国分组）已被 main 的写法覆盖，即标题缺国家或未登记文案时回退、千分位按字段语义。`site-countries.ts` 同时登记 `es` 与 `au`。`sw.js` 与 `about-page.test.tsx` 缓存版本改为 `2026-11-25-es`。`i18n/{zh-CN,en}.ts`、`PROGRESS.md`、`result-view.tsx` 自动合并，本分支的西班牙折叠标题保留。 |
+| 644 | `56e1b7cc` Fix: 西班牙分享链接不覆盖本机草稿，跳到主要内容保留场景片段 | 西班牙模块设 `scenarioLinks: true`：本机已有草稿时打开分享链接不覆盖它；结果、编辑与对比链接带 `#s=` 或 `#draft=`。`site-shell.tsx` 的场景路径判断加入西班牙结果、问卷、对比三页，“跳到主要内容”在这三页是按钮，不改地址栏片段。 |
+| 645 | `8e313e3c` Fix: 西班牙检查项按时间、条件、费用、获批后事项与可选依据分组 | `spain-module.ts` 的 `run` 为每项检查设 `kind`，见下表。 |
+| 646 | `7fd5821a` Fix: 西班牙政策页嵌套参数按含义展示，年份不加千分位 | `spain-policy.ts` 提供 `displayParameter`：20 项嵌套参数的原始字段名换为带单位的中英文名称（如“单次离境上限（月） 6”），DELE 免试国家代码显示为“阿根廷 (AR)”等。`country-views.test.tsx` 原以 `es` 代表“未登记标题的国家”，合入后西班牙已有标题，改用 `gr`。 |
+| 647 | 本节 `Docs` 提交 | 报告，补记最终验收与 e2e。工作区里上一位修正者已写好的第 1 段经核对后保留，没有丢弃。 |
+
+检查项分组（`kind`）：
+
+| 分组 | 条件 |
+|---|---|
+| 时间条件 `time` | `ES-N01`、`ES-L01`、`ES-L01-PERMIT`、`ES-L01-SINGLE`、`ES-L01-TOTAL`、`ES-L02`、`ES-E-TIME`、`ES-E01`–`ES-E04`、决定路径时的 `ES-U04` |
+| 费用预算 `budget` | `ES-N16`、`ES-L14`、`ES-E09`、`ES-M10`、`ES-M10-work-fee`、`ES-F05`、`ES-F05-card-fee`、`ES-R08` |
+| 批准后事项 `afterApproval` | `ES-N17`、`ES-N18`、`ES-M09`、`ES-M09-card`、`ES-F05-effective`、`ES-F05-effective-card`、`ES-R08-visa`、`ES-R09`、`ES-T01`、`ES-T02`、`ES-U13` |
+| 办理提示 `information` | `ES-M11`（后续转换）、`ES-F01-grant`（获批顺序） |
+| 可选依据 `alternative` | 国内长居直接事由 `ES-L03`–`ES-L09`；自由流动的提前取得途径 `ES-U07`–`ES-U11`；另一依据决定路径时列出的 `ES-U04`、`ES-U05`、`ES-U06` |
+| 申请条件 `requirement` | 其余各项 |
+
+西班牙各路径本来就有 `decidedBy`，不在其中的条目早已不进“还差什么”。设 kind 后的变化是：结果页在每项标题后标出分组；设了 kind 的待定项按日本、澳大利亚的做法显示“待定细节”。入籍申请费 `ES-N15` 要求递交前缴付，引擎把它算进 `decidedBy` 并参与推算日期，所以仍标为申请条件，未缴时照常列在“还差什么”。
+
+原报告中标为“待任务 93 的共用修正合入后解决”的条目：
+
+| 条目 | 处理 |
+|---|---|
+| 问题 7：`PolicyPage` 缺 `country.id` 时标题为空 | 合入 main 后解决。`policy-page.tsx` 取 main 的版本，无 `id` 或未登记 `<国家>.policy.pageTitle` 时回退 `policyPage.title`。 |
+| 风险 1：打开分享链接覆盖本机草稿 | 644，`scenarioLinks: true`。 |
+| 风险 1：“跳到主要内容”洗掉 `#s=` | 644，`site-shell.tsx` 加入西班牙三页。 |
+| 建议 2：年份千分位 | main 按键名判断年份（以 `year`、`from`、`cohort` 结尾的 1900–2100 整数），自动生效。核对结果：`ipremYear`、`smiYear` 显示 2026；`retirementTable` 的年度在 646 改用中文字段名后按文本显示，仍为 2026；`nationalityExamPriceYear` 本身是字符串。政策页不再出现 `2,026`。 |
+| 建议 4 ⑤：`PolicyPage` 无 `country.id` 保留默认标题的回归测试 | main 的 `country-views.test.tsx` 已覆盖无 `id` 和未登记标题两种情形（后者合入后改用 `gr`）；西班牙标题由 `spain.test.tsx` 覆盖。 |
+
+brief 第 2 项“结果日期不是最早可申请日期的路径设 `earliestLabel`”：未设置。西班牙八条路径的日期都来自引擎的 `projectFilingDate(s)`：在候选递交日重跑全部决定条件，首个全部满足的日期即为 `earliestDate`；已满足时取模拟日。日期只随递交时的事实移动，如居留年限、CCSE 签发日、申请费缴付日、免试决定等待期、医保起保日、禁返承诺期满；机关认定类条件只按用户所答的是或否计入，不改变日期。获批后宣誓登记、入境生效、申卡和费用都不在 `decidedBy` 中，不影响该日期。自由流动永久居留（U）依法自动取得，日期是取得永久权、可申请永久证明的日子；已取得时结论下另注明取得日（review97-1 风险 5）。所以通用文案“最早可申请日期（推算）”符合各路径的含义，没有改动。
+
+### 2. 怎么验证的
+
+- **先失败后通过**：把对应提交前的源文件放回工作区，用 HEAD 的测试运行，再还原。644：`spain-module.ts` 与 `site-shell.tsx` 取 `56e1b7cc^`，`test/spain-links.test.tsx` 4 项全部失败。645：`spain-module.ts` 取 `8e313e3c^`，`test/spain.test.tsx` 的 kind 分组 3 项失败（含中英文两项）。646：`spain-policy.ts` 取 `7fd5821a^`，政策页参数 2 项失败（中英文）。还原后全部通过。
+- **西班牙及关联单测**：`VITEST_MAX_WORKERS=2 pnpm --filter web exec vitest run test/spain.test.tsx test/spain-links.test.tsx test/spain-questionnaire.test.tsx test/spain-whatif.test.tsx test/country-views.test.tsx test/policy-page.test.tsx test/about-page.test.tsx`，7 个文件 64 项通过。
+- **完整验收**：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，退出码 0。6 个包 lint、typecheck 通过；测试 error-report 2 项、policy-data 23 项、engine 6,006 项通过（1 项既有测试跳过）、game 1,348 项、web 896 项（49 个文件）全部通过；构建生成 40 个静态页面，含西班牙五页。
+- **年份千分位**：在导出的 `apps/web/out/spain/policy.html` 中查找 `2,026`，0 处；页面上唯一带千分位的数是 `smiMonthly` 的 1,221 欧元，属金额。
+- **浏览器 e2e**：`cd apps/e2e && E2E_PORT=4452 npx playwright test tests/spain.spec.ts tests/australia.spec.ts tests/japan.spec.ts tests/site.spec.ts --project=desktop --reporter=line`，21 项全部通过，退出码 0；已删除 `apps/e2e/test-results`。西班牙两项用例在 `scenarioLinks` 打开后无需改动：结果页地址仍为 `/spain/result`，复制的分享链接带 `#s=`，接收方结果与原页一致，从“还差什么”跳到对比页聚焦 DELE 旋钮、两条路径显示“与当前情景相同”。
+- **视觉核对**：用 Playwright 打开导出静态站的 `/spain/policy`，展开全部折叠后截取 1280px 与 375px 两种宽度。`nationalityYears`、`retirementTable`、`earlyPermanent`、`euDocument` 等行显示中文字段名与单位，DELE 免试国家显示“阿根廷 (AR)”等；两种宽度下 `scrollWidth` 与 `clientWidth` 相等，无横向滚动。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR，按 brief 留给 Fable。
+- 没有设 `earliestLabel`，理由见第 1 段末尾：西班牙八条路径的日期都是推算的递交或取得日，通用文案“最早可申请日期（推算）”与之相符。
+- e2e 只跑了 brief 指定的四个文件、desktop 项目；mobile 项目和其他国家的 e2e 未跑。
+- 视觉核对只看了政策页的嵌套参数。结果页的分组标注和“跳到主要内容”按钮只经单测与 e2e 验证，没有另截图。
+
+### 4. 发现与建议
+
+- `site-shell.tsx` 里判断场景路径的变量仍叫 `isJapanScenario`，现在已列出日本、澳大利亚、西班牙三国。它其实可以直接读国家模块的 `scenarioLinks`，以后新国家就不必再改这个共用文件。brief 没要求改共用命名，这里没动。
+- 西班牙的嵌套参数是对象，政策页把它显示成一行“名称 值、名称 值”。`retirementTable`、`euDocument` 这类字段多的参数在窄屏上偏长。改成行数组就能自动显示为表格。
+- 原报告第 4 段的两条（`SRC-345` Hoja 52 链接、问卷文案里直接写的政策数字）本次未处理，仍然有效。
