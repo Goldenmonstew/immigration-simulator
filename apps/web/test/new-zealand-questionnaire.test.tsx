@@ -16,6 +16,7 @@ import {
 } from '../lib/new-zealand-draft';
 import { newZealandModule as nz } from '../lib/new-zealand-module';
 import { newZealandPolicy } from '../lib/new-zealand-policy';
+import { gapRules } from '../lib/gap-summary';
 import { decodeDraft, encodeDraft } from '../lib/share';
 
 // Components read the locale through useTranslation; a plain function lets the
@@ -379,7 +380,7 @@ test('comparison controls follow the pay conditions, model IELTS for an OET resu
   expect(updates).toEqual([{ hourlyPay: undefined }, { hourlyPay: 42.5 }]);
 });
 
-test('pathways a held PRV replaces show no date, and fees, levy, oath and home purchase are procedural information', () => {
+test('pathways a held PRV replaces show no date', () => {
   const held = withAnswers(residentDraft(['travel', 'prv']), {
     trips: [],
     permanentResidentVisa: '2022-02-01',
@@ -390,23 +391,38 @@ test('pathways a held PRV replaces show no date, and fees, levy, oath and home p
   const html = renderToStaticMarkup(
     <ResultView country={nz} result={result} draft={held} />,
   );
+  expect(html).not.toContain(t('nz.result.earliest'));
   expect(html).not.toContain(t('result.earliest'));
+});
 
-  const information = [
+test('fees, the levy, after-approval steps, notes and the longer travel ground are labelled apart and left out of the gaps', () => {
+  const budget = [
     'NZ-P1-FEE',
     'NZ-P2-7',
     'NZ-P3-7-FEE',
-    'NZ-P3-7-OATH',
     'NZ-P4-FEE',
     'NZ-P5-4',
     'NZ-P6-3',
     'NZ-P7-FEE',
     'NZ-P8-5',
     'NZ-P9-4',
-    'NZ-P9-HOME',
     'NZ-P10-2',
     'NZ-C6-LEVY',
   ];
+  const expected: Record<string, string> = {
+    ...Object.fromEntries(budget.map((id) => [id, 'budget'])),
+    'NZ-P3-7-OATH': 'afterApproval',
+    'NZ-P9-2': 'afterApproval',
+    'NZ-P9-HOME': 'information',
+    // Only a direct PRV application reads the five-year criteria.
+    'NZ-P7-4': 'information',
+    // Being in New Zealand or a longer provision: one is enough (RV3.1).
+    'NZ-P1-3': 'alternative',
+    'NZ-P1-1': 'time',
+    'NZ-P2-1': 'time',
+    'NZ-P2-2': 'time',
+    'NZ-P3-1-PRESENCE': 'time',
+  };
   const all = residentDraft([
     'travel',
     'prv',
@@ -424,14 +440,83 @@ test('pathways a held PRV replaces show no date, and fees, levy, oath and home p
     resident: { ...all.answers.resident, travel: { action: 'variation' } },
     family: { investment: { route: 'active' } },
   });
-  const checks = pathways(every).flatMap((path) => path.checks);
+  const result = nz.run(every, 'zh-CN');
+  const paths = result.columns[0].pathways;
+  const checks = paths.flatMap((path) => path.checks);
   expect(
-    information.filter((id) => !checks.some((check) => check.id === id)),
+    Object.keys(expected).filter(
+      (id) => !checks.some((check) => check.id === id),
+    ),
   ).toEqual([]);
   for (const check of checks)
-    expect(check.kind, check.id).toBe(
-      information.includes(check.id) ? 'information' : undefined,
-    );
+    expect(check.kind, check.id).toBe(expected[check.id] ?? 'requirement');
+  for (const path of paths) {
+    // Every condition is shown on its pathway with its group.
+    expect(path.decidedBy, path.id).toBeUndefined();
+    for (const gap of gapRules(path))
+      expect(['requirement', 'time'], gap.id).toContain(gap.kind);
+  }
+  const citizenship = paths.find((path) => path.id === 'NZ-CITIZENSHIP')!;
+  const unpaid = {
+    ...citizenship,
+    checks: citizenship.checks.map((check) => ({
+      ...check,
+      status: 'UNKNOWN' as const,
+    })),
+  };
+  const gaps = gapRules(unpaid).map((check) => check.id);
+  expect(gaps).toContain('NZ-P3-1-PRESENCE');
+  for (const id of ['NZ-P3-7-FEE', 'NZ-P3-7-OATH'])
+    expect(gaps).not.toContain(id);
+
+  const html = renderToStaticMarkup(
+    <ResultView country={nz} result={result} draft={every} />,
+  );
+  expect(html).not.toContain(t('result.otherPathways'));
+  for (const kind of [
+    'budget',
+    'afterApproval',
+    'information',
+    'alternative',
+    'time',
+    'requirement',
+  ] as const)
+    expect(html).toContain(`· ${t(`country.check.${kind}`)}`);
+
+  // First entry, the travel period and the investor residence period.
+  const timing = pathways(
+    withAnswers(residentDraft(['travel', 'prv']), {
+      trips: [],
+      resident: {
+        ...every.answers.resident,
+        travel: { action: 'initial' },
+        prv: { ...prv, category: 'migrant-investor' },
+      },
+    }),
+  ).flatMap((path) => path.checks);
+  for (const id of ['NZ-P1-1', 'NZ-P1-1-TRAVEL', 'NZ-P2-3'])
+    expect(timing.find((check) => check.id === id)?.kind, id).toBe('time');
+
+  // Business Investor: residence criteria follow the work visa, whose own
+  // criteria are shown for reference at the residence stage.
+  const stage = (s: 'work' | 'residence') =>
+    pathways(
+      withAnswers(residentDraft(['investor']), {
+        family: { investment: { route: 'business', business: { stage: s } } },
+      }),
+    )[0].checks;
+  const kinds = (s: 'work' | 'residence') =>
+    Object.fromEntries(stage(s).map((check) => [check.id, check.kind]));
+  expect(kinds('work')).toMatchObject({
+    'NZ-P9-3-WORK': 'requirement',
+    'NZ-P9-3': 'afterApproval',
+    'NZ-P9-3-OPERATIONS': 'afterApproval',
+    'NZ-P9-3-ENGLISH': 'afterApproval',
+  });
+  expect(kinds('residence')).toMatchObject({
+    'NZ-P9-3-WORK': 'information',
+    'NZ-P9-3': 'requirement',
+  });
 });
 
 test('the policy page lists the sources and pending details of every branch the results can show', () => {
