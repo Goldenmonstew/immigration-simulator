@@ -323,8 +323,8 @@ export function assessMm2h(ctx: MyContext): MyPathway {
         ref('SRC-520', 'p12（印刷 p22–23）、p26'),
       ],
       L(
-        `获批后主申请人与受养人须到旅游部指定诊所体检；${screening.insuranceMaxAge} 岁及以下须有全球保障的健康保险，最低保额未公布。`,
-        `After approval the main applicant and dependants have a medical at a ministry panel clinic; those aged ${screening.insuranceMaxAge} or under need health insurance with worldwide cover. No minimum cover is published.`,
+        `获批后主申请人与受养人须到旅游部指定诊所体检；${screening.insuranceMaxAge} 岁及以下须有马来西亚或外国保险公司承保、全球保障的健康保险，原文未写最低保额。`,
+        `After approval the main applicant and dependants have a medical at a ministry panel clinic; those aged ${screening.insuranceMaxAge} or under need health insurance with worldwide cover from a Malaysian or foreign insurer. No minimum cover is written.`,
       ),
     ),
     info(
@@ -352,7 +352,13 @@ export function assessMm2h(ctx: MyContext): MyPathway {
       L(
         `Platinum ${v.mm2hPassYears.value.platinum} 年、Gold ${v.mm2hPassYears.value.gold} 年、Silver ${v.mm2hPassYears.value.silver} 年、SEZ/SFZ ${v.mm2hPassYears.value.sez} 年，含多次入境签证，以护照效期为限。期满后每 ${v.mm2hRenewalFeeRm.value.everyYears} 年续签，费用 Platinum RM${v.mm2hRenewalFeeRm.value.platinum}、Gold RM${v.mm2hRenewalFeeRm.value.gold}、Silver RM${v.mm2hRenewalFeeRm.value.silver}、SEZ/SFZ RM${v.mm2hRenewalFeeRm.value.sez}。`,
         `Platinum ${v.mm2hPassYears.value.platinum} years, Gold ${v.mm2hPassYears.value.gold}, Silver ${v.mm2hPassYears.value.silver}, SEZ/SFZ ${v.mm2hPassYears.value.sez}, with a multiple-entry visa, limited by passport validity. After that it is renewed every ${v.mm2hRenewalFeeRm.value.everyYears} years for RM${v.mm2hRenewalFeeRm.value.platinum} (Platinum), RM${v.mm2hRenewalFeeRm.value.gold} (Gold), RM${v.mm2hRenewalFeeRm.value.silver} (Silver) or RM${v.mm2hRenewalFeeRm.value.sez} (SEZ/SFZ).`,
-      ),
+      ) +
+        L(
+          '续签费原文写"untuk prinsipal dan tanggungan"，按人还是合计、续签时是否另收条例准证费未写明。',
+          ' The renewal fee is given "untuk prinsipal dan tanggungan"; whether it is per person or in total, and whether the regulation pass fees are also due on renewal, is not written.',
+        ),
+      false,
+      ['PD-422'],
     ),
     withFee(
       info(
@@ -370,6 +376,13 @@ export function assessMm2h(ctx: MyContext): MyPathway {
   ];
   const f = v.mm2hPassFeesRm.value;
   const dependants = m.dependants;
+  const noDependants =
+    dependants === undefined
+      ? L(
+          '未填受养人人数，无法算出金额。',
+          ' The number of dependants is not entered, so the amount cannot be worked out.',
+        )
+      : '';
   checks.push(
     withFee(
       info(
@@ -379,9 +392,8 @@ export function assessMm2h(ctx: MyContext): MyPathway {
         L(
           `移民条例准证费的处理费部分：每次签发主申请人 RM${f.principalIssuance}、每名受养人 RM${f.dependantIssuance}，金额为主申请人与所填受养人之和。年费、参与费、系统处理费另列，官方未列总额。`,
           `The processing part of the immigration pass fee: RM${f.principalIssuance} per issue for the main applicant and RM${f.dependantIssuance} per dependant, summed for the dependants entered. The annual fee, participation fee and system fee are separate, and no total is published.`,
-        ),
+        ) + noDependants,
         dependants !== undefined,
-        ['PD-422'],
       ),
       dependants === undefined
         ? undefined
@@ -395,9 +407,8 @@ export function assessMm2h(ctx: MyContext): MyPathway {
         L(
           `移民条例准证费的申请费部分：主申请人与每名受养人每年或不足一年各 RM${f.principalPerYear}，金额为一年的合计。`,
           `The application part of the immigration pass fee: RM${f.principalPerYear} a year or part of a year for the main applicant and each dependant; the amount is one year for everyone entered.`,
-        ),
+        ) + noDependants,
         dependants !== undefined,
-        ['PD-422'],
       ),
       dependants === undefined
         ? undefined
@@ -466,17 +477,17 @@ export function assessRpt(ctx: MyContext): MyPathway {
   // other passes is not asked (PD-431).
   const anyPass = heldRun(req.passes, ANY_PASS, date);
   const r = req.rpt;
+  const workYears =
+    run?.valid && date >= addYears(run.start, p.workYears)
+      ? true
+      : anyPass?.valid && date >= addYears(anyPass.start, p.workYears)
+        ? undefined
+        : false;
   const checks: MyCheck[] = [
     check(
       'my.pass.work-years',
       L('在马连续工作年数', 'Continuous years working in Malaysia'),
-      !run
-        ? undefined
-        : run.valid && date >= addYears(run.start, p.workYears)
-          ? true
-          : anyPass?.valid && date >= addYears(anyPass.start, p.workYears)
-            ? undefined
-            : false,
+      !run ? undefined : workYears,
       src,
       L(
         `递交时须已在马来西亚连续工作至少 ${p.workYears} 年。`,
@@ -488,7 +499,9 @@ export function assessRpt(ctx: MyContext): MyPathway {
               ` The current Employment Pass run began on ${run.start}.`,
             )
           : '') +
-        (anyPass?.valid && anyPass.start < (run?.valid ? run.start : date)
+        (!workYears &&
+        anyPass?.valid &&
+        anyPass.start < (run?.valid ? run.start : date)
           ? L(
               `连同其他准证自 ${anyPass.start} 起连续在马；持其他准证期间的工作能否计入待确认。`,
               ` Counting other passes, the stay has been unbroken since ${anyPass.start}; whether work on other passes counts needs confirmation.`,
@@ -709,7 +722,7 @@ export function assessDeRantau(ctx: MyContext): MyPathway {
         `FAQ 写主申请人须"over eighteen (18) years old"，${p.minAge} 岁生日之后符合，生日当天是否符合待确认。`,
         `The FAQ says the main applicant must be "over eighteen (18) years old": met after the ${p.minAge}th birthday; the birthday itself needs confirmation.`,
       ),
-      ['PD-430'],
+      years === p.minAge ? ['PD-430'] : [],
     ),
     check(
       'my.pass.income',

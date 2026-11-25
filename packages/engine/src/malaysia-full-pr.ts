@@ -116,7 +116,7 @@ export function marriageRegistration(
             ' The marriage is registered only abroad; whether it must first be registered in Malaysia needs confirmation.',
           )
         : ''),
-    ['PD-405'],
+    registration === 'foreign-only' ? ['PD-405'] : [],
   );
 }
 

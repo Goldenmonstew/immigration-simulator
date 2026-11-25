@@ -1515,6 +1515,33 @@ describe('a subsisting marriage across the spouse pathways (review113-2 risk 4)'
   });
 });
 
+describe('boundary pending details only on the boundary (review113-2 suggestion 2)', () => {
+  test('PD-405 and PD-430 are not attached to missing answers', () => {
+    const category = cond('my.cit.wife-registration', 'my.cit.category', {
+      simulationDate: day,
+    });
+    expect([category.status, category.pendingDetails]).toEqual([
+      'UNKNOWN',
+      undefined,
+    ]);
+    const registration = (marriageRegistration?: 'foreign-only') =>
+      cond('my.pr.wife', 'my.pr.marriage-registration', {
+        simulationDate: day,
+        family: { marriageRegistration },
+      }).pendingDetails;
+    expect([registration(), registration('foreign-only')]).toEqual([
+      undefined,
+      ['PD-405'],
+    ]);
+    const age = (dateOfBirth?: string) =>
+      cond('my.pass.de-rantau', 'my.pass.age', {
+        simulationDate: day,
+        dateOfBirth,
+      }).pendingDetails;
+    expect([age(), age('2008-11-24')]).toEqual([undefined, ['PD-430']]);
+  });
+});
+
 describe('29 February birthdays (review113-1 #10)', () => {
   test('earliest dates and deadlines follow the age in full years', () => {
     // Born 2004-02-29: 20 on 2025-02-28, 21 on 2025-03-01.
@@ -1716,6 +1743,27 @@ describe('long-term passes', () => {
     ).toContain('tidak bekerja atau tidak berkahwin di Malaysia');
   });
 
+  test('MM2H PD-422 sits on the renewal fee only (review113-2 suggestion 4)', () => {
+    // P.U. (A) 56/2022 fixes the issue and annual fees per person; SRC-517
+    // p6 gives the renewal fee "untuk prinsipal dan tanggungan".
+    for (const key of ['my.pass.pass-fees', 'my.pass.annual-fee']) {
+      expect(cond('my.pass.mm2h', key, mm2h).status, key).toBe('MET');
+      const open = cond('my.pass.mm2h', key, m({ dependants: undefined }));
+      expect([open.status, open.pendingDetails], key).toEqual([
+        'UNKNOWN',
+        undefined,
+      ]);
+      expect(open.explanation, key).toContain('未填受养人人数');
+    }
+    const term = cond('my.pass.mm2h', 'my.pass.term', mm2h);
+    expect([term.status, term.pendingDetails]).toEqual(['UNKNOWN', ['PD-422']]);
+    expect(term.explanation).toContain('untuk prinsipal dan tanggungan');
+    // SRC-520 p12 asks only for worldwide cover, with no minimum written.
+    const insurance = cond('my.pass.mm2h', 'my.pass.medical-insurance', mm2h);
+    expect(insurance.status).toBe('MET');
+    expect(insurance.explanation).toContain('未写最低保额');
+  });
+
   test('MM2H 90 days a year meet the stay at any age (review113-2 risk 6)', () => {
     // SRC-517 p3: 90 days a year; only the exemption from 50 is in doubt.
     const stay = (daysPerYear: number) =>
@@ -1794,6 +1842,18 @@ describe('long-term passes', () => {
       before('2023-11-24').pendingDetails,
     ]).toEqual(['UNKNOWN', ['PD-431']]);
     expect(before('2023-11-25').status).toBe('NOT_MET');
+  });
+
+  test('RP-T met on the Employment Pass alone has no pending note (review113-2 suggestion 1)', () => {
+    const c = cond('my.pass.rpt', 'my.pass.work-years', {
+      ...rpt,
+      passes: [
+        { kind: 'dependant', from: '2018-01-01', to: '2021-06-30' },
+        { kind: 'employment', from: '2021-07-01', to: '2028-12-31' },
+      ],
+    });
+    expect(c.status).toBe('MET');
+    expect(c.explanation).not.toContain('待确认');
   });
 
   test('PVIP has no official parameters', () => {
