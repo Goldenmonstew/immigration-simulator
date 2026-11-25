@@ -80,7 +80,19 @@ export const unitedStatesModule: CountryModule<UsDraft, UnitedStatesWhatIf> = {
   id: 'us',
   version: 1,
   scenarioLinks: true,
-  earliestLabel: { 'US-TRAVEL': 'us.result.returnDate' },
+  // The date is the planned return for US-TRAVEL and the earliest filing
+  // date elsewhere, whatever the approval stage.
+  earliestLabel: {
+    'US-TRAVEL': 'us.result.returnDate',
+    'US-NATURALIZATION': 'us.result.filingDate',
+    'US-SPOUSE': 'us.result.filingDate',
+    'US-MILITARY': 'us.result.filingDate',
+    'US-CONDITIONS': 'us.result.filingDate',
+    'US-FAMILY': 'us.result.filingDate',
+    'US-EMPLOYMENT': 'us.result.filingDate',
+    'US-ADJUSTMENT': 'us.result.filingDate',
+    'US-HUMANITARIAN': 'us.result.filingDate',
+  },
   createDraft: createUnitedStatesDraft,
   activeAnswers: activeUnitedStatesAnswers,
   validateStep: validateUnitedStatesStep,

@@ -42,6 +42,7 @@ export const zhCN = {
   'us.policy.online': '网上递交',
   'us.result.approval': '核准阶段：{status}。',
   'us.result.returnDate': '计划返美日',
+  'us.result.filingDate': '最早递交日（推算）',
   'us.whatif.date': '评估日期',
   'us.whatif.dateHint':
     '按这一天判断能否递交或返美。改动后请核对与日期有关的答案，例如面谈和裁决日。',
@@ -119,6 +120,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'us.policy.online': 'Online',
   'us.result.approval': 'Approval stage: {status}.',
   'us.result.returnDate': 'Planned return date',
+  'us.result.filingDate': 'Earliest projected filing date',
   'us.whatif.date': 'Assessment date',
   'us.whatif.dateHint':
     'Eligibility to file or return is tested on this date. Check date-related answers such as interview and decision dates after changing it.',

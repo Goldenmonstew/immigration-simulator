@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   evaluateUnitedStatesFull,
+  type CountryPathway,
   type PilotStatus,
   type UsFullPathway,
 } from '@uk-immigration/engine';
@@ -38,7 +39,7 @@ import type { UnitedStatesWhatIf } from '../lib/united-states-whatif';
 import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
 import { gapRules } from '../lib/gap-summary';
-import { pathwayDate } from '../lib/country-module';
+import { earliestLabelFor, pathwayDate } from '../lib/country-module';
 import { readPageResult } from '../lib/page-result';
 import { draftStorage } from '../lib/storage';
 
@@ -1467,7 +1468,7 @@ test('opening a United States share link keeps the local draft and the skip link
   }
 });
 
-test('a planned return is labelled as the return date, other pathways keep the filing date label (task 93 shared fix)', () => {
+test('a planned return is labelled as the return date, other pathways as the filing date (task 93 shared fix, review96-2 suggestion 2)', () => {
   const future = pathwayOf(travelDraft());
   expect(pathwayDate(future, us.earliestLabel)).toEqual({
     label: 'us.result.returnDate',
@@ -1494,23 +1495,58 @@ test('a planned return is labelled as the return date, other pathways keep the f
     );
     expect(html).not.toContain(t('result.earliest', locale));
   }
-  // Filing pathways still show the earliest filing date, also when approval
-  // leaves the outcome open (review96-2 #2).
+  // Filing pathways name the earliest filing date, also when approval leaves
+  // the outcome open (review96-2 #2, suggestion 2).
+  for (const id of [
+    'US-NATURALIZATION',
+    'US-SPOUSE',
+    'US-MILITARY',
+    'US-CONDITIONS',
+    'US-FAMILY',
+    'US-EMPLOYMENT',
+    'US-ADJUSTMENT',
+    'US-HUMANITARIAN',
+  ])
+    expect(earliestLabelFor({ id } as CountryPathway, us.earliestLabel)).toBe(
+      'us.result.filingDate',
+    );
   const filing = pathwayOf(conditionsDraft);
   expect(filing).toMatchObject({
     status: 'UNKNOWN',
     earliestDate: '2027-03-03',
   });
-  expect(pathwayDate(filing, us.earliestLabel)?.label).toBe('result.earliest');
-  expect(
-    render(
-      <ResultView
-        country={us}
-        result={us.run(conditionsDraft, 'zh-CN')}
-        draft={conditionsDraft}
-      />,
-    ),
-  ).toContain(t('result.earliest'));
+  const waiting: UsDraft = {
+    ...failedEnglish,
+    permanentResident: '2022-03-01',
+    stateResidenceFrom: '2020-01-01',
+    naturalization: {
+      ...failedEnglish.naturalization,
+      english: 'passed',
+      lprResidenceYears: 4.7,
+    },
+  };
+  expect(pathwayOf(waiting)).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2026-12-01',
+  });
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const label = t('us.result.filingDate', locale);
+    const colon = locale === 'en' ? ': ' : '：';
+    const html = (draft: UsDraft) =>
+      render(
+        <ResultView
+          country={us}
+          result={us.run(draft, locale)}
+          draft={draft}
+        />,
+        locale,
+      );
+    // Result facts for an open outcome, and the gap summary while waiting.
+    expect(html(conditionsDraft)).toContain(`<dt>${label}</dt>`);
+    expect(html(waiting)).toContain(`${label}${colon}2026-12-01`);
+    for (const draft of [conditionsDraft, waiting])
+      expect(html(draft)).not.toContain(t('result.earliest', locale));
+  }
 });
 
 test('checks are grouped as time, requirement, budget or information, and only the first two are gaps (task 93 shared fix)', () => {
