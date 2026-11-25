@@ -353,10 +353,6 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Naturalisation · Permanent residence · EU long-term · Golden visa',
   'hub.pt.desc':
     'Check residence periods for naturalisation under the 2026 nationality law, permanent residence and EU long-term resident status, plus minimum stays and renewal timing for a golden visa (ARI).',
-  'hub.de.code': 'DE',
-  'hub.de.paths': 'Settlement permit · EU long-term · Naturalisation',
-  'hub.de.desc':
-    'Check residence periods for a settlement permit (including skilled worker and EU Blue Card tracks), EU long-term residence and naturalisation, and pension contribution periods where applicable. See when a long trip ends your residence permit.',
   'site.skip': 'Skip to main content',
   'site.home': 'Home',
   'site.footer':

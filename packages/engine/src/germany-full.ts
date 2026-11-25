@@ -382,6 +382,8 @@ const procedure = new Set([
   'DE-C34-initial',
   ...citizenshipAdvisoryIds,
 ]);
+// Procedural notes that do not decide a pathway's status.
+export const DE_PROCEDURE_CHECKS: ReadonlySet<string> = procedure;
 
 // SRC-100 §§ 51, 81(4). Retention evidence belongs to one physical document.
 // Earlier and subsequent permits keep their own periods, even for the same kind.
