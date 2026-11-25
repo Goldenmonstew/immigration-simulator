@@ -877,3 +877,4 @@
 | 921 | 任务 95 审核修正（review95-2）报告：逐条对应问题 1、风险 1–3、建议 1–3，风险 4 与签署日对比跳转列入发现与建议／未做；同步报告中已过时的共用组件、结果说明与缓存版本（建议 1）。 | docs/tasks/reports/95-ca-pages.md |
 | 1220 | 任务 116 共用游戏修正：进度条详情弹窗标题改为该路径名（原为"进入新一年前 → 进入新一年后"，与内容不符；美国、澳大利亚游戏报告提出），日本 e2e 核对弹窗名 | `apps/web/app/game-shell/game-client.tsx`、`apps/e2e/tests/japan-game.spec.ts` |
 | 1221 | 任务 116 共用游戏修正：日记申请分组加入 `naturalise`（日本递交帰化后出现"文件夹越装越厚"；德国游戏审核提出）；季末自动退租日志与日记菜地收成英文不再写英国的"明亮住处""allotment"，各国通用（澳大利亚游戏审核提出）；单测核对 | `packages/game/src/game.ts`、`packages/game/test/jp-pack.test.ts`、`packages/game/test/time-and-economy.test.ts` |
+| 1222 | 任务 116 测试稳定性：日本英文 e2e 的存款断言改为只匹配金额格式（开局卡片会花钱，种子取当前时间，约 3.75% 偶发失败）；`game.test.ts` 内容契约测试在负载下超过默认 5 秒，单独设 30 秒超时，断言不变 | `apps/e2e/tests/japan-game.spec.ts`、`packages/game/test/game.test.ts` |
