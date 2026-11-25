@@ -1563,3 +1563,88 @@ test('the per-document review cannot be confirmed empty, which would mark every 
   expect(legacy).toContain('已确认为无记录。');
   expect(legacy).toContain('恢复为待确认');
 });
+
+test('the What-if date counts pension and Blue Card months as the result page projects them (review100-2 risk 3)', () => {
+  const at = (draft: GermanyDraft, date: string) =>
+    de.run(
+      de.whatif.apply(draft, {
+        ...de.whatif.initial(draft),
+        simulationDate: date,
+      }),
+      'zh-CN',
+    );
+  const r01: GermanyDraft = {
+    ...sampleDraft(),
+    routes: ['R01'],
+    firstEntry: '2021-11-23',
+    permits: [{ kind: 'skilled', from: '2021-11-23' }],
+    contributionMonths: 50,
+  };
+  const projected = de.run(r01, 'zh-CN').columns[0].pathways[0];
+  expect(projected).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2027-09-23',
+  });
+  expect(at(r01, '2027-09-23').columns[0].pathways[0].status).toBe('MET');
+  // A day earlier the pension months are one short.
+  const dayBefore = at(r01, '2027-09-22');
+  expect(dayBefore.columns[0].pathways[0].status).toBe('FUTURE');
+  expect(condition(dayBefore, 'DE-R01', 'DE-C05')?.status).toBe('NOT_MET');
+  // The months typed in the knob are as of the questionnaire date.
+  expect(
+    de.whatif.apply(r01, {
+      ...de.whatif.initial(r01),
+      contributionMonths: 40,
+      simulationDate: '2027-11-23',
+    }).contributionMonths,
+  ).toBe(52);
+
+  // Blue Card months run from the simulation date while the card is held,
+  // or from a Blue Card that starts later.
+  const blue: GermanyDraft = {
+    ...sampleDraft(),
+    routes: ['R03'],
+    permits: [{ kind: 'blue-card', from: '2022-05-23' }],
+    blueCardEmploymentMonths: 15,
+    mobility: { blueCard: { cardHeldAtDecision: true } },
+  };
+  const months = (draft: GermanyDraft, date: string) =>
+    condition(at(draft, date), 'DE-R03', 'DE-C19-months')?.status;
+  expect(
+    condition(de.run(blue, 'zh-CN'), 'DE-R03', 'DE-C19-months')?.status,
+  ).toBe('NOT_MET');
+  expect(months(blue, '2027-05-22')).toBe('NOT_MET');
+  expect(months(blue, '2027-05-23')).toBe('MET');
+  const later: GermanyDraft = {
+    ...blue,
+    permits: [
+      { kind: 'skilled', from: '2022-05-23' },
+      { kind: 'blue-card', from: '2027-01-10' },
+    ],
+    blueCardEmploymentMonths: 0,
+  };
+  expect(months(later, '2028-10-09')).toBe('NOT_MET');
+  expect(months(later, '2028-10-10')).toBe('MET');
+  // Itemised employment is counted by the engine from the records.
+  const itemised = de.whatif.apply(
+    {
+      ...blue,
+      mobility: {
+        blueCard: {
+          employment: [{ startedOn: '2022-05-23', firstMonth: '2022-06' }],
+        },
+      },
+    },
+    { ...de.whatif.initial(blue), simulationDate: '2027-11-23' },
+  );
+  expect(itemised.blueCardEmploymentMonths).toBe(15);
+
+  // The date control states the assumption beside it.
+  const controls = renderToStaticMarkup(
+    <LocaleContext value={{ locale: 'zh-CN', setLocale: () => {} }}>
+      <WhatIfView country={de} draft={r01} />
+    </LocaleContext>,
+  );
+  expect(controls).toContain('下方填的月数截至问卷模拟日，之后每满一个月加 1');
+  expect(controls).toContain('而结果页的预计日期沿用这些确认');
+});

@@ -19,7 +19,7 @@ export const zhCN = {
   'de.whatif.date': '模拟日期',
   'de.whatif.noTrips': '假设居留期间没有出境记录',
   'de.whatif.dateHint':
-    '改动日期后，按原模拟日确认的「有效期覆盖模拟日」、§ 81 续期效力和决定日持有蓝卡改按待确认处理。',
+    '改到更晚的日期时，养老缴费月数和蓝卡月数按结果页预计日期的同一口径推算：下方填的月数截至问卷模拟日，之后每满一个月加 1（蓝卡月数只计持有蓝卡的月份）。改动日期后，按原模拟日确认的「有效期覆盖模拟日」、§ 81 续期效力和决定日持有蓝卡改按待确认处理，依赖它们的路径显示待确认，而结果页的预计日期沿用这些确认；要按新日期核对，请回到问卷改模拟日期并重新确认。',
   'de.whatif.factAfterDate':
     '这个日期早于问卷中已发生事项的日期（如首次入境日），请改晚，或回到问卷修改。',
   'de.whatif.noTripsHint':
@@ -73,7 +73,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.whatif.date': 'Simulation date',
   'de.whatif.noTrips': 'Assume no trips abroad during residence',
   'de.whatif.dateHint':
-    'After a date change, confirmations made for the original date (validity covering the simulation date, § 81 continuation and holding the Blue Card on the decision date) are treated as pending.',
+    'For a later date, pension and Blue Card months are counted as for the result page’s projected date: the months below are as of the questionnaire’s simulation date, plus one for each full month after it (Blue Card months only while the card is held). After a date change, confirmations made for the original date (validity covering the simulation date, § 81 continuation and holding the Blue Card on the decision date) are treated as pending, so routes relying on them show as pending, whereas the result page’s projected date keeps them. To check them for the new date, change the simulation date in the questionnaire and confirm them again.',
   'de.whatif.factAfterDate':
     'This date is before a fact recorded in the questionnaire (such as the first entry). Choose a later date or edit the questionnaire.',
   'de.whatif.noTripsHint':

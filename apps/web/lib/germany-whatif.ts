@@ -1,4 +1,9 @@
-import type { CefrLevel, DeFullRoute } from '@uk-immigration/engine';
+import {
+  addDays,
+  addMonths,
+  type CefrLevel,
+  type DeFullRoute,
+} from '@uk-immigration/engine';
 import { GermanyWhatIfControls } from '../app/germany/whatif/controls';
 import type { TranslationKey } from '../i18n';
 import {
@@ -221,6 +226,33 @@ function citizenshipLivelihood(draft: GermanyDraft) {
   return shared(values);
 }
 
+// Whole calendar months from one date to a later one (engine addMonths).
+function monthsSince(from: string, to: string) {
+  let months = 0;
+  while (addMonths(from, months + 1) <= to) months++;
+  return months;
+}
+
+// Start of the unbroken run of Blue Cards in force on the date, if any.
+function blueCardSince(permits: GermanyDraft['permits'], date: string) {
+  const held = (permits ?? [])
+    .filter((permit) => permit.from <= date)
+    .sort((a, b) => a.from.localeCompare(b.from));
+  let i = held.length - 1;
+  if (held[i]?.kind !== 'blue-card') return undefined;
+  while (
+    i > 0 &&
+    held[i - 1].kind === 'blue-card' &&
+    !(
+      held[i - 1].to &&
+      !held[i - 1].renewing &&
+      addDays(held[i - 1].to!, 1) < held[i].from
+    )
+  )
+    i--;
+  return held[i].from;
+}
+
 // Assuming no absence, a period outside the EU continues the status held
 // before it. An earliest period outside the EU has none and stays as it is.
 function withoutAbsences(periods: { kind: string; from: string }[]) {
@@ -355,6 +387,28 @@ export const germanyWhatIf: CountryWhatIf<GermanyDraft, GermanyWhatIf> = {
         countableAnnualGross: knobs.annualGrossSalary,
       };
 
+    // As on the result page, months entered as of the simulation date grow by
+    // one each month after it; Blue Card months only while the card is held,
+    // from a later Blue Card's start (§ 18c Abs. 2).
+    let { contributionMonths, blueCardMonths } = knobs;
+    const later =
+      validDate(knobs.simulationDate) &&
+      knobs.simulationDate > draft.simulationDate;
+    if (later && contributionMonths !== undefined)
+      contributionMonths += monthsSince(
+        draft.simulationDate,
+        knobs.simulationDate,
+      );
+    const blueSince =
+      later && !draft.mobility?.blueCard?.employment
+        ? blueCardSince(draft.permits, knobs.simulationDate)
+        : undefined;
+    if (blueSince && blueCardMonths !== undefined)
+      blueCardMonths += monthsSince(
+        blueSince > draft.simulationDate ? blueSince : draft.simulationDate,
+        knobs.simulationDate,
+      );
+
     // Confirmations made for the original date are open again on another date.
     if (knobs.simulationDate !== draft.simulationDate) {
       mobility.titles = mobility.titles?.map((title) => ({
@@ -395,8 +449,8 @@ export const germanyWhatIf: CountryWhatIf<GermanyDraft, GermanyWhatIf> = {
       ...draft,
       simulationDate: knobs.simulationDate,
       trips: knobs.noTrips ? [] : draft.trips,
-      contributionMonths: knobs.contributionMonths,
-      blueCardEmploymentMonths: knobs.blueCardMonths,
+      contributionMonths,
+      blueCardEmploymentMonths: blueCardMonths,
       germanB1,
       germanC1,
       common,
