@@ -14,7 +14,6 @@ import type {
 import { jpBalance as b } from './balance';
 import { jpCharacters } from './characters';
 import {
-  jpRules,
   pathwayOf,
   status,
   type JpEffect,
@@ -119,7 +118,7 @@ function longestPending(state: JpState) {
 // The shared quarter end can give the short let back when money runs low.
 // That is a move like the manual one, so it carries the same address notice
 // (SRC-110 第19条の7–9; `immigrationDuties.addressDays`). Someone still abroad
-// moves back on the quarter they come home.
+// moves back in the quarter they come home.
 export function afterQuarter(
   state: JpState,
   _previousFlags: string[],
@@ -134,10 +133,9 @@ export function afterQuarter(
   if (leaseEnded) setFlags(state, ['moving-back']);
   if (state.trip || !state.flags.includes('moving-back')) return;
   state.flags = state.flags.filter((flag) => flag !== 'moving-back');
-  const pr = state.timeline.permanentResidence.evidence;
-  pr.addressNotices = [...(pr.addressNotices ?? []), { eventOn: state.date }];
-  setFlags(state, ['address-notice-due']);
-  state.result = jpRules.evaluate(state);
+  // A card on the first morning records the move and says the notice is due,
+  // so the player is not left to find out from a random reminder.
+  state.eventQueue.push('system-lease-ended');
 }
 
 export function actionAvailable(

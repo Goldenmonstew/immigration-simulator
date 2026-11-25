@@ -372,9 +372,33 @@ test('a short let given back at quarter end leaves an address notice to file', (
   const next = quarterLater(state);
   expect(next.log.some(({ id }) => id === 'brighter-home-return')).toBe(true);
   expect(next.flags).toContain('address-notice-due');
+  // The move-back card on the first morning records the move that day.
   expect(
     next.timeline.permanentResidence.evidence.addressNotices?.at(-1),
-  ).toEqual({ eventOn: next.date });
+  ).toEqual({ eventOn: next.day.date });
+});
+
+test('a short let given back while abroad is reported after coming home', () => {
+  let state = visit(jp.newGame('engineer', 7, 'en'), 'home', 600);
+  state = settle(jp.doActivity(state, 'rent-brighter-home'));
+  state = settle(jp.doActivity(visit(state, 'ward', 660), 'address-notice'));
+  state = visit(nextDay(state), 'station', 600);
+  const trip = jp
+    .activities(state, 'station')
+    .find(({ id }) => id === 'travel-3')!;
+  // Leave with only the fare, so the quarter end gives the let back abroad.
+  state.stats.money = -trip.effects.reduce(
+    (sum, e) => sum + (e.type === 'money' ? e.delta : 0),
+    0,
+  );
+  // The trip runs to the first quarter after the return day.
+  const home = settle(jp.doActivity(state, 'travel-3'));
+  expect(home.date).toBe('2026-09-01');
+  expect(home.log.some(({ id }) => id === 'brighter-home-return')).toBe(true);
+  const notices = home.timeline.permanentResidence.evidence.addressNotices;
+  expect(notices).toHaveLength(2);
+  expect(notices?.at(-1)).toEqual({ eventOn: home.day.date });
+  expect(home.flags).toContain('address-notice-due');
 });
 
 test('a lapsed period of stay ends the story', () => {
