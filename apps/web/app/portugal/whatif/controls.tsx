@@ -92,7 +92,6 @@ export function PortugalWhatIfControls({
         (target) =>
           target === 'permanent' ||
           target === 'long-term' ||
-          target === 'investment' ||
           target === 'renewal',
       ) && (
         <div className={styles.field}>

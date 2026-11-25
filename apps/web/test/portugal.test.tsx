@@ -299,6 +299,15 @@ test('the questionnaire renders the fields the end-to-end flow uses', () => {
   // Conviction details appear only after a conviction is recorded.
   expect(review).not.toContain('id="pt-nationality-crime-years"');
   expect(review).toContain(t('pt.section.natReview'));
+  // A multiple-choice error keeps the hint described (review102-1).
+  expect(
+    step(
+      { ...draft, step: 2 },
+      { 'pt-nationality-meansSources': 'pt.form.required' },
+    ),
+  ).toContain(
+    'aria-describedby="pt-nationality-meansSources-hint pt-nationality-meansSources-error"',
+  );
   const partner = step({ ...draft, step: 8 });
   for (const id of [
     'pt-partner-kind',
@@ -683,7 +692,20 @@ test('what-if controls change copies of the draft and point to their conditions'
   const permanent = permanentDraft();
   const residenceKnobs = whatif.initial(permanent);
   expect(residenceKnobs.income).toBe(1473.84);
-  expect(residenceKnobs.residenceLanguage).toBeUndefined();
+  // review102-1 suggestion: a recognised A2 PLA certificate counts as yes.
+  expect(residenceKnobs.residenceLanguage).toBe(true);
+  const languageKnob = (language: PortugalDraft['residence']['language']) =>
+    whatif.initial({ ...permanent, residence: { ...residence, language } })
+      .residenceLanguage;
+  expect(languageKnob({ kind: 'pla', level: 'A1', recognized: true })).toBe(
+    false,
+  );
+  expect(languageKnob({ kind: 'pla', level: 'B1' })).toBeUndefined();
+  expect(languageKnob({ kind: 'foreign-portuguese-school' })).toBeUndefined();
+  expect(languageKnob({ kind: 'none' })).toBe(false);
+  expect(
+    languageKnob({ kind: 'none', accommodationRequested: true }),
+  ).toBeUndefined();
   const poorer = whatif.apply(permanent, { ...residenceKnobs, income: 1000 });
   expect(
     pathway(poorer, 'PT-PERMANENT').checks.find((c) => c.id === 'PT-B03')!
@@ -718,6 +740,9 @@ test('what-if controls change copies of the draft and point to their conditions'
   );
   expect(whatif.focusForRule('PT-G01', 'PT-PARTNER-NATIONALITY')).toBe('date');
   expect(whatif.focusForRule('PT-B03', 'PT-PERMANENT')).toBe('income');
+  // review102-1 suggestion: income alone cannot change these.
+  expect(whatif.focusForRule('PT-D02', 'PT-GOLDEN-VISA')).toBeUndefined();
+  expect(whatif.focusForRule('PT-E02', 'PT-TEMPORARY-RENEWAL')).toBeUndefined();
   const every: PortugalDraft = {
     ...permanentDraft(),
     targets: ['naturalisation', 'permanent', 'partner'],

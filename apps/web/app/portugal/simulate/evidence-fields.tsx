@@ -162,7 +162,7 @@ function Question({
         id={id}
         tabIndex={-1}
         className={form.fieldset}
-        aria-describedby={error ? `${id}-error` : `${id}-hint`}
+        aria-describedby={error ? `${id}-hint ${id}-error` : `${id}-hint`}
       >
         <legend className={form.legend}>{label}</legend>
         <p id={`${id}-hint`} className={form.hint}>

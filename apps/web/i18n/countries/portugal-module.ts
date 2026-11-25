@@ -338,7 +338,7 @@ export const zhCN = {
   'pt.whatif.date': '模拟日期（递交日）',
   'pt.whatif.dateHint':
     '改用另一个评估日期，可以查看等待期满或续期期间开始后的结果。',
-  'pt.whatif.noTrips': '假设期间没有出境',
+  'pt.whatif.noTrips': '假设没有离开葡萄牙的出境记录（离开欧盟的记录不变）',
   'pt.whatif.natLanguage': '葡语能力已按新国籍法获认可',
   'pt.whatif.natKnowledge': '文化与公民知识已获认可',
   'pt.whatif.residenceLanguage': '有已获认可的基础葡语证明',
@@ -370,7 +370,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.whatif.date': 'Simulation date (filing date)',
   'pt.whatif.dateHint':
     'Use another assessment date to see the result once a waiting period ends or a renewal period opens.',
-  'pt.whatif.noTrips': 'Assume no trips abroad',
+  'pt.whatif.noTrips':
+    'Assume no trips out of Portugal (records of absence from the EU stay as entered)',
   'pt.whatif.natLanguage':
     'Portuguese accepted under the current nationality law',
   'pt.whatif.natKnowledge': 'Cultural and civic knowledge accepted',

@@ -1,4 +1,5 @@
 import type { PtLanguageEvidence } from '@uk-immigration/engine';
+import { portugalFull2026_11 } from '@uk-immigration/policy-data';
 import { PortugalWhatIfControls } from '../app/portugal/whatif/controls';
 import type { TranslationKey } from '../i18n';
 import {
@@ -51,21 +52,36 @@ const focusByCondition: Record<string, keyof typeof portugalFocusControls> = {
   'PT-A05': 'natKnowledge',
   'PT-B05': 'residenceLanguage',
   'PT-C07': 'residenceLanguage',
+  // ARI (D02) and most renewal purposes (E02) need an authority finding on
+  // means, so income alone does not change them.
   'PT-B03': 'income',
   'PT-C04': 'income',
-  'PT-D02': 'income',
-  'PT-E02': 'income',
 };
 
-// Only kinds the residence routes accept without a further finding.
+const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const basicLevel = portugalFull2026_11.values.basicPortuguese.value;
+
+// The proof as both residence routes read it (B05, C07); a kind they read
+// differently stays unknown and keeps the questionnaire's answer.
 function languageAccepted(language?: PtLanguageEvidence) {
-  return language?.kind === 'accepted' ||
-    language?.kind === 'ciple' ||
-    language?.kind === 'portuguese-school'
-    ? true
-    : language?.kind === 'none'
-      ? false
-      : undefined;
+  switch (language?.kind) {
+    case 'accepted':
+    case 'ciple':
+    case 'portuguese-school':
+      return true;
+    case 'pla':
+      return language.recognized === false ||
+        (language.level !== undefined &&
+          levels.indexOf(language.level) < levels.indexOf(basicLevel))
+        ? false
+        : language.recognized && language.level !== undefined
+          ? true
+          : undefined;
+    case 'basic-course':
+      return language.recognized ? true : undefined;
+    case 'none':
+      return language.accommodationRequested ? undefined : false;
+  }
 }
 
 function initial(stored: PortugalDraft): PortugalWhatIf {
