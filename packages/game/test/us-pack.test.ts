@@ -5,6 +5,7 @@ import {
   unitedStatesFull2026_11,
 } from '@uk-immigration/policy-data';
 import * as us from '../src/packs/us';
+import { usBalance } from '../src/packs/us/balance';
 
 type State = ReturnType<typeof us.newGame>;
 const fees = unitedStatesFull2026_11.values.fees.value;
@@ -71,6 +72,33 @@ test('each character opens on their own spring morning in Lakebend', () => {
   expect(us.townsfolk(engineer).filter((npc) => !npc.characters)).toHaveLength(
     7,
   );
+});
+
+test('policy periods in the story come from policy-data, and class waits for evening', () => {
+  const time = unitedStates2026_11.values;
+  const spouse = us.characters.find(({ id }) => id === 'spouse')!;
+  expect(spouse.intro.zhCN).toContain(`${time.conditionalYears.value} 年期`);
+  expect(spouse.intro.en).toContain(`${time.conditionalYears.value}-year`);
+  const checklist = us
+    .characterOf('engineer')
+    .events.find(({ id }) => id === 'eng-n400-folder')!;
+  expect(checklist.text.zhCN).toContain(
+    `${time.naturalizationYears.value} 年一项项对`,
+  );
+  expect(checklist.text.en).toContain(
+    `${time.naturalizationYears.value} years`,
+  );
+  // The filing deadline is not in the source register, so no date is given.
+  const taxes = us.usGameContent.events!.find(({ id }) => id === 'us-tax-day')!;
+  expect(`${taxes.text.zhCN} ${taxes.text.en}`).not.toMatch(
+    /\d+ 月 \d+ 日|April \d+/,
+  );
+  // A workday class starts after work (game setting in usBalance).
+  const workday = settle(us.newGame('engineer', 5, 'en'));
+  const at = (minute: number) =>
+    ids({ ...workday, day: { ...workday.day, minute } }, 'college');
+  expect(at(usBalance.classFromMinute - 1)).not.toContain('class');
+  expect(at(usBalance.classFromMinute)).toContain('class');
 });
 
 test('the US rules engine assesses each character’s green card and citizenship pathways', () => {

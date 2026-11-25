@@ -56,6 +56,8 @@ export const usBalance = {
   overtimeMood: -4,
   overtimeHealth: -3,
   classCost: 10,
+  /** On a workday the class starts after work, at 17:30. */
+  classFromMinute: 1050,
   classEnglish: 3,
   studyEnglish: 1,
   englishDecay: 1,

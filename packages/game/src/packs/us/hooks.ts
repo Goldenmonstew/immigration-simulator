@@ -189,7 +189,7 @@ export function actionAvailable(
   if (
     action.id === 'class' &&
     state.day.kind === 'workday' &&
-    state.day.minute < 1050
+    state.day.minute < b.classFromMinute
   )
     return false;
 }

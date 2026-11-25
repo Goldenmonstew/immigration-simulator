@@ -170,8 +170,8 @@ export const usEvents: UsEvent[] = [
     season: 2,
     title: t('报税季', 'Tax season'),
     text: t(
-      '雇主寄来的 W-2 和银行的 1099 摊了一桌。4 月 15 日前要把联邦和州税表报好。',
-      'The W-2 from work and the bank’s 1099 cover the table. Federal and state returns are due by April 15.',
+      '雇主寄来的 W-2 和银行的 1099 摊了一桌。这个春天要把联邦和州税表报好。',
+      'The W-2 from work and the bank’s 1099 cover the table. Federal and state returns are due this spring.',
     ),
     weight: 3,
     once: true,

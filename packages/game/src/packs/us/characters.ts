@@ -102,8 +102,8 @@ export const spouseProfile: CharacterProfile = {
   id: 'spouse',
   name: t('周晓雯', 'Xiaowen Zhou'),
   intro: t(
-    '晓雯来自成都，2024 年和芝加哥高架列车司机马库斯·里德结婚，2025 年 9 月持移民签证入境，拿到两年期的条件绿卡，在街角的饺子馆打工。只评估晓雯本人，人物与事件均为虚构。',
-    'Xiaowen from Chengdu married Chicago L train operator Marcus Reed in 2024. She arrived on an immigrant visa in September 2025 with a two-year conditional green card and works at the dumpling shop on the corner. Only Xiaowen is assessed; all characters and events are fictional.',
+    `晓雯来自成都，2024 年和芝加哥高架列车司机马库斯·里德结婚，2025 年 9 月持移民签证入境，拿到 ${timeValues.conditionalYears.value} 年期的条件绿卡，在街角的饺子馆打工。只评估晓雯本人，人物与事件均为虚构。`,
+    `Xiaowen from Chengdu married Chicago L train operator Marcus Reed in 2024. She arrived on an immigrant visa in September 2025 with a ${timeValues.conditionalYears.value}-year conditional green card and works at the dumpling shop on the corner. Only Xiaowen is assessed; all characters and events are fictional.`,
   ),
   sprite: 'urban/yao-flatmate.png',
 };
@@ -276,8 +276,8 @@ const engineerEvents: UsEvent[] = [
     speaker: 'fatima',
     title: t('法蒂玛的清单', 'Fatima’s checklist'),
     text: t(
-      '法蒂玛把一张打印好的 N-400 准备清单推过来：“出入境日期、住址、工作经历，五年一项项对。别等最后一个月。”',
-      'Fatima slides over a printed N-400 checklist. “Trips, addresses, jobs — five years, line by line. Don’t leave it to the last month.”',
+      `法蒂玛把一张打印好的 N-400 准备清单推过来：“出入境日期、住址、工作经历，${timeValues.naturalizationYears.value} 年一项项对。别等最后一个月。”`,
+      `Fatima slides over a printed N-400 checklist. “Trips, addresses, jobs — ${timeValues.naturalizationYears.value} years, line by line. Don’t leave it to the last month.”`,
     ),
     weight: 3,
     once: true,

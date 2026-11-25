@@ -27,7 +27,7 @@ export const usGameZh = {
   'us.game.visaPending': '绿卡申请待决',
   'us.game.visaReminderTitle': '新一季，看看绿卡日期',
   'us.game.visaReminder':
-    '绿卡还剩 {count} 个月。条件绿卡要在到期前递交 I-751，十年绿卡可在到期前换卡，都在联邦大楼的邮局窗口办理。',
+    '绿卡还剩 {count} 个月。条件绿卡要在到期前递交 I-751，普通绿卡可在到期前换卡，都在联邦大楼的邮局窗口办理。',
   'us.game.fastVisaWarning':
     '绿卡有效期到 {date}。快进会直接过完这一季、跨过这一天，先去联邦大楼看看吧。',
   'us.game.fastVisaWarningNone':
@@ -76,7 +76,7 @@ export const usGameEn: Record<keyof typeof usGameZh, string> = {
   'us.game.visaPending': 'Green card: petition pending',
   'us.game.visaReminderTitle': 'A new quarter: check your green card',
   'us.game.visaReminder':
-    'Your green card has {count} month{count:s} left. A conditional card needs an I-751 before it expires, and a ten-year card can be renewed; both go through the post office counter at the Federal Building.',
+    'Your green card has {count} month{count:s} left. A conditional card needs an I-751 before it expires, and a regular card can be renewed; both go through the post office counter at the Federal Building.',
   'us.game.fastVisaWarning':
     'Your green card runs until {date}. Fast-forwarding runs past that date to the end of the quarter, so visit the Federal Building first.',
   'us.game.fastVisaWarningNone':

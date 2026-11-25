@@ -339,6 +339,13 @@ test('a mailed I-751 shows as pending, without reminders or warnings', () => {
   }
 });
 
+test.each(['zh-CN', 'en'] as const)(
+  'the green card reminder names no card length in %s',
+  (locale) => {
+    expect(t('us.game.visaReminder', locale)).not.toMatch(/十年|ten-year/);
+  },
+);
+
 test('the Federal Building says when the next filing opens', () => {
   const spouse = settle(us.newGame('spouse', 4, 'en'));
   expect(usCountry.placeNote?.(spouse, 'visa')?.en).toBe(
