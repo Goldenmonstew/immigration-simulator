@@ -306,10 +306,6 @@ export const zhCN = {
   'hub.uk.paths': '定居 ILR · 现行法律与改革对比',
   'hub.uk.desc':
     '评估 Skilled Worker、BN(O)、Global Talent、家庭、保护与 10 年长居等路线的定居条件，并排对比现行 Immigration Rules 与已公布改革。',
-  'hub.nz.code': 'NZ',
-  'hub.nz.paths': '永久居民 PRV · 旅行条件 · 入籍',
-  'hub.nz.desc':
-    '计算居民签证旅行条件的到期日，核对转永久居民签证（PRV）所需的持签时长和在境天数，以及入籍所需的在境天数。',
   'hub.ca.code': 'CA',
   'hub.ca.paths': '永居居住义务 · 入籍',
   'hub.ca.desc':
