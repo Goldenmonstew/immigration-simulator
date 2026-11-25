@@ -140,6 +140,23 @@ test.each(['engineer', 'spouse'])(
       const lapsed = playTo(opening, '2027-12-01');
       expect(lapsed.ending).toBe('overstayed');
       states.push(lapsed);
+      // The I-751 goes in on the first workday inside its window.
+      let state = playTo(opening, '2027-06-01');
+      while (!us.activities(visit(state, 'visa', 600), 'visa').length)
+        state = quarterLater(state);
+      state = us.doActivity(visit(state, 'visa', 600), 'extend');
+      states.push(leave(state));
+      state = quarterLater(state);
+      states.push(leave(state));
+      state = playTo(state, '2028-09-01');
+      state = us.doActivity(visit(state, 'visa', 600), 'n400');
+      state = playTo(state, '2028-12-01');
+      state.stats.english = 64;
+      state = settle(us.doActivity(visit(state, 'visa', 600), 'interview'));
+      state = playTo(state, '2029-03-01');
+      const sworn = us.doActivity(visit(state, 'visa', 600), 'oath');
+      expect(sworn.ending).toBe('settled');
+      states.push(sworn);
     } else {
       let state = playTo(opening, '2028-06-01');
       state = us.doActivity(visit(state, 'visa', 600), 'n400');
@@ -179,6 +196,11 @@ test.each(['engineer', 'spouse'])(
           ? filed.interview
           : undefined,
       );
+      // A mailed I-751 is pending only from its own day.
+      if (id === 'spouse' && draft.pathway === 'US-SPOUSE')
+        expect(draft.naturalization?.conditionalStatusResolved).toBe(
+          filed.i751 && filed.i751 <= draft.simulationDate ? false : undefined,
+        );
       const column = state.ending === 'overstayed' ? 'gc' : ('cit' as const);
       expect(draft.pathway).toBe(us.pathwayOf(state.result, column)!.id);
       // The game's assessment, progress bar and detail show the same result.
@@ -191,11 +213,11 @@ test.each(['engineer', 'spouse'])(
           'NOT_MET',
           'NOT_MET',
         ]);
+      // The spouse takes the oath while USCIS has yet to decide the I-751.
       if (state.ending === 'settled')
-        expect([shown[0].status, shown[0].approvalStatus]).toEqual([
-          'MET',
-          'MET',
-        ]);
+        expect([shown[0].status, shown[0].approvalStatus]).toEqual(
+          id === 'spouse' ? ['UNKNOWN', 'UNKNOWN'] : ['MET', 'MET'],
+        );
     }
   },
 );
@@ -262,6 +284,25 @@ test.each(['zh-CN', 'en'] as const)(
     expect(html).toContain('town-us.current-law-2026-11-heading');
   },
 );
+
+test('a mailed I-751 shows as pending, without reminders or warnings', () => {
+  let state = settle(us.newGame('spouse', 7, 'zh-CN'));
+  while (state.date < '2027-06-01') state = quarterLater(state);
+  while (!us.activities(visit(state, 'visa', 600), 'visa').length)
+    state = quarterLater(state);
+  const filed = us.doActivity(visit(state, 'visa', 600), 'extend');
+  // Past the card's printed date the petition is still pending.
+  const later = playTo(filed, '2028-03-01');
+  expect(later.timeline.travel.cardExpiresOn < later.date).toBe(true);
+  for (const pending of [filed, later]) {
+    expect(usCountry.visaStatus(pending)).toMatchObject({ pending: true });
+    expect(render(<usShell.StatusBar state={pending} />)).toContain(
+      t('us.game.visaPending', 'zh-CN'),
+    );
+    expect(usShell.needsVisaReminder(pending)).toBe(false);
+    expect(usShell.visaExpiresThisSeason(pending)).toBe(false);
+  }
+});
 
 test('the Federal Building says when the next filing opens', () => {
   const spouse = settle(us.newGame('spouse', 4, 'en'));

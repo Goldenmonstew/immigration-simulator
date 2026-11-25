@@ -1,4 +1,7 @@
-import type { UsFullResult } from '@uk-immigration/engine';
+import {
+  evaluateUnitedStatesFull,
+  type UsFullResult,
+} from '@uk-immigration/engine';
 import { addDays, addMonths } from '../../calendar';
 import type { GameTools } from '../../content-pack';
 import type {
@@ -16,8 +19,9 @@ import { usCharacters } from './characters';
 import {
   feeSource,
   fees,
-  greenCardPathway,
+  filingDay,
   pathwayOf,
+  usRequest,
   values,
   visaMonthsLeft,
   type UsEffect,
@@ -92,8 +96,42 @@ const festivalResults: Record<UsFestival, Text> = {
   ),
 };
 
+/** The conditional card still needs its I-751 (once filed, it is pending). */
 const conditional = (state: UsState) =>
-  greenCardPathway(state.timeline) === 'US-CONDITIONS';
+  state.timeline.conditional !== 'none' && !state.timeline.filed.i751;
+
+/** Whether an I-751 mailed today is within its window, as the engine judges. */
+const i751OpenToday = (state: UsState) =>
+  evaluateUnitedStatesFull(
+    usRequest(
+      state.timeline,
+      'US-CONDITIONS',
+      filingDay(state.day.date),
+      state.locale,
+    ),
+  ).columns[0].pathways[0].status === 'MET';
+
+/**
+ * Approval waits only on the I-751, which USCIS has not decided: the game does
+ * not simulate that decision, so the oath opens with a note, as Japan's
+ * permanent residence opens when only the longest period is pending.
+ */
+function onlyI751Pending(state: UsState) {
+  const pathway = pathwayOf(state.result, 'cit');
+  const filed = state.timeline.filed.i751;
+  return (
+    !!filed &&
+    filed <= filingDay(state.date) &&
+    pathway?.approvalStatus === 'UNKNOWN' &&
+    pathway.checks.every(
+      (check) =>
+        check.applicable === false ||
+        check.informational ||
+        check.status === 'MET' ||
+        check.id === 'US-C02-LAWFUL-LPR',
+    )
+  );
+}
 
 const extendFee = (state: UsState) =>
   conditional(state) ? fees.i751.paper : fees.i90.paper;
@@ -120,8 +158,8 @@ export function actionAvailable(
   if (action.id === 'extend')
     return (
       !flags.includes('quarter-visa-renewed') &&
-      (conditional(state)
-        ? pathwayOf(state.result, 'gc')?.status === 'MET'
+      (state.timeline.conditional !== 'none'
+        ? conditional(state) && i751OpenToday(state)
         : visaMonthsLeft(state) <= values.address.value.renewalMonths) &&
       state.stats.money >= extendFee(state)
     );
@@ -141,7 +179,8 @@ export function actionAvailable(
   if (action.id === 'oath')
     return (
       flags.includes('interview-passed') &&
-      pathwayOf(state.result, 'cit')?.approvalStatus === 'MET'
+      (pathwayOf(state.result, 'cit')?.approvalStatus === 'MET' ||
+        onlyI751Pending(state))
     );
   if (
     action.id === 'class' &&
@@ -177,6 +216,16 @@ export function actionDetails(state: UsState, action: UsActivity): void {
     );
     action.effects = [{ type: 'money', delta: -fee }, ...action.effects];
   }
+  if (action.id === 'oath' && onlyI751Pending(state)) {
+    action.label = t(
+      '参加入籍宣誓典礼（I-751 待 USCIS 裁定）',
+      'Take the Oath of Allegiance (I-751 awaiting USCIS)',
+    );
+    action.note = t(
+      '入籍核准只差一项：USCIS 尚未裁定取消条件的 I-751，评估显示待确认（PD-274）。游戏不模拟这次裁定，宣誓照常举行；现实中除适用例外外，USCIS 须先处理 I-751 才核准 N-400。',
+      'Only one approval item is open: USCIS has not decided the I-751 to remove conditions, so the assessment shows it as undetermined (PD-274). The game does not simulate that decision and holds the oath anyway; in reality USCIS must resolve the conditions before approving the N-400 unless an exception applies.',
+    );
+  }
   if (action.id === 'interview') {
     if (state.stats.english >= b.interviewScore)
       action.effects = [{ type: 'interview' }];
@@ -199,11 +248,10 @@ export function afterAction(
   { applyEffects, setFlags }: UsTools,
 ): void {
   if (action.id === 'extend') {
-    log.renewalValidTo = next.timeline.travel.cardExpiresOn;
     next.outcome.text = conditional(state)
       ? t(
-          '邮局窗口的职员在信封上盖了邮戳，又把挂号回执递给你。几周后，新的十年绿卡寄到了家。',
-          'The clerk postmarks the envelope and hands you the tracking receipt. A few weeks later, a new ten-year green card arrives in the mail.',
+          '邮局窗口的职员在信封上盖了邮戳，又把挂号回执递给你。接下来等 USCIS 的收件通知，再等他们的裁定。',
+          'The clerk postmarks the envelope and hands you the tracking receipt. Next comes the USCIS receipt notice, and later their decision.',
         )
       : t(
           '换卡申请寄出了。新的绿卡寄到时，你把旧卡剪成两半。',
@@ -427,13 +475,13 @@ export const usAchievements: Achievement<
   },
   {
     id: 'us-new-card',
-    name: t('新的绿卡', 'A new green card'),
+    name: t('信封寄出了', 'In the mail'),
     description: t(
-      '取消绿卡条件或换发一次绿卡。',
-      'Removed the conditions on your green card or renewed it once.',
+      '寄出取消条件的 I-751，或换卡的 I-90。',
+      'Mailed the I-751 to remove conditions, or the I-90 to renew the card.',
     ),
     check: (state) =>
-      state.flags.includes('conditions-removed') ||
+      state.flags.includes('i751-filed') ||
       state.flags.includes('card-renewed'),
   },
   {

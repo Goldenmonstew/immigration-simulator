@@ -549,9 +549,9 @@ const spouse: UsCharacter = {
     stateResidenceFrom: permanentResident.spouse,
     marriage: { married: '2024-05-18', spouseCitizenSince: '1991-11-03' },
     trips: [],
+    // No I-751 is pending until it is mailed (see usRequest).
     naturalization: {
       ...goodStanding,
-      conditionalStatusResolved: false,
       spouse: {
         validMarriage: true,
         livedTogetherRequiredPeriod: 'cleared',

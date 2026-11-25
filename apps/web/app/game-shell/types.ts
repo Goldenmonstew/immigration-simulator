@@ -98,6 +98,12 @@ export interface VisaStatus {
   months: number;
   renewed: boolean;
   validTo?: string;
+  /**
+   * A filed application awaits a decision the game does not make, and how
+   * long the documents stay valid meanwhile is not known: no countdown,
+   * reminders or expiry warnings.
+   */
+  pending?: boolean;
 }
 
 type Translate = (key: TranslationKey) => string;

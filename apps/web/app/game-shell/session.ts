@@ -124,7 +124,9 @@ export function createSession<K extends GameKinds>(c: GameCountry<K>) {
 
   function needsVisaReminder(state: S): boolean {
     const visa = c.visaStatus(state);
-    return !game.isOver(state) && !visa.renewed && visa.months <= 6;
+    return (
+      !game.isOver(state) && !visa.renewed && !visa.pending && visa.months <= 6
+    );
   }
 
   function visaExpiresThisSeason(state: S): boolean {
@@ -137,6 +139,7 @@ export function createSession<K extends GameKinds>(c: GameCountry<K>) {
     // ends this season still warns (review40-1 risk).
     return (
       !game.isOver(state) &&
+      !visa.pending &&
       (!visa.validTo || visa.validTo < nextSeason.toISOString().slice(0, 10))
     );
   }

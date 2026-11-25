@@ -77,7 +77,7 @@ export function itemIcon(id: string) {
 export function gameDraft(state: UsState): UsDraft {
   const pathway =
     state.ending === 'overstayed'
-      ? usGame.greenCardPathway(state.timeline)
+      ? usGame.greenCardPathway(state.timeline, usGame.filingDay(state.date))
       : usGame.citizenshipPathway(state.timeline);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { locale, ...request } = usGame.usRequest(
@@ -174,6 +174,9 @@ export const usCountry: GameCountry<UsKinds> = {
   visaStatus: (state) => ({
     months: usGame.visaMonthsLeft(state),
     renewed: state.flags.includes('quarter-visa-renewed'),
+    // USCIS decides a filed I-751 after the game; the receipt notice's
+    // extension of the card is not in policy-data (PD-432).
+    pending: !!state.timeline.filed.i751,
     validTo: state.timeline.travel.cardExpiresOn,
   }),
   absences: (state) =>

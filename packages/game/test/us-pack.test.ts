@@ -8,7 +8,6 @@ import * as us from '../src/packs/us';
 
 type State = ReturnType<typeof us.newGame>;
 const fees = unitedStatesFull2026_11.values.fees.value;
-const cardYears = unitedStatesFull2026_11.values.address.value.cardYears;
 
 beforeAll(async () => {
   for (const { id } of us.characters) await us.loadCharacter(id);
@@ -114,11 +113,13 @@ test('the US rules engine assesses each character’s green card and citizenship
     earliestDate: '2027-06-17',
     percent: 26,
   });
-  // Three years from 2025-09-15, 90 days early, on the next paper receipt day.
-  expect(us.progress(spouse).cit).toMatchObject({
-    outcome: 'UNKNOWN',
-    earliestDate: '2028-06-20',
-  });
+  // No I-751 is pending before its window, so the citizen's-spouse filing
+  // cannot rest on one yet (C02 open, no projected filing date).
+  expect(
+    us.usRequest(spouse.timeline, 'US-SPOUSE', '2026-03-02', 'zh-CN')
+      .naturalization?.conditionalStatusResolved,
+  ).toBeUndefined();
+  expect(us.progress(spouse).cit).toEqual({ outcome: 'UNKNOWN', percent: 0 });
 });
 
 test('the spring festival is Cinco de Mayo in the park, with elote and a diary flag', () => {
@@ -229,22 +230,59 @@ test('a move is offered only while the AR-11 can still be filed that day', () =>
   );
 });
 
-test('the I-751 window opens at the Federal Building and removes the conditions', () => {
-  const before = playTo(us.newGame('spouse', 5, 'en'), '2027-06-01');
-  expect(ids(visit(before, 'visa', 600), 'visa')).toEqual([]);
-  const state = playTo(before, '2027-09-01');
-  expect(us.pathwayOf(state.result, 'gc')?.status).toBe('MET');
+test('the I-751 is mailed on a day inside its window and stays pending', () => {
+  const answers = (state: State, pathway: 'US-SPOUSE' | 'US-TRAVEL') =>
+    us.usRequest(state.timeline, pathway, us.filingDay(state.date), 'en');
+  const state = playTo(us.newGame('spouse', 5, 'en'), '2027-09-01');
   const office = visit(state, 'visa', 600);
-  expect(ids(office, 'visa')).toEqual(['extend']);
+  // The window runs from 90 days before the second anniversary to the day
+  // before it, judged on the day the petition goes in the mail.
+  const on = (date: string) =>
+    ids({ ...office, day: { ...office.day, date } }, 'visa');
+  expect(on('2027-06-16')).toEqual([]);
+  expect(on('2027-06-17')).toEqual(['extend']);
+  expect(on('2027-09-14')).toEqual(['extend']);
+  expect(on('2027-09-15')).toEqual([]);
+  expect(office.day.date <= '2027-09-14').toBe(true);
   const filed = us.doActivity(office, 'extend');
   expect(filed.stats.money).toBe(office.stats.money - fees.i751.paper);
-  expect(filed.timeline.naturalization.conditionalStatusResolved).toBe(true);
-  expect(filed.timeline.travel.cardExpiresOn).toBe(`${2027 + cardYears}-09-01`);
-  expect(filed.log.at(-1)?.renewalValidTo).toBe(
-    filed.timeline.travel.cardExpiresOn,
-  );
-  expect(us.pathwayOf(filed.result, 'gc')?.id).toBe('US-TRAVEL');
-  expect(us.isOver(quarterLater(filed))).toBe(false);
+  // No decision and no new card: USCIS has not adjudicated the petition.
+  expect(filed.timeline.travel.cardExpiresOn).toBe('2027-09-15');
+  expect(filed.log.at(-1)?.renewalValidTo).toBeUndefined();
+  expect(filed.outcome?.text?.en).not.toMatch(/new|green card arrives/i);
+  expect(ids(filed, 'visa')).toEqual([]);
+  // Mailed after the assessment date: still the I-751 column this quarter.
+  expect(
+    answers(filed, 'US-SPOUSE').naturalization?.conditionalStatusResolved,
+  ).toBeUndefined();
+  expect(us.pathwayOf(filed.result, 'gc')?.id).toBe('US-CONDITIONS');
+  // From next quarter the petition is pending with status maintained
+  // (SRC-080 8 CFR 216.4(a)(1)); the green card column keeps the card.
+  const next = quarterLater(filed);
+  expect(us.isOver(next)).toBe(false);
+  expect(
+    answers(next, 'US-SPOUSE').naturalization?.conditionalStatusResolved,
+  ).toBe(false);
+  expect(us.pathwayOf(next.result, 'gc')).toMatchObject({
+    id: 'US-TRAVEL',
+    status: 'MET',
+  });
+  expect(
+    us
+      .pathwayOf(next.result, 'cit')!
+      .checks.find(({ id }) => id === 'US-C02-LAWFUL-LPR'),
+  ).toMatchObject({ filingStatus: 'MET', status: 'UNKNOWN' });
+  // A pending petition keeps status: no lapse when the card's date passes.
+  const later = playTo(next, '2028-03-01');
+  expect(us.isOver(later)).toBe(false);
+  expect(ids(visit(later, 'visa', 600), 'visa')).toEqual([]);
+  // How long the receipt notice extends the card is not in policy-data
+  // (PD-432), so the game books no trips past the printed date.
+  expect(
+    ids(visit(later, 'station', 600), 'station').filter((id) =>
+      id.startsWith('travel-'),
+    ),
+  ).toEqual([]);
 });
 
 test('missing the I-751 window ends conditional residence', () => {
@@ -325,7 +363,7 @@ test('naturalization runs from the N-400 through the interview to the oath', () 
   );
 });
 
-test('the spouse naturalizes as a citizen’s spouse once the conditions are removed', () => {
+test('the spouse naturalizes while USCIS has yet to decide the I-751', () => {
   let state = playTo(us.newGame('spouse', 5, 'en'), '2027-09-01');
   state = settle(us.doActivity(visit(state, 'visa', 600), 'extend'));
   state = playTo(state, '2028-09-01');
@@ -341,11 +379,26 @@ test('the spouse naturalizes as a citizen’s spouse once the conditions are rem
   );
   state.stats.english = 64;
   state = settle(us.doActivity(visit(state, 'visa', 600), 'interview'));
-  // The interview joins the assessment next quarter.
   state = playTo(state, '2029-03-01');
-  expect(us.pathwayOf(state.result, 'cit')?.approvalStatus).toBe('MET');
+  // Approval waits only on the undecided I-751 (C02).
+  const citizenship = us.pathwayOf(state.result, 'cit')!;
+  expect(citizenship.approvalStatus).toBe('UNKNOWN');
+  expect(
+    citizenship.checks
+      .filter(
+        (check) =>
+          check.applicable !== false &&
+          !check.informational &&
+          check.status !== 'MET',
+      )
+      .map(({ id }) => id),
+  ).toEqual(['US-C02-LAWFUL-LPR']);
+  const office = visit(state, 'visa', 600);
+  const [oath] = us.activities(office, 'visa');
+  expect(oath.id).toBe('oath');
+  expect(oath.note?.en).toMatch(/USCIS has not decided the I-751/);
   // The oath is the only settled ending; its text is the character's own.
-  const ended = us.doActivity(visit(state, 'visa', 700), 'oath');
+  const ended = us.doActivity(office, 'oath');
   expect(ended.ending).toBe('settled');
   const settlement = us.characterOf('spouse').settlement;
   expect(us.narrative(ended).at(-1)).toEqual(settlement);

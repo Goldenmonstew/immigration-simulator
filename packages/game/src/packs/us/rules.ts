@@ -45,10 +45,11 @@ export type UsTimeline = Omit<
      */
     moves: { movedOn: IsoDate; reportedOn?: IsoDate }[];
     /**
-     * Game only: the day the N-400 was mailed and the interview held. The
-     * questionnaire's answers take those by the assessment date (usRequest).
+     * Game only: the day each petition was mailed and the interview held.
+     * The questionnaire's answers take those by the assessment date
+     * (usRequest).
      */
-    filed: { n400?: IsoDate; interview?: IsoDate };
+    filed: { i751?: IsoDate; n400?: IsoDate; interview?: IsoDate };
   };
 export type UsFestival =
   'polar-plunge' | 'cinco-de-mayo' | 'fourth-of-july' | 'halloween';
@@ -58,8 +59,8 @@ export type UsColumn = 'gc' | 'cit';
 export type UsOutcome = UsFullPathway['status'];
 
 export type UsEffect =
-  /** Mailing a joint I-751; the game treats it as approved (scenario setting). */
-  | { type: 'removeConditions' }
+  /** Mailing a joint I-751, which USCIS decides later (not in the game). */
+  | { type: 'i751' }
   /** A replacement green card filed on Form I-90 (scenario setting). */
   | { type: 'renewCard' }
   /** Mailing the N-400, with the postmark as its filing date. */
@@ -83,10 +84,16 @@ export const cite = (
 export const fees = values.fees.value;
 export const feeSource = values.fees.sources[0].srcId;
 
-/** Conditional residents file I-751; everyone else keeps a green card. */
-export const greenCardPathway = (timeline: UsTimeline): UsFullPathwayId =>
+/**
+ * Conditional residents file I-751. Once it is in by the assessment date, the
+ * green card column follows keeping the card, as for everyone else.
+ */
+export const greenCardPathway = (
+  timeline: UsTimeline,
+  date: IsoDate,
+): UsFullPathwayId =>
   timeline.conditional !== 'none' &&
-  !timeline.naturalization.conditionalStatusResolved
+  !(timeline.filed.i751 && timeline.filed.i751 <= date)
     ? 'US-CONDITIONS'
     : 'US-TRAVEL';
 export const citizenshipPathway = (timeline: UsTimeline): UsFullPathwayId =>
@@ -114,14 +121,17 @@ export function usRequest(
     ...(by(filed.n400) && {
       fees: { ...answers.fees, filingOn: filed.n400 },
     }),
-    ...(by(filed.interview) && {
-      naturalization: {
-        ...answers.naturalization,
+    naturalization: {
+      ...answers.naturalization,
+      // A filed I-751 is pending with status maintained (the questionnaire's
+      // "No"); before it is filed the answer stays open.
+      ...(by(filed.i751) && { conditionalStatusResolved: false }),
+      ...(by(filed.interview) && {
         english: 'passed',
         civics: 'passed',
         interviewOn: filed.interview,
-      },
-    }),
+      }),
+    },
     travel: {
       ...answers.travel,
       movedOn: move?.movedOn ?? 'no-move',
@@ -205,7 +215,7 @@ export const usRules: EvaluationAdapter<
 > = {
   evaluate({ date, timeline, locale }) {
     const [card, citizenship] = [
-      greenCardPathway(timeline),
+      greenCardPathway(timeline, filingDay(date)),
       citizenshipPathway(timeline),
     ].map((pathway) =>
       evaluateUnitedStatesFull(
@@ -229,6 +239,8 @@ export const usRules: EvaluationAdapter<
   route: (state) => state.timeline.conditional,
   visaMonthsLeft,
   // A green card is the return document while it is valid (SRC-080 8 CFR 211.1).
+  // A pending petition's receipt notice extends it for a period policy-data
+  // does not have (PD-432), so trips stop at the card's printed date.
   canTravel: (state, through) => through <= state.timeline.travel.cardExpiresOn,
   recordAbsence(state, trip) {
     state.timeline.trips.push({ departed: trip.from, returned: trip.to });
@@ -241,13 +253,15 @@ export const usRules: EvaluationAdapter<
     return true;
   },
   // Conditional residence ends at the second anniversary without a timely
-  // I-751 (SRC-079 8 U.S.C. 1186a(c)(2)); the conditional card ends then too.
-  // The ending's assessment must show the lapse: no excused late petition and
-  // no permanent residence to naturalize from.
+  // I-751 (SRC-079 8 U.S.C. 1186a(c)(2)); a filed one keeps the status until
+  // USCIS decides (SRC-080 8 CFR 216.4(a)(1)). The ending's assessment must
+  // show the lapse: no excused late petition and no permanent residence to
+  // naturalize from.
   expired(state) {
-    const { conditions, naturalization, travel } = state.timeline;
+    const { conditions, naturalization, travel, filed } = state.timeline;
     if (
-      greenCardPathway(state.timeline) !== 'US-CONDITIONS' ||
+      state.timeline.conditional === 'none' ||
+      filed.i751 ||
       travel.cardExpiresOn >= state.date
     )
       return false;
@@ -256,15 +270,12 @@ export const usRules: EvaluationAdapter<
     return true;
   },
   applyEffect(state, effect, { setFlags }) {
-    const { naturalization, travel } = state.timeline;
+    const { travel } = state.timeline;
     switch (effect.type) {
-      case 'removeConditions':
-        naturalization.conditionalStatusResolved = true;
-        travel.cardExpiresOn = addMonths(
-          state.date,
-          values.address.value.cardYears * 12,
-        );
-        setFlags(state, ['conditions-removed', 'quarter-visa-renewed']);
+      // The postmark carries its own day; no decision and no new card follow.
+      case 'i751':
+        state.timeline.filed.i751 = state.day.date;
+        setFlags(state, ['i751-filed', 'quarter-visa-renewed']);
         return true;
       case 'renewCard':
         travel.cardExpiresOn = addMonths(

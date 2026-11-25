@@ -363,8 +363,8 @@ export const usNotices: { id: string; text: Text; season?: Quarter }[] = [
 
 const civics = values.civicsTest.value;
 const conditionsNote = t(
-  `条件绿卡到期前 ${timeValues.conditionsWindowDays.value} 天内与配偶联名递交 I-751（${cite(timeValues.conditionsWindowDays)}）。游戏把这次递交当作获批，换发新的绿卡（有效 ${values.address.value.cardYears} 年，${cite(values.address, 1)}）；现实中由 USCIS 审理，可能要求面谈。`,
-  `File a joint I-751 with your spouse in the ${timeValues.conditionsWindowDays.value} days before the conditional card expires (${cite(timeValues.conditionsWindowDays)}). The game treats it as approved with a new green card (valid ${values.address.value.cardYears} years, ${cite(values.address, 1)}); in reality USCIS decides and may ask for an interview.`,
+  `条件绿卡到期前 ${timeValues.conditionsWindowDays.value} 天内与配偶联名递交 I-751（${cite(timeValues.conditionsWindowDays)}），按寄出那天算。寄出后条件身份自动延续到 USCIS 裁定（${cite(timeValues.conditionsWindowDays)}）；USCIS 可能要求面谈，游戏不模拟这次裁定，评估按"申请待决"记录。收件通知把绿卡有效期延长多久，policy-data 还没有参数（PD-432），卡面到期后游戏不安排出境。`,
+  `File a joint I-751 with your spouse in the ${timeValues.conditionsWindowDays.value} days before the conditional card expires (${cite(timeValues.conditionsWindowDays)}), counted on the day you mail it. Conditional status then continues until USCIS decides (${cite(timeValues.conditionsWindowDays)}); USCIS may ask for an interview, and the game does not simulate the decision, so the assessment records the petition as pending. How long the receipt notice extends the card is not in policy-data yet (PD-432), so the game books no trips past the card's date.`,
 );
 export const renewalNote = t(
   `绿卡到期前 ${values.address.value.renewalMonths} 个月内可用 I-90 换卡，纸本费用 ${usd(fees.i90.paper)}（${cite(values.address, 1)}；${cite(values.fees)}）。游戏把这次换卡当作获批；绿卡到期不会让永久居民身份失效。`,
@@ -578,7 +578,7 @@ export const usActions: UsActivity[] = [
     note: conditionsNote,
     minutes: b.minutes.paperwork,
     oncePerDay: true,
-    effects: [{ type: 'removeConditions' }],
+    effects: [{ type: 'i751' }],
   },
   {
     id: 'n400',
