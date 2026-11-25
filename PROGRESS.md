@@ -643,6 +643,7 @@
 | 785 | 任务 100 接入共用选项：德国检查项设 `kind`。费用（DE-C65–C71）为费用预算，庄严声明及证书交付（DE-C54）为批准后事项，引擎不计入路径状态的程序项（引擎新导出 `DE_PROCEDURE_CHECKS`）为办理提示，居留／许可时间线为时间条件，其余为申请条件；前三类不进"还差什么"，待定项显示"待定细节"。R00 逐份文书存续虽为"满足其一"，但引擎没有汇总条件，标为申请条件以免缺口为空。 | apps/web/lib/germany-module.ts、packages/engine/src/{germany-full,index}.ts、apps/web/test/germany.test.tsx |
 | 786 | 任务 100 接入共用选项：德国政策目录提供 `displayParameter`，嵌套参数按"项目／数值"表格显示中英文标签与单位（年、月、天、岁、平方米、日额、题、分钟、比例），金额带 €；蓝卡年薪表、退休年龄增加月数表带列名，蓝卡德语档按月数标注，ISCO 代码列表标明 ISCO-08；年份一律不加千分位。删去原先改写 `citizenshipFullTime` 参数的做法，改由展示层显示"所需全职月数／最近核算期间"。双语回归覆盖每个嵌套参数不再出现原始键。 | apps/web/lib/germany-policy.ts、apps/web/i18n/countries/germany-module.ts、apps/web/test/germany.test.tsx |
 | 787 | 任务 100 接入共用选项：德国 e2e 补接收方已有本机草稿时打开分享链接，结果与发送方一致、`de-immigration-draft-v1` 原样不变；按"跳到主要内容"后焦点落到 `main`，地址仍带 `#s=`。 | apps/e2e/tests/germany.spec.ts |
+| 788 | 任务 100 接入共用选项报告：在任务报告末尾补「合入 main 与共用选项接入」四段，逐条对应原先待任务 93 处理的条目（标题回退、多标签页与分享覆盖草稿、年份千分位、片段情景隔离），记录接入前失败的回归、完整验收、e2e 与视觉检查结果。 | docs/tasks/reports/100-de-pages.md |
 | 740 | 任务 91：登记日本完整版使用的官方法条、指南、手续费及办事材料，校对调研哈希，补 PD-360–379 与网页来源索引。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 741 | 任务 91：加入永住审查过渡、许可期间、教育与证据窗口、人才分值、帰化特例、再入国和手续费参数。 | packages/policy-data/src/{index.ts,parameters/japan-2026-11.ts} |
 | 742 | 任务 91：新增日本完整版评估入口，复用原时间结果，逐项检查永住、帰化与再入国并补边界测试。 | packages/engine/src/{index.ts,japan-full*.ts}、packages/engine/test/japan-full.test.ts、docs/tasks/reports/91-jp-rules.md |

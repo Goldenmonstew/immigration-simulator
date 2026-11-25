@@ -131,3 +131,50 @@
 
 - 进行中的德国草稿只要有一个格式错误（例如数字填了负数、年月格式未写完），重新打开问卷时 `decodeGermanyDraft` 会返回 `undefined`，问卷回到空白草稿，已填内容丢失。本轮只避免了数字列表空行触发这一情况；建议在共用读取流程里对未完成草稿保留内容并回到出错步骤（日本草稿可能有相同模式，未核对）。
 - 结果页「去 What-if 试试」只按条件 ID 选旋钮；若以后某个条件在不同路径下需要不同旋钮，`focusForRule` 可以利用已传入的 `pathwayId`。
+
+## 合入 main 与共用选项接入
+
+修正者：Claude Opus 5.5。澳大利亚完整版页面（任务 93，#81）合入 main 后，按其报告"其他国家怎么接入这次的共用改动"一表接入德国。上一位 agent 完成了合并与四项接入后因网络中断停在验收阶段；本节由接手者核对已有 commit、提交剩余的 e2e、完成验收并补写。每项接入都带回归测试，接手后另行确认这些测试在接入前的源文件上失败（见第 2 段）。
+
+### 1. 做了什么
+
+| commit | PROGRESS | 内容 |
+|---|---|---|
+| `28aa4b1c` Merge: 合入 main（澳大利亚完整版页面 #81） | — | `policy-page.tsx` 等共用组件取 main 的版本；`site-countries.ts`、`i18n/{zh-CN,en}.ts` 两边登记取并集；`sw.js` 的 `CACHE_NAME` 与 `about-page.test.tsx` 统一为 `2026-11-25-de`；`PROGRESS.md` 两边的行都保留。合并后本分支对共用组件的改动只剩下一行 `site-shell.tsx`（见下）。 |
+| `5dbabc1c` Fix: 德国分享链接不覆盖本机草稿，结果、编辑与对比之间带场景 | 739 | `germanyModule` 设 `scenarioLinks: true`；`site-shell.tsx` 的场景路径判断加上 `countryPath('de', …)`，德国结果、问卷、对比三页的"跳到主要内容"渲染为按钮，不洗掉 `#s=` / `#draft=`。 |
+| `06020c39` Fix: 德国结果日期标注为预计满足评估条件的日期 | 784 | 德国路径的 `earliestDate` 是按记录推算时间条件、其余条件按模拟日评估得出的日期，不是允许递交日。模块设 `earliestLabel: 'de.result.earliest'`，中文"预计满足评估条件的日期"、英文"Projected date the assessed requirements are met"；结果页、缺口摘要与对比页统一改读。 |
+| `9a6d1492` Fix: 德国检查项分组，费用、批准后事项与办理提示不进"还差什么" | 785 | 模块的 `run` 为每项设 `kind`：费用 DE-C65–C71（含 `-advance`、`-express`、`-paid`、`-review`、`-exemption`）为 `budget`；DE-C54 庄严声明及证书交付为 `afterApproval`；引擎不计入路径状态的程序项（`DE-C01-procedure`、`DE-C06-authority`、`DE-C11`、`DE-C11-deadline`、`DE-C16-initial`、`DE-C34-initial`、`DE-C46-application`、`DE-C58-guidance`、`DE-C61-guidance`）为 `information`；`*-time` 与 DE-C13、C28、C44、C55 为 `time`；其余为 `requirement`。程序项集合由引擎导出为 `DE_PROCEDURE_CHECKS`，页面不另抄一份。设了 kind 之后待定项显示"待定细节"。 |
+| `ba3fdc04` Fix: 德国政策页按含义展示嵌套参数，金额带币种、年份不加千分位 | 786 | `germanyPolicy` 提供 `displayParameter`：嵌套参数显示为"项目／数值"表格，带中英文标签与单位；蓝卡年薪按年份、退休年龄增加月数按出生年份列表；蓝卡德语档按就业月数标注；ISCO 代码列表标明 ISCO-08；单列金额带 €。删去 `c259d8c5` 改写 `citizenshipFullTime` 参数值的做法，改由展示层显示"所需全职月数 20 个月／最近核算期间 24 个月"。 |
+| `04f7fed6` Test: 德国 e2e 补分享链接不覆盖本机草稿与跳到主要内容保留场景 | 787 | 接收方先在问卷选 R18 产生本机草稿，再打开分享链接：结果与发送方一致，`de-immigration-draft-v1` 原样不变；按"跳到主要内容"后焦点落到 `main`，地址仍带 `#s=`。这是上一位 agent 留在工作区的未提交改动，核对选择器（`#de-route-R18`、存储键、`site.skip` 按钮）与单测一致、e2e 通过后提交。 |
+| 本节 Docs commit | 788 | 本报告。 |
+
+原来标为"待任务 93 的共用修正合入后解决"的条目：
+
+| 条目 | 处理 |
+|---|---|
+| 问题 3 标题回退（`PolicyPage` 省略 `country.id` 时空标题） | main 的 `PolicyPage` 在没有 `country.id` 或该国未登记标题时回退到 `policyPage.title`，由 `country-views.test.tsx` 覆盖；本分支合并时取 main 版本，未另改。德国登记了 `de.policy.pageTitle`，`germany.test.tsx` 断言 `<h1>德国政策依据</h1>`。问题 3 的单位部分改由 `displayParameter` 显示（`ba3fdc04`），不再改写参数。 |
+| 风险 2（多标签页与分享链接覆盖本机德国草稿） | `scenarioLinks: true`（`5dbabc1c`）。打开分享链接不写本机草稿；结果、编辑、对比之间的链接带场景片段，各标签页按自己的片段读场景。单测与 e2e（787）各覆盖一次。 |
+| 建议 1（政策页年份不加千分位） | main 按键名（以 `year`、`from`、`cohort` 结尾、1900–2100 的整数）判断年份，德国的 `displayParameter` 另把年份按文本显示。逐个列出德国参数中 1900–2100 的整数：`retirementAge.firstRaisedCohort` 1947、`retirementAge.firstStandardCohort` 1964、`initialSkilledSalary.year` 2026；以年份为键的 `blueCardStandardPay`（2024–2026）、`retirementAdditionalMonths`（1947 起逐年）。中英文都显示为不分组的四位数，单测断言页面不含 `1,947`、`1,959`、`1,964`、`2,024`、`2,026`。 |
+| 建议 2 后半（把德国纳入 `ResultPage` / `WhatIfLab` 的片段情景隔离） | 同风险 2，由 `scenarioLinks` 打开。德国三页本来就用共用的 `ResultPage`、`QuestionnaireShell`、`WhatIfPageContent`，合并后共用组件与 main 一致，无需本国另写。 |
+
+brief 里的其余接入项："可选替代依据不进还差什么"——德国引擎没有"满足其一即可"的独立可选依据检查项（`skilledAlternativePension` 等替代依据在 DE-C17 等条件内部合并判断），因此没有标 `alternative` 的项。R00 逐份文书的存续结果虽是"任一份满足即可"，但引擎没有汇总条件，若标为 `alternative`，R00 为 `NOT_MET` 时缺口会是空的，所以仍标为申请条件。
+
+### 2. 怎么验证的
+
+- 回归先失败后通过：接手后把四项接入涉及的源文件（`lib/germany-module.ts`、`i18n/countries/germany-module.ts`、`lib/germany-policy.ts`、`components/site-shell.tsx`、引擎 `germany-full.ts`、`index.ts`）临时恢复为合并提交 `28aa4b1c` 的版本，保留当前测试，`npx vitest run test/germany.test.tsx` 中 8 项失败、17 项通过；失败的正是新增与改写的 8 项（分享不覆盖草稿与 `#draft=` 还原、跳转按钮、双语日期标签、kind 分组与缺口、双语嵌套参数、全职例外按月）。还原后 25 项全部通过。`test/germany.test.tsx`、`test/country-views.test.tsx`、`test/about-page.test.tsx` 合计 43 项通过。
+- 年份核对：临时脚本遍历 `germanyFull2026_11.values`，列出 1900–2100 的整数只有上表三项（脚本已删除，不提交）；单测按两种语言断言页面不出现分组后的年份。
+- 完整验收：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，退出码 0。error-report 2、policy-data 23、engine 6,006（跳过 1）、game 1,348、web 877 项通过（46 个文件）；构建生成 40 个静态页面，`apps/web/out/germany.html` 与 `apps/web/out/germany/{policy,result,simulate,whatif}.html` 均存在。
+- 浏览器 e2e：`cd apps/e2e && E2E_PORT=4453 npx playwright test tests/germany.spec.ts tests/australia.spec.ts tests/japan.spec.ts tests/site.spec.ts --project=desktop --reporter=line`。第一次 20 项通过、1 项失败：`japan.spec.ts:594`（另一标签页保存草稿后分享结果保留场景），在页面隐藏、时钟拨过午夜后过早显示了"请确认实际出境"。当时本机负载约 25–30，日本相关代码与 main 相同（本分支对共用组件只改了 `site-shell.tsx` 的德国路径）。单独重跑该项 `--repeat-each=3`，3 项通过；随后整组重跑，21 项全部通过（含德国 2 项）。跑完已删除 `apps/e2e/test-results`。
+- 视觉检查：用 `apps/e2e/serve.ts` 起导出站，Playwright 在 1280px 与 375px（2 倍像素）下截图。政策页中英文标题分别为"德国政策依据""Policy basis for Germany"；`retirementAge`（年份 1947、1964 不分组）、`blueCardStandardPay`（2024–2026，€45,300 等）、`settlementFees`（€113 等，比例 50%）、`citizenshipFullTime`（20 个月／24 个月）均为带列名的表；两种宽度下 `scrollWidth - innerWidth` 为 0。分享结果页（截图时界面为英文）的日期标签为"Projected date the assessed requirements are met"，检查项标题后显示"· Requirement""· Fee budget"等分组，待定项显示"Pending details"，页面无横向滚动；中文文案由单测断言。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR。
+- 只在 desktop 项目跑了 brief 指定的四个 e2e 文件；mobile 项目与其他国家 e2e 未跑。
+- 分享不覆盖草稿的 e2e 用的是另一个浏览器上下文（与发送方不共享本机存储）。同一上下文多标签页互不覆盖的行为由共用组件提供，德国未单独做双标签页 e2e，依赖日本 e2e 已有的双标签页覆盖。
+- 德国结果页没有像澳大利亚那样加 `resultNotes` 时点说明，brief 未要求；日期标签本身已说明含义。
+
+### 4. 发现与建议
+
+- 上一节记下的问题仍在：进行中的德国草稿只要有一个格式错误，`decodeGermanyDraft` 返回 `undefined`，问卷回到空白草稿。澳大利亚在本国模块里修了同类问题（review93-1 风险 2），德国可照做，不在本次范围。
+- `site-shell.tsx` 的场景路径仍按国家逐个列出（日本、澳大利亚、德国）。既然 `CountryModule` 已有 `scenarioLinks`，可以在 `site-countries.ts` 的国家登记里加一个轻量标记，由 `site-shell.tsx` 读取（不必把各国模块引入页头），新国家就不必再改共用组件；brief 要求只加本国路径，这里没动。
