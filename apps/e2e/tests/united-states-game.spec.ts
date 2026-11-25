@@ -77,7 +77,10 @@ test('fast-forwarding the first spring reaches the summary with US pathways', as
   await expect(
     page.getByRole('button', { name: /^绿卡 \d+%.*最早 2027-06-17/ }),
   ).toBeVisible();
-  await expect(page.getByRole('button', { name: /^入籍 \d+%/ })).toBeVisible();
+  // No I-751 is pending yet, so the citizen's-spouse filing has no date.
+  await expect(
+    page.getByRole('button', { name: /^入籍 —.*无法确定/ }),
+  ).toBeVisible();
   await page.getByRole('button', { name: /快进/ }).first().click();
   await openDialog(page).getByRole('button', { name: '确认' }).click();
   const summary = openDialog(page).getByRole('heading', {
