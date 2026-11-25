@@ -1,6 +1,7 @@
 import {
   evaluateUnitedStatesFull,
   type Locale,
+  type PilotStatus,
   type UsFullResult,
 } from '@uk-immigration/engine';
 import { t } from '../i18n';
@@ -18,6 +19,20 @@ import {
   unitedStatesWhatIf,
   type UnitedStatesWhatIf,
 } from './united-states-whatif';
+
+// The outcome is the stage that settles the pathway: a stage that does not
+// apply, then an unmet stage, then an open one. Otherwise filing (or return)
+// gives the outcome and its date.
+const weight = (status?: PilotStatus) =>
+  status === 'NOT_APPLICABLE'
+    ? 3
+    : status === 'NOT_MET'
+      ? 2
+      : status === 'UNKNOWN'
+        ? 1
+        : 0;
+export const pathwayOutcome = (filing: PilotStatus, approval?: PilotStatus) =>
+  approval && weight(approval) > weight(filing) ? approval : filing;
 
 function run(draft: UsDraft, locale: Locale): UsFullResult {
   const result = evaluateUnitedStatesFull(unitedStatesRequest(draft, locale));
@@ -54,14 +69,9 @@ function run(draft: UsDraft, locale: Locale): UsFullResult {
             pathway.approvalEarliestDate ?? t('result.undetermined', locale),
           ),
         );
-    // Meeting the filing requirements is not meeting the pathway when
-    // approval is unmet or open: the outcome shows the approval stage.
-    if (
-      pathway.status === 'MET' &&
-      (pathway.approvalStatus === 'NOT_MET' ||
-        pathway.approvalStatus === 'UNKNOWN')
-    )
-      pathway.status = pathway.approvalStatus;
+    // Meeting the filing requirements, now or later, is not meeting the
+    // pathway when approval is unmet or open.
+    pathway.status = pathwayOutcome(pathway.status, pathway.approvalStatus);
   }
   return result;
 }

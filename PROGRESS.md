@@ -688,3 +688,4 @@
 | 619.14 | 任务 96 接入共用选项：美国结果明细里的 USD 金额按语言加千分位（如 USD 1,440），做法同日本 `formatCheckAmounts`。 | apps/web/{lib/united-states-module.ts,test/united-states.test.tsx} |
 | 619.15 | 任务 96 合入 main 与共用选项接入：报告补“合入 main 与共用选项接入”一节，逐条对应问题 9、风险 6、建议 3 与问题 6 的日期标签，列出先失败后通过的回归测试、完整验收与 e2e 结果。 | docs/tasks/reports/96-us-pages.md |
 | 619.16 | 任务 96 审核修正（review96-2）：美国对比页“裁决时排期”旋钮只在用户改动后写入草稿；未改动时沿用问卷里新裁决月（或新评估月）的答案，旋钮也显示该月的答案，只动裁决日或评估日不再覆盖按月表或单项答案。 | apps/web/{lib/united-states-whatif.ts,app/united-states/whatif/controls.tsx,test/united-states.test.tsx} |
+| 619.17 | 任务 96 审核修正（review96-2）：美国结论按递交（或返美）与核准两阶段中决定结果的一方显示：不适用优先，其次未满足、待确认，否则沿用递交阶段的状态与日期。递交须等日期（FUTURE）而核准未满足或待确认时，结论不再写“最早某日满足条件”；最早递交日仍在事实表与时间缺口中。递交与核准全部 30 种状态组合列表测试，引擎可得出的 13 种组合逐一用草稿核对。 | apps/web/{lib/united-states-module.ts,test/united-states.test.tsx} |

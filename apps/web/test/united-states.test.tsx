@@ -1,5 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import type { UsFullPathway } from '@uk-immigration/engine';
+import {
+  evaluateUnitedStatesFull,
+  type PilotStatus,
+  type UsFullPathway,
+} from '@uk-immigration/engine';
 import { usePathname } from 'next/navigation';
 import { afterEach, expect, test, vi } from 'vitest';
 import UnitedStatesPage from '../app/united-states/page';
@@ -26,7 +30,10 @@ import {
   usStepDefinitions,
   type UsField,
 } from '../lib/united-states-fields';
-import { unitedStatesModule as us } from '../lib/united-states-module';
+import {
+  pathwayOutcome,
+  unitedStatesModule as us,
+} from '../lib/united-states-module';
 import type { UnitedStatesWhatIf } from '../lib/united-states-whatif';
 import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
@@ -440,9 +447,11 @@ const conditionsDraft: UsDraft = {
 
 test('removing conditions before the window shows the earliest filing date and the approval stage', () => {
   const draft = conditionsDraft;
+  // The filing date is kept; the outcome is open while approval requirements
+  // are (review96-2 #2).
   const pathway = pathwayOf(draft, 'en');
   expect(pathway).toMatchObject({
-    status: 'FUTURE',
+    status: 'UNKNOWN',
     earliestDate: '2027-03-03',
     approvalStatus: 'UNKNOWN',
   });
@@ -453,7 +462,7 @@ test('removing conditions before the window shows the earliest filing date and t
     ),
   );
   // Moving the assessment date into the window meets the filing timing. The
-  // outcome stays open while approval requirements are (review96-1 #6).
+  // outcome stays open (review96-1 #6).
   const knobs = us.whatif.initial(draft);
   const later = us.whatif.apply(draft, {
     ...knobs,
@@ -1125,48 +1134,49 @@ test('an untouched availability control keeps the answer for the month the decis
     ).toEqual(us.run(draft, 'en'));
 });
 
+const noCrime = {
+  unclassifiedRecord: false,
+  cimtCount: 0,
+  convictionCount: 0,
+  combinedSentenceMonths: 0,
+  confinementDays: 0,
+  controlledSubstance: 'none',
+  duiCount: 0,
+} as const;
+// Every filing requirement is met; the English test was failed (review96-1 #6).
+const failedEnglish: UsDraft = {
+  ...naturalizationDraft,
+  simulationDate: '2026-11-23',
+  permanentResident: '2018-03-01',
+  stateResidenceFrom: '2018-03-01',
+  naturalization: {
+    lawfulAdmission: 'cleared',
+    removalProcess: 'none',
+    residenceThroughOath: true,
+    lprResidenceYears: 8,
+    english: 'failed',
+    civics: 'passed',
+    disability: { requested: false },
+    goodMoralCharacter: 'cleared',
+    murderConviction: false,
+    aggravatedFelonyConvictedOn: 'none',
+    persecutionBar: false,
+    statutoryPeriodCrime: noCrime,
+    otherGmcBar: 'cleared',
+    falseOralTestimony: false,
+    benefitsAndSupport: 'clear',
+    constitutionalAttachment: true,
+    party: { membership: 'none' },
+    selectiveService: 'registered',
+    warDesertionOrAlienageExemption: 'cleared',
+    oath: 'willing',
+    titlesRenounced: true,
+    truthfulApplication: true,
+  },
+  fees: { channel: 'paper', relief: 'none' },
+};
+
 test('results show the approval stage and keep procedural notes out of the gaps (review96-1)', () => {
-  const noCrime = {
-    unclassifiedRecord: false,
-    cimtCount: 0,
-    convictionCount: 0,
-    combinedSentenceMonths: 0,
-    confinementDays: 0,
-    controlledSubstance: 'none',
-    duiCount: 0,
-  } as const;
-  // Every filing requirement is met; the English test was failed (#6).
-  const failedEnglish: UsDraft = {
-    ...naturalizationDraft,
-    simulationDate: '2026-11-23',
-    permanentResident: '2018-03-01',
-    stateResidenceFrom: '2018-03-01',
-    naturalization: {
-      lawfulAdmission: 'cleared',
-      removalProcess: 'none',
-      residenceThroughOath: true,
-      lprResidenceYears: 8,
-      english: 'failed',
-      civics: 'passed',
-      disability: { requested: false },
-      goodMoralCharacter: 'cleared',
-      murderConviction: false,
-      aggravatedFelonyConvictedOn: 'none',
-      persecutionBar: false,
-      statutoryPeriodCrime: noCrime,
-      otherGmcBar: 'cleared',
-      falseOralTestimony: false,
-      benefitsAndSupport: 'clear',
-      constitutionalAttachment: true,
-      party: { membership: 'none' },
-      selectiveService: 'registered',
-      warDesertionOrAlienageExemption: 'cleared',
-      oath: 'willing',
-      titlesRenounced: true,
-      truthfulApplication: true,
-    },
-    fees: { channel: 'paper', relief: 'none' },
-  };
   const failed = pathwayOf(failedEnglish);
   expect(failed).toMatchObject({
     status: 'NOT_MET',
@@ -1218,6 +1228,166 @@ test('results show the approval stage and keep procedural notes out of the gaps 
   // Chinese sentences are joined without a space (suggestion 4).
   for (const draft of [travelDraft(), naturalizationDraft, failedEnglish])
     expect(pathwayOf(draft).summary).not.toMatch(/。 /);
+});
+
+// Filing (or return) by approval: the outcome shown for each pair.
+const approvalStages = [
+  undefined,
+  'MET',
+  'FUTURE',
+  'NOT_MET',
+  'UNKNOWN',
+  'NOT_APPLICABLE',
+] as const;
+const outcomeTable: Record<PilotStatus, PilotStatus[]> = {
+  MET: ['MET', 'MET', 'MET', 'NOT_MET', 'UNKNOWN', 'NOT_APPLICABLE'],
+  FUTURE: [
+    'FUTURE',
+    'FUTURE',
+    'FUTURE',
+    'NOT_MET',
+    'UNKNOWN',
+    'NOT_APPLICABLE',
+  ],
+  UNKNOWN: [
+    'UNKNOWN',
+    'UNKNOWN',
+    'UNKNOWN',
+    'NOT_MET',
+    'UNKNOWN',
+    'NOT_APPLICABLE',
+  ],
+  NOT_MET: [
+    'NOT_MET',
+    'NOT_MET',
+    'NOT_MET',
+    'NOT_MET',
+    'NOT_MET',
+    'NOT_APPLICABLE',
+  ],
+  NOT_APPLICABLE: Array(6).fill('NOT_APPLICABLE'),
+};
+
+test.each(
+  Object.entries(outcomeTable).flatMap(([filing, outcomes]) =>
+    approvalStages.map((approval, index) => ({
+      filing: filing as PilotStatus,
+      approval,
+      outcome: outcomes[index],
+    })),
+  ),
+)(
+  'filing $filing with approval $approval shows $outcome (review96-2 #2)',
+  ({ filing, approval, outcome }) => {
+    expect(pathwayOutcome(filing, approval)).toBe(outcome);
+  },
+);
+
+test('the outcome follows the stage that settles it for every pair the engine gives (review96-2 #2)', () => {
+  const nat = (
+    simulationDate: string,
+    answers: Partial<NonNullable<UsDraft['naturalization']>> = {},
+  ): UsDraft => ({
+    ...failedEnglish,
+    simulationDate,
+    permanentResident: '2022-03-01',
+    stateResidenceFrom: '2020-01-01',
+    naturalization: {
+      ...failedEnglish.naturalization,
+      lprResidenceYears: 4.7,
+      ...answers,
+    },
+  });
+  const samples: [UsDraft, PilotStatus, PilotStatus | undefined][] = [
+    [travelDraft(), 'FUTURE', undefined],
+    [travelDraft('2026-11-10'), 'MET', undefined],
+    [
+      { ...conditionsDraft, conditional: 'none', conditions: undefined },
+      'NOT_APPLICABLE',
+      'NOT_APPLICABLE',
+    ],
+    [naturalizationDraft, 'UNKNOWN', 'UNKNOWN'],
+    [failedEnglish, 'MET', 'NOT_MET'],
+    [
+      {
+        ...failedEnglish,
+        naturalization: { ...failedEnglish.naturalization, english: 'passed' },
+      },
+      'MET',
+      'MET',
+    ],
+    [
+      {
+        ...failedEnglish,
+        naturalization: {
+          ...failedEnglish.naturalization,
+          goodMoralCharacter: undefined,
+        },
+      },
+      'UNKNOWN',
+      'NOT_MET',
+    ],
+    [
+      {
+        ...failedEnglish,
+        naturalization: {
+          ...failedEnglish.naturalization,
+          murderConviction: true,
+        },
+      },
+      'NOT_MET',
+      'NOT_MET',
+    ],
+    [nat('2026-11-23', { english: 'failed' }), 'FUTURE', 'NOT_MET'],
+    [nat('2026-11-23', { english: 'passed' }), 'FUTURE', 'FUTURE'],
+    [conditionsDraft, 'FUTURE', 'UNKNOWN'],
+    [
+      spouseAdjustment({
+        decisionOn: '2027-02-01',
+        visaAtDecisionByMonth: [
+          { month: '2027-02', availability: 'available' },
+        ],
+      }),
+      'MET',
+      'FUTURE',
+    ],
+    [spouseAdjustment({ decisionOn: '2027-02-01' }), 'MET', 'UNKNOWN'],
+  ];
+  for (const [draft, filing, approval] of samples) {
+    const engine = evaluateUnitedStatesFull(unitedStatesRequest(draft, 'en'))
+      .columns[0].pathways[0];
+    const label = `${draft.pathway} ${filing}/${approval}`;
+    expect([engine.status, engine.approvalStatus], label).toEqual([
+      filing,
+      approval,
+    ]);
+    const shown = pathwayOf(draft);
+    expect(shown.status, label).toBe(
+      outcomeTable[filing][approvalStages.indexOf(approval)],
+    );
+    expect(shown.earliestDate, label).toBe(engine.earliestDate);
+  }
+  // Waiting for the filing date cannot meet a failed English test, so the
+  // outcome does not get worse when the comparison moves the date there.
+  const waiting = nat('2026-11-23', { english: 'failed' });
+  const later = us.whatif.apply(waiting, {
+    ...us.whatif.initial(waiting),
+    simulationDate: '2027-01-15',
+  });
+  expect(pathwayOf(waiting)).toMatchObject({
+    status: 'NOT_MET',
+    earliestDate: '2026-12-01',
+  });
+  expect(pathwayOf(later).status).toBe('NOT_MET');
+  const html = render(
+    <ResultView
+      country={us}
+      result={us.run(waiting, 'zh-CN')}
+      draft={waiting}
+    />,
+  );
+  expect(html).toContain('?focus=english');
+  expect(html).toContain('2026-12-01');
 });
 
 test('labels, hints, errors and row buttons are tied to their controls (review96-1 suggestion 1)', () => {
@@ -1324,9 +1494,13 @@ test('a planned return is labelled as the return date, other pathways keep the f
     );
     expect(html).not.toContain(t('result.earliest', locale));
   }
-  // Filing pathways still show the earliest filing date.
+  // Filing pathways still show the earliest filing date, also when approval
+  // leaves the outcome open (review96-2 #2).
   const filing = pathwayOf(conditionsDraft);
-  expect(filing.status).toBe('FUTURE');
+  expect(filing).toMatchObject({
+    status: 'UNKNOWN',
+    earliestDate: '2027-03-03',
+  });
   expect(pathwayDate(filing, us.earliestLabel)?.label).toBe('result.earliest');
   expect(
     render(
