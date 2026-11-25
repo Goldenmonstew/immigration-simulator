@@ -168,6 +168,50 @@ test('trips must be back before the travel conditions end', () => {
   ]);
 });
 
+test('a trip back before the travel conditions end misses no deadline', () => {
+  // Back mid-quarter, the player stays away until the next quarter starts
+  // (2027-09-01), after the conditions end on 2027-08-17. The record keeps
+  // the real return day, and nothing in New Zealand has to be done by a
+  // set day: the PRV is still there to apply for.
+  const station = visit(
+    jump(settle(nz.newGame('nurse', 5, 'en')), '2027-06-01', '2027-06-08'),
+    'station',
+    600,
+  );
+  expect(nz.activities(station, 'station').map(({ id }) => id)).toEqual([
+    'travel-1',
+    'leave',
+  ]);
+  const back = settle(nz.doActivity(station, 'travel-1'));
+  expect(back.timeline.trips.at(-1)).toEqual({
+    departed: '2027-06-08',
+    returned: '2027-07-08',
+  });
+  expect([back.date, back.ending]).toEqual(['2027-09-01', undefined]);
+  expect(nz.pathwayOf(back.result, 'prv')?.status).toBe('MET');
+  expect(nz.nzRules.expired).toBeUndefined();
+  const office = visit(back, 'visa', 600);
+  expect(nz.activities(office, 'visa').map(({ id }) => id)).toEqual(['settle']);
+});
+
+test('free counters stay open in debt; only a fee is checked against the balance', () => {
+  const counter = visit(nz.newGame('nurse', 5, 'en'), 'dia', 600);
+  counter.stats.money = -50;
+  expect(nz.activities(counter, 'dia').map(({ id }) => id)).toEqual([
+    'citizenship-info',
+  ]);
+  const fee = nzResidentParameters.residentFeeReference.value.permanent;
+  const office = visit(
+    jump(settle(nz.newGame('nurse', 5, 'en')), '2027-09-01', '2027-09-14'),
+    'visa',
+    600,
+  );
+  office.stats.money = fee - 1;
+  expect(nz.activities(office, 'visa')).toEqual([]);
+  office.stats.money = fee;
+  expect(nz.activities(office, 'visa').map(({ id }) => id)).toEqual(['settle']);
+});
+
 test('the travel conditions count down from the day being played', () => {
   const state = settle(nz.newGame('nurse', 5, 'en'));
   expect([state.date, state.day.date]).toEqual(['2026-03-01', '2026-03-10']);
