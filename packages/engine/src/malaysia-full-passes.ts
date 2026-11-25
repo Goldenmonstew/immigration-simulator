@@ -11,6 +11,7 @@ import {
   heldRun,
   inapplicable,
   info,
+  marriageSubsists,
   planned,
   ref,
   renewal,
@@ -42,6 +43,8 @@ const ANY_PASS: MyPassKind[] = [
 export function assessSpouseLtsvp(ctx: MyContext): MyPathway {
   const { req, L } = ctx;
   const tie = req.family?.tie;
+  const spouse = tie === 'wife-of-citizen' || tie === 'husband-of-citizen';
+  const subsists = marriageSubsists(ctx);
   const p = v.spouseLtsvp.value;
   const e = req.evidence;
   const page = ref(
@@ -60,14 +63,13 @@ export function assessSpouseLtsvp(ctx: MyContext): MyPathway {
     check(
       'my.pass.category',
       L('公民的配偶', 'Spouse of a citizen'),
-      tie === undefined
-        ? undefined
-        : tie === 'wife-of-citizen' || tie === 'husband-of-citizen',
-      [page],
+      tie === undefined ? undefined : spouse ? subsists.met : false,
+      [page, ref('SRC-509', '"Husband / Wife to Citizen" 清单')],
       L(
-        '依法与马来西亚公民结婚的外籍丈夫或妻子。',
-        'A foreign husband or wife lawfully married to a Malaysian citizen.',
-      ),
+        '依法与马来西亚公民结婚的外籍丈夫或妻子；清单要求最新宣誓书证明婚姻仍存续，离婚者另有单独的准证类别。',
+        'A foreign husband or wife lawfully married to a Malaysian citizen. The checklist asks for a recent affidavit that the marriage still exists; divorced spouses have a separate pass category.',
+      ) + (spouse ? subsists.text : ''),
+      spouse ? subsists.pending : [],
     ),
     marriageRegistration(ctx, 'my.pass.marriage-registration', [
       page,

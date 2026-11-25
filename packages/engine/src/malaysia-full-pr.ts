@@ -11,6 +11,7 @@ import {
   inapplicable,
   info,
   latest,
+  marriageSubsists,
   planned,
   ref,
   renewal,
@@ -149,15 +150,23 @@ function marriageDuration(
         )) +
       (separated
         ? L('所填已分居或离婚。', ' A separation or divorce is reported.')
-        : due
-          ? L(
-              `按结婚日，${due} 满 ${years} 年。`,
-              ` On the marriage date, ${years} years are completed on ${due}.`,
-            )
-          : ''),
-    noSeparation ? ['PD-405'] : [],
+        : (separated === undefined
+            ? L(
+                '未填是否已分居或离婚。',
+                ' Whether the couple has separated or divorced is not entered.',
+              )
+            : '') +
+          (due
+            ? L(
+                `按结婚日，${due} 满 ${years} 年。`,
+                ` On the marriage date, ${years} years are completed on ${due}.`,
+              )
+            : '')),
   );
-  return { check: c, earliest: separated ? null : due };
+  return {
+    check: c,
+    earliest: separated ? null : separated === undefined ? undefined : due,
+  };
 }
 
 /** Held for more than `months` and valid on `at`, by the guideline's words. */
@@ -1044,9 +1053,8 @@ export function assessPrRep(ctx: MyContext): MyPathway {
   const p = v.rep.value;
   const relation = r?.relation;
   const childRelation = req.family?.childRelation;
-  const separated =
-    (relation === 'wife' || relation === 'husband') &&
-    req.family?.separatedOrDivorced === true;
+  const spouse = relation === 'wife' || relation === 'husband';
+  const subsists = marriageSubsists(ctx);
   const cat = category(
     ctx,
     relation === undefined
@@ -1057,9 +1065,7 @@ export function assessPrRep(ctx: MyContext): MyPathway {
             r?.participantHasSatk,
             relation === 'child'
               ? biologicalChild(childRelation)
-              : separated
-                ? undefined
-                : true,
+              : subsists.met,
           ),
     [repGuide('§4 p16'), repGuide('§5.1 p16')],
     L(
@@ -1067,16 +1073,11 @@ export function assessPrRep(ctx: MyContext): MyPathway {
       `The foreign spouse or biological child under ${p.childUnderAge} of an REP participant (a Malaysian citizen) who has received the SATK from TalentCorp.`,
     ) +
       (relation === 'child' ? childRelationText(ctx, childRelation) : '') +
-      (separated
-        ? L(
-            '所填已分居或离婚：离婚后不再是参与者的配偶，只分居则仍是；此项未区分两者，待确认。',
-            ' A separation or divorce is reported: after a divorce the applicant is no longer the participant’s spouse, while a separated spouse still is; the answer does not say which.',
-          )
-        : ''),
+      (spouse ? subsists.text : ''),
     relation === 'child' && childRelation === 'adopted'
       ? ['PD-409']
-      : separated
-        ? ['PD-405']
+      : spouse
+        ? subsists.pending
         : [],
   );
   const checks: MyCheck[] = [cat];
@@ -1199,6 +1200,11 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
   const tie = req.family?.tie;
   const childRelation = req.family?.childRelation;
   const cat = tie && RP_CATEGORY[tie];
+  const spouse =
+    tie === 'wife-of-citizen' ||
+    tie === 'husband-of-citizen' ||
+    tie === 'spouse-of-pr';
+  const subsists = marriageSubsists(ctx);
   const checks: MyCheck[] = [
     check(
       'my.rp.category',
@@ -1211,7 +1217,9 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
             ? childRelation === undefined
               ? undefined
               : childRelation === 'biological'
-            : true,
+            : spouse
+              ? subsists.met
+              : true,
       src,
       L(
         '第 3 类为公民的配偶、子女、父母、公婆及有公民子女监护权的离婚或丧偶者；第 4 类为永久居民的配偶及亲生子女；第 5 类为自愿放弃或被褫夺公民身份的前公民。',
@@ -1233,7 +1241,9 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
                 '继子女、养子女不属第 4 类。',
                 ' Step and adopted children are not in Category 4.',
               )
-          : ''),
+          : '') +
+        (spouse ? subsists.text : ''),
+      spouse ? subsists.pending : [],
     ),
   ];
   const child = tie === 'child-of-citizen' || tie === 'child-of-pr';

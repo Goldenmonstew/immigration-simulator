@@ -10,6 +10,7 @@ import {
   inapplicable,
   info,
   latest,
+  marriageSubsists,
   minus,
   passSpan,
   ref,
@@ -462,29 +463,18 @@ export function assessWifeRegistration(ctx: MyContext): MyPathway {
   const { req, date, L } = ctx;
   const w = v.wifeRegistration.value;
   const tie = req.family?.tie;
-  const separated = req.family?.separatedOrDivorced === true;
+  const wife = tie === 'wife-of-citizen';
+  const subsists = marriageSubsists(ctx);
   const category = check(
     'my.cit.category',
     L('公民之妻', 'Wife of a citizen'),
-    tie === undefined
-      ? undefined
-      : tie !== 'wife-of-citizen'
-        ? false
-        : separated
-          ? undefined
-          : true,
+    tie === undefined ? undefined : wife ? subsists.met : false,
     [fc('Art. 15(1) p39'), ref('SRC-513', 'Description')],
     L(
       '已婚女性，丈夫为马来西亚公民且婚姻仍存续；外籍丈夫没有登记途径，只能申请归化。',
       'A married woman whose husband is a Malaysian citizen, with the marriage subsisting. A foreign husband has no registration route and must apply for naturalisation.',
-    ) +
-      (separated
-        ? L(
-            '所填已分居或离婚：离婚后婚姻不再存续，不能按此条登记；只分居而婚姻仍存续的，宪法未另设条件。此项未区分两者，待确认。',
-            ' A separation or divorce is reported: after a divorce the marriage no longer subsists and this route closes, while a separation alone sets no further condition; the answer does not say which.',
-          )
-        : ''),
-    ['PD-405'],
+    ) + (wife ? subsists.text : ''),
+    wife ? subsists.pending : [],
   );
   const registration = marriageRegistration(
     ctx,

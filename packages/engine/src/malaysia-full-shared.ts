@@ -221,6 +221,31 @@ export function check(
   };
 }
 
+/**
+ * A spouse category needs the marriage to subsist. Separation and divorce
+ * are asked together, and only a divorce ends the marriage (PD-405).
+ */
+export function marriageSubsists(ctx: MyContext) {
+  const { L } = ctx;
+  const answer = ctx.req.family?.separatedOrDivorced;
+  return {
+    met: answer === false ? true : undefined,
+    text:
+      answer === undefined
+        ? L(
+            '未填是否已分居或离婚，无法确认婚姻仍存续。',
+            ' Whether the couple has separated or divorced is not entered, so the marriage cannot be confirmed as subsisting.',
+          )
+        : answer
+          ? L(
+              '所填已分居或离婚：离婚后婚姻不再存续，只分居则仍存续；此项未区分两者，待确认。',
+              ' A separation or divorce is reported: a divorce ends the marriage while a separation does not, and the answer does not say which.',
+            )
+          : '',
+    pending: answer ? ['PD-405'] : [],
+  };
+}
+
 /** Information whose content is known unless `known` is false. */
 export function info(
   id: string,

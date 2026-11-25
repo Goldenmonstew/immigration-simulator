@@ -1468,6 +1468,53 @@ describe('citizenship timelines and oaths (review113-2 risks 1, 3)', () => {
   });
 });
 
+describe('a subsisting marriage across the spouse pathways (review113-2 risk 4)', () => {
+  const as = (separatedOrDivorced?: boolean) => ({
+    ...wife,
+    family: { ...wife.family, separatedOrDivorced },
+  });
+
+  test('registration, the spouse pass, REP and the Residence Pass need the answer', () => {
+    // A divorce ends the marriage, a separation does not (SRC-500 Art. 15(1)
+    // p39; SRC-509 "Husband / Wife to Citizen" affidavit; SRC-506 §4(a) p16;
+    // SRC-508 Category 3).
+    const cases: [MyPathwayId, string, Partial<MyFullRequest>][] = [
+      ['my.cit.wife-registration', 'my.cit.category', {}],
+      ['my.pass.spouse-ltsvp', 'my.pass.category', {}],
+      [
+        'my.pr.rep-family',
+        'my.pr.category',
+        { rep: { relation: 'wife', participantHasSatk: true } },
+      ],
+      ['my.rp.family', 'my.rp.category', {}],
+    ];
+    for (const [id, key, extra] of cases) {
+      const at = (s?: boolean) => cond(id, key, { ...as(s), ...extra });
+      expect(at(false).status, id).toBe('MET');
+      expect([at(true).status, at(true).pendingDetails], id).toEqual([
+        'UNKNOWN',
+        ['PD-405'],
+      ]);
+      expect([at().status, at().pendingDetails], id).toEqual([
+        'UNKNOWN',
+        undefined,
+      ]);
+      expect(at().explanation, id).toContain('未填是否已分居或离婚');
+    }
+  });
+
+  test('permanent residence as a spouse has no date without the answer', () => {
+    // SRC-505 §5.1(c) p18: three years "tanpa berpisah atau bercerai".
+    const p = path('my.pr.wife', as());
+    expect(
+      p.checks.find((c) => c.id === 'my.pr.marriage-duration')?.status,
+    ).toBe('UNKNOWN');
+    expect([p.timeStatus, p.timeEarliestDate]).toEqual(['UNKNOWN', undefined]);
+    expect(path('my.pr.wife', as(false)).timeStatus).toBe('MET');
+    expect(path('my.pr.wife', as(true)).timeStatus).toBe('NOT_MET');
+  });
+});
+
 describe('29 February birthdays (review113-1 #10)', () => {
   test('earliest dates and deadlines follow the age in full years', () => {
     // Born 2004-02-29: 20 on 2025-02-28, 21 on 2025-03-01.
