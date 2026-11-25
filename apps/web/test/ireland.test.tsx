@@ -1119,7 +1119,12 @@ test('the family step asks what to assess, and a renewal answer does not replace
   expect(pathway(first, id).title).toBe('首次登记');
   expect(ie.validateStep(first)).toEqual({});
   // A first registration needs a channel that has one; otherwise the answer
-  // would quietly assess the application instead.
+  // would quietly assess the application instead. The error is also on the
+  // channel, so its section opens (review99-3 suggestion 1).
+  const channelErrors = (key: TranslationKey) => ({
+    'ie-familyStage': key,
+    'ie-family-application-channel': key,
+  });
   for (const channel of [
     undefined,
     'spouse-in-state',
@@ -1130,10 +1135,48 @@ test('the family step asks what to assess, and a renewal answer does not replace
         ...first,
         family: { ...first.family, application: { channel } },
       }),
-    ).toEqual({ 'ie-familyStage': 'ie.error.familyFirstChannel' });
+    ).toEqual(channelErrors('ie.error.familyFirstChannel'));
   expect(t('ie.error.familyFirstChannel')).toContain(
     t('ie.form.section.famChannel'),
   );
+  const wrongChannel: IrelandDraft = {
+    ...first,
+    family: { ...first.family, application: { channel: 'spouse-in-state' } },
+  };
+  const opened = render(
+    IrelandSimulatePage().props.children({
+      draft: wrongChannel,
+      errors: ie.validateStep(wrongChannel),
+      update: () => {},
+    }),
+  );
+  expect(opened).toMatch(
+    new RegExp(
+      `<details open="" [^>]*><summary>${t('ie.form.section.famChannel')}`,
+    ),
+  );
+  // Direct registration as an Irish citizen's spouse is itself a first
+  // registration: it must be chosen as one, not left as the application
+  // (review99-3 suggestion 2).
+  const direct = (familyStage: IrelandDraft['familyStage'], id = irish) =>
+    ie.validateStep({
+      ...id,
+      familyStage,
+      family: { ...id.family, application: { channel: 'spouse-registration' } },
+    });
+  expect(direct(undefined)).toEqual(
+    channelErrors('ie.error.familySpouseRegistration'),
+  );
+  expect(direct('application', family)).toEqual(
+    channelErrors('ie.error.familySpouseRegistration'),
+  );
+  expect(direct('first')).toEqual({});
+  expect(direct('renewal')).toEqual({});
+  // Not asked for independent Stamp 4 alone, so not checked either.
+  expect(direct(undefined, family)).toEqual({});
+  for (const key of ['ie.error.familySpouseRegistration'] as const)
+    expect(t(key)).toContain(t('ie.option.familyStage.first'));
+  expect(t('ie.hint.familyStage')).not.toContain('不改选');
 });
 
 test('work renewals and EU acquisition say what their dates and blanks mean', () => {

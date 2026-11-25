@@ -386,17 +386,26 @@ function checkStep(draft: IrelandDraft, step: number, submit: boolean) {
   );
   if (step === 0 && submit && !draft.pathways.length)
     errors['ie-pathways'] = 'ie.error.pathways';
-  // Only these channels have a first registration after a grant; with any
-  // other the engine would assess the application instead.
-  if (
-    step === 4 &&
-    submit &&
-    draft.familyStage === 'first' &&
-    !FIRST_REGISTRATION_CHANNELS.includes(
-      draft.family?.application?.channel as never,
-    )
-  )
-    errors['ie-familyStage'] = 'ie.error.familyFirstChannel';
+  // The family stage alone decides what is assessed. Only these channels
+  // have a first registration after a grant; with any other the engine would
+  // assess the application instead. Direct registration as an Irish
+  // citizen's spouse is always assessed as a first registration or renewal.
+  // Both answers carry the error, so the channel's section opens.
+  const stage = draft.familyStage;
+  const channel = shownField(familyFields.application, draft)
+    ? draft.family?.application?.channel
+    : undefined;
+  const familyError =
+    stage === 'first'
+      ? !FIRST_REGISTRATION_CHANNELS.includes(channel as never) &&
+        'ie.error.familyFirstChannel'
+      : stage !== 'renewal' &&
+        channel === 'spouse-registration' &&
+        'ie.error.familySpouseRegistration';
+  if (step === 4 && submit && familyError) {
+    errors['ie-familyStage'] = familyError;
+    errors['ie-family-application-channel'] = familyError;
+  }
   return errors;
 }
 

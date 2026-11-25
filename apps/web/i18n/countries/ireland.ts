@@ -74,6 +74,8 @@ export const zhCN = {
   'ie.error.pathways': '请至少选择一条要核对的路径。',
   'ie.error.familyFirstChannel':
     '评估首次登记时，请在「申请日期与渠道」一节选择普通家庭团聚、境外 de facto 申请或爱尔兰公民配偶直接登记。',
+  'ie.error.familySpouseRegistration':
+    '爱尔兰公民配偶直接登记按首次登记或续期核对：请在「本次评估的是」选「已获准入境，评估首次登记」或续期，或在「申请日期与渠道」一节改选其他渠道。',
   'ie.whatif.date': '模拟（递交）日期',
   'ie.whatif.dateHint':
     '改动日期只影响对比。所填材料在新日期是否仍然有效，需要另行确认。',
@@ -153,6 +155,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.error.pathways': 'Select at least one pathway to check.',
   'ie.error.familyFirstChannel':
     'To check a first registration, choose ordinary family reunification, an overseas de facto application or direct registration as an Irish citizen’s spouse under “Application date and channel”.',
+  'ie.error.familySpouseRegistration':
+    'Direct registration as an Irish citizen’s spouse is checked as a first registration or renewal. Under what to assess, choose “Granted entry: first registration” or renewal, or choose another channel under “Application date and channel”.',
   'ie.whatif.date': 'Simulation (filing) date',
   'ie.whatif.dateHint':
     'Changing the date only affects the comparison. Check separately whether your documents would still be valid then.',
