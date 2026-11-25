@@ -186,7 +186,12 @@ export const nzStepDefinitions: {
     key: 'english',
     goals: residenceGoals,
     sections: [
-      { path: ['common', 'english'], fields: englishFields },
+      // Family pathways ask for the principal's English on their own step.
+      {
+        path: ['common', 'english'],
+        goals: nzGoalGroups.skilled,
+        fields: englishFields,
+      },
       { path: ['common'], fields: englishOtherFields },
     ],
   },

@@ -539,6 +539,7 @@
 | 553 | 任务 94 第二轮审核修正（review94-2 问题 1）：新西兰名单删除最后一行时回到未回答，不再变成「已确认没有」；只有「确认没有」按钮写入空名单。出境记录、随行家属等名单添加后删除，永居、入籍仍为待确认。回归测试逐一核对问卷全部 20 个名单与数值列表（含随行家属内的出境记录等嵌套名单）。 | apps/web/{app/new-zealand/simulate/nz-fields.tsx,test/new-zealand-questionnaire.test.tsx} |
 | 554 | 任务 94 第二轮审核修正（review94-2 风险 1）：新西兰跨步矛盾检查覆盖「递交时持有的签证」。选了具体签证（工作签证与「其他」除外）时，宗教工作者「持有符合条件的宗教工作者工签」与 Business Investor「持有 Business Investor 工签」须与之一致，否则在递交一步提示；完成的草稿与分享链接同样检查。 | apps/web/{lib/new-zealand-draft.ts,i18n/countries/new-zealand-form.ts,test/new-zealand-questionnaire.test.tsx} |
 | 555 | 任务 94 第二轮审核修正（review94-2 风险 2）：新西兰日期标签按路径设置（main 的按路径 `earliestLabel`）。只有旅行条件路径的日期标为“预计满足条件的日期”（首次居民入境日不是递交日）；永居、入籍、技术、家庭等路径回到共用的“最早可申请日期（推算）”，与对比页“假设在这一天递交”和首页措辞一致；e2e 对比页改读共用标签。 | apps/web/{lib/new-zealand-module.ts,test/new-zealand.test.tsx}、apps/e2e/tests/new-zealand.spec.ts |
+| 556 | 任务 94 第二轮审核修正（review94-2 建议 1）：新西兰第 16 步的主申英语证明分节只对技术与工作类路径（SMC、绿名单、护理或运输行业）显示；只选伴侣、父母、投资者或宗教工作者时，该步只问「是否被要求参加考试」，不再重复询问各自步骤已问过、且这些路径不读取的英语证明，相应答案也不参与评估和分享。 | apps/web/{lib/new-zealand-draft.ts,test/new-zealand-questionnaire.test.tsx} |
 | 560 | 任务 85：归档加拿大完整版的官方快照，登记 SRC-260–279、PD-240–259 及组内原文链接。 | policy-sources/*-ca-*、docs/{SOURCES,pending-details}.md、apps/web/lib/sources.ts |
 | 561 | 任务 85：在加拿大参数文件增加完整版门槛、费表、适用日期与逐项来源，登记 ca.current-law-2026-11；保留旧参数版本。 | packages/policy-data/src/{types,index,parameters/{canada-2026-11,index}}.ts |
 | 562 | 任务 85：新增加拿大十条路径、80 项条件、双语结果与边界及组合测试，记录各条件来源及页面问卷交接。 | packages/engine/src/{index.ts,canada-full/}、packages/engine/test/canada-*-full.test.ts、docs/tasks/reports/85-ca-rules.md |

@@ -10,6 +10,7 @@ import { NzWhatIfControls } from '../app/new-zealand/whatif/controls';
 import { ResultView } from '../components/result-view';
 import { t, type TranslationKey } from '../i18n';
 import {
+  nzGoalGroups,
   nzGoals,
   nzStepDefinitions,
   nzSteps,
@@ -952,6 +953,26 @@ test('the principal is asked only English questions read for the principal', () 
   const family = form(draft, 'family');
   for (const id of ['religiousEnglishBackground', 'registeredForSmc', 'esol'])
     expect(family.ids).toContain(`nz-common-dependants-0-${id}`);
+
+  // Only the skilled pathways read the principal's English evidence here; the
+  // family pathways ask for it on their own step.
+  expect(english.ids).toContain('nz-common-english-method');
+  for (const goal of nzGoalGroups.family) {
+    const familyOnly = withAnswers(residentDraft([goal]), {
+      common: { english: { method: 'none' } },
+    });
+    const step = form(familyOnly, 'english');
+    expect(step.ids, goal).toContain('nz-common-testSpecificallyRequested');
+    expect(step.ids, goal).not.toContain('nz-common-english-method');
+    expect(
+      step.nodes.some((n) => n.text === t('nz.form.optionalGroup')),
+      goal,
+    ).toBe(false);
+    expect(
+      nz.activeAnswers!(familyOnly).answers.common?.english,
+      goal,
+    ).toBeUndefined();
+  }
 
   // A principal cannot replace English evidence with prepaid ESOL.
   const options = (key: string, id: string, answers: object) =>
