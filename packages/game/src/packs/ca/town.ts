@@ -385,6 +385,13 @@ const travelNote = t(
   `Days abroad do not count as physical presence for citizenship (SRC-074 s.5(1)(c)(i)). Your work permit or PR card must still be valid on the day you return.`,
 );
 
+/** The shared furniture, as the Maple Harbour shop sells it. */
+export const caFurnishingNames: Record<string, Text> = {
+  'reading-chair': t('马斯科卡木椅', 'Muskoka chair'),
+  'warm-curtains': t('保暖窗帘', 'Thermal curtains'),
+  'desk-lamp': t('台灯', 'Desk lamp'),
+};
+
 export const caActions: CaActivity[] = [
   {
     id: 'rest',
@@ -575,24 +582,16 @@ export const caActions: CaActivity[] = [
     ],
   },
   ...[
-    [
-      'reading-chair',
-      '马斯科卡木椅（每季心情、健康各加一点）',
-      'Muskoka chair (+1 mood and health/quarter)',
-    ],
-    [
-      'warm-curtains',
-      '保暖窗帘（每季心情加一点）',
-      'Thermal curtains (+1 mood/quarter)',
-    ],
-    ['desk-lamp', '台灯（每季健康加一点）', 'Desk lamp (+1 health/quarter)'],
+    ['reading-chair', '每季心情、健康各加一点', '+1 mood and health/quarter'],
+    ['warm-curtains', '每季心情加一点', '+1 mood/quarter'],
+    ['desk-lamp', '每季健康加一点', '+1 health/quarter'],
   ].map(([id, zhCN, en]): CaActivity => ({
     id: `furnish-${id}`,
     place: 'shop',
     minutes: b.minutes.buy,
     label: t(
-      `添置${zhCN} · ${cad(b.furnishings[id].price)}，限一件`,
-      `Buy a ${en} · ${cad(b.furnishings[id].price)}, one per home`,
+      `添置${caFurnishingNames[id].zhCN}（${zhCN}） · ${cad(b.furnishings[id].price)}，限一件`,
+      `Buy a ${caFurnishingNames[id].en} (${en}) · ${cad(b.furnishings[id].price)}, one per home`,
     ),
     effects: [{ type: 'money', delta: -b.furnishings[id].price }],
   })),

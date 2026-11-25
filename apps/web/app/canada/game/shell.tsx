@@ -150,6 +150,7 @@ export const caCountry: GameCountry<CaKinds> = {
     renewed: false,
     validTo: state.timeline.document.expires,
   }),
+  furnishingNames: caGame.caFurnishingNames,
   absences: (state) =>
     (state.timeline.trips ?? []).map((trip) => ({
       from: trip.departed,

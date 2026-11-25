@@ -38,6 +38,8 @@ export const caGameZh = {
   'ca.game.noSeeds':
     '背包里没有当季种子，去海港杂货铺看看吧。冬天菜园盖着雪，春天再来。',
   'ca.game.rentFirst': '先在社区菜园租一块地。',
+  'ca.game.kitchenNoIngredients':
+    '现在凑不齐任何一道菜的食材：蔬菜来自社区菜园的收成，青鳕和比目鱼要去钓鱼码头钓。',
   'ca.game.oathLabel': '参加入籍宣誓仪式，成为加拿大公民',
   'ca.game.oathConfirm':
     '宣誓之后你就是加拿大公民了，这一局也到此结束。准备好了吗？',
@@ -84,6 +86,8 @@ export const caGameEn: Record<keyof typeof caGameZh, string> = {
   'ca.game.noSeeds':
     'No seeds for this season. Try the harbour general store; the garden sleeps under snow in winter.',
   'ca.game.rentFirst': 'Rent a plot at the community garden first.',
+  'ca.game.kitchenNoIngredients':
+    'You do not have the ingredients for any dish yet: vegetables come from community garden harvests, and pollock and flounder from the fishing wharf.',
   'ca.game.oathLabel': 'Take the oath and become a Canadian citizen',
   'ca.game.oathConfirm':
     'After the oath you are a Canadian citizen, and this game ends. Ready?',

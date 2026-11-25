@@ -325,6 +325,23 @@ test('day-count limits are checked on the day itself', () => {
   expect(work('2026-12-08')).toContain('endorsement-request');
 });
 
+test('the diary casts a line off the fishing wharf, not at a pond', () => {
+  const wharf = visit(ca.newGame('citizen', 5, 'en'), 'pond', 600);
+  const cast = ca.fish(wharf, false);
+  expect(cast.log.at(-1)).toMatchObject({
+    id: 'fishing',
+    text: { zhCN: '在钓鱼码头抛竿', en: 'Cast at the fishing wharf' },
+  });
+  const diary = ca.narrative(cast);
+  expect(diary.map(({ zhCN }) => zhCN).join('\n')).toContain(
+    '钓鱼码头抛竿 1 次。',
+  );
+  expect(diary.map(({ en }) => en).join('\n')).toContain(
+    '1 cast at the fishing wharf',
+  );
+  expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
+});
+
 test('a lapsed work permit ends the story, and the assessment shows the lapse', () => {
   // Every paper in hand, but the permit ends before the filing.
   let state = nextQuarter(atlanticPapers());

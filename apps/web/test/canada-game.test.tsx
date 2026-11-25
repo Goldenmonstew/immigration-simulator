@@ -284,6 +284,38 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test.each(['zh-CN', 'en'] as const)(
+  'the kitchen hint and ending furniture use Canadian wording in %s',
+  (locale) => {
+    const hint = t(gameKey('ca', 'game.kitchenNoIngredients'), locale);
+    expect(hint).not.toBe(t('game.kitchenNoIngredients', locale));
+    expect(hint).not.toMatch(/池塘|河鲈|pond|perch/);
+    expect(hint).toMatch(
+      locale === 'en' ? /pollock.*fishing wharf/ : /青鳕.*钓鱼码头/,
+    );
+    const state = settle(ca.newGame('citizen', 4, locale));
+    const shop = ca
+      .activities({ ...state, day: { ...state.day, minute: 600 } }, 'shop')
+      .filter(({ id }) => id.startsWith('furnish-'))
+      .map(({ label }) => (locale === 'en' ? label.en : label.zhCN));
+    state.flags.push(
+      'furnished-reading-chair',
+      'furnished-warm-curtains',
+      'furnished-desk-lamp',
+    );
+    const names = caShell
+      .endingMemories(state)
+      .furnishings.map(({ name }) => (locale === 'en' ? name.en : name.zhCN));
+    expect(names).toEqual(
+      locale === 'en'
+        ? ['Muskoka chair', 'Thermal curtains', 'Desk lamp']
+        : ['马斯科卡木椅', '保暖窗帘', '台灯'],
+    );
+    expect(shop).toHaveLength(names.length);
+    names.forEach((name, i) => expect(shop[i]).toContain(name));
+  },
+);
+
 test('the IRCC office lists the next steps on each route', () => {
   const graduate = settle(ca.newGame('graduate', 4, 'zh-CN'));
   const visa = { ...graduate, day: { ...graduate.day, minute: 600 } };

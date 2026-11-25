@@ -17,6 +17,7 @@ import {
 import {
   caActions,
   caFestivals,
+  caFurnishingNames,
   caItems,
   caNotices,
   caPlaces,
@@ -36,6 +37,7 @@ export const caGameContent: GameContentPack<
   characterOf: hooks.characterOf,
   places: caPlaces,
   actions: caActions,
+  fishingSpot: { zhCN: '钓鱼码头', en: 'the fishing wharf' },
   informationAction: { id: 'assessment', place: 'council' },
   npcs: caNpcs,
   events: caEvents,
@@ -113,7 +115,7 @@ export const recipes = caRecipes;
 export const festivals = caFestivals;
 export const achievements = hooks.caAchievements;
 export const { nextStep } = hooks;
-export { caCharacters, caRules };
+export { caCharacters, caFurnishingNames, caRules };
 export {
   aipFee,
   assessedOn,
