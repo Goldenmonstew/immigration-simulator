@@ -160,9 +160,10 @@ export function actionDetails(state: AuState, action: AuActivity): void {
             `在 ImmiAccount 递交 191 香港偏远地区类别申请（申请费 ${aud(fee)}，SRC-200 ${locator}）`,
             `Lodge your 191 Hong Kong (Regional) application in ImmiAccount (charge ${aud(fee)}, SRC-200 ${locator})`,
           );
+    const from = auCharges.effectiveFrom.value;
     action.note = t(
-      '现实中签证在 ImmiAccount 网上递交，游戏放在服务中心的自助电脑上。费用按游戏日期适用的现行费率计，实际金额以递交当天的费表为准。',
-      'In real life visas are lodged online in ImmiAccount; the game puts the kiosk at the service centre. The charge uses the current rates; the actual amount follows the fee table on the day you lodge.',
+      `现实中签证在 ImmiAccount 网上递交，游戏放在服务中心的自助电脑上。费用按 ${from} 生效的费率估算，实际金额以递交当天的费表为准。`,
+      `In real life visas are lodged online in ImmiAccount; the game puts the kiosk at the service centre. The charge is estimated from the rates in force from ${from}; the actual amount follows the fee table on the day you lodge.`,
     );
     if (residencePending(state)) {
       action.label = t(
@@ -183,6 +184,11 @@ export function actionDetails(state: AuState, action: AuActivity): void {
       `在 myGov 报 ${span} 财年的税`,
       `Lodge your ${span} tax return on myGov`,
     );
+    if (state.timeline.pathway === 'AU-191-HK')
+      action.note = t(
+        '财年结束后可报上一财年的税。191 香港类别不看评税通知，报税只换来退税；退税金额是游戏设定。',
+        'Once a financial year ends you can lodge for it. The 191 Hong Kong (Regional) stream does not assess notices of assessment, so lodging only brings the refund, which is a game setting.',
+      );
   }
   if (action.id === 'swim' && state.quarter === 3)
     action.label = t('冬天下海游一圈（冷！）', 'A winter dip (cold!)');

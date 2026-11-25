@@ -373,3 +373,39 @@ test.each([
     ).toContain('settle');
   },
 );
+
+test('the tax and application notes follow each stream and the fee table date', () => {
+  const home = (id: 'nurse' | 'graduate') =>
+    au
+      .activities(
+        visit(
+          at(settle(au.newGame(id, 5, 'en')), '2026-09-01', 4),
+          'home',
+          480,
+        ),
+        'home',
+      )
+      .find((a) => a.id === 'tax-return')!;
+  const notices = `${auRegionalParameters.relevantAssessments.value} completed income years`;
+  expect(home('nurse').note?.en).toContain(notices);
+  // The Hong Kong stream does not assess notices of assessment.
+  const graduate = home('graduate').note!;
+  expect(graduate.en).not.toContain(notices);
+  expect(graduate.en).toContain('Hong Kong');
+  expect(graduate.zhCN).toContain('香港类别不看评税通知');
+  // The charge is the fee table in force from its effective date.
+  const start = settle(au.newGame('nurse', 5, 'en'));
+  Object.assign(start.timeline.publicInterest, {
+    health: 'cleared',
+    policeDocuments: 'supplied',
+  });
+  start.timeline.regional.assessmentYears = [2025, 2026, 2027];
+  const lodge = au
+    .activities(visit(at(start, '2027-12-01', 1), 'visa', 600), 'visa')
+    .find((a) => a.id === 'settle')!;
+  expect(lodge.note?.zhCN).toContain(
+    `按 ${auCharges.effectiveFrom.value} 生效的费率估算`,
+  );
+  expect(lodge.note?.en).toContain(auCharges.effectiveFrom.value);
+  expect(lodge.note?.zhCN).not.toContain('游戏日期适用的现行费率');
+});
