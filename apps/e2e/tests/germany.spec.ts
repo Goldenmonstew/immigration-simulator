@@ -205,6 +205,13 @@ test('Germany questionnaire, result, what-if comparison, share link, and saved s
   const receiver = await browser.newContext();
   try {
     const shared = await receiver.newPage();
+    // The receiver already has a draft of their own; the link must not replace it.
+    await shared.goto(path('simulate'));
+    await shared.locator('#de-route-R18').check();
+    const own = () =>
+      shared.evaluate(() => localStorage.getItem('de-immigration-draft-v1'));
+    await expect.poll(own).toContain('"R18"');
+    const before = await own();
     await shared.goto(shareUrl);
     await expect(
       shared.getByRole('main').getByText(zhCN['share.loaded'], { exact: true }),
@@ -212,6 +219,14 @@ test('Germany questionnaire, result, what-if comparison, share link, and saved s
     await expect(assessment(shared, zhCN)).toHaveText(originalText, {
       useInnerText: true,
     });
+    expect(await own()).toBe(before);
+    // Skipping to the main content keeps the shared scenario in the address.
+    const url = shared.url();
+    const skip = shared.getByRole('button', { name: zhCN['site.skip'] });
+    await skip.focus();
+    await skip.press('Enter');
+    await expect(shared.getByRole('main')).toBeFocused();
+    await expect(shared).toHaveURL(url);
   } finally {
     await receiver.close();
   }
