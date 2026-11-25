@@ -80,15 +80,22 @@ const festivalResults: Record<JpFestival, Text> = {
   ),
 };
 
+/** The approval fee as the engine assesses it for this filing date. */
+const prFee = (state: JpState) =>
+  pathwayOf(state.result, 'pr')?.checks.find(
+    (check) => check.id === 'jp.pr.approval-fee',
+  )?.fee?.amount ?? 0;
+
 export function actionAvailable(
   state: JpState,
   action: JpActivity,
   { affordable }: JpTools,
 ): boolean | undefined {
+  // The fee joins the effects only in actionDetails, after this check.
   if (action.id === 'settle')
     return (
       pathwayOf(state.result, 'pr')?.status === 'MET' &&
-      affordable(state, action.effects)
+      affordable(state, [{ type: 'money', delta: -prFee(state) }])
     );
   if (action.id === 'naturalise')
     return pathwayOf(state.result, 'nat')?.status === 'MET';
@@ -109,11 +116,7 @@ export function actionAvailable(
 
 export function actionDetails(state: JpState, action: JpActivity): void {
   if (action.id === 'settle') {
-    // The approval fee as the engine assesses it for this filing date.
-    const fee =
-      pathwayOf(state.result, 'pr')?.checks.find(
-        (check) => check.id === 'jp.pr.approval-fee',
-      )?.fee?.amount ?? 0;
+    const fee = prFee(state);
     action.label = t(
       `递交永住许可申请（获准时手续费 ${yen(fee)}，SRC-443）`,
       `Apply for permanent residence (fee on approval ${yen(fee)}, SRC-443)`,

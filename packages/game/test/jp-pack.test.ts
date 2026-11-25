@@ -191,6 +191,28 @@ test('settling uses the engine’s assessment and its fee for that filing date',
   );
 });
 
+test('the permanent residence application needs money for its fee', () => {
+  const state = settle(jp.newGame('engineer', 5, 'en'));
+  state.date = '2034-06-01';
+  state.timeline.permanentResidence.evidence.japaneseB1Confirmed = true;
+  Object.assign(jp.status(state), {
+    grantedPeriodMonths: values.longestPeriod.value.maximumMonths.engineer,
+    expiresOn: '2037-03-31',
+  });
+  state.result = jp.jpRules.evaluate(state);
+  expect(jp.pathwayOf(state.result, 'pr')?.status).toBe('MET');
+  const fee = values.fees.value.pr;
+  state.stats.money = fee - 1;
+  const short = visit(state, 'visa', 600);
+  expect(jp.activities(short, 'visa').map(({ id }) => id)).not.toContain(
+    'settle',
+  );
+  state.stats.money = fee;
+  const enough = visit(state, 'visa', 600);
+  expect(jp.activities(enough, 'visa').map(({ id }) => id)).toContain('settle');
+  expect(jp.doActivity(enough, 'settle').stats.money).toBe(0);
+});
+
 test('applying for naturalisation ends with the naturalisation text', () => {
   const state = settle(jp.newGame('engineer', 5, 'zh-CN'));
   state.date = '2034-06-01';
