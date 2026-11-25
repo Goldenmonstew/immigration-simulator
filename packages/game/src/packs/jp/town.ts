@@ -337,9 +337,11 @@ export const jpNotices: { id: string; text: Text; season?: Quarter }[] = [
   },
 ];
 
+const { deemedMonths, transitionOn } =
+  japanFull2026_11.values.longestPeriod.value;
 const renewalNote = t(
-  '游戏把这次续签当作按时递交并获准最长在留期间（SRC-440 別表第2）。现实中能否获准、何时可以提前递交及手续费，以入管公告为准；本游戏未收录续签手续费。',
-  'The game treats this as a timely renewal granted for the longest period of stay for your status (SRC-440, Appended Table II). Whether it is granted, how early you may file and the fee follow the Immigration Services Agency; this game does not charge a renewal fee.',
+  `游戏把这次更新当作按时递交并获准，新期间按 ${deemedMonths} 个月记录：永住指南在 ${transitionOn} 前把这一期间视为最长（SRC-114 第2の5(6) 注4）。实际批几年由入管决定，游戏无法预知；${transitionOn} 以后永住要求持有该资格的最长在留期间（SRC-440 別表第2），所以评估里这一项显示待确认，递交永住时由入管核对。本游戏未收录更新手续费与可提前递交的期间。`,
+  `The game treats this as a timely renewal that is granted, recorded as ${deemedMonths} months: the permanent residence guideline treats that period as the longest until ${transitionOn} (SRC-114 2-5(6) note 4). The immigration office decides the actual period, which the game cannot predict. After ${transitionOn}, permanent residence needs the longest period of stay for your status (SRC-440, Appended Table II), so the assessment shows that requirement as pending and the office checks it when you apply. This game does not charge a renewal fee or model how early you may file.`,
 );
 
 export const jpActions: Activity<JpEffect, JpFestival>[] = [
@@ -534,8 +536,8 @@ export const jpActions: Activity<JpEffect, JpFestival>[] = [
     id: 'extend',
     place: 'visa',
     label: t(
-      '办理在留期间更新（本情景预设获批）',
-      'Renew your period of stay (assumed granted in this scenario)',
+      `办理在留期间更新（本情景按获批 ${deemedMonths} 个月记录）`,
+      `Renew your period of stay (recorded as granted for ${deemedMonths} months in this scenario)`,
     ),
     note: renewalNote,
     minutes: b.minutes.paperwork,

@@ -1,3 +1,4 @@
+import { japanFull2026_11 } from '@uk-immigration/policy-data';
 import { addDays, addMonths, firstWeekday } from '../../calendar';
 import type { GameTools } from '../../content-pack';
 import type {
@@ -26,6 +27,7 @@ import { festivalFoods, jpFish, jpItems, jpNotices, jpPlaces } from './town';
 type JpTools = GameTools<JpTimeline, JpFullResult, JpEffect, JpFestival>;
 type JpActivity = Activity<JpEffect, JpFestival>;
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
+const { deemedMonths } = japanFull2026_11.values.longestPeriod.value;
 const yen = (value: number) => `¥${Math.round(value).toLocaleString('en-GB')}`;
 
 export const characterOf = (id: string) => {
@@ -96,6 +98,23 @@ const reportableToday = (state: JpState, minutes: number) =>
   wardHours.dayKinds!.includes(state.day.kind) &&
   state.day.minute + minutes + b.minutes.paperwork <= wardHours.closes;
 
+/**
+ * Only the longest period of stay is pending: the game cannot know what period
+ * a renewal is granted (see the renewal note), so the application can go in.
+ */
+function longestPending(state: JpState) {
+  const pathway = pathwayOf(state.result, 'pr');
+  return (
+    pathway?.status === 'UNKNOWN' &&
+    pathway.checks.every(
+      (check) =>
+        check.applicable === false ||
+        check.status === 'MET' ||
+        check.id === 'jp.pr.longest-period',
+    )
+  );
+}
+
 export function actionAvailable(
   state: JpState,
   action: JpActivity,
@@ -109,7 +128,8 @@ export function actionAvailable(
   // The fee joins the effects only in actionDetails, after this check.
   if (action.id === 'settle')
     return (
-      pathwayOf(state.result, 'pr')?.status === 'MET' &&
+      (pathwayOf(state.result, 'pr')?.status === 'MET' ||
+        longestPending(state)) &&
       affordable(state, [{ type: 'money', delta: -prFee(state) }])
     );
   if (action.id === 'naturalise')
@@ -136,6 +156,16 @@ export function actionDetails(state: JpState, action: JpActivity): void {
       `递交永住许可申请（获准时手续费 ${yen(fee)}，SRC-443）`,
       `Apply for permanent residence (fee on approval ${yen(fee)}, SRC-443)`,
     );
+    if (longestPending(state)) {
+      action.label = t(
+        `递交永住许可申请（获准时手续费 ${yen(fee)}，SRC-443；最长在留期间待入管确认）`,
+        `Apply for permanent residence (fee on approval ${yen(fee)}, SRC-443; longest period of stay pending with the immigration office)`,
+      );
+      action.note = t(
+        '评估里只剩"最长在留期间"待确认：游戏的续签不预设批几年，由入管在审查时核对。',
+        'Only the longest period of stay is pending in the assessment: the game does not assume how long a renewal is granted, and the office checks it during review.',
+      );
+    }
     action.effects = [{ type: 'money', delta: -fee }, ...action.effects];
   }
   if (action.id === 'exam') {
@@ -149,8 +179,8 @@ export function actionDetails(state: JpState, action: JpActivity): void {
   if (action.id === 'extend') {
     const current = status(state);
     action.label = t(
-      `办理在留期间更新（现期限 ${current.expiresOn}，本情景预设获批）`,
-      `Renew your period of stay (currently to ${current.expiresOn}; assumed granted in this scenario)`,
+      `办理在留期间更新（现期限 ${current.expiresOn}，本情景按获批 ${deemedMonths} 个月记录）`,
+      `Renew your period of stay (currently to ${current.expiresOn}; recorded as granted for ${deemedMonths} months in this scenario)`,
     );
   }
 }

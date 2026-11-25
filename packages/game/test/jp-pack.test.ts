@@ -90,20 +90,59 @@ test('the Japanese rules engine assesses each route and sets the progress bars',
   });
 });
 
-test('a renewal records the longest period of stay and lifts the visa warning', () => {
+test('a renewal keeps a three-year period and lifts the visa warning', () => {
   const start = settle(jp.newGame('engineer', 5, 'en'));
   expect(jp.visaMonthsLeft(start)).toBe(12);
   const office = visit(start, 'visa', 600);
-  expect(jp.activities(office, 'visa').map(({ id }) => id)).toEqual(['extend']);
+  const [extend] = jp.activities(office, 'visa');
+  expect(extend.id).toBe('extend');
+  expect(extend.note?.en).toContain('shows that requirement as pending');
   const renewed = jp.doActivity(office, 'extend');
-  const months = values.longestPeriod.value.maximumMonths.engineer;
+  const months = values.longestPeriod.value.deemedMonths;
+  expect(months).toBeLessThan(
+    values.longestPeriod.value.maximumMonths.engineer,
+  );
   expect(jp.status(renewed)).toMatchObject({
-    expiresOn: '2032-03-31',
+    expiresOn: '2030-03-31',
     grantedPeriodMonths: months,
   });
-  expect(renewed.log.at(-1)?.renewalValidTo).toBe('2032-03-31');
-  expect(jp.visaMonthsLeft(renewed)).toBe(72);
+  expect(renewed.log.at(-1)?.renewalValidTo).toBe('2030-03-31');
+  expect(jp.visaMonthsLeft(renewed)).toBe(48);
   expect(jp.activities(renewed, 'visa').map(({ id }) => id)).toEqual([]);
+});
+
+test('after the transition the longest period stays pending, and the application can still go in', () => {
+  const state = settle(jp.newGame('engineer', 5, 'en'));
+  state.date = '2034-06-01';
+  state.timeline.permanentResidence.evidence.japaneseB1Confirmed = true;
+  Object.assign(jp.status(state), {
+    grantedPeriodMonths: values.longestPeriod.value.deemedMonths,
+    expiresOn: '2036-03-31',
+  });
+  state.result = jp.jpRules.evaluate(state);
+  const pathway = jp.pathwayOf(state.result, 'pr')!;
+  expect(state.date > values.longestPeriod.value.transitionOn).toBe(true);
+  expect(pathway.status).toBe('UNKNOWN');
+  expect(
+    pathway.checks
+      .filter((check) => check.applicable !== false && check.status !== 'MET')
+      .map(({ id, status }) => [id, status]),
+  ).toEqual([['jp.pr.longest-period', 'UNKNOWN']]);
+  const office = visit(state, 'visa', 600);
+  const apply = jp
+    .activities(office, 'visa')
+    .find(({ id }) => id === 'settle')!;
+  expect(apply.label.en).toContain('longest period of stay pending');
+  expect(jp.doActivity(office, 'settle').ending).toBe('settled');
+
+  // Any other open question still keeps the window closed.
+  state.timeline.permanentResidence.evidence.addressNotices = [
+    { eventOn: '2034-05-20' },
+  ];
+  state.result = jp.jpRules.evaluate(state);
+  expect(
+    jp.activities(visit(state, 'visa', 600), 'visa').map(({ id }) => id),
+  ).not.toContain('settle');
 });
 
 const addressCheck = (state: State) =>

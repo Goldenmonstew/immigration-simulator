@@ -33,7 +33,7 @@ export type JpColumn = 'pr' | 'nat';
 export type JpOutcome = JpFullPathway['status'] | 'FUTURE';
 
 export type JpEffect =
-  /** Record the longest period for the current status, from its expiry. */
+  /** Record a renewal for the period the guideline treats as longest for now. */
   | { type: 'renewal' }
   /** The in-game language assessment, recorded as confirmed evidence. */
   | { type: 'japanese' }
@@ -155,11 +155,11 @@ export const jpRules: EvaluationAdapter<
     const nat = state.timeline.naturalisation.evidence;
     switch (effect.type) {
       case 'renewal': {
+        // The office decides the new period; the game records the period the
+        // guideline treats as longest until the transition (SRC-114 第2の5(6)
+        // 注4) and leaves the longest-period check to the engine.
         const current = status(state);
-        const months =
-          values.longestPeriod.value.maximumMonths[
-            current.kind as keyof typeof values.longestPeriod.value.maximumMonths
-          ];
+        const months = values.longestPeriod.value.deemedMonths;
         current.grantedPeriodMonths = months;
         current.expiresOn = addMonths(current.expiresOn!, months);
         setFlags(state, ['visa-renewed', 'quarter-visa-renewed']);
