@@ -215,16 +215,16 @@ const messages = {
     'Usually keep “An application for family permission or a change to independent Stamp 4”, also when you change to independent Stamp 4 at a family permission renewal. Change it only to check the first registration after being granted entry, or only the renewal of current family permission. Renewal checks only the ordinary renewal of current family permission, not the change to independent Stamp 4 or a family application. First registration checks only the first registration checklist and needs the ordinary family reunification, overseas de facto or direct registration as an Irish citizen’s spouse channel (the last is checked as a first registration even if you keep the default). These answers then count as met when blank, so answer them as they are: relationship to the sponsor (for independent Stamp 4 from family reunification, blank is checked as not de facto, without joint address).',
   ],
   'ie.hint.stamp5Stage': [
-    '选「续办」时改为核对续期清单与线上续期窗口，不再计算合格许可时间。此时 IRP 登记里的有效许可，以及本步的已获批、护照与 IRP 材料、遵守许可条件、就业或求职、最长出境月数未填写时都按「是」核对，请如实填写。',
-    'Choosing renewal checks the renewal checklist and online renewal window instead of the qualifying period. Blank answers on valid permission in the IRP section, and on the grant, passport and IRP evidence, compliance, work or job seeking and longest time abroad on this step, then count as “yes”, so answer them as they are.',
+    '选「续办」时改为核对续期清单与线上续期窗口，不再计算合格许可时间。此时下列题目未填写时按满足核对，请如实填写：IRP 登记的有效许可；已获批 Stamp 5；护照与 IRP 材料；遵守许可条件；品格（刑事记录与披露）；公帑负担；就业或积极求职；获批后单一年度最长出境月数。',
+    'Choosing renewal checks the renewal checklist and online renewal window instead of the qualifying period. These answers then count as met when blank, so answer them as they are: valid permission in the IRP section; Stamp 5 granted; passport and IRP evidence; compliance with permission conditions; character (criminal record and disclosure); burden on the State; working or seeking work; longest time abroad in a grant year.',
   ],
   'ie.hint.ltrStage': [
-    '选「续期」时改为核对续期清单与线上续期窗口。此时 IRP 登记里的有效许可、护照、住址与清单材料，以及本步的遵守许可条件、出境情况、就业或求职并在境内居住未填写时都按「是」核对，请如实填写。',
-    'Choosing renewal checks the renewal checklist and online renewal window instead. Blank answers on valid permission, passport, address and checklist documents in the IRP section, and on compliance, travel and working or seeking work while living in the State on this step, then count as “yes”, so answer them as they are.',
+    '选「续期」时改为核对续期清单与线上续期窗口。此时下列题目未填写时按满足核对，请如实填写：IRP 登记的有效许可；IRP 登记的护照；IRP 登记的住址；IRP 登记的清单材料；遵守许可条件；品格（刑事记录与披露）；公帑负担；出境情况（最长出境天数与是否在允许范围内）；主申请人持续就业或求职并在境内居住。',
+    'Choosing renewal checks the renewal checklist and online renewal window instead. These answers then count as met when blank, so answer them as they are: valid permission in the IRP section; passport in the IRP section; address in the IRP section; checklist documents in the IRP section; compliance with permission conditions; character (criminal record and disclosure); burden on the State; travel (most days abroad and whether within the limit); for the principal, working or seeking work and living in the State.',
   ],
   'ie.hint.treatyStage': [
-    '选「续期」时改为核对现有永久居留卡与线上续期窗口。此时 IRP 登记里的有效许可，以及本步的住址与身份变化通知、长期出境通知、公共政策与安全审查未填写时都按「是」核对，请如实填写。',
-    'Choosing renewal checks the current permanent residence card and the online renewal window instead. Blank answers on valid permission in the IRP section, and on address and status notices, prolonged absence notices and the public policy and security review on this step, then count as “yes”, so answer them as they are.',
+    '选「续期」时改为核对现有永久居留卡与线上续期窗口。此时下列题目未填写时按满足核对，请如实填写：IRP 登记的有效许可；住址与身份变化通知；长期出境通知；公共政策与安全审查。',
+    'Choosing renewal checks the current permanent residence card and the online renewal window instead. These answers then count as met when blank, so answer them as they are: valid permission in the IRP section; address and status notices; prolonged absence notices; public policy and security review.',
   ],
   'ie.hint.minor': [
     '申请人未满 18 岁时填写。Irish associations 与境外公共服务路径只问是否由获授权者代为申请。',

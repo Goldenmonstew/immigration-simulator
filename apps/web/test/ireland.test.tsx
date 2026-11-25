@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import {
   IRELAND_CONDITION_IDS,
   evaluateIrelandFull,
+  type IrelandFullPathwayId,
 } from '@uk-immigration/engine';
 import IrelandPage from '../app/ireland/page';
 import IrelandPolicyPage from '../app/ireland/policy/page';
@@ -23,11 +24,13 @@ import {
   activeIrelandAnswers,
   irelandRequest,
   irelandSteps,
+  shownField,
   type IrelandDraft,
 } from '../lib/ireland-draft';
 import {
   familySections,
   topFields,
+  type IrelandField,
   type IrelandFields,
 } from '../lib/ireland-fields';
 import { irelandModule as ie } from '../lib/ireland-module';
@@ -862,149 +865,438 @@ test('the family step asks what to assess, and a renewal answer does not replace
   );
 });
 
-test('renewal hints name only the answers the engine reads as yes when blank', () => {
-  // The pathway status and the checks that decide it.
-  const statuses = (draft: IrelandDraft, id: string) => {
-    const route = pathway(draft, id);
-    return [
-      route.status,
-      ...route.checks
-        .filter((c) => c.kind === 'requirement')
-        .map((c) => `${c.id} ${c.status}`),
-    ];
-  };
-  const bare = {
-    basis: 'required',
-    irpExpiresOn: '2027-01-31',
-    registrationDate: day,
-    feeExemption: 'none',
-    feePrepared: true,
-  } as const;
-  const said = (key: TranslationKey) =>
-    [t(key, 'zh-CN').includes('按「是」'), t(key, 'en').includes('“yes”')];
-
-  // Stamp 5 renewal: valid permission, grant, passport and IRP evidence,
-  // compliance, work efforts and time abroad.
-  const stamp5 = (yes: boolean): IrelandDraft => ({
-    ...workDraft,
-    pathways: ['IE-STAMP5'],
-    stamp5Stage: 'renewal',
-    permissions: [{ kind: 'stamp5', from: '2024-01-01' }],
-    registration: {
-      ...bare,
-      checklistComplete: true,
-      ...(yes ? { validPermission: true } : {}),
-    },
-    stamp5: yes
-      ? {
-          grantReceived: true,
-          passportAndIrpEvidence: true,
-          termsComplied: true,
-          employmentEfforts: true,
-          longestAnnualAbsenceMonths: 0,
-        }
-      : {},
+// Leaf questions and innermost groups shown for one pathway, as draft paths.
+type Unit = { path: string[]; field: IrelandField };
+function units(
+  fields: IrelandFields,
+  draft: IrelandDraft,
+  path: string[] = [],
+): Unit[] {
+  return Object.entries(fields).flatMap(([name, field]): Unit[] => {
+    if (!shownField(field, draft)) return [];
+    const at = [...path, name];
+    if (field.type === 'group') {
+      const inner = units(field.fields, draft, at);
+      return Object.values(field.fields).some((f) => f.type === 'group')
+        ? inner
+        : [{ path: at, field }, ...inner];
+    }
+    return ['boolean', 'choice', 'date', 'integer', 'number'].includes(
+      field.type,
+    )
+      ? [{ path: at, field }]
+      : [];
   });
-  expect(statuses(stamp5(false), 'IE-STAMP5')).toContain('IE-B28 MET');
-  expect(statuses(stamp5(false), 'IE-STAMP5')).toEqual(
-    statuses(stamp5(true), 'IE-STAMP5'),
+}
+const answerAt = (draft: IrelandDraft, path: string[]) =>
+  path.reduce<unknown>(
+    (value, key) => (value as Record<string, unknown> | undefined)?.[key],
+    draft,
   );
-  expect(topFields.stamp5Stage.hint).toBe('stamp5Stage');
-  expect(said('ie.hint.stamp5Stage')).toEqual([true, true]);
+function withAnswer(
+  draft: IrelandDraft,
+  path: string[],
+  value: unknown,
+): IrelandDraft {
+  const copy = structuredClone(draft) as unknown as Record<string, unknown>;
+  let record = copy;
+  for (const key of path.slice(0, -1))
+    record = (record[key] ??= {}) as Record<string, unknown>;
+  if (value === undefined) delete record[path.at(-1)!];
+  else record[path.at(-1)!] = value;
+  return copy as unknown as IrelandDraft;
+}
+const within = (outer: string[], inner: string[]) =>
+  outer.every((key, i) => inner[i] === key);
 
-  // LTR renewal: the IRP answers, compliance, travel and work or residence.
-  const ltr = (yes: boolean): IrelandDraft => ({
-    ...workDraft,
-    pathways: ['IE-LTR-PRINCIPAL'],
-    ltrStage: 'renewal',
-    permissions: [{ kind: 'stamp4', from: '2020-01-01' }],
-    registration: yes
-      ? {
-          ...bare,
-          validPermission: true,
-          passportValid: true,
-          addressCurrent: true,
-          checklistComplete: true,
-        }
-      : bare,
-    ltr: {
-      validPermission: true,
-      ...(yes ? { termsComplied: true } : {}),
-      maintenance: {
-        previousGrantYearsEvidence: true,
-        ...(yes
-          ? {
-              largestCalendarYearAbsenceDays: 0,
-              tripsPermittedOrExceptionConfirmed: true,
-              workEffortsAndResidence: true,
-            }
-          : {}),
-      },
-    },
-  });
-  expect(statuses(ltr(false), 'IE-LTR-PRINCIPAL')).toEqual(
-    expect.arrayContaining(['IE-C04 MET', 'IE-C08 MET']),
-  );
-  expect(statuses(ltr(false), 'IE-LTR-PRINCIPAL')).toEqual(
-    statuses(ltr(true), 'IE-LTR-PRINCIPAL'),
-  );
-  expect(topFields.ltrStage.hint).toBe('ltrStage');
-  expect(said('ie.hint.ltrStage')).toEqual([true, true]);
-
-  // EU and WA card renewal: valid permission, notices and public review.
-  for (const [id, key, stageKey] of [
-    ['IE-EU-PERMANENT', 'eu', 'euStage'],
-    ['IE-WA-PERMANENT', 'wa', 'waStage'],
-  ] as const) {
-    const treaty = (yes: boolean): IrelandDraft => ({
-      ...workDraft,
-      pathways: [id],
-      [stageKey]: 'renewal',
-      registration: yes ? { ...bare, validPermission: true } : bare,
-      [key]: {
-        role: 'family',
-        nonEuFamily: true,
-        document: {
-          inState: true,
-          currentCardCategory: 'permanent',
-          identityAndResidenceEvidence: true,
-          ...(yes
-            ? {
-                addressAndStatusNotified: true,
-                prolongedAbsenceNotified: true,
-                publicInterest: 'clear',
-              }
-            : {}),
-        },
-      },
+test(
+  'stage hints list exactly the answers the engine reads as met when blank',
+  () => {
+    // Every answer the hint names, as dotted draft paths (review99-2 problem 2).
+    type Item = {
+      zh: string;
+      en: string;
+      paths: string[][];
+      only?: IrelandFullPathwayId[];
+      /** Only for this answer to the stage question. */
+      when?: 'first' | 'renewal';
+    };
+    const item = (
+      zh: string,
+      en: string,
+      paths: string[],
+      only?: IrelandFullPathwayId[],
+      when?: Item['when'],
+    ): Item => ({
+      zh,
+      en,
+      paths: paths.map((path) => path.split('.')),
+      only,
+      when,
     });
-    expect(statuses(treaty(false), id)).toEqual(statuses(treaty(true), id));
-    expect(topFields[stageKey].hint).toBe('treatyStage');
-  }
-  expect(said('ie.hint.treatyStage')).toEqual([true, true]);
-
-  // A work permission renewal reads nothing as yes, so its hint says nothing.
-  const work = (yes: boolean): IrelandDraft => ({
-    ...workDraft,
-    workStage: 'renewal',
-    registration: yes
-      ? {
-          ...bare,
-          validPermission: true,
-          passportValid: true,
-          addressCurrent: true,
-          checklistComplete: true,
+    const validIrp = item(
+      'IRP 登记的有效许可',
+      'valid permission in the IRP section',
+      ['registration.validPermission'],
+    );
+    const shared = (group: string) => [
+      item('遵守许可条件', 'compliance with permission conditions', [
+        `${group}.termsComplied`,
+      ]),
+      item(
+        '品格（刑事记录与披露）',
+        'character (criminal record and disclosure)',
+        [`${group}.character`],
+      ),
+      item('公帑负担', 'burden on the State', [`${group}.burden`]),
+    ];
+    const treatyItems = (group: string, id: IrelandFullPathwayId) => [
+      item(
+        '住址与身份变化通知',
+        'address and status notices',
+        [`${group}.document.addressAndStatusNotified`],
+        [id],
+      ),
+      item(
+        '长期出境通知',
+        'prolonged absence notices',
+        [`${group}.document.prolongedAbsenceNotified`],
+        [id],
+      ),
+      item(
+        '公共政策与安全审查',
+        'public policy and security review',
+        [`${group}.document.publicInterest`],
+        [id],
+      ),
+    ];
+    const listed: Record<string, Item[]> = {
+      stamp5Stage: [
+        validIrp,
+        item('已获批 Stamp 5', 'Stamp 5 granted', ['stamp5.grantReceived']),
+        item('护照与 IRP 材料', 'passport and IRP evidence', [
+          'stamp5.passportAndIrpEvidence',
+        ]),
+        ...shared('stamp5'),
+        item('就业或积极求职', 'working or seeking work', [
+          'stamp5.employmentEfforts',
+        ]),
+        item(
+          '获批后单一年度最长出境月数',
+          'longest time abroad in a grant year',
+          ['stamp5.longestAnnualAbsenceMonths'],
+        ),
+      ],
+      ltrStage: [
+        validIrp,
+        item('IRP 登记的护照', 'passport in the IRP section', [
+          'registration.passportValid',
+        ]),
+        item('IRP 登记的住址', 'address in the IRP section', [
+          'registration.addressCurrent',
+        ]),
+        item('IRP 登记的清单材料', 'checklist documents in the IRP section', [
+          'registration.checklistComplete',
+        ]),
+        ...shared('ltr'),
+        item(
+          '出境情况（最长出境天数与是否在允许范围内）',
+          'travel (most days abroad and whether within the limit)',
+          [
+            'ltr.maintenance.largestCalendarYearAbsenceDays',
+            'ltr.maintenance.tripsPermittedOrExceptionConfirmed',
+          ],
+        ),
+        item(
+          '主申请人持续就业或求职并在境内居住',
+          'for the principal, working or seeking work and living in the State',
+          ['ltr.maintenance.workEffortsAndResidence'],
+          ['IE-LTR-PRINCIPAL'],
+        ),
+      ],
+      treatyStage: [
+        validIrp,
+        ...treatyItems('eu', 'IE-EU-PERMANENT'),
+        ...treatyItems('wa', 'IE-WA-PERMANENT'),
+      ],
+      workStage: [],
+      familyStage: [
+        item(
+          '与担保人的关系（家庭团聚转独立 Stamp 4 未填时按非 de facto 核对，不查共同住址）',
+          'relationship to the sponsor (for independent Stamp 4 from family reunification, blank is checked as not de facto, without joint address)',
+          ['family.relationship'],
+          ['IE-STAMP4-INDEPENDENT-FAMILY'],
+          'first',
+        ),
+      ],
+    };
+    // Drafts that answer every question the stage reads favourably.
+    const irp = {
+      basis: 'required',
+      irpExpiresOn: '2026-12-31',
+      validPermission: true,
+      passportValid: true,
+      addressCurrent: true,
+      checklistComplete: true,
+      registrationDate: day,
+      feeExemption: 'none',
+      feePrepared: true,
+    } as const;
+    const base: IrelandDraft = {
+      version: 1,
+      step: 0,
+      completed: true,
+      simulationDate: day,
+      pathways: [],
+      dateOfBirth: '1980-01-01',
+      birthplace: 'elsewhere',
+      currentLocation: 'state',
+      permissions: [{ kind: 'stamp4', from: '2015-01-01' }],
+      trips: [],
+      registration: irp,
+    };
+    const ltr = {
+      validPermission: true,
+      termsComplied: true,
+      character: good,
+      burden: { benefit: 'none' },
+      family: { eligibleDependentRelationship: true, principalHoldsLtr: true },
+      maintenance: {
+        largestCalendarYearAbsenceDays: 0,
+        tripsPermittedOrExceptionConfirmed: true,
+        workEffortsAndResidence: true,
+        previousGrantYearsEvidence: true,
+      },
+    } as const;
+    const treaty = {
+      role: 'family',
+      nonEuFamily: true,
+      document: {
+        inState: true,
+        currentCardCategory: 'permanent',
+        identityAndResidenceEvidence: true,
+        addressAndStatusNotified: true,
+        prolongedAbsenceNotified: true,
+        publicInterest: 'clear',
+      },
+    } as const;
+    const work: Partial<IrelandDraft> = {
+      permissions: [{ kind: 'stamp1-csep', from: '2025-05-20' }],
+    };
+    const spouse = {
+      relationship: 'spouse',
+      sponsorIrish: false,
+      establishedFamilyPermission: true,
+      application: {
+        familyEvidenceComplete: true,
+        channel: 'ordinary',
+        entryOrConversionValid: true,
+      },
+    } as const;
+    const irishPartner = {
+      relationship: 'de-facto',
+      sponsorIrish: true,
+      establishedFamilyPermission: true,
+      livingTogether: true,
+      application: {
+        familyEvidenceComplete: true,
+        addressEvidence: true,
+        channel: 'de-facto-overseas',
+        entryOrConversionValid: true,
+      },
+    } as const;
+    const cases: [string, IrelandFullPathwayId, Partial<IrelandDraft>][] = [
+      [
+        'stamp5Stage',
+        'IE-STAMP5',
+        {
+          stamp5Stage: 'renewal',
+          permissions: [{ kind: 'stamp5', from: '2020-01-01' }],
+          stamp5: {
+            grantReceived: true,
+            passportAndIrpEvidence: true,
+            termsComplied: true,
+            character: good,
+            burden: { benefit: 'none' },
+            employmentEfforts: true,
+            longestAnnualAbsenceMonths: 1,
+          },
+        },
+      ],
+      ['ltrStage', 'IE-LTR-PRINCIPAL', { ltrStage: 'renewal', ltr }],
+      ['ltrStage', 'IE-LTR-FAMILY', { ltrStage: 'renewal', ltr }],
+      ['treatyStage', 'IE-EU-PERMANENT', { euStage: 'renewal', eu: treaty }],
+      ['treatyStage', 'IE-WA-PERMANENT', { waStage: 'renewal', wa: treaty }],
+      ['workStage', 'IE-STAMP4-21', { ...work, workStage: 'renewal' }],
+      ['workStage', 'IE-STAMP4-21', { ...work, workStage: 'first' }],
+      [
+        'familyStage',
+        'IE-STAMP4-INDEPENDENT-FAMILY',
+        { familyStage: 'renewal', family: spouse },
+      ],
+      [
+        'familyStage',
+        'IE-STAMP4-INDEPENDENT-FAMILY',
+        { familyStage: 'first', family: spouse },
+      ],
+      [
+        'familyStage',
+        'IE-STAMP4-IRISH-FAMILY',
+        { familyStage: 'renewal', family: irishPartner },
+      ],
+      [
+        'familyStage',
+        'IE-STAMP4-IRISH-FAMILY',
+        { familyStage: 'first', family: irishPartner },
+      ],
+    ];
+    const stageKeys = [
+      'workStage',
+      'familyStage',
+      'stamp5Stage',
+      'ltrStage',
+      'euStage',
+      'waStage',
+    ];
+    const problems: string[] = [];
+    for (const [hint, id, answers] of cases) {
+      const draft: IrelandDraft = { ...base, ...answers, pathways: [id] };
+      // The pathway status and date, and the deciding checks not yet met.
+      const seen = new Map<string, string>();
+      const outcome = (next: IrelandDraft) => {
+        const key = JSON.stringify(next);
+        if (!seen.has(key)) {
+          const route = pathway(next, id);
+          seen.set(
+            key,
+            JSON.stringify([
+              route.status,
+              route.earliestDate,
+              ...route.checks
+                .filter(
+                  (c) =>
+                    (c.kind === 'requirement' || c.kind === 'time') &&
+                    c.status !== 'MET',
+                )
+                .map((c) => `${c.id} ${c.status}`),
+            ]),
+          );
         }
-      : bare,
-  });
-  expect(statuses(work(false), 'IE-STAMP4-21')).toEqual(
-    expect.arrayContaining(['IE-IRP-CHECKLIST UNKNOWN', 'IE-B01 UNKNOWN']),
-  );
-  expect(statuses(work(true), 'IE-STAMP4-21')).toEqual(
-    expect.arrayContaining(['IE-IRP-CHECKLIST MET', 'IE-B01 MET']),
-  );
-  expect(said('ie.hint.workStage')).toEqual([false, false]);
-});
+        return seen.get(key)!;
+      };
+      const before = outcome(draft);
+      const blank = (paths: string[][]) =>
+        outcome(
+          paths.reduce(
+            (next, path) => withAnswer(next, path, undefined),
+            draft,
+          ),
+        );
+      // Questions in groups the draft answers (a new group needs its starred
+      // questions first).
+      const shown = units(topFields, draft).filter(
+        ({ path }) =>
+          path[0] !== 'simulationDate' &&
+          !stageKeys.includes(path[0]) &&
+          (path.length === 1 ||
+            answerAt(draft, path.slice(0, -1)) !== undefined),
+      );
+      const leaves = shown.filter(({ field }) => field.type !== 'group');
+      // An answer is read when another answer to it changes the result.
+      const read = ({ path, field }: Unit) =>
+        field.type === 'boolean'
+          ? outcome(withAnswer(draft, path, true)) !==
+            outcome(withAnswer(draft, path, false))
+          : (field.type === 'choice'
+              ? field.options
+              : field.type === 'date'
+                ? ['2000-01-01', day, '2040-01-01']
+                : [0, 1000]
+            ).some(
+              (value) => outcome(withAnswer(draft, path, value)) !== before,
+            );
+      const stageAnswer = stageKeys
+        .map((key) => answers[key as keyof IrelandDraft])
+        .find(Boolean);
+      const items = listed[hint].filter(
+        (item) =>
+          (!item.only || item.only.includes(id)) &&
+          (!item.when || item.when === stageAnswer),
+      );
+      // Where you are falls back to the treaty document's own answer.
+      const fallback: Record<string, string[]> = {
+        currentLocation: [
+          id === 'IE-WA-PERMANENT' ? 'wa' : 'eu',
+          'document',
+          'inState',
+        ],
+      };
+      for (const { path, field } of shown) {
+        // A choice whose blank option names its meaning is not a hidden "yes".
+        if (field.blank) continue;
+        const other = fallback[path.join('.')];
+        if (
+          other &&
+          answerAt(draft, other) !== undefined &&
+          blank([path, other]) !== before
+        )
+          continue;
+        const asMet =
+          field.type === 'group'
+            ? answerAt(draft, path) !== undefined &&
+              blank([path]) === before &&
+              leaves.some((leaf) => within(path, leaf.path) && read(leaf))
+            : field.type === 'boolean'
+              ? read({ path, field }) &&
+                blank([path]) === outcome(withAnswer(draft, path, true))
+              : answerAt(draft, path) !== undefined &&
+                blank([path]) === before &&
+                read({ path, field });
+        if (
+          asMet &&
+          !items.some((item) => item.paths.some((p) => within(p, path)))
+        )
+          problems.push(`${id} ${hint}: ${path.join('.')} is met when blank`);
+      }
+      for (const item of items) {
+        if (blank(item.paths) !== before)
+          problems.push(`${id} ${hint}: ${item.zh} is not met when blank`);
+        if (
+          !leaves.some(
+            (leaf) =>
+              item.paths.some((p) => within(p, leaf.path)) && read(leaf),
+          )
+        )
+          problems.push(`${id} ${hint}: ${item.zh} is not read`);
+      }
+    }
+    expect(problems).toEqual([]);
+    // The hint lists the items after its colon, separated by semicolons.
+    for (const [hint, items] of Object.entries(listed)) {
+      const zh = t(`ie.hint.${hint}` as TranslationKey, 'zh-CN');
+      const en = t(`ie.hint.${hint}` as TranslationKey, 'en');
+      const names = [...new Map(items.map((item) => [item.zh, item])).values()];
+      if (!names.length) {
+        expect(zh, hint).not.toContain('按满足核对');
+        expect(en, hint).not.toContain('count as met');
+        continue;
+      }
+      expect(zh.slice(zh.lastIndexOf('：') + 1, -1).split('；'), hint).toEqual(
+        names.map((item) => item.zh),
+      );
+      expect(en.slice(en.lastIndexOf(': ') + 2, -1).split('; '), hint).toEqual(
+        names.map((item) => item.en),
+      );
+    }
+    expect(topFields.workStage.hint).toBe('workStage');
+    expect(topFields.familyStage.hint).toBe('familyStage');
+    expect(topFields.stamp5Stage.hint).toBe('stamp5Stage');
+    expect(topFields.ltrStage.hint).toBe('ltrStage');
+    expect(topFields.euStage.hint).toBe('treatyStage');
+    expect(topFields.waStage.hint).toBe('treatyStage');
+  },
+  slow,
+);
 
 test('the legacy Stamp 1G clock and other checks that do not decide a pathway stay out of the gaps', () => {
   const draft: IrelandDraft = {
