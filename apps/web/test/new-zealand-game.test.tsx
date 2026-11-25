@@ -149,6 +149,20 @@ test('the immigration office notes the travel conditions and the PRV date', () =
   });
 });
 
+test('the travel conditions end on their own day, mid-quarter', () => {
+  let state = settle(nz.newGame('nurse', 4, 'en'));
+  state.timeline.travelConditionsEnd = '2026-03-15';
+  expect(nzCountry.visaStatus(state).validTo).toBe('2026-03-15');
+  for (let i = 0; i < 8 && state.day.kind !== 'special'; i++)
+    state = settle(nz.sleep(settle(state)));
+  // The Pasifika festival on 2026-03-21, after the conditions ended.
+  expect([state.date, state.day.date]).toEqual(['2026-03-01', '2026-03-21']);
+  expect(nzCountry.visaStatus(state)).toEqual({ months: 0, renewed: false });
+  expect(nzCountry.placeNote!(state, 'visa')?.en).toContain(
+    'Your travel conditions ended on 2026-03-15.',
+  );
+});
+
 test('every item, character and townsperson has existing art', () => {
   const art = (path: string) =>
     existsSync(new URL(`../public${path}`, import.meta.url));

@@ -37,6 +37,15 @@ function visit(state: State, place: string, minute: number) {
   return settle(nz.enter(state, place));
 }
 
+/** Jump to a later quarter, its assessment and its playable workday. */
+function jump(from: State, date: string, day: string) {
+  const state = structuredClone(from);
+  state.date = date;
+  state.day = { ...state.day, date: day, minute: 540, done: [] };
+  state.result = nz.nzRules.evaluate(state);
+  return state;
+}
+
 test('each character opens on their own autumn morning with a resident visa', () => {
   const nurse = nz.newGame('nurse', 5, 'en');
   expect(nz.currentEvent(nurse)?.id).toBe('opening-nurse');
@@ -158,10 +167,24 @@ test('trips must be back before the travel conditions end', () => {
   ]);
 });
 
-test('a permanent resident visa application uses the engine assessment and the reference fee', () => {
+test('the travel conditions count down from the day being played', () => {
   const state = settle(nz.newGame('nurse', 5, 'en'));
-  state.date = '2027-09-01';
-  state.result = nz.nzRules.evaluate(state);
+  expect([state.date, state.day.date]).toEqual(['2026-03-01', '2026-03-10']);
+  // A month from the quarter's start, but less than one from today.
+  state.timeline.travelConditionsEnd = '2026-04-05';
+  expect(nz.visaMonthsLeft(state)).toBe(0);
+  state.timeline.travelConditionsEnd = '2026-04-10';
+  expect(nz.visaMonthsLeft(state)).toBe(1);
+  state.timeline.travelConditionsEnd = '2026-03-05';
+  expect(nz.visaMonthsLeft(state)).toBe(0);
+});
+
+test('a permanent resident visa application uses the engine assessment and the reference fee', () => {
+  const state = jump(
+    settle(nz.newGame('nurse', 5, 'en')),
+    '2027-09-01',
+    '2027-09-14',
+  );
   expect(nz.pathwayOf(state.result, 'prv')?.status).toBe('MET');
   expect(
     evaluateNewZealandFull({
@@ -191,9 +214,11 @@ const granted = /获批|批下来|宣誓|granted|oath/i;
 test.each(['nurse', 'partner'])(
   'the %s’s permanent resident visa ending records a lodged application',
   (id) => {
-    const state = settle(nz.newGame(id, 5, 'en'));
-    state.date = '2028-03-01';
-    state.result = nz.nzRules.evaluate(state);
+    const state = jump(
+      settle(nz.newGame(id, 5, 'en')),
+      '2028-03-01',
+      '2028-03-14',
+    );
     const ended = nz.doActivity(visit(state, 'visa', 600), 'settle');
     expect(ended.ending).toBe('settled');
     const text = nz.narrative(ended).at(-1)!;

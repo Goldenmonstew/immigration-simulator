@@ -37,12 +37,13 @@ export const pathwayOf = (result: CountryResult, column: NzColumn) =>
 export const travelEnd = (state: { timeline: NzTimeline }) =>
   state.timeline.travelConditionsEnd;
 
-/** Months to the end of the travel conditions, rounded down. */
+/** Months from the day being played to the end of the travel conditions. */
 function visaMonthsLeft(state: NzState): number {
   const to = travelEnd(state);
-  if (to < state.date) return 0;
+  const today = state.day.date;
+  if (to < today) return 0;
   let months = 0;
-  while (addMonths(state.date, months + 1) <= to) months++;
+  while (addMonths(today, months + 1) <= to) months++;
   return months;
 }
 

@@ -128,12 +128,13 @@ export const nzCountry: GameCountry<NzKinds> = {
       .map((check) => check.title);
     return titles?.length ? [...new Set(titles)] : undefined;
   },
+  // Valid or ended as of the day being played, not the quarter's start.
   visaStatus: (state) => {
     const end = nzGame.travelEnd(state);
     return {
       months: nzGame.visaMonthsLeft(state),
       renewed: false,
-      ...(end >= state.date && { validTo: end }),
+      ...(end >= state.day.date && { validTo: end }),
     };
   },
   absences: (state) =>
@@ -195,7 +196,7 @@ export const nzCountry: GameCountry<NzKinds> = {
     if (place !== 'visa') return;
     const end = nzGame.travelEnd(state);
     const travel =
-      end >= state.date
+      end >= state.day.date
         ? say('nz.game.travelUntil', { date: end })
         : say('nz.game.travelEnded', { date: end });
     const prv = nzGame.progress(state).prv;
