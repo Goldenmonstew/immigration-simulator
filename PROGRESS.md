@@ -686,3 +686,4 @@
 | 619.12 | 任务 96 接入共用选项：美国检查项按共用 `kind` 分组：`US-TIME-*` 为时间条件，C44／C45 费用为费用预算，引擎标 `informational` 的为办理提示，其余为申请条件；“还差什么”只列申请条件与时间条件。宣誓（C12）是 N-400 上就问的核准条件，不作批准后事项；引擎没有“满足其一即可”的分列检查，不设可选依据。 | apps/web/{lib/united-states-module.ts,test/united-states.test.tsx} |
 | 619.13 | 任务 96 接入共用选项：美国政策页用 `displayParameter` 按含义展示嵌套参数：英语豁免为“年龄下限／永居年数下限”表，指定敌对期为“开始日／结束日”表，H.R. 1 与 EB-5 费率按生效日前后分列，费用表金额带 USD、递交渠道写纸质／网上递交，INA 212(a) 款项列表写全款号；贫困线年份按共用规则显示 2026。 | apps/web/{lib/united-states-policy.ts,i18n/countries/united-states.ts,test/united-states.test.tsx} |
 | 619.14 | 任务 96 接入共用选项：美国结果明细里的 USD 金额按语言加千分位（如 USD 1,440），做法同日本 `formatCheckAmounts`。 | apps/web/{lib/united-states-module.ts,test/united-states.test.tsx} |
+| 619.15 | 任务 96 合入 main 与共用选项接入：报告补“合入 main 与共用选项接入”一节，逐条对应问题 9、风险 6、建议 3 与问题 6 的日期标签，列出先失败后通过的回归测试、完整验收与 e2e 结果。 | docs/tasks/reports/96-us-pages.md |

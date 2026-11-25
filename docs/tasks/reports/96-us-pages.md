@@ -172,3 +172,58 @@
 - `focusForRule` 只拿到条件 id 与路径 id，无法按草稿判断旋钮是否存在；若共用接口传入草稿，返美路径没有行程时可以直接不出链接。
 - 引擎在未接受按比例核算时，首年仍从优先日起核对，并跳过优先日前结束的记录（`annualPay`），页面只能靠校验挡住部分年度的净收入。若引擎在结论不是“已确认符合”时首年改从 1 月 1 日核对，页面校验可以放宽。
 - 结果明细里的金额（如 `USD 1440`）可在本国模块按日本 `formatCheckAmounts` 的做法分组，与共用千分位修正一并处理。
+
+## 合入 main 与共用选项接入
+
+对应 brief 96c：合入 main（澳大利亚完整版页面 #81），按 93 号报告“其他国家怎么接入这次的共用改动”一表接入共用选项，并逐条处理上节第 3 段标为“待任务 93 的共用修正合入后解决”的 4 条。
+
+### 1. 做了什么（按 commit）
+
+| 进度 | commit message | 对应条目 | 文件（相对 `apps/web/`，另注明者除外） |
+|---|---|---|---|
+| — | `Merge: 合入 main（澳大利亚完整版页面 #81）` | 问题 9 | 共用 `components/policy-page.tsx` 取 main 的版本；`lib/site-countries.ts`、`i18n/{zh-CN,en}.ts` 两边登记取并集；`public/sw.js` 与 `test/about-page.test.tsx` 缓存版本改为 `2026-11-25-us`；`PROGRESS.md` 两边的行都保留 |
+| 619.10 | `Fix: 美国分享链接不覆盖本机草稿，跳到正文不洗掉场景片段` | 风险 6 | `lib/united-states-module.ts`、`components/site-shell.tsx`、`test/united-states.test.tsx` |
+| 619.11 | `Fix: 美国返美路径的结果日期标为计划返美日` | 问题 6 的日期标签 | `lib/{country-module,united-states-module}.ts`、`components/{gap-summary,whatif-lab}.tsx`、`i18n/countries/united-states.ts`、`test/united-states.test.tsx` |
+| 619.12 | `Fix: 美国检查项分为时间条件、申请条件、费用预算与办理提示` | brief 的检查项 `kind` | `lib/united-states-module.ts`、`test/united-states.test.tsx` |
+| 619.13 | `Fix: 美国政策页按含义展示嵌套参数` | brief 的嵌套参数，建议 3（年份） | `lib/united-states-policy.ts`、`i18n/countries/united-states.ts`、`test/united-states.test.tsx` |
+| 619.14 | `Fix: 美国结果明细金额按千分位显示` | 建议 3（金额） | `lib/united-states-module.ts`、`test/united-states.test.tsx` |
+| 619.15 | `Docs: 任务 96 合入 main 与共用选项接入报告` | — | 本节 |
+
+合并提交没有单独的进度行；其余每个 commit 带 `PROGRESS.md` 对应行。全部 commit 尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`，未 push。合入后 `origin/main` 没有新的提交。
+
+原标为待处理的 4 条：
+
+- **问题 9**（`PolicyPage` 未传 `id` 时标题为空）：main 的 `PolicyPage` 在没有 `country.id`、或该国未登记 `<国家>.policy.pageTitle` 时回退到 `policyPage.title`（93 号报告问题 8）。合并时取 main 的版本即解决，main 带来的 `test/country-views.test.tsx` 回退用例通过。美国登记了 `us.policy.pageTitle`，标题仍为“美国政策依据”。
+- **风险 6**（打开美国分享链接覆盖本机草稿）：美国模块设 `scenarioLinks: true`。分享链接带 `#s=`，结果页去编辑与对比的链接带 `#draft=` 场景片段；本机已有草稿时，打开分享链接不覆盖它。`site-shell.tsx` 的场景路径判断加入美国的问卷、结果与对比页，“跳到主要内容”在这三页改为移焦，不洗掉片段。
+- **建议 3**（政策页年份 `2,026`、结果页金额千分位）：年份按 main 的字段语义规则自动生效，贫困线参数的键名是 `year`，显示 2026。结果明细的金额由本国 `run` 处理：说明中的 `USD 1440` 一类按语言分组为 `USD 1,440`，做法同日本 `formatCheckAmounts`；其他数字不动。
+- **问题 6 的日期标签**（返美路径 `FUTURE` 时“还差什么”写“最早可申请日期（推算）”）：美国 9 条路径中只有 `US-TRAVEL` 的日期是计划返美日，其余仍是最早递交日；main 的 `earliestLabel` 只能给整个国家设一个标签。所以共用 `earliestLabel` 放宽为“一个键，或按路径 id 的键表”，由新的 `earliestLabelFor` 取值，结果页事实表、“还差什么”与对比页都改读它。美国设 `earliestLabel: { 'US-TRAVEL': 'us.result.returnDate' }`（“计划返美日”／“Planned return date”）。澳大利亚仍传单个键，行为不变；未设置的国家与路径仍显示“最早可申请日期（推算）”。标签已写明日期含义，摘要里原先补的“计划返美日：{date}。”一句删去；已返美（非 `FUTURE`）时不显示日期。
+
+brief 的其他接入项：
+
+- **检查项 `kind`**：`US-TIME-*` 为 `time`；C44／C45 费用由上一轮的 `information` 改为 `budget`；引擎标 `informational` 的（N-648、登记、地址报备、换卡）为 `information`；其余为 `requirement`。“还差什么”只列申请条件与时间条件，结果页在每项标题后标出分组。没有设 `afterApproval`：入籍宣誓（C12）是 N-400 上就问、核准前须满足的条件，不是批准后事项，仍为申请条件。没有设 `alternative`：引擎没有“满足其一即可”的分列检查。
+- **政策页嵌套参数**：用 `displayParameter` 按含义展示。英语豁免为“年龄下限／永居年数下限”表，指定敌对期为“开始日／结束日”表；H.R. 1 与 EB-5 费率按“{生效日} 前／{生效日} 起”分列；费用表金额带 USD，递交渠道写“纸质递交／网上递交”，人数、年龄与比例不加 USD；INA 212(a) 款项列表写全款号（如 `INA 212(a)(5)(A)(i)`）。
+- 93 号报告表中的其余两项：政策页标题已在 619.3 登记；结果页时点说明（`resultNotes`）美国没有要另加的说明，未设。
+
+### 2. 怎么验证的
+
+- **回归测试先失败后通过**：逐个接入 commit，把该 commit 的 `test/united-states.test.tsx` 放到父提交的源码上运行，新增或改写的用例都失败；本分支最终源码上全部通过。
+  - 619.10：1 项失败（分享链接不覆盖本机草稿、跳到正文保留片段）。
+  - 619.11：2 项失败（返美路径的日期标签：事实表与“还差什么”；上一轮结果用例改为断言该标签）。
+  - 619.12：2 项失败（检查项分组与缺口；上一轮结果用例改为 C44／C45 为 `budget`）。
+  - 619.13：1 项失败（政策页嵌套参数与年份不分组）。
+  - 619.14：1 项失败（结果明细金额千分位）。
+- **完整验收**：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，`GATE EXIT 0`：error-report 2 项、policy-data 23 项、engine 6,006 项通过（1 项既有用例跳过）、game 1,348 项、web 884 项（46 个文件）通过；静态构建生成 40 个页面。
+- **浏览器 e2e**：`cd apps/e2e && E2E_PORT=4454 npx playwright test tests/united-states.spec.ts tests/australia.spec.ts tests/japan.spec.ts tests/site.spec.ts --project=desktop --reporter=line`，21 项全部通过（`E2E EXIT 0`），跑完已删除 `apps/e2e/test-results`。
+- **视觉验收**：内置浏览器打开同一静态构建（`apps/e2e/serve.ts`，端口 4455）。政策页标题为“美国政策依据”；英语豁免与敌对期为带列名的表，H.R. 1 与 EB-5 费率按生效日前后分列、金额带 USD 与千分位，INA 212(a) 款号写全，贫困线年份为 2026，参数区没有方括号或花括号。返美路径（返美 2026-12-20）结果页的事实表标签为“计划返美日”，“还差什么”为“计划返美日：2026-12-20，距模拟日还有约 0 年 1 个月”，明细标出时间条件、申请条件、费用预算、办理提示四种分组；对比页同样标“计划返美日”；对比页点“跳到主要内容”后焦点移到正文，`#draft=` 片段不变。看完已清除该页的本机草稿。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR。
+- e2e 只跑了 brief 指定的四个文件、desktop 项目；mobile 项目与其他国家的 e2e 未跑。
+- 共用 `earliestLabel` 放宽类型后，澳大利亚与日本的调用方式不变，由完整验收和两国 e2e 覆盖，没有另做两国页面的视觉检查。
+- `site-shell.tsx` 的场景路径判断沿用 `isJapanScenario` 的名字，按 93 号报告未改共用命名。
+
+### 4. 发现与建议（范围外，未实现）
+
+- `site-shell.tsx` 的场景路径表可以改由 `scenarioLinks` 推出（遍历设了该标记的国家），新国家就不必两处登记；`isJapanScenario` 也可改名。
+- 别的国家若也有“部分路径的日期不是申请日”的情况（如返程或居住义务类路径），可以直接用按路径的 `earliestLabel` 键表。
