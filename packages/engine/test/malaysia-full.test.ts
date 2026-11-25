@@ -7,6 +7,7 @@ import {
   RULE_SET_IDS_BY_COUNTRY,
 } from '@uk-immigration/policy-data';
 import { MY_FULL_PATHWAYS, evaluateMalaysiaFull } from '../src';
+import { addDays } from '../src/dates';
 import type { MyFullRequest, MyPathwayId } from '../src';
 
 const day = '2026-11-24';
@@ -343,10 +344,9 @@ describe('permanent residence: husband of a citizen', () => {
         { kind: 'residence', from: '2024-06-01', to: '2029-05-31' },
       ],
     });
-    expect([c.status, c.pendingDetails]).toEqual([
-      'UNKNOWN',
-      ['PD-407', 'PD-428'],
-    ]);
+    // Five years are held with the Residence Pass and no break, so only
+    // PD-428 is open (review113-2 #1).
+    expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', ['PD-428']]);
   });
 
   test('five years of marriage are required', () => {
@@ -658,20 +658,80 @@ describe('Residence Pass', () => {
       { kind: 'residence', from: '2025-01-01', to: '2029-12-31' },
     ] satisfies MyFullRequest['passes'];
     const w = cond('my.pr.wife', 'my.pr.spouse-pass', { ...wife, passes });
-    expect([w.status, w.pendingDetails]).toEqual([
-      'UNKNOWN',
-      ['PD-406', 'PD-428'],
-    ]);
+    expect([w.status, w.pendingDetails]).toEqual(['UNKNOWN', ['PD-428']]);
     const h = cond('my.pr.husband', 'my.pr.spouse-pass', {
       ...wife,
       family: { ...wife.family, tie: 'husband-of-citizen' },
       passes,
     });
-    expect([h.status, h.pendingDetails]).toEqual([
-      'UNKNOWN',
-      ['PD-407', 'PD-428'],
-    ]);
+    expect([h.status, h.pendingDetails]).toEqual(['UNKNOWN', ['PD-428']]);
     expect(path('my.pr.wife', { ...wife, passes }).timeStatus).toBe('UNKNOWN');
+  });
+
+  test('Residence Pass time is pending only when the combined holding is valid and long enough (review113-2 #1)', () => {
+    // SRC-505 §5.2(d) p19: five continuous years. 2021-11-24 to 2026-11-24 is
+    // exactly five years with the Residence Pass; from 2021-11-25 it is not.
+    const husband = (from: string, rpFrom = '2025-11-24') =>
+      ({
+        ...wife,
+        family: {
+          ...wife.family,
+          tie: 'husband-of-citizen',
+          marriedOn: '2020-01-01',
+        },
+        passes: [
+          { kind: 'ltsvp-spouse', from, to: addDays(rpFrom, -1) },
+          { kind: 'residence', from: rpFrom, to: '2030-11-23' },
+        ],
+      }) satisfies MyFullRequest;
+    const five = cond(
+      'my.pr.husband',
+      'my.pr.spouse-pass',
+      husband('2021-11-24'),
+    );
+    expect([five.status, five.pendingDetails]).toEqual(['UNKNOWN', ['PD-428']]);
+    // Review example A: three years on the spouse pass and one on a Residence
+    // Pass are four years even if both count.
+    for (const from of ['2021-11-25', '2022-11-24']) {
+      const c = cond('my.pr.husband', 'my.pr.spouse-pass', husband(from));
+      expect([c.status, c.pendingDetails], from).toEqual([
+        'NOT_MET',
+        undefined,
+      ]);
+      const p = path('my.pr.husband', husband(from));
+      expect(p.status, from).toBe('NOT_MET');
+      // Whether the Residence Pass counts decides the date (PD-428).
+      expect([p.timeStatus, p.timeEarliestDate], from).toEqual([
+        'UNKNOWN',
+        undefined,
+      ]);
+    }
+    // SRC-505 §5.1(d) p18: more than 12 months and still valid when applying.
+    // A Residence Pass from 2025-11-23 exceeds 12 months on 2026-11-24; one
+    // from 2025-11-24 does not.
+    const wifeOn = (passes: MyFullRequest['passes']) =>
+      cond('my.pr.wife', 'my.pr.spouse-pass', { ...wife, passes });
+    const rp = (from: string, to: string) => [
+      { kind: 'residence' as const, from, to },
+    ];
+    const over = wifeOn(rp('2025-11-23', '2030-11-22'));
+    expect([over.status, over.pendingDetails]).toEqual(['UNKNOWN', ['PD-428']]);
+    // Review example B: no valid pass on the application date, or under 12 months.
+    for (const passes of [
+      rp('2025-01-01', '2025-12-31'),
+      rp('2026-06-01', '2031-05-31'),
+      rp('2025-11-24', '2030-11-23'),
+    ]) {
+      const c = wifeOn(passes);
+      expect([c.status, c.pendingDetails], passes[0].from).toEqual([
+        'NOT_MET',
+        undefined,
+      ]);
+    }
+    expect(
+      path('my.pr.wife', { ...wife, passes: rp('2025-01-01', '2025-12-31') })
+        .timeStatus,
+    ).toBe('NOT_MET');
   });
 });
 

@@ -156,22 +156,88 @@ function marriageDuration(
   return { check: c, earliest: separated ? null : due };
 }
 
-/** A citizen's spouse who moved to a Residence Pass since `from` (PD-428). */
-function spouseResidencePass(ctx: MyContext, spouse: boolean, from: IsoDate) {
-  return (
-    spouse &&
-    (ctx.req.passes?.some(
-      (p) => p.kind === 'residence' && p.from <= ctx.date && p.to >= from,
-    ) ??
-      false)
-  );
+/** Held for more than `months` and valid on `at`, by the guideline's words. */
+function earlyRun(
+  ctx: MyContext,
+  kinds: readonly MyPassKind[],
+  months: number,
+  at: IsoDate,
+) {
+  const run = heldRun(ctx.req.passes, kinds, at);
+  const met = !run
+    ? undefined
+    : !run.valid
+      ? false
+      : at > addMonths(run.start, months)
+        ? true
+        : run.total > daysBetween(addMonths(at, -months), at)
+          ? undefined
+          : false;
+  const earliest = !run
+    ? undefined
+    : run.valid
+      ? addDays(addMonths(run.start, months), 1)
+      : null;
+  return { run, met, earliest };
 }
 
-const residencePassText = (ctx: MyContext) =>
-  ctx.L(
-    '近期改持 Residence Pass 的期间能否算作持公民配偶准证待确认。',
-    ' Whether recent time on a Residence Pass counts as holding the spouse-of-citizen pass needs confirmation.',
-  );
+/**
+ * `years` held on `at` with breaks of up to `maxGapMonths` (PD-407). Such
+ * breaks do not restart the count; without counting them, `years` are held
+ * once the days held since the bridged start reach the days in the `years`
+ * before `d` (PD-429). Holding is assumed to continue after `at`.
+ */
+function longRun(
+  ctx: MyContext,
+  kinds: readonly MyPassKind[],
+  years: number,
+  maxGapMonths: number,
+  at: IsoDate,
+) {
+  const run = heldRun(ctx.req.passes, kinds, at, maxGapMonths);
+  const heldEnough = (d: IsoDate) =>
+    run?.valid === true &&
+    daysBetween(run.tolerantStart, d) - run.gapDays >=
+      daysBetween(addYears(d, -years), d);
+  const met = !run
+    ? undefined
+    : run.valid && (at >= addYears(run.start, years) || heldEnough(at))
+      ? true
+      : run.valid && at >= addYears(run.tolerantStart, years)
+        ? undefined
+        : false;
+  let earliest: IsoDate | null | undefined = !run ? undefined : null;
+  if (run?.valid) {
+    const unbroken = addYears(run.start, years);
+    earliest = addYears(run.tolerantStart, years);
+    while (earliest < unbroken && !heldEnough(earliest))
+      earliest = addDays(earliest, 1);
+  }
+  return { run, met, earliest };
+}
+
+type PassVerdict = boolean | undefined;
+
+/**
+ * PD-428: a citizen's spouse who moved to a Residence Pass is pending only
+ * when counting that pass would change the verdict; otherwise the guideline's
+ * own words decide.
+ */
+const residencePassHelps = (strict: PassVerdict, combined: PassVerdict) =>
+  strict === false
+    ? combined !== false
+    : strict === undefined && combined === true;
+
+const residencePassText = (ctx: MyContext, helps: boolean) =>
+  helps
+    ? ctx.L(
+        '近期改持 Residence Pass 的期间能否算作持公民配偶准证待确认。',
+        ' Whether recent time on a Residence Pass counts as holding the spouse-of-citizen pass needs confirmation.',
+      )
+    : ctx.L(
+        '连同近期改持的 Residence Pass 期间也未达所需时间。',
+        ' Even with recent time on a Residence Pass the required time is not reached.',
+      );
 
 function earlyPassCheck(
   ctx: MyContext,
@@ -183,28 +249,18 @@ function earlyPassCheck(
   description: string,
   spouse = false,
 ) {
-  const { req, date, L } = ctx;
-  const run = heldRun(req.passes, kinds, date);
-  const lastMonths = daysBetween(addMonths(date, -months), date);
-  const residencePass = spouseResidencePass(
-    ctx,
-    spouse,
-    addMonths(date, -months),
-  );
-  const strict = !run
-    ? undefined
-    : !run.valid
-      ? false
-      : date > addMonths(run.start, months)
-        ? true
-        : run.total > lastMonths
-          ? undefined
-          : false;
-  const met = strict === false && residencePass ? undefined : strict;
+  const { date, L } = ctx;
+  const { run, met: strict, earliest } = earlyRun(ctx, kinds, months, date);
+  const combined = spouse
+    ? earlyRun(ctx, [...kinds, 'residence'], months, date)
+    : undefined;
+  const helps =
+    combined !== undefined && residencePassHelps(strict, combined.met);
+  const onResidencePass = combined?.run?.valid === true && !run?.valid;
   const c = check(
     id,
     title,
-    met,
+    helps ? undefined : strict,
     sources,
     description +
       (run && !run.valid
@@ -223,19 +279,19 @@ function earlyPassCheck(
             '只有把中断前的期间合并计算才超过所需月数，是否须连续待确认。',
             ' The required months are exceeded only by adding periods before a break; whether they must be continuous needs confirmation.',
           )
-        : met === undefined && residencePass
-          ? residencePassText(ctx)
-          : ''),
-    residencePass ? ['PD-406', 'PD-428'] : ['PD-406'],
+        : '') +
+      (helps || onResidencePass ? residencePassText(ctx, helps) : ''),
+    [
+      ...(strict === undefined || (helps && combined.met === undefined)
+        ? ['PD-406']
+        : []),
+      ...(helps ? ['PD-428'] : []),
+    ],
   );
-  const earliest = !run
-    ? undefined
-    : run.valid
-      ? addDays(addMonths(run.start, months), 1)
-      : residencePass
-        ? undefined
-        : null;
-  return { check: c, earliest };
+  return {
+    check: c,
+    earliest: earliest === null && onResidencePass ? undefined : earliest,
+  };
 }
 
 function longPassCheck(
@@ -249,33 +305,22 @@ function longPassCheck(
   description: string,
   spouse = false,
 ) {
-  const { req, date, L } = ctx;
-  const run = heldRun(req.passes, kinds, date, maxGapMonths);
-  const residencePass = spouseResidencePass(
-    ctx,
-    spouse,
-    addYears(date, -years),
-  );
-  // Breaks of up to `maxGapMonths` do not restart the count. Without counting
-  // them, `years` are held once the days held since the bridged start reach
-  // the days in the `years` before `d` (PD-407, PD-429); holding is assumed
-  // to continue after `date`.
-  const heldEnough = (d: IsoDate) =>
-    run?.valid === true &&
-    daysBetween(run.tolerantStart, d) - run.gapDays >=
-      daysBetween(addYears(d, -years), d);
-  const strict = !run
-    ? undefined
-    : run.valid && (date >= addYears(run.start, years) || heldEnough(date))
-      ? true
-      : run.valid && date >= addYears(run.tolerantStart, years)
-        ? undefined
-        : false;
-  const met = strict === false && residencePass ? undefined : strict;
+  const { date, L } = ctx;
+  const {
+    run,
+    met: strict,
+    earliest,
+  } = longRun(ctx, kinds, years, maxGapMonths, date);
+  const combined = spouse
+    ? longRun(ctx, [...kinds, 'residence'], years, maxGapMonths, date)
+    : undefined;
+  const helps =
+    combined !== undefined && residencePassHelps(strict, combined.met);
+  const onResidencePass = combined?.run?.valid === true && !run?.valid;
   const c = check(
     id,
     title,
-    met,
+    helps ? undefined : strict,
     sources,
     description +
       (run && !run.valid
@@ -300,23 +345,19 @@ function longPassCheck(
             `只有把 ${maxGapMonths} 个月以内的中断也算作持有才满 ${years} 年，中断如何计算待确认。`,
             ` ${years} years are reached only if breaks of up to ${maxGapMonths} months also count as holding; how breaks count needs confirmation.`,
           )
-        : met === undefined && residencePass
-          ? residencePassText(ctx)
-          : ''),
-    residencePass ? ['PD-407', 'PD-428'] : ['PD-407'],
+        : '') +
+      (helps || onResidencePass ? residencePassText(ctx, helps) : ''),
+    [
+      ...(strict === undefined || (helps && combined.met === undefined)
+        ? ['PD-407']
+        : []),
+      ...(helps ? ['PD-428'] : []),
+    ],
   );
-  let earliest: IsoDate | null | undefined = !run
-    ? undefined
-    : residencePass && !run.valid
-      ? undefined
-      : null;
-  if (run?.valid) {
-    const unbroken = addYears(run.start, years);
-    earliest = addYears(run.tolerantStart, years);
-    while (earliest < unbroken && !heldEnough(earliest))
-      earliest = addDays(earliest, 1);
-  }
-  return { check: c, earliest };
+  return {
+    check: c,
+    earliest: earliest === null && onResidencePass ? undefined : earliest,
+  };
 }
 
 function barredPass(ctx: MyContext, barred: MyPassKind[], source: SourceRef) {
