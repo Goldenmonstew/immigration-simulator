@@ -686,3 +686,4 @@
 | 792 | 任务 102 合入 main（澳大利亚完整版页面 #81）：共用政策页取 main 版本（标题回退、年份不分组、`displayParameter`），离线页面登记澳大利亚与葡萄牙两国，离线缓存版本保持 2026-11-25-pt。 | apps/web/{components/policy-page.tsx,lib/site-countries.ts,public/sw.js,test/about-page.test.tsx}、PROGRESS.md |
 | 793 | 任务 102 接入共用选项：葡萄牙模块设 `scenarioLinks`，打开分享链接不覆盖本机草稿，结果、修改与对比之间带场景片段；“跳到主要内容”在葡萄牙结果、问卷、对比页不洗掉片段。 | apps/web/{lib/portugal-module.ts,components/site-shell.tsx,test/portugal.test.tsx}、PROGRESS.md |
 | 794 | 任务 102 接入共用选项：葡萄牙结果日期改标“满足所评估条件的日期（推算）”（自由流动路径的日期是永久权取得日，不是递交日），结果、缺口与对比页共用该标签；e2e 对比页改读本国标签。 | apps/web/{lib/portugal-module.ts,i18n/countries/portugal-module.ts,test/portugal.test.tsx}、apps/e2e/tests/portugal.spec.ts、PROGRESS.md |
+| 795 | 任务 102 接入共用选项：葡萄牙检查项设 `kind`。费用为预算，ARI 批件持续义务为获批后事项，旧在审入籍的现行法时间为可选依据，回执与出境风险提示为办理提示，这些引擎不计入状态的项目不进“还差什么”；居留时间、出境与续期窗口标为时间条件，其余为申请条件。保持或换发永久卡时临时许可年限只作提示。 | apps/web/{lib/portugal-module.ts,test/portugal.test.tsx}、PROGRESS.md |

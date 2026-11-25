@@ -1,6 +1,7 @@
 import {
   evaluatePortugalFull,
   type CountryCheck,
+  type CountryPathway,
   type Locale,
   type PtNationalityRoute,
 } from '@uk-immigration/engine';
@@ -44,6 +45,56 @@ function explanation(check: CountryCheck, locale: Locale) {
   return generic.includes(text) ? t(`pt.result.${check.status}`, locale) : text;
 }
 
+// Fees are a budget, the obligations listed in an investment decision follow
+// approval, the current-law time for a pending old application is an
+// alternative, and receipts and absence risks are procedural notes. The engine
+// does not count any of these toward the status, so none of them is a gap.
+const budget = new Set([
+  'PT-A11-EXAM-FEE',
+  'PT-A11-FEE',
+  'PT-B07-FEE',
+  'PT-C09-FEE',
+  'PT-D-FEE',
+  'PT-E07',
+  'PT-F09',
+  'PT-G06-FEE',
+]);
+const notes = new Set([
+  'PT-B01-CANCELLATION-RISK',
+  'PT-B07-ABSENCE',
+  'PT-C10-PILOT-ABSENCE',
+  'PT-E01-RECEIPT',
+  'PT-E01-RELEASE',
+]);
+// Residence periods, absences and filing windows.
+const time = new Set([
+  'PT-A02',
+  'PT-B01',
+  'PT-C01',
+  'PT-C01-SINGLE-ABSENCE',
+  'PT-C01-TOTAL-ABSENCE',
+  'PT-C03',
+  'PT-D07-STAY',
+  'PT-D07-WINDOW',
+  'PT-E01',
+  'PT-F02',
+  'PT-F02-EARLY-CONTINUITY',
+  'PT-F02-RETENTION',
+]);
+
+function checkKind(id: string, pathway: CountryPathway): CountryCheck['kind'] {
+  if (budget.has(id)) return 'budget';
+  if (id === 'PT-D10-TERMS') return 'afterApproval';
+  if (id === 'PT-A02-CURRENT-ALTERNATIVE') return 'alternative';
+  // Keeping or replacing a permanent title only notes the temporary period.
+  if (
+    notes.has(id) ||
+    (id === 'PT-B01' && pathway.checks.some((c) => c.id === 'PT-B07'))
+  )
+    return 'information';
+  return time.has(id) ? 'time' : 'requirement';
+}
+
 function run(draft: PortugalDraft, locale: Locale) {
   const answers = activePortugalAnswers(draft);
   const result = evaluatePortugalFull({
@@ -62,8 +113,10 @@ function run(draft: PortugalDraft, locale: Locale) {
       selected.has(pathway.id),
     );
     for (const pathway of column.pathways)
-      for (const check of pathway.checks)
+      for (const check of pathway.checks) {
         check.explanation = explanation(check, locale);
+        check.kind = checkKind(check.id, pathway);
+      }
   }
   return result;
 }

@@ -24,7 +24,11 @@ import {
   portugalStepList,
   type PortugalDraft,
 } from '../lib/portugal-draft';
-import { portugalSteps, type PortugalField } from '../lib/portugal-fields';
+import {
+  PT_TARGETS,
+  portugalSteps,
+  type PortugalField,
+} from '../lib/portugal-fields';
 import { portugalModule as pt } from '../lib/portugal-module';
 import { decodeDraft, encodeDraft, linkedResultDraft } from '../lib/share';
 import { sourceUrls } from '../lib/sources';
@@ -1040,6 +1044,95 @@ const branches: PtFullRequest[] = [
     freeMovement: { basis: 'retained-family', relationship: 'other-family' },
   },
 ];
+
+// Shared check groups from task 93. Fees are a budget, the obligations in an
+// investment decision follow approval, the current-law time for a pending old
+// application is an alternative, and receipts and absence risks are notes:
+// none of them is a gap. The engine does not count them toward the status.
+test('fees, approval obligations, alternatives and procedural notes are labelled apart and left out of the gaps', () => {
+  const kinds = new Map<string, Set<string | undefined>>();
+  for (const request of branches) {
+    const draft = {
+      ...pt.createDraft(),
+      ...request,
+      completed: true,
+      targets: [...PT_TARGETS],
+    } as PortugalDraft;
+    for (const path of pt.run(draft, 'zh-CN').columns[0].pathways) {
+      for (const check of path.checks) {
+        const seen = kinds.get(check.id) ?? new Set();
+        kinds.set(check.id, seen.add(check.kind));
+      }
+      for (const rule of gapRules(path))
+        expect(['requirement', 'time']).toContain(rule.kind);
+    }
+  }
+  const only = (ids: string[], kind: string) =>
+    Object.fromEntries(ids.map((id) => [id, new Set([kind])]));
+  expect(Object.fromEntries(kinds)).toMatchObject({
+    ...only(
+      [
+        'PT-A11-EXAM-FEE',
+        'PT-A11-FEE',
+        'PT-B07-FEE',
+        'PT-C09-FEE',
+        'PT-D-FEE',
+        'PT-E07',
+        'PT-F09',
+        'PT-G06-FEE',
+      ],
+      'budget',
+    ),
+    ...only(['PT-D10-TERMS'], 'afterApproval'),
+    ...only(['PT-A02-CURRENT-ALTERNATIVE'], 'alternative'),
+    ...only(
+      [
+        'PT-B01-CANCELLATION-RISK',
+        'PT-B07-ABSENCE',
+        'PT-C10-PILOT-ABSENCE',
+        'PT-E01-RECEIPT',
+        'PT-E01-RELEASE',
+      ],
+      'information',
+    ),
+    ...only(
+      [
+        'PT-A02',
+        'PT-C01',
+        'PT-C01-SINGLE-ABSENCE',
+        'PT-C01-TOTAL-ABSENCE',
+        'PT-C03',
+        'PT-D07-STAY',
+        'PT-D07-WINDOW',
+        'PT-E01',
+        'PT-F02',
+        'PT-F02-EARLY-CONTINUITY',
+        'PT-F02-RETENTION',
+      ],
+      'time',
+    ),
+    ...only(['PT-A11', 'PT-B06', 'PT-B04', 'PT-G01'], 'requirement'),
+  });
+  // Keeping or replacing a permanent title only notes the temporary period.
+  expect(kinds.get('PT-B01')).toEqual(new Set(['time', 'information']));
+  expect([...kinds.values()].every((set) => !set.has(undefined))).toBe(true);
+
+  const unpaid: PortugalDraft = {
+    ...permanentDraft(),
+    residence: { ...residence, fees: { column: 'right', paid: false } },
+  };
+  const permanent = pathway(unpaid, 'PT-PERMANENT');
+  expect(permanent.checks.find((c) => c.id === 'PT-B07-FEE')?.status).toBe(
+    'NOT_MET',
+  );
+  expect(permanent.status).toBe('MET');
+  expect(gapRules(permanent)).toEqual([]);
+  const html = render(
+    <ResultView country={pt} result={pt.run(unpaid, 'zh-CN')} draft={unpaid} />,
+  );
+  for (const kind of ['budget', 'information', 'requirement', 'time'] as const)
+    expect(html).toContain(`· ${t(`country.check.${kind}`)}`);
+});
 
 test('the policy page lists exactly the sources and pending details the engine cites', () => {
   const rules = new Map(
