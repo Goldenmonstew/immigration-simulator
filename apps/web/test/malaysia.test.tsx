@@ -770,8 +770,6 @@ test('date labels say what each route’s date is', () => {
     'my.pr.was',
     'my.pr.rep-family',
     'my.rp.family',
-    'my.cit.naturalisation',
-    'my.cit.wife-registration',
     'my.pass.rpt',
   ]);
   for (const id of Object.values(myPathwayByTarget))
@@ -796,6 +794,38 @@ test('date labels say what each route’s date is', () => {
     expect(html).toContain(`<dt>${t('result.earliest', locale)}</dt>`);
     expect(html).toContain(t('my.result.notice', locale));
   }
+});
+
+// review114-1 problem 3: once met, the citizenship routes date their time
+// requirements on the application date, the other routes from when the
+// current unbroken period began; the result note says which is which.
+test('the result note tells the citizenship time date from the met-since date', () => {
+  const draft = (simulationDate: string, target: MyTarget): MalaysiaDraft => ({
+    ...naturalisationDraft([target]),
+    simulationDate,
+    family: { tie: 'wife-of-citizen', separated: false, divorced: false },
+    citizenship: {
+      ...naturalisationDraft().citizenship,
+      permanentResidentSince: '2016-03-01',
+    },
+  });
+  for (const target of ['cit-naturalisation', 'cit-wife'] as const) {
+    expect(pathway(draft('2026-02-28', target), target)).toMatchObject({
+      timeStatus: target === 'cit-wife' ? 'MET' : 'FUTURE',
+    });
+    expect(pathway(draft('2026-06-01', target), target)).toMatchObject({
+      timeStatus: 'MET',
+      timeEarliestDate: '2026-06-01',
+    });
+    expect(pathway(draft('2026-06-01', target), target).summary).not.toContain(
+      t('my.result.timeMetSince').split('{date}')[0],
+    );
+  }
+  expect(t('my.result.notice')).toContain('归化、公民之妻登记与公民子女登记');
+  expect(t('my.result.notice')).toContain('模拟日期本身');
+  expect(t('my.result.notice', 'en')).toContain(
+    'naturalisation and registration as a citizen’s wife or child',
+  );
 });
 
 // The values the end-to-end tests assert.

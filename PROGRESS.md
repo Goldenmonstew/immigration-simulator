@@ -921,3 +921,4 @@
 | 962 | 任务 114 马来西亚完整版页面报告：问卷步骤与字段、对规则报告问题的默认处理、检查项分组、日期标签、对比旋钮、政策页，验证、未做事项与发现建议。 | docs/tasks/reports/114-my-pages.md、PROGRESS.md |
 | 963 | 任务 114 审核修正（review114-1 问题 1、风险 3）：REP 家属的结婚日期、是否分居、是否离婚与亲子关系按 REP 关系显示（与"与公民或永久居民的关系"任一需要时都显示），REP 关系改在家庭关系一步先问；隐藏清理不再清掉 REP 仍需要的字段，关系与 REP 关系矛盾时亲子关系照常显示。 | apps/web/lib/malaysia-{fields,draft}.ts、apps/web/app/malaysia/simulate/{page,evidence-fields}.tsx、apps/web/i18n/countries/malaysia-form.ts、apps/web/test/malaysia.test.tsx |
 | 964 | 任务 114 审核修正（review114-1 问题 2）：对比页清空"假设 MyPR 签发日"时回到问卷所填（含"未持有"），不再送空日期而报错；提示改为"留空则按问卷所填"；该控件的日期错误显示在它自己的输入框上（`aria-invalid`）。 | apps/web/lib/malaysia-whatif.ts、apps/web/i18n/countries/malaysia.ts、apps/web/test/malaysia.test.tsx |
+| 965 | 任务 114 审核修正（review114-1 问题 3）：结果说明按路径区分年限日期：永久居留各类、Residence Pass 与 RP-T 满足时是当前连续满足的起点，归化、公民之妻登记与公民子女登记显示模拟日期本身；归化与公民之妻登记改用共用日期标签，注释同步。 | apps/web/lib/malaysia-module.ts、apps/web/i18n/countries/malaysia.ts、apps/web/test/malaysia.test.tsx |
