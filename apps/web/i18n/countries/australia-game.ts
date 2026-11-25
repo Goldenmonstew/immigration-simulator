@@ -29,8 +29,8 @@ export const auGameZh = {
     '当前签证还剩 {count} 个月。到期前可到政府服务中心递交下一步申请。',
   'au.game.fastVisaWarning':
     '当前签证到 {date} 为止。快进会直接过完这一季、跨过这一天，先去政府服务中心看看吧。',
-  'au.game.fastVisaWarningNone':
-    '当前没有有效的签证记录。快进会直接过完这一季，先去政府服务中心看看吧。',
+  // Shown once the visa has ended before the day being played.
+  'au.game.fastVisaWarningNone': '签证已到期，这一季结束时本局结束。',
   'au.game.visaVisit': '去政府服务中心',
   'au.game.noVisaActions': '眼下这里没有可办的签证手续。',
   'au.game.councilDetails': '去移民代理那里看详情',
@@ -76,7 +76,7 @@ export const auGameEn: Record<keyof typeof auGameZh, string> = {
   'au.game.fastVisaWarning':
     'Your visa runs until {date}. Fast-forwarding runs past that date to the end of the quarter, so visit the government service centre first.',
   'au.game.fastVisaWarningNone':
-    'No current visa is recorded. Fast-forwarding runs to the end of the quarter, so visit the government service centre first.',
+    'Your visa has ended. This game ends when the quarter does.',
   'au.game.visaVisit': 'Visit the government service centre',
   'au.game.noVisaActions': 'No visa applications are available here right now.',
   'au.game.councilDetails': 'Visit the migration agent for details',

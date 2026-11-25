@@ -116,11 +116,15 @@ export const auCountry: GameCountry<AuKinds> = {
       .map((check) => check.title);
     return titles?.length ? [...new Set(titles)] : undefined;
   },
-  visaStatus: (state) => ({
-    months: auGame.visaMonthsLeft(state),
-    renewed: false,
-    validTo: auGame.currentVisa(state).to,
-  }),
+  visaStatus(state) {
+    const { to } = auGame.currentVisa(state);
+    return {
+      months: auGame.visaMonthsLeft(state),
+      renewed: false,
+      // Once the visa has ended before the day being played, none runs on.
+      ...(to && to >= state.day.date && { validTo: to }),
+    };
+  },
   absences: (state) =>
     state.timeline.trips.map((trip) => ({
       from: trip.departed,

@@ -168,6 +168,17 @@ test('leaving on a festival after the visa has ended links the lapse on that day
   ]);
   const hud = render(<auShell.StatusBar state={state} />);
   expect(hud).toContain(withCount(t('au.game.visa', 'zh-CN'), 'count', 0));
+  // No visa runs on: the fast-forward warning says the game ends this quarter.
+  expect(auCountry.visaStatus(state)).toEqual({ months: 0, renewed: false });
+  expect(
+    auCountry.visaStatus(settle(au.newGame('graduate', 7, 'zh-CN'))).validTo,
+  ).toBe('2029-07-14');
+  expect(t('au.game.fastVisaWarningNone', 'zh-CN')).toBe(
+    '签证已到期，这一季结束时本局结束。',
+  );
+  expect(t('au.game.fastVisaWarningNone', 'en')).toBe(
+    'Your visa has ended. This game ends when the quarter does.',
+  );
   expect(view(shownResult(state))[0].status).toBe('NOT_MET');
   const left = au.doActivity(visit(state, 'station', 900), 'leave');
   expect(left.ending).toBe('left');
