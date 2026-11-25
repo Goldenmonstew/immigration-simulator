@@ -363,6 +363,100 @@ test('answers for routes or branches the user left are not assessed or shared', 
   expect(active.partner).toEqual({ kind: 'marriage' });
 });
 
+// review102-1 problem 1: order, ranges and filing dates are checked when a
+// step is submitted, so a reload keeps the answers being corrected.
+test('unfinished drafts and hidden answers with value errors reopen as they were', () => {
+  const progress: PortugalDraft = {
+    ...permanentDraft(),
+    completed: false,
+    step: 1,
+    trips: [{ departed: '2025-05-01', returned: '2025-04-01' }],
+  };
+  expect(pt.decodeDraft(progress)).toEqual(progress);
+  expect(pt.validateStep(progress)).toEqual({
+    'pt-trips-0-returned': 'pt.error.order',
+  });
+  const typed: PortugalDraft = {
+    ...permanentDraft(),
+    completed: false,
+    residence: {
+      ...residence,
+      means: { ...residence.means, otherAdults: 1.5, monthlyEligibleEur: -1 },
+    },
+  };
+  expect(pt.decodeDraft(typed)).toEqual(typed);
+  expect(pt.validateStep(typed)).toEqual({
+    'pt-residence-means-otherAdults': 'pt.error.integer',
+    'pt-residence-means-monthlyEligibleEur': 'pt.error.number',
+  });
+  const filing: PortugalDraft = {
+    ...partnerDraft(['naturalisation', 'partner']),
+    completed: false,
+    step: 2,
+    pendingApplication: '2026-12-01',
+  };
+  expect(pt.decodeDraft(filing)).toEqual(filing);
+
+  // A finished result keeps answers hidden by leaving a route.
+  const finished: PortugalDraft = {
+    ...partnerDraft(['naturalisation']),
+    step: 2,
+    partner: { kind: 'marriage', pendingApplication: '2026-12-01' },
+  };
+  expect(pt.decodeDraft(finished)).toEqual(finished);
+  expect(pt.decodeDraft(finished, true)).toEqual(finished);
+  const partnerOnly: PortugalDraft = {
+    ...partnerDraft(['partner']),
+    trips: [{ departed: '2025-05-01', returned: '2025-04-01' }],
+  };
+  expect(pt.decodeDraft(partnerOnly, true)).toEqual(partnerOnly);
+  // A shown error still sends a finished result back to its step.
+  const broken = { ...progress, completed: true, step: 3 };
+  expect(pt.decodeDraft(broken, true)).toBeUndefined();
+  expect(pt.decodeDraft(broken, 'show-correction')).toMatchObject({
+    completed: false,
+    step: 1,
+  });
+  expect(pt.restoreStoredDraft!(broken)).toMatchObject({
+    completed: false,
+    step: 1,
+  });
+});
+
+// review102-1 problem 3: a renewal filed after the simulation date has not
+// happened yet.
+test('a renewal filing date cannot be after the simulation date', () => {
+  const renewal: PortugalDraft = {
+    ...permanentDraft({
+      kind: 'temporary',
+      from: '2025-02-01',
+      to: '2027-02-01',
+    }),
+    step: 6,
+    simulationDate: '2026-10-01',
+    targets: ['renewal'],
+    renewal: { filedOn: '2026-12-15' },
+  };
+  expect(pt.validateStep(renewal)).toEqual({
+    'pt-renewal-filedOn': 'pt.error.afterSimulation',
+  });
+  expect(pt.decodeDraft(renewal, true)).toBeUndefined();
+  expect(pt.decodeDraft(renewal, 'show-correction')).toMatchObject({
+    completed: false,
+    step: 6,
+  });
+  const filed = {
+    ...renewal,
+    simulationDate: '2026-11-23',
+    renewal: { filedOn: '2026-11-10' },
+  };
+  expect(pt.validateStep(filed)).toEqual({});
+  const knobs = { ...pt.whatif.initial(filed), simulationDate: '2026-10-01' };
+  expect(pt.whatif.validate(pt.whatif.apply(filed, knobs), knobs)).toEqual({
+    date: 'pt.error.afterSimulation',
+  });
+});
+
 test('results show only the chosen routes with met, future and pending dates', () => {
   const met = pathway(permanentDraft(), 'PT-PERMANENT');
   expect(met.status).toBe('MET');

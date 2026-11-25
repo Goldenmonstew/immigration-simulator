@@ -122,6 +122,27 @@ test('a Portuguese questionnaire reaches results, saves and shares them and focu
     .click();
   await page.locator('#pt-permits-0-kind').selectOption('temporary');
   await page.locator('#pt-permits-0-from').fill('2020-01-01');
+  // An unfinished step keeps a reversed trip through a reload and reports it
+  // when submitted (review102-1).
+  const trips = page.locator('#pt-trips');
+  await trips
+    .getByRole('button', {
+      name: `${zhCN['pt.form.add']} · ${zhCN['pt.field.trips']}`,
+      exact: true,
+    })
+    .click();
+  await page.locator('#pt-trips-0-departed').fill('2025-05-01');
+  await page.locator('#pt-trips-0-returned').fill('2025-04-01');
+  await page.reload();
+  await expect(progress).toHaveAttribute('aria-valuenow', '2');
+  await expect(page.locator('#pt-permits-0-from')).toHaveValue('2020-01-01');
+  await expect(page.locator('#pt-trips-0-returned')).toHaveValue('2025-04-01');
+  await next(page, zhCN);
+  await expect(page.locator('#pt-trips-0-returned')).toBeFocused();
+  await expect(trips).toContainText(zhCN['pt.error.order']);
+  await trips
+    .getByRole('button', { name: zhCN['form.remove'], exact: true })
+    .click();
   await next(page, zhCN);
   await expect(page.locator('#pt-trips')).toBeFocused();
   await page

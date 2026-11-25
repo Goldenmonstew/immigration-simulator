@@ -59,6 +59,8 @@ export type PortugalField = {
   required?: boolean;
   // Shown only while a sibling answer in the same record has one of these values.
   when?: When;
+  // A filing that has happened: on or before the simulation date.
+  filed?: boolean;
 } & (
   | { type: 'boolean' | 'date' | 'number' | 'integer' | 'percent' }
   | {
@@ -75,6 +77,7 @@ interface Extra {
   hint?: PtHint;
   required?: boolean;
   when?: When;
+  filed?: boolean;
 }
 
 const base = (label: PtFieldLabel, extra: Extra = {}) => ({
@@ -330,7 +333,10 @@ export const portugalSteps: PortugalStep[] = [
         path: [],
         show: has('naturalisation'),
         fields: [
-          date('pendingApplication', { hint: 'pendingApplication' }),
+          date('pendingApplication', {
+            hint: 'pendingApplication',
+            filed: true,
+          }),
           date('residenceApplied', { hint: 'residenceApplied' }),
           choice('emancipation', ['recognized', 'none', 'uncertain'], {
             hint: 'emancipation',
@@ -706,7 +712,7 @@ export const portugalSteps: PortugalStep[] = [
         path: ['renewal'],
         show: has('renewal'),
         fields: [
-          date('filedOn', { hint: 'filedOn' }),
+          date('filedOn', { hint: 'filedOn', filed: true }),
           bool('lateSubmissionAccepted'),
           date('receiptIssuedOn'),
           date('receiptExtendedThrough'),
@@ -953,6 +959,7 @@ export const portugalSteps: PortugalStep[] = [
           date('partnerPending', {
             name: 'pendingApplication',
             hint: 'partnerPending',
+            filed: true,
           }),
         ],
       },

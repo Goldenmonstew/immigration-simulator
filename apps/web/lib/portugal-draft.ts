@@ -177,13 +177,16 @@ function order(errors: Errors, id: string, start: unknown, end: unknown) {
 }
 
 // The same definitions describe the questions and the values a stored or
-// shared draft may contain. Unfinished drafts may leave required answers blank.
+// shared draft may contain. An unfinished draft keeps blank required answers,
+// reversed dates, filing dates after the simulation date and out-of-range
+// numbers until its step is submitted.
 function checkFields(
   fields: PortugalField[],
   record: Record<string, unknown>,
   prefix: string,
   submitting: boolean,
   errors: Errors,
+  asOf?: string,
 ) {
   for (const field of fields) {
     if (!fieldShown(field, record)) continue;
@@ -206,14 +209,22 @@ function checkFields(
             errors[id] = 'pt.form.required';
             return;
           }
-          checkFields(field.fields, row, `${id}-${i}`, submitting, errors);
+          checkFields(
+            field.fields,
+            row,
+            `${id}-${i}`,
+            submitting,
+            errors,
+            asOf,
+          );
+          if (!submitting) return;
           order(errors, `${id}-${i}-to`, row.from, row.to);
           order(errors, `${id}-${i}-returned`, row.departed, row.returned);
         });
         break;
       case 'group':
         if (isRecord(value))
-          checkFields(field.fields, value, id, submitting, errors);
+          checkFields(field.fields, value, id, submitting, errors, asOf);
         else errors[id] = 'pt.form.required';
         break;
       case 'choice':
@@ -233,10 +244,17 @@ function checkFields(
       case 'date':
         if (typeof value !== 'string' || !validDate(value))
           errors[id] = 'pt.error.date';
+        else if (field.filed && asOf && value > asOf)
+          errors[id] = 'pt.error.afterSimulation';
         break;
       default:
-        if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+        if (
+          typeof value !== 'number' ||
+          !Number.isFinite(value) ||
+          (submitting && value < 0)
+        )
           errors[id] = 'pt.error.number';
+        else if (!submitting) break;
         else if (field.type === 'integer' && !Number.isInteger(value))
           errors[id] = 'pt.error.integer';
         else if (field.type === 'percent' && value > 1)
@@ -247,6 +265,10 @@ function checkFields(
 
 function checkStep(draft: PortugalDraft, step: number, submitting: boolean) {
   const errors: Errors = {};
+  const asOf =
+    submitting && validDate(draft.simulationDate)
+      ? draft.simulationDate
+      : undefined;
   for (const section of visibleSections(draft, step))
     checkFields(
       section.fields,
@@ -254,25 +276,10 @@ function checkStep(draft: PortugalDraft, step: number, submitting: boolean) {
       sectionPrefix(section),
       submitting,
       errors,
+      asOf,
     );
   if (step === 0 && submitting && !draft.targets.length)
     errors['pt-targets'] = 'pt.form.routeError';
-  const afterSimulation = (id: string, filed?: string) => {
-    if (
-      filed &&
-      validDate(filed) &&
-      validDate(draft.simulationDate) &&
-      filed > draft.simulationDate
-    )
-      errors[id] ??= 'pt.error.afterSimulation';
-  };
-  if (step === 2 && draft.targets.includes('naturalisation'))
-    afterSimulation('pt-pendingApplication', draft.pendingApplication);
-  if (step === 8)
-    afterSimulation(
-      'pt-partner-pendingApplication',
-      draft.partner.pendingApplication,
-    );
   return errors;
 }
 

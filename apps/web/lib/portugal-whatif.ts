@@ -138,12 +138,11 @@ export const portugalWhatIf: CountryWhatIf<PortugalDraft, PortugalWhatIf> = {
       errors.income = 'pt.error.number';
     if (Object.keys(errors).length) return errors;
     for (const { step } of portugalStepList(draft)) {
-      const issues = validatePortugalStep({ ...draft, step });
-      if (Object.keys(issues).length) {
-        errors.date =
-          issues['pt-pendingApplication'] ??
-          issues['pt-partner-pendingApplication'] ??
-          'pt.whatif.invalid';
+      const issues = Object.values(validatePortugalStep({ ...draft, step }));
+      if (issues.length) {
+        errors.date = issues.includes('pt.error.afterSimulation')
+          ? 'pt.error.afterSimulation'
+          : 'pt.whatif.invalid';
         break;
       }
     }
