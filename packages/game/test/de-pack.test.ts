@@ -301,12 +301,15 @@ test('applying for naturalisation ends with the naturalisation text', () => {
 });
 
 /** The Blue Card at the office in March 2028, ten months before it ends. */
-function beforeExpiry(dayDate = '2028-03-14') {
-  const state = settle(de.newGame('bluecard', 5, 'en'));
+function onWorkday(dayDate: string, id = 'bluecard') {
+  const state = settle(de.newGame(id, 5, 'en'));
   state.date = `${dayDate.slice(0, 7)}-01`;
   state.day.date = dayDate;
   state.result = de.deRules.evaluate(state);
-  return visit(state, 'visa', 600);
+  return state;
+}
+function beforeExpiry(dayDate = '2028-03-14') {
+  return visit(onWorkday(dayDate), 'visa', 600);
 }
 
 test('a Blue Card extension is filed, not granted: the card continues under § 81 Abs. 4', () => {
@@ -319,13 +322,13 @@ test('a Blue Card extension is filed, not granted: the card continues under § 8
     .activities(office, 'visa')
     .find(({ id }) => id === 'extend')!;
   expect(extend.label.en).toContain(`€${fee}`);
-  const filed = de.doActivity(office, 'extend');
-  expect(filed.stats.money).toBe(office.stats.money - fee);
-  // Only the application is recorded, on the day; no new card or date.
   // For naturalisation the waiting period is lawful residence; only holding
   // the title on the day rests on § 81 Abs. 4 (PD-124).
   expect(extend.note?.zhCN).toContain('审理期间按合法居留计入入籍年限');
   expect(extend.note?.zhCN).not.toContain('取决于延期最终获批');
+  const filed = de.doActivity(office, 'extend');
+  expect(filed.stats.money).toBe(office.stats.money - fee);
+  // Only the application is recorded, on the day; no new card or date.
   expect(filed.timeline.permits).toEqual([
     {
       kind: 'blue-card',
@@ -376,9 +379,6 @@ test('after five years under the pending extension, naturalisation waits only fo
   const apply = de
     .activities(bureau, 'bureau')
     .find(({ id }) => id === 'naturalise')!;
-  expect(apply.note?.en).toContain('PD-124');
-  const ended = de.doActivity(bureau, 'naturalise');
-  expect(ended.ending).toBe('settled');
   expect(apply.label.zhCN).toContain('入籍时的持证情况待入籍机关核对');
   expect(apply.label.en).toContain(
     'holding a title on the day of naturalisation to be checked by the office',
@@ -387,12 +387,35 @@ test('after five years under the pending extension, naturalisation waits only fo
   expect(apply.note?.zhCN).toContain('由主管机关核对 DE-C55');
   expect(apply.note?.zhCN).toContain('延期审理期间按合法居留计入入籍年限');
   expect(apply.note?.zhCN).not.toContain('能否计入');
+  expect(apply.note?.en).toContain('PD-124');
+  const ended = de.doActivity(bureau, 'naturalise');
+  expect(ended.ending).toBe('settled');
   expect(de.narrative(ended).at(-1)!.en).toContain('naturalisation');
   // Without the pending extension that check is not left to the office.
   const lapsed = structuredClone(filed);
   delete lapsed.timeline.permits[0].renewing;
   lapsed.result = de.deRules.evaluate(lapsed);
   expect(de.officePending(lapsed, 'nat')).toBeUndefined();
+});
+
+test('without an application in, no trip skips the last workday before the card ends', () => {
+  const trips = (state: State) =>
+    ids(visit(state, 'station', 600), 'station').filter((id) =>
+      id.startsWith('travel-'),
+    );
+  // Back on 2028-10-12, the 2028-12 quarter's workday (12 Dec) is before
+  // 14 Jan; back on 2028-12-12, play resumes on 2029-03-01, after it.
+  const card = onWorkday('2028-09-12');
+  expect(trips(card)).toEqual(['travel-1']);
+  const note = de
+    .activities(visit(card, 'station', 600), 'station')
+    .find(({ id }) => id === 'travel-1')!.note!;
+  expect(note.zhCN).toContain('回国那一季的工作日');
+  // Once the extension is filed, the card continues while it is decided.
+  const filed = de.doActivity(visit(card, 'visa', 600), 'extend');
+  expect(trips(filed)).toEqual(['travel-1', 'travel-3']);
+  // Mateo's family permit ends 2028-02-29.
+  expect(trips(onWorkday('2027-09-14', 'spouse'))).toEqual(['travel-1']);
 });
 
 test('the annual review never lowers the Blue Card salary', () => {

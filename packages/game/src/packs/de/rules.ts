@@ -7,7 +7,7 @@ import {
   type DeFullRoute,
 } from '@uk-immigration/engine';
 import { germanyFull2026_11 } from '@uk-immigration/policy-data';
-import { addMonths, dayMs } from '../../calendar';
+import { addDays, addMonths, dayMs, firstWeekday } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
 import type { GameState, IsoDate, Progress } from '../../model';
 import { deBalance as b } from './balance';
@@ -219,7 +219,11 @@ export const deRules: EvaluationAdapter<
   visaMonthsLeft,
   canTravel: (state, through) => {
     const to = currentPermit(state).to;
-    return !!to && through <= to;
+    if (!to || through > to) return false;
+    if (extensionPending(state)) return true;
+    let back = state.date;
+    while (back < through) back = addMonths(back, b.monthsPerQuarter);
+    return firstWeekday(addDays(back, 7), 2) <= to;
   },
   // A home visit is an ordinary, temporary absence: no other ground for the
   // permit to lapse, and back within the ordinary period (SRC-100 § 51 Abs. 1 Nr. 6–7).
@@ -231,6 +235,9 @@ export const deRules: EvaluationAdapter<
       nonTemporary: false,
       exception: 'none',
     });
+  // Play resumes at the first quarter start on or after the return. Until an
+  // application is in, that quarter's workday, when the Ausländerbehörde is
+  // open, must still fall before the card ends.
   },
   earnings(state) {
     const card = state.timeline.mobility.blueCard;

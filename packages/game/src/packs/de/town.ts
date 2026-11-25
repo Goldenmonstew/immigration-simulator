@@ -553,8 +553,8 @@ export const deActions: Activity<DeEffect, DeFestival>[] = [
       `Visit home for ${months} month${months === 1 ? '' : 's'}`,
     ),
     note: t(
-      `须在居留许可到期前回来；离开不超过 ${values.lapseMonths.value} 个月，许可不会因出境失效（SRC-100 第 51 条第 1 款第 7 项）。游戏把探亲当作无薪假，在外的月份不计工作和缴费。`,
-      `Come back before your permit ends; an absence of up to ${values.lapseMonths.value} months does not end the permit (SRC-100 § 51 Abs. 1 Nr. 7). The game treats the visit as unpaid leave: months abroad do not count as work with contributions.`,
+      `须在居留许可到期前回来；离开不超过 ${values.lapseMonths.value} 个月，许可不会因出境失效（SRC-100 第 51 条第 1 款第 7 项）。还没递交延期或定居申请时，回国那一季的工作日不能晚于居留卡到期日：外管局只在工作日受理，回来得太晚就赶不上到期前递交，这类行程不提供。游戏把探亲当作无薪假，在外的月份不计工作和缴费。`,
+      `Come back before your permit ends; an absence of up to ${values.lapseMonths.value} months does not end the permit (SRC-100 § 51 Abs. 1 Nr. 7). Until an extension or settlement application is in, the workday of the quarter you return in must fall on or before the card's end date: the Ausländerbehörde only takes applications on workdays, so trips that would bring you back too late to apply are not offered. The game treats the visit as unpaid leave: months abroad do not count as work with contributions.`,
     ),
     minutes: 0,
     effects: [
