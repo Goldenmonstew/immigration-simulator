@@ -124,3 +124,61 @@
 - 700 的 `kind` 加在爱尔兰引擎 `packages/engine/src/ireland-full/common.ts` 的 `assessment` 里，不在 brief 说的网页模块里。好处是 `add` 已经知道某项是否计入结论，以后新增的检查项会自动带上 `kind`。这个改动只加展示字段，状态与日期不变，但它在规则包里，请审核时确认可以接受。
 - 引擎在续期时把若干留空当作「是」（`ltr.ts` 的 `?? true`、`work.ts` 的 B28、`treaty.ts` 的通知与公共审查，以及 IRP 小节留空的有效许可）。本轮按 brief 只改提示，不改引擎。若规则任务改为留空即待确认，续期提示可以删掉这几句。
 - `TREATY-RESTRICTION` 在公共审查留空时显示为待确认的办理提示，同一份资料下 D07 却按「是」核对。两者口径不同，只影响展示，不影响结论；建议规则任务统一。
+
+## 合入 main 与共用选项接入
+
+实现者：Claude Opus 5.5（Claude Code 子 agent）。对应 brief `brief-99c`：合入澳大利亚完整版页面（任务 93，#81）带来的共用修正，并接入 `scenarioLinks`、`kind`、`displayParameter`，核对 `earliestLabel` 与年份千分位。每项先在测试里写回归，确认失败后再改。
+
+### 1. 做了什么（按 commit 列）
+
+| PROGRESS | Commit | 对应 | 文件 |
+|---|---|---|---|
+| — | `d93dcbd8 Merge: 合入 main（澳大利亚完整版页面 #81）` | brief 第 1 节 | 冲突四处。`apps/web/components/policy-page.tsx` 取 main：本分支 693 的标题与千分位改动被 main 的写法取代（标题回退、按字段语义的千分位、`displayParameter`），本分支对该文件没有别的改动。`apps/web/lib/site-countries.ts` 同时登记澳大利亚与爱尔兰五页。`apps/web/public/sw.js` 与 `apps/web/test/about-page.test.tsx` 的缓存版本改为 `2026-11-25-ie`。`apps/web/i18n/{zh-CN,en}.ts`、`packages/engine/src/index.ts`、`PROGRESS.md` 自动合并，两边的登记和行都在。 |
+| 708 | `00a28d15 Fix: 爱尔兰分享链接不覆盖本机草稿，跳到正文不洗掉场景片段` | 风险 4（分享覆盖本机草稿、跳到主内容、声明 `scenarioLinks`） | `apps/web/lib/ireland-module.ts`、`apps/web/components/site-shell.tsx`、`apps/web/test/ireland.test.tsx` |
+| 709 | `592811ac Fix: 爱尔兰检查项按时间条件、费用预算与批准后事项分组` | 风险 4（按 `kind` 分组）、brief 第 2 节 kind | `packages/engine/src/ireland-full/common.ts`、`packages/engine/test/ireland-full.test.ts`、`apps/web/test/ireland.test.tsx` |
+| 709.1 | `b0b721b9 Fix: 爱尔兰政策页按含义展示关联证据满分与子女净收入门槛` | brief 第 2 节 displayParameter、年份核对 | `apps/web/lib/ireland-policy.ts`、`apps/web/i18n/countries/ireland.ts`、`apps/web/test/ireland.test.tsx` |
+| 709.2 | `Docs: 任务 99 合入 main 与共用选项接入报告` | — | 本节、`PROGRESS.md` |
+
+PROGRESS 的 710–717 已被任务 90（德国规则）占用，所以 708、709 之后用 709.1、709.2。提交前在本分支和所有本地／远端分支的 `PROGRESS.md` 里查过，这几个号都没有重复。
+
+原报告“审核修正（review99-1）”里标为“待任务 93 的共用修正合入后解决”的条目，逐条处理如下：
+
+- **`page-result.ts` 分享导入覆盖本机草稿**：爱尔兰模块设 `scenarioLinks: true`（708）。本机已有草稿时打开分享链接，只显示分享的结果，`ie-immigration-draft-v1` 不变；结果页的编辑、对比链接带 `#draft=`／`#s=` 场景片段。回归：本机草稿为另一份未完成问卷时，打开工作签证草稿的分享链接，结果为 `IE-STAMP4-21` `FUTURE 2027-02-20`，存储原样不变。
+- **合并后爱尔兰要声明 `scenarioLinks`**：同上。
+- **`site-shell.tsx` 跳到主内容的链接**：场景路径判断加入 `/ireland/{result,simulate,whatif}`（708）。这三页的“跳到主要内容”是移焦按钮，不再是 `href="#main"`，点它不触发 `hashchange`，不会把分享场景切回本机草稿；政策页等其他页面仍是普通锚点。回归用 `usePathname` 的模拟逐页渲染 `SiteShell` 核对。
+- **`PolicyPage` 缺 `country.id` 时的标题回退**：合入 main 后解决。main 的 `PolicyPage` 在没有 `country.id` 或未登记 `<国家>.policy.pageTitle` 时回退“政策依据”，`test/country-views.test.tsx` 已有用例；爱尔兰政策页仍显示“爱尔兰政策依据”／“Policy basis for Ireland”（原有用例）。
+- **年份千分位**：按 main 的规则（键名以 `year`／`from`／`cohort` 结尾、1900–2100 的整数不分组）自动生效。逐项核对爱尔兰参数：年份都以字符串或日期出现（`childrenTableYear` 为 `'2026'`，`feeFrom`、`naturalisation.minor.from` 等为日期），没有落在 1900–2100 的整数年份；数值里只有天数、金额与计数（如 `priorResidenceDays` 1,460、`categoryA` 75,000），照常分组。渲染出的中英文政策页里没有 `1,9xx`／`2,0xx` 形式的数字。
+- **日期标签键（`earliestLabel`）**：没有设置。爱尔兰引擎各路径的 `earliestDate` 都是最早可递交日：`MET` 时为模拟（递交）日，`FUTURE` 时取计时满足日、IRP 续期开放日、预计返爱日或下次续期日中最晚的一天，规则报告 89 也一律称“最早递交日”。共用的“最早可申请日期（推算）”／“Earliest projected application date”已经准确，main 的单键用法给整国一个标签，没有需要另标的路径。
+- **按 `kind` 分组**：与 main 的新类别对齐（709）。`kind` 仍在引擎 `assessment` 里设置，只是展示元数据，路径状态与日期不变：
+  - `time`：计入结论的计时检查，即 `time()` 产生的 `IE-NAT-CONTINUOUS`、`IE-NAT-PRIOR`、`IE-NAT-ABSENCES`、`IE-SPOUSE-MARRIAGE`、`IE-STAMP4-WORK-TIME`、`IE-WCATT-TIME`，与政策页的时间条件一致。
+  - `budget`：不计入结论的费用，A09 入籍申请费、A10 发证费、B02 IRP 登记费、B10 就业许可费、C09 LTR 批准费、`FAMILY-ENTRY-FEE` 家庭签证或预审费。
+  - `afterApproval`：不计入结论时的 B28（Stamp 5 获批后登记、护照期限与续期）、C08（LTR 获批后居住与续期）、D08（EU 永久权维持、续证及收费）。续期或失权等情形下它们计入结论，仍标 `requirement`。
+  - `information`：其余不计入结论的检查，如 A03 e-vetting、A11、A12、B06、C02、C10、D02、D05、`FAMILY-LEGACY-TIME`，以及续期时不再复核的取得条件（D01、D03、E01、E02 等）。
+  - `requirement`：其余计入结论的检查。B12、C01、D03、E02 虽含年限，但同时核对许可类别、关系或活动依据，仍按申请条件标注。
+  - 没有用 `alternative`：爱尔兰引擎没有“几项依据满足其一即可”的分列检查。可选的取得方式（如 EU 提前取得、保留权利）由问卷选定后只评估所选的一项，Irish associations 的四类证据在 A19 一项里合算。
+  - “还差什么”只列 `requirement` 与 `time`。回归：入籍草稿未备申请费时路径仍为 `MET`，A09 标为费用预算且不进缺口；结果页显示“费用预算”“时间条件”“申请条件”“办理提示”；工作签证草稿里未满足的受雇时间仍在缺口。
+- **政策页嵌套参数**：按 main 的约定（与澳大利亚、美国分支一致），只把位置含义的裸数组改为带列名的表格，对象里的其他字段名与参数名一样按代码标识显示（709.1）：
+  - `naturalisation.association.maxByCategory` `[50, 60, 60, 60]` 显示为“类别／满分”：经历关联 50、家庭关联 60、文化关联 60、在境内立足 60。类别名与顺序取自 SRC-400 December 2025 指引 Table 1（p3），与引擎 A19 的计分顺序一致。
+  - `family.income.categoryCWithChildren` 显示为“子女数／最低年净收入（2026）”：1 至 7 名与 8+，金额带 €。依据 SRC-386 Financial Thresholds 的 Table 1（“8+ Children”）；年份取自参数 `childrenTableYear`，引擎对 8 名以上子女也取最后一档。
+  - 爱尔兰参数里没有行数组，因此没有“表头是原始键”的行表。
+
+### 2. 怎么验证的
+
+- **先失败后通过**：三项修正都先写回归。708：本机草稿在打开分享链接后被覆盖（存储断言失败）；只设 `scenarioLinks` 后，`/ireland/result` 上仍渲染 `href="#main"`（失败）；加上场景路径后通过。709：引擎用例在 `IE-NAT-CONTINUOUS` 期望 `time`、实际 `requirement` 处失败，网页用例在 A09 期望 `budget`、实际 `information` 处失败；改后通过。709.1：政策页仍含裸列表 `50、60、60、60`（失败），改后中英文的表头、类别顺序、€ 金额与 8+ 档都通过。
+- **完整验收**：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，日志末行 `GATE EXIT 0`。error-report 2 项、policy-data 23 项、engine 6,007 项通过（1 项按开关跳过）、game 1,348 项、web 879 项（46 个文件）通过；Next.js 导出成功，`out/ireland{,/simulate,/result,/whatif,/policy}.html` 都在，`out/sw.js` 为 `2026-11-25-ie`，`offline-pages.json` 与 `sitemap.xml` 含爱尔兰五页。
+- **浏览器 e2e**：先确认 4458 端口空闲，再运行 `cd apps/e2e && E2E_PORT=4458 npx playwright test tests/ireland.spec.ts tests/australia.spec.ts tests/japan.spec.ts tests/site.spec.ts --project=desktop --reporter=line`，21 项全部通过（退出码 0）。跑完已删除 `apps/e2e/test-results`。
+- **视觉验收**：用 `E2E_PORT=4459 node apps/e2e/serve.ts` 起静态服务，在 scratchpad 里用 Playwright 脚本截图，用完已停止服务。政策页在 375 px（中文）和 1280 px（英文）下，两张新表格的表头、类别、€ 金额与 8+ 档显示正确，`scrollWidth` 等于视口宽度，参数区 `scrollWidth`／`clientWidth` 为 335／335 和 1064／1064。结果页（375 px，入籍草稿未备申请费）显示“入籍申请费 · 费用预算”，路径仍为满足，“还差什么”为空。在 `/ireland/result#draft=…` 上按“跳到主要内容”（按钮）后，网址不变，焦点移到 `main`。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR。
+- 没有设 `earliestLabel`，理由见上；美国分支把它放宽成按路径的键表，本分支按 brief 不改共用组件。
+- 政策页对象里的字段名（如 `naturalisation.age` 的 `adult`、`work.permit.csep` 的 `annual`／`hourly`）仍按代码标识显示，金额除新表格外没有加 €；只处理了位置含义的裸数组。
+- e2e 只跑了 brief 指定的四个文件、desktop 项目；mobile 项目、a11y 与其他国家的 e2e 未跑。
+- 未改规则语义与政策参数，也没有新增 SRC 或 PD。709 改的是引擎里的展示分组。
+
+### 4. 发现与建议
+
+- `site-shell.tsx` 的 `isJapanScenario` 仍按路径逐国列出（现为日本、澳大利亚、爱尔兰；美国分支也在加）。它与模块的 `scenarioLinks` 是同一件事，十国合并后可以改为按当前国家的 `scenarioLinks` 判断，名称也可以改成通用的。
+- 政策页对象字段名按代码显示，对爱尔兰这种参数全部是嵌套组的国家，中文页可读性有限（如 `naturalisation.fee` 显示为“from 2011-11-10、apply 175、adult 950…”，没有币种）。若要逐项译名与单位，建议另立任务按国家统一处理。
+- 引擎的 `kind` 表（`outsideStatusKind`）按条件编号列出费用与获批后事项。以后规则任务新增不计入结论的费用检查时，需要同时登记到这张表，否则会显示为办理提示（不影响结论与缺口）。
