@@ -13,8 +13,7 @@ import {
   marriageSubsists,
   planned,
   ref,
-  renewal,
-  timing,
+  timingWithRenewal,
   v,
   withFee,
   type MyCheck,
@@ -602,8 +601,7 @@ export function assessRpt(ctx: MyContext): MyPathway {
     L('人才居留准证（RP-T）', 'Residence Pass-Talent (RP-T)'),
     checks,
     {
-      time: timing(plan.earliest, date),
-      assumptions: renewal(ctx, plan.renewed),
+      ...timingWithRenewal(ctx, plan.earliest, plan.renewed),
     },
   );
 }

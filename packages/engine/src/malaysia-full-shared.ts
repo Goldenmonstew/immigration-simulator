@@ -419,7 +419,7 @@ export function heldRun(
   };
 }
 
-const spanDays = (spans: Span[]) =>
+export const spanDays = (spans: Span[]) =>
   spans.reduce((n, s) => n + daysBetween(s.start, s.end), 0);
 
 /**
@@ -468,7 +468,20 @@ export interface MyPathway extends CountryPathway {
   checks: MyCheck[];
 }
 
-export const renewal = (ctx: MyContext, renewed: boolean) =>
+/** Timing whose FUTURE date lies past the last pass entered notes the renewal assumed. */
+export function timingWithRenewal(
+  ctx: MyContext,
+  earliest: IsoDate | null | undefined,
+  renewed: boolean,
+) {
+  const time = timing(earliest, ctx.date);
+  return {
+    time,
+    assumptions: renewal(ctx, renewed && time.timeStatus === 'FUTURE'),
+  };
+}
+
+const renewal = (ctx: MyContext, renewed: boolean) =>
   renewed
     ? [
         ctx.L(

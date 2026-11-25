@@ -420,6 +420,15 @@ describe('permanent residence: husband of a citizen', () => {
       '2027-06-02',
     ]);
     expect(renewed.assumptions.join('')).toContain('续签');
+    // No date, no assumption: 12 months from 2026-06-01 end after the 18th
+    // birthday on 2027-06-01.
+    const late = path('my.pr.child', {
+      simulationDate: day,
+      dateOfBirth: '2009-06-01',
+      family: { tie: 'child-of-citizen', childRelation: 'biological' },
+      passes: [{ kind: 'student', from: '2026-06-01', to: '2026-12-31' }],
+    });
+    expect([late.timeStatus, late.assumptions]).toEqual(['NOT_MET', []]);
     // Residence Pass category 3: three years restart after a planned break.
     const rp = path('my.rp.family', {
       ...wife,

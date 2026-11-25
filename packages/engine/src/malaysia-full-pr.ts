@@ -14,7 +14,8 @@ import {
   marriageSubsists,
   planned,
   ref,
-  renewal,
+  timingWithRenewal,
+  spanDays,
   timing,
   v,
   withFee,
@@ -212,16 +213,12 @@ function longRun(
   const run = heldRun(ctx.req.passes, kinds, at, maxGapMonths);
   const gaps = run?.valid ? run.gaps : [];
   const held = (d: IsoDate, from: IsoDate, breaks: Span[]) =>
-    daysBetween(from, d) -
-      breaks.reduce((n, g) => n + daysBetween(g.start, g.end), 0) >=
+    daysBetween(from, d) - spanDays(breaks) >=
     daysBetween(addYears(d, -years), d);
-  const withinTotal = (breaks: Span[]) => {
-    if (breaks.length < 2) return true;
-    const days = breaks.reduce((n, g) => n + daysBetween(g.start, g.end), 0);
-    return (
-      addDays(breaks[0].start, days) <= addMonths(breaks[0].start, maxGapMonths)
-    );
-  };
+  const withinTotal = (breaks: Span[]) =>
+    breaks.length < 2 ||
+    addDays(breaks[0].start, spanDays(breaks)) <=
+      addMonths(breaks[0].start, maxGapMonths);
   const perBreak = (d: IsoDate) =>
     run?.valid === true && held(d, run.tolerantStart, gaps);
   const bothReadings = (d: IsoDate) =>
@@ -842,8 +839,11 @@ export function assessPrSpouse(
   const [zh, en] = titles[route];
   return assemble(ctx, `my.pr.${route}`, L(zh, en), checks, {
     discretionary: true,
-    time: timing(latest(marriage.earliest, pass.earliest), ctx.date),
-    assumptions: renewal(ctx, pass.renewed),
+    ...timingWithRenewal(
+      ctx,
+      latest(marriage.earliest, pass.earliest),
+      pass.renewed,
+    ),
   });
 }
 
@@ -924,8 +924,11 @@ export function assessPrChild(ctx: MyContext): MyPathway {
     [cat, ageCheck, pass.check, ...commonChecks(ctx, 'child')],
     {
       discretionary: true,
-      time: timing(beforeDeadline(pass.earliest, deadline, date), date),
-      assumptions: renewal(ctx, pass.renewed),
+      ...timingWithRenewal(
+        ctx,
+        beforeDeadline(pass.earliest, deadline, date),
+        pass.renewed,
+      ),
     },
   );
 }
@@ -1042,8 +1045,7 @@ export function assessPrWas(ctx: MyContext): MyPathway {
   );
   return assemble(ctx, 'my.pr.was', L(...titles.was), checks, {
     discretionary: true,
-    time: timing(pass.earliest, ctx.date),
-    assumptions: renewal(ctx, pass.renewed),
+    ...timingWithRenewal(ctx, pass.earliest, pass.renewed),
   });
 }
 
@@ -1412,9 +1414,9 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
     L('Residence Pass（第 3–5 类）', 'Residence Pass (Categories 3–5)'),
     checks,
     {
-      assumptions: renewal(ctx, plan.renewed),
       // "Aged 18 and below": too late from the next birthday.
-      time: timing(
+      ...timingWithRenewal(
+        ctx,
         child
           ? beforeDeadline(
               earliest,
@@ -1422,7 +1424,7 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
               date,
             )
           : earliest,
-        date,
+        plan.renewed,
       ),
     },
   );
