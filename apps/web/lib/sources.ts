@@ -640,4 +640,58 @@ export const sourceUrls: Record<string, string> = {
     'https://www.federalregister.gov/documents/full_text/text/2026/09/30/2026-20016.txt',
   'SRC-319':
     'https://www.federalregister.gov/documents/full_text/html/2026/04/29/2026-08333.html',
+  'SRC-500':
+    'https://www.moha.gov.my/utama/images/akta-pekeliling-garispanduan/bhg-pendaftaran-negara-pertubuhan/akta/0.0_Perlembagaan-Persekutuan-Cetakan-Semula-2020-1.pdf',
+  'SRC-501':
+    'https://lom.agc.gov.my/ilims/upload/portal/akta/outputaktap/2759695_BI/A1752%20Constitution%20(Amendment)%20Act%202025.pdf',
+  'SRC-502': 'https://lom.agc.gov.my/federal-constitution.php?language=BI',
+  'SRC-503':
+    'https://lom.agc.gov.my/ilims/upload/portal/akta/LOM/EN/Act%20155.pdf',
+  'SRC-504':
+    'https://lom.agc.gov.my/ilims/upload/portal/akta/outputp/1725704/PUA56.pdf',
+  'SRC-505':
+    'https://drive.google.com/uc?export=download&id=1gAWRFlcz4HoZzOMDFaQHPftgx7rVjoSQ',
+  'SRC-506':
+    'https://www.imi.gov.my/wp-content/uploads/2026/11/GARIS-PANDUAN-REP.pdf',
+  'SRC-507': 'https://www.imi.gov.my/index.php/en/main-services/permit/',
+  'SRC-508':
+    'https://www.imi.gov.my/index.php/en/main-services/pass/residence-pass/',
+  'SRC-509':
+    'https://www.imi.gov.my/index.php/en/main-services/pass/visitor-pass/social-visit-pass/long-term-social-visit-pass/',
+  'SRC-510':
+    'https://www.imi.gov.my/index.php/en/main-services/visa/security-bond-bank-guarantee-rates/',
+  'SRC-511':
+    'https://www.moha.gov.my/utama/images/akta-pekeliling-garispanduan/bhg-imigresen/borang/SENARAI_DOKUMEN_DIPERLUKAN_BAGI_PERMOHONAN_RAYUAN_PERMIT_MASUK.pdf',
+  'SRC-512':
+    'https://www.jpn.gov.my/en/services/citizenship/application-for-citizenship-status-under-article-19-of-the-federal-constitution-aged-21-years-or-above/',
+  'SRC-513':
+    'https://www.jpn.gov.my/en/services/citizenship/application-for-citizenship-status-under-article-151-of-the-federal-constitution-wife-of-a-citizen/',
+  'SRC-514':
+    'https://www.jpn.gov.my/en/services/citizenship/application-for-citizenship-status-under-article-152-of-the-federal-constitution-child-of-a-citizen-under-the-age-of-21/',
+  'SRC-515': 'https://www.jpn.gov.my/en/faq/citizenship/',
+  'SRC-516':
+    'https://www.eaic.gov.my/phocadownloadpap/KENYATAAN%20MEDIA%20EAIC%20100726.pdf',
+  'SRC-517':
+    'https://www.motac.gov.my/wp-content/uploads/2025/12/Syarat-%E2%80%93-Syarat-Kelayakan-Baharu-Penyertaan-Program-MM2H.pdf',
+  'SRC-518':
+    'https://www.motac.gov.my/wp-content/uploads/2025/12/Syarat-%E2%80%93-Syarat-Khas-Peserta-Program-MM2H-Di-Bawah-Zon-Ekonomi-Khas-Zon-Kewangan-Khas.pdf',
+  'SRC-519':
+    'https://www.motac.gov.my/wp-content/uploads/2025/12/Senarai-Semak-Permohonan-MM2H.pdf',
+  'SRC-520':
+    'https://www.motac.gov.my/wp-content/uploads/2025/12/Guide-Malaysia-My-Second-Home.pdf',
+  'SRC-521':
+    'https://www.motac.gov.my/wp-content/uploads/2025/12/Insights-on-The-Categories.pdf',
+  'SRC-522':
+    'https://www.motac.gov.my/wp-content/uploads/2025/12/Pengumuman-Terkini-Program-MM2H.pdf',
+  'SRC-523':
+    'https://www.motac.gov.my/wp-content/uploads/2025/12/Pengumuman-Terkini-Sistem-MM2H.pdf',
+  'SRC-524': 'https://www.mm2h.gov.my/category/overview',
+  'SRC-525':
+    'https://www.talentcorp.com.my/our-initiatives/for-professionals/rpt/',
+  'SRC-526':
+    'https://www.talentcorp.com.my/our-initiatives/for-professionals/rep/',
+  'SRC-527':
+    'https://esd.imi.gov.my/portal/pdf/Revised_Expatriate_Salary_Policy.pdf',
+  'SRC-528':
+    'https://mdec.my/api/media/file/DE-Rantau_Pass_FAQ_Version-11_%2029102026.pdf',
 };
