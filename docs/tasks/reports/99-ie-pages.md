@@ -150,10 +150,10 @@ PROGRESS 的 710–717 已被任务 90（德国规则）占用，所以 708、70
 - **年份千分位**：按 main 的规则（键名以 `year`／`from`／`cohort` 结尾、1900–2100 的整数不分组）自动生效。逐项核对爱尔兰参数：年份都以字符串或日期出现（`childrenTableYear` 为 `'2026'`，`feeFrom`、`naturalisation.minor.from` 等为日期），没有落在 1900–2100 的整数年份；数值里只有天数、金额与计数（如 `priorResidenceDays` 1,460、`categoryA` 75,000），照常分组。渲染出的中英文政策页里没有 `1,9xx`／`2,0xx` 形式的数字。
 - **日期标签键（`earliestLabel`）**：没有设置。爱尔兰引擎各路径的 `earliestDate` 都是最早可递交日：`MET` 时为模拟（递交）日，`FUTURE` 时取计时满足日、IRP 续期开放日、预计返爱日或下次续期日中最晚的一天，规则报告 89 也一律称“最早递交日”。共用的“最早可申请日期（推算）”／“Earliest projected application date”已经准确，main 的单键用法给整国一个标签，没有需要另标的路径。
 - **按 `kind` 分组**：与 main 的新类别对齐（709）。`kind` 仍在引擎 `assessment` 里设置，只是展示元数据，路径状态与日期不变：
-  - `time`：计入结论的计时检查，即 `time()` 产生的 `IE-NAT-CONTINUOUS`、`IE-NAT-PRIOR`、`IE-NAT-ABSENCES`、`IE-SPOUSE-MARRIAGE`、`IE-STAMP4-WORK-TIME`、`IE-WCATT-TIME`，与政策页的时间条件一致。
+  - `time`：计入结论的计时检查，即 `time()` 产生的 `IE-NAT-CONTINUOUS`、`IE-NAT-PRIOR`、`IE-NAT-ABSENCES`、`IE-SPOUSE-MARRIAGE`、`IE-STAMP4-WORK-TIME`、`IE-WCATT-TIME`。政策页的时间条件另列 `FAMILY-LEGACY-TIME`，它不计入结论，标 `information`（review99-2 建议 3 更正）。
   - `budget`：不计入结论的费用，A09 入籍申请费、A10 发证费、B02 IRP 登记费、B10 就业许可费、C09 LTR 批准费、`FAMILY-ENTRY-FEE` 家庭签证或预审费。
   - `afterApproval`：不计入结论时的 B28（Stamp 5 获批后登记、护照期限与续期）、C08（LTR 获批后居住与续期）、D08（EU 永久权维持、续证及收费）。续期或失权等情形下它们计入结论，仍标 `requirement`。
-  - `information`：其余不计入结论的检查，如 A03 e-vetting、A11、A12、B06、C02、C10、D02、D05、`FAMILY-LEGACY-TIME`，以及续期时不再复核的取得条件（D01、D03、E01、E02 等）。
+  - `information`：其余不计入结论的检查，如 A03 e-vetting、A11、A12、B06、C02、C10、D02、`FAMILY-LEGACY-TIME`，以及续期时不再复核的取得条件（D01、D03、E01、E02 等）。D04、D05 在 EU 首次申请且未持有永久权时计入结论，标 `requirement`（如 `eu: { acquisition: 'retained', retention: { event: 'death' } }` 的 D05）；在 WA、已持有或续期时才是 `information`（review99-2 建议 3 更正）。
   - `requirement`：其余计入结论的检查。B12、C01、D03、E02 虽含年限，但同时核对许可类别、关系或活动依据，仍按申请条件标注。
   - 没有用 `alternative`：爱尔兰引擎没有“几项依据满足其一即可”的分列检查。可选的取得方式（如 EU 提前取得、保留权利）由问卷选定后只评估所选的一项，Irish associations 的四类证据在 A19 一项里合算。
   - “还差什么”只列 `requirement` 与 `time`。回归：入籍草稿未备申请费时路径仍为 `MET`，A09 标为费用预算且不进缺口；结果页显示“费用预算”“时间条件”“申请条件”“办理提示”；工作签证草稿里未满足的受雇时间仍在缺口。
@@ -182,3 +182,50 @@ PROGRESS 的 710–717 已被任务 90（德国规则）占用，所以 708、70
 - `site-shell.tsx` 的 `isJapanScenario` 仍按路径逐国列出（现为日本、澳大利亚、爱尔兰；美国分支也在加）。它与模块的 `scenarioLinks` 是同一件事，十国合并后可以改为按当前国家的 `scenarioLinks` 判断，名称也可以改成通用的。
 - 政策页对象字段名按代码显示，对爱尔兰这种参数全部是嵌套组的国家，中文页可读性有限（如 `naturalisation.fee` 显示为“from 2011-11-10、apply 175、adult 950…”，没有币种）。若要逐项译名与单位，建议另立任务按国家统一处理。
 - 引擎的 `kind` 表（`outsideStatusKind`）按条件编号列出费用与获批后事项。以后规则任务新增不计入结论的费用检查时，需要同时登记到这张表，否则会显示为办理提示（不影响结论与缺口）。
+
+## 审核修正（review99-2）
+
+实现者：Claude Opus 5.5（Claude Code 子 agent）。先合入 main 上的美国完整版页面（任务 96，#86），再按 review99-2 修正。问题 1、2 与两条建议都先写回归，确认失败后再改。
+
+### 1. 做了什么（按 commit 列）
+
+| PROGRESS | Commit | 审核项 | 修正与回归 |
+|---|---|---|---|
+| — | `dade1492 Merge: 合入 main（美国完整版页面 #86）` | brief 第 1 步 | 冲突三处。`site-shell.tsx` 用 main 的写法，国家名单取两边并集：`['jp', 'au', 'us', 'ie']`。`public/sw.js` 与 `test/about-page.test.tsx` 的缓存版本改为 `2026-11-25-ie2`。`site-countries.ts`、`i18n/{zh-CN,en}.ts`、`PROGRESS.md` 自动合并，结果是两边的并集：美国与爱尔兰各自登记五页；`hub.us.*` 由 main 移到 `countries/united-states.ts`，`hub.ie.*` 仍在 `countries/ireland.ts`。共用组件（`gap-summary`、`whatif-lab`、`country-module` 的 `earliestLabelFor`）没有冲突，直接用 main 的版本。爱尔兰仍不设 `earliestLabel`，理由见上一节。 |
+| 709.3 | `9001871d Fix: 爱尔兰家庭路径的评估阶段改在家庭步骤单独选择` | 问题 1、风险 1 | 做法与 699 对其他五组一致。家庭申请小节里的「首次登记还是续期」移出，家庭步骤最前面改问「家庭路径：本次评估的是」（`familyStage`）。留空表示「申请家庭许可或转独立 Stamp 4」，提示写明家庭许可续期时一并转独立也选这一项。「续期」选项为「现有家庭许可普通续期（不评估转独立）」，「首次登记」选项为「已获准入境，评估首次登记」。`irelandRequest` 只对两条家庭路径把它写回 `family.application.registrationStage`。引擎只给普通家庭团聚、境外 de facto 和爱尔兰公民配偶直接登记三种渠道评估首次登记，其他渠道会悄悄改评申请，所以选「首次登记」而渠道不符时，步骤报错，错误显示在这道题下面。草稿里残留的旧答案 `family.application.registrationStage` 会被裁掉。裁掉后申请分组若已没有答案，就整组去掉：原先会留下空对象 `{}`，引擎据此给转独立路径加上整套申请检查。问卷保存时本来就不存空分组。风险 1：第 5 步说明写明，只评估转独立时四个申请小节请留空，以及填写后的影响。原小节标题「申请渠道与登记阶段」改为「申请日期与渠道」。回归用审核的输入：转独立路径为 `FUTURE 2026-12-20`，含 B11、B12；残留 `registrationStage: 'renewal'` 时结果完全不变；爱尔兰公民伴侣路径同样不变。另外核对：家庭步骤先渲染 `ie-familyStage`，留空选项写明含义；选续期后标题为「现有家庭许可续期」，选首次登记加普通团聚渠道后标题为「首次登记」；渠道留空、境内配偶申请、境内 de facto 时都报 `ie.error.familyFirstChannel`。修之前，残留答案的用例失败：路径被换成续期检查。 |
+| 709.4 | `122187ca Fix: 爱尔兰续期提示逐项列出留空按满足核对的题目` | 问题 2 | Stamp 5、LTR、EU／WA 的续期提示改为在冒号后用分号逐项列出，补上 Stamp 5 与 LTR 漏列的「品格（刑事记录与披露）」「公帑负担」，措辞由按「是」改为按满足。新回归从引擎读取的字段核对提示列表，取代 705 只核对已列题目的用例。做法如下。每种情形先用一份全部按满足作答的草稿（结果都是 `MET 2026-11-23`），共 11 种：Stamp 5 续办；LTR 主申与家属续期；EU、WA 续期；就业续期与首次登记；两条家庭路径各自的续期与首次登记。然后逐题遍历本路径显示的题目：换一个答案会改变结论、日期或未满足的检查项，就算引擎读取；读取且留空时结果与满足时相同，就是「留空按满足」。每个这样的题都必须在该阶段提示的列表里；列表里的每项也必须留空时与满足相同、且确实被读取。中英文提示冒号后的列表与之逐项相等。两种情形不算留空按满足：留空选项已写明含义的选择题（各阶段题、EU 取得方式）；EU／WA 的「模拟日所在地」，它留空时取证件小节的在境内答案。修之前，用例在 Stamp 5 提示列表处失败。遍历还发现一项：家庭团聚转独立的首次登记，若关系留空，按非 de facto 核对，不查共同住址。已写进家庭阶段提示，提示列表只有这一项；就业续期、就业首次登记和家庭续期都没有这类题。 |
+| 709.5 | `af72271b Fix: 爱尔兰就业续期的推算日期提示与 EU 取得方式留空说明` | 建议 1、2 | 就业路径选了首次登记或续期时，`FUTURE` 摘要改为通用的推算日期提示；只有升级申请才提雇主信。「取得永久居留的方式」的留空选项改为「未选时按通常方式（连续居住期满）核对」。回归用审核的输入：现有许可续期为 `FUTURE 2027-04-07`，摘要不含雇主信；升级草稿仍含雇主信。第 7 步渲染出新的留空选项。修之前，摘要断言失败。 |
+| 709.6 | `Docs: 任务 99 审核修正报告（review99-2）` | 建议 3 | 更正上一节两处表述：`time` 组与政策页时间条件的关系（政策页另列不计入结论的 `FAMILY-LEGACY-TIME`）；D05 并非总是 `information`（D04、D05 在 EU 首次申请且未持有永久权时为 `requirement`）。本节与 `PROGRESS.md`。 |
+
+风险 2 列出的未验证项，本轮已运行：构建、两份 e2e，以及新问题在 375 px 下的布局和 Axe。见下一段。
+
+本轮没有改引擎、规则语义或政策参数，也没有新增 SRC 或 PD。
+
+### 2. 怎么验证的
+
+- **先失败后通过**：先写三项新用例。家庭阶段用例：残留答案把转独立换成续期，`toEqual` 失败。提示遍历用例：Stamp 5 提示列表不符，失败。建议用例：续期摘要含雇主信，失败。修正后都通过。家庭阶段加入后，遍历用例又报出一项（转独立首次登记的家庭关系），写进提示后通过。
+- **回放第一轮回归**：`apps/web/test/ireland.test.tsx` 共 28 项，全部通过。其中包括 review99-1 的用例：未成年人与难民发证费的路径独立性；残留 `registration.stage` 不改变升级；`FAMILY-LEGACY-TIME` 不进缺口；政策页 PD 覆盖，草稿改用 `familyStage` 表示家庭续期与首次登记；多选取消；逐行错误等。随机填充的「每条路径只读本路径显示的答案」用例也通过，未裁剪的对照请求同样写入家庭阶段。每次提交前，都在该提交的状态下单独运行这个文件、`tsc --noEmit` 与 `eslint`。
+- **完整验收**：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，日志末行 `GATE EXIT 0`。结果：error-report 2 项、policy-data 23 项、engine 6,007 项通过（1 项按开关跳过）、game 1,348 项、web 933 项（46 个文件）通过。Next.js 生成 44 个页面和路由；`out/sw.js` 为 `2026-11-25-ie2`；`out/ireland{,/simulate,/result,/whatif,/policy}.html` 与美国五页都在。
+- **e2e**：先确认 4468 端口空闲，再运行 `cd apps/e2e && E2E_PORT=4468 npx playwright test tests/ireland.spec.ts tests/united-states.spec.ts --project=desktop --reporter=line`。4 项通过，退出码 0。跑完已删除 `apps/e2e/test-results`。
+- **375 px 与 Axe**：用 `E2E_PORT=4469 node apps/e2e/serve.ts` 起静态服务，在 scratchpad 里用 Playwright 脚本按草稿打开三个步骤，用完已停止服务。
+  - 家庭步骤：同选两条家庭路径，选首次登记、渠道为境内配偶申请后提交。题目、提示、留空选项、渠道错误与第 5 步说明都正确显示。
+  - Stamp 5／LTR 步骤：两条续期提示按分号逐项列出。
+  - EU 步骤。
+  - 三页的 `scrollWidth` 都是 375；在 `main` 上运行 Axe，没有违规。
+
+### 3. 没做或没验证的
+
+- 风险 1 的规则语义没有改。转独立 Stamp 4 何时应核对担保人收入、住房（规则报告“适用时”的条件）需要规则任务确认；页面只加了说明。
+- 引擎在续期时把若干留空当作满足，这是规则任务的取舍，本轮没有改。页面只让提示与引擎逐项一致。
+- 提示遍历用例的范围有限：
+  - 只改动基准草稿里已作答分组内的题目（新开的分组要先填带星号的题）。家庭申请里的住房、保险、无犯罪证明等没有作答的分组没有逐题核对。
+  - 两题一起留空才按满足的情形（如 LTR 的「出境情况」），只有列在提示里的才核对；遍历本身只逐题检查。
+- 用户本机保存过、在家庭申请里选过「首次登记／续期」的旧草稿，这个答案会被裁掉，需要在家庭步骤重新选择。699 对 IRP 阶段题也是这样处理的。
+- e2e 只跑了 brief 指定的两个文件和 desktop 项目，没有运行 `a11y.spec.ts`、`site.spec.ts` 和 mobile 项目。Axe 只用脚本检查了上面三个步骤。
+- 未 push，未开 PR。
+
+### 4. 发现与建议
+
+- 遍历用例发现，家庭团聚转独立的首次登记里，「与担保人的关系」留空时按非 de facto 核对，不查共同住址。本轮只写进提示。若规则任务改为留空即待确认，这一项可以从提示里删掉，遍历用例会提醒。
+- `pastBreachUnderReview`、`examRequested`、`extraFeeRequested`、`renewalInsuranceRequired` 这类“有才填是”的题，留空按「否」核对，同样不会显示为待确认。这与第 1 步说明里“一般显示为待确认”的说法不完全一致，但符合这类题的含义，本轮没有改。如要统一，可以在第 1 步说明里补一句，或给这些题加提示。
+- `site-shell.tsx` 的场景路径名单现为四国。与上一节的建议相同：可以改为按当前国家模块的 `scenarioLinks` 判断，避免每个国家分支都要改这一行、合并时冲突。
