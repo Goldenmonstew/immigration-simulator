@@ -59,7 +59,7 @@
 
 - `evaluate`：`evaluateGreeceFull`，时间线就是去掉 `simulationDate`、`locale` 的请求；`pathways` 固定为"长期路径 + 入籍"。
 - `progress`：`pr`、`nat` 两列取引擎的路径状态；`FUTURE` 带引擎的最早日期。进度百分比用引擎的最早日期，没有时按 policy-data 的年限（`longTermYears`、`gfPeriods.residenceYears`、`nationalityYears`）从居住起点算。
-- 蓝卡续期：续期窗口与逾期期限读 `renewalWindowMonths`、`lateRenewalMonths`；游戏按季度计时，这一季碰到窗口就能办；到期后补交按逾期月数收 `lateFinePerMonthEur`；费用 `workFees.permit + print`；续期年限 `workValidity.blueRenewalYears`。`expired`：过了逾期补交期限才以 `overstayed` 结束。
+- 蓝卡续期：续期窗口与逾期期限读 `renewalWindowMonths`、`lateRenewalMonths`；游戏按季度计时，这一季碰到窗口就能提前递交；逾期月数与逾期补交截止按办理当天计算，到期后补交按逾期月数收 `lateFinePerMonthEur`，不足一个月按一个月（PD-150，review108g-1 修正）；费用 `workFees.permit + print`；续期年限 `workValidity.blueRenewalYears`。`expired`：过了逾期补交期限才以 `overstayed` 结束。
 - A2：`integration = { basis: 'a2', a2Certificate: true }`，报名费 `settlementIntegration.fullFee`；Π.Ε.Γ.Π.：`exam: 'certificate'` 与 `knowledgeDocumentReady`，报名费 `naturalisationExam.fee`。
 - 报税：在会计师处把上一年度的应税收入写入 `nationality.incomeByTaxYear`（起薪按游戏设定，每次晋升乘 `promotionMultiplier`）；入籍要五个税年的记录才会从 UNKNOWN 变为 MET。
 - 住址：搬家写入 `changes`，在移民局申报写 `reportedOn`；超过 `changeReporting.months` 补报收 `changeReporting.firstFine`。
@@ -95,7 +95,7 @@
 ## 3. 没做或没验证的
 
 - 晓雯没有 Ο.3 续卡：引擎与 policy-data 都没有 Ο.3 续卡期限，游戏只让她在满足条件后转 Μ.3。共居条件因长时间出境等原因不满足时，她会在旧卡逾期补交期结束后以 `overstayed` 收场（正常游玩在 2028 年夏秋两季都能递交 Μ.3）。
-- 蓝卡续期按季度计时：一季里只有三个可玩日，游戏把"这一季碰到法定窗口"视为按时递交，并在活动说明里写明；逾期补交按到期日到季初的整月数收罚款。
+- 蓝卡续期按季度计时：一季里只有三个可玩日，游戏把"这一季碰到法定窗口"视为按时递交，并在活动说明里写明；逾期补交按到期日到办理当天的月数收罚款，不足一个月按一个月计（PD-150；原写"到季初的整月数"与代码不符，review108g-1 改正，逾期判断也改为按办理当天）。
 - `passport.expectedDeparture`：Μ.1 的证件核对在没有预计离境日时返回 PD-300 的 UNKNOWN，游戏把当前居留卡到期日记作离境基准，续期时同步更新。这是游戏的假设，不是引擎或官方的解释。
 - 引擎对入籍的连续居住：只要有一次出境就按 PD-106 返回待确认，所以探亲后入籍一栏会变成"无法确定"；这是引擎的既有结论，没有改。入籍还需要五个税年的报税记录，开局分别只有 2 年（卡里姆）和 3 年（晓雯）。
 - 没有专属立绘和行走图：两位角色和 8 位镇民借用现有 17 人的图（`grGameArt.cast`），名字与身份都是新的。会计师事务所、KEP、国籍司没有专属招牌（共用的 council 图标是柱廊建筑，不适合会计师，所以没挂）。
@@ -157,3 +157,58 @@ brief：`brief-108c`。本分支原先建在日本试点（任务 111）与希�
 - 希腊仍用共用的英国语境文案：没有设 `GameCountry.furnishingNames`，离开或结局时"一点点布置的家"会显示英国家具名，而希腊商店卖的是阳台藤椅、木百叶窗、台灯；没有 `gr.game.kitchenNoIngredients`（空厨房提示仍说池塘与河鲈）；内容包没有 `fishingSpot`（日记写"池塘抛竿"，希腊是防波堤）。照日本 review111-1 建议 1 各加一项即可。
 - 希腊进度条 `FUTURE` 用的是 `country.status.FUTURE`「最早 X 满足条件」。希腊路径的 `FUTURE` 是整条路径的状态（其他条件都满足、只差日期），这句话是准确的；日本改措辞是因为日本用的是时间条件的 `timeStatus`。可以保留，但审核时可能会被问到。
 - 周末或节日搬家必然逾期的问题（第 3 段）：可在 `actionAvailable` 里只在移民局当天开门、或下一个可玩工作日仍在期限内时提供搬家与退租。
+
+## 审核修正（review108g-1）
+
+审核意见：独立 Claude 只读审核第 1 轮（`review108g-1`，HEAD `6da0e2dd`，结论"需要修改"）；brief：`brief-108d`；实现者：Claude Opus 5.5。问题 1、风险 1–6、建议 1–4 全部处理。共用外壳（`app/game-shell/*`、`GameCountry`）、共用 `game.ts` 与 `content-pack.ts`、英国与日本游戏都没有改动：风险 4 用的是共用外壳已有的可选钩子 `afterQuarter`，建议 1 用的是日本试点加的可选字段 `furnishingNames`、`fishingSpot`。PROGRESS 行号 1060–1069：提交前查过 `origin/main`、全部远端与本地分支和各 worktree 的 `PROGRESS.md`，1000 以上只用了 1000–1007、1040–1047。第 1 与第 3 节里罚款口径的措辞已直接改正；其余与本节不符的说法以本节为准：搬家与退租只在移民局当天能受理申报时提供，再次逾期申报收 `repeatFine`，两位角色的护照有效期覆盖整局。
+
+### 1. 做了什么（按 commit）
+
+| PROGRESS | commit | 对应审核 | 内容 |
+|---|---|---|---|
+| 1060 | `c1b462eb` `Fix: 希腊蓝卡续期按办理当天判断逾期罚款与补交截止` | 问题 1、建议 4 | `renewalFees` 的逾期月数与 `extend` 的逾期补交截止改按当天 `state.day.date` 判断，与住址申报同一口径。提前递交保留"本季碰到窗口"的季度口径：2026 年 6 月季的工作日 06-09 早于法定窗口起点 07-14，若也按当天判断，2026 年没有一季能按时续期。默认 2026 日历下：2026-09-15（到期日次日）续期收 1 个月逾期罚款，合计 `workFees.permit + print + lateFinePerMonthEur`；2026-12-15 已过逾期补交截止 2026-12-14，移民局不再提供续期，2027-03-01 按 `grRules.expired` 以 `overstayed` 结束、许可截止写为 2026-09-14。续期说明写明"逾期月数与补交截止按办理当天计算，不足一个月按一个月计（PD-150）"，`docs/pending-details.md` 希腊完整版一节登记 PD-150（编号说明见第 4 段）。 |
+| 1061 | `6545c3e4` `Fix: 希腊搬家与退租只在移民局当天能受理申报时提供` | 风险 1 | 照日本 review111-1 风险 2：`rent-brighter-home` 与 `leave-brighter-home` 只在移民局开门的工作日、且搬完还够一次申报在 14:30 关门前办完时提供（搬家与申报各 60 分钟，最晚 12:30 搬）；余额条件照旧。两项说明写明"只在移民局当天还能受理时提供，搬完当天就去申报"。 |
+| 1062 | `63a568c6` `Fix: 希腊再次逾期申报住址收 repeatFine` | 风险 5 | 罚款由 `lateReport` 算出：今天要报的变更已逾期时，若时间线里已有逾期申报过的变更，收 `changeReporting.repeatFine`，否则收 `firstFine`（SRC-086 第 19(1)、20(1) 条）；标签写"再次逾期"。一次申报同时补报多项逾期变更只罚一次。搬家说明补上再犯金额。 |
+| 1063 | `8f319c36` `Fix: 希腊逾期申报住址的罚款计入能否办理` | 风险 6 | `actionAvailable` 对 `report-change` 用当天应缴的罚款（首次或再犯）检查余额；按时申报不收费，照常提供。 |
+| 1064 | `8f8a5ebc` `Fix: 希腊季末余额不足自动退租时记下住址变更` | 风险 4 | 希腊内容包新增 `afterQuarter`：共用外壳季末自动退租时会写入本季的 `brighter-home-return` 日志，内容包识别后在时间线记一次住址变更，发生日取新一季首日（该季首个工作日在两个月期限内，可按时申报），设 `change-report-due`，再按新时间线重算 `state.result`（外壳在调用 `afterQuarter` 前已评估过一次）。系统事件"搬到更便宜的公寓"本来就带 `moved` 效果，不用改。没有动共用外壳，所以不需要 brief 里的退路。 |
+| 1065 | `9e2833bf` `Fix: 希腊角色的虚构护照覆盖整局，长期游玩不因 C-01 卡住` | 风险 3 | 游戏没有换护照的动作，两本虚构护照改为覆盖整局（游戏结束 2036-03-01）。卡里姆的 Μ.1 是完整证件核对：签发须在评估日前 `passport.issueYears` 年内，到期须晚于预计离境日加 `passport.remainingMonths`（SRC-086 第 8(a) 条）；游戏把预计离境日记作当前卡到期日，2035 年续期后为 2038-09-14。所以签发日取开局日 2026-03-01（2036-03-01 的结局评估仍在年限内），到期日取 2039-02-28。晓雯的 Μ.3 与入籍只核对证件有效，到期日改为 2036-04-30。这两组日期是游戏设定，不代表任何国家护照的真实有效期。 |
+| 1066 | `54ab2681` `Fix: 希腊补齐家具名、空厨房提示与抛竿地点` | 建议 1 | 照日本 review111-1 建议 1：内容包导出 `grFurnishingNames`（阳台藤椅、木百叶窗、台灯），超市家具标签同源、显示不变，`grCountry.furnishingNames` 让结局"一点点布置的家"用这组名字；新增 `gr.game.kitchenNoIngredients`（蔬菜来自市立菜园的收成或周六菜市，沙丁鱼和金头鲷去港口防波堤钓）；内容包 `fishingSpot` 为"港口防波堤 / the harbour breakwater"，日记写"港口防波堤抛竿 N 次"，旅程写"在港口防波堤抛竿"。 |
+| 1067 | `ff0122fe` `Fix: 希腊居留卡提醒如实说明 Ο.3 在游戏里不能续期` | 风险 2、建议 2 | 配偶 Ο.3 失效后游戏继续（与引擎一致，保留，见第 3 段）。季初提醒与快进警告是两位角色共用的一条文案（共用外壳按国家取键，不分角色），改为分别说明：蓝卡在续期期限内可到移民局续期，条件满足后可申请 Μ.1；Ο.3 卡在游戏里不能续期，条件满足后到移民局申请 Μ.3。快进警告去掉"跨过这一天"（卡已失效时到期日早已过去）。中英文同改。 |
+| 1068 | `ebb15976` `Fix: 希腊进度条不把不阻止递交的住址申报列为还差` | 建议 3 | `missingRules` 排除 C-06（引擎 `greece-full.ts` 的路径判断排除它），路径为 `MET` 时也不列未满足项。 |
+| 1069 | `Docs: 任务 108 审核修正报告（review108g-1）` | 建议 4 | 本节、第 1 与第 3 节罚款口径的措辞改正、PROGRESS。 |
+
+逐条对应：问题 1 → 1060；风险 1 → 1061；风险 2 → 1067（结局行为保留）；风险 3 → 1065；风险 4 → 1064；风险 5 → 1062；风险 6 → 1063；建议 1 → 1066；建议 2 → 1067；建议 3 → 1068；建议 4 → 1060（活动说明与 PD-150）与 1069（报告措辞）。
+
+### 2. 怎么验证的
+
+- 每项先写回归测试并确认失败，再改：
+  - 1060：内容包单测「on the 2026 calendar the late fine and late deadline follow the day of filing」，按默认 2026 日历从开局快进到 9 月季与 12 月季。修前 2026-09-15 的标签是不带罚款的"续期欧盟蓝卡"；只撤回补交截止那一行时，2026-12-15 仍列出 `extend`。原有用例「a late renewal pays the monthly fine」（手设到期日 2026-01-14、03-10 办理）按当天计仍是 2 个月，未改。
+  - 1061：「moving is offered only while the migration office can take the report」，修前周六仍列出搬家；修后工作日 12:30 可搬、12:31 不可，退租同样，周末都不提供，12:30 搬家后当天移民局仍列出申报。
+  - 1062：「a second late address report pays the repeat fine」：第一季搬家、下一季补报收首次罚款，当天退租、再下一季补报。修前第二次的标签仍是 €100。
+  - 1063：「a late address report needs the money for its fine」，修前余额差 1 欧元仍列出申报；修后不列，恰好够时可申报、扣到 0。
+  - 1064：「a lease that ends on a low balance is a move to report」，修前时间线只有原来那次变更；修后记下 2026-06-01 的变更，`state.result` 等于按新时间线重算的结果，当季申报不收费、下一季 C-06 满足，不申报则下一季不满足。网页单测「the ending link opens after a low balance ends the lease」：自动退租后离开，结局链接经 `readPageResult` 回读无更正提示，草稿、路径与逐项检查和游戏内一致。
+  - 1065：「the passports outlast the game, so long play never stalls on C-01」：两位角色从开局到 2036-03-01 每个季首的全部 C-01 都满足（卡里姆按 2035 年续期后的离境日 2038-09-14），2035-12-01 长期居留路径仍为 `MET`。修前卡里姆开局即不满足。
+  - 1066：内容包单测「the diary casts a line off the harbour breakwater, not at a pond」，修前日志是"在池塘抛竿"；网页单测「the kitchen hint and ending furniture use Greek wording in %s」（中英文），修前厨房提示等于共用文案、结局家具名是英国的。
+  - 1067：网页单测「the card reminders say the Ο.3 cannot be renewed in this game, in %s」（中英文），修前提醒不含 Ο.3；并核对晓雯 2027-12-01（剩 6 个月）时移民局没有可办事项。
+  - 1068：网页单测「a late address report does not show as missing, as it does not bar filing」，修前考过 A2、路径 `MET` 时仍列出"Address and identity change notifications"。
+  - 每个 commit 前跑了 game（改到网页时加 web）的 typecheck、受影响文件的 ESLint 与 Prettier 检查、对应的希腊测试文件。希腊内容包单测 14 → 21 项，希腊网页单测 14 → 20 项。
+- 完整验收（HEAD `ebb15976`，报告提交前）：`export VITEST_MAX_WORKERS=2` 后 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，整条命令退出码 0（日志末行 `GATE EXIT 0`）。error-report 2、policy-data 23、engine 6,006（既有 1 项按默认跳过）、game 1,383、web 1,076 项通过；构建生成 62 个静态页面，`apps/web/out/greece/game.html` 已导出。
+- 浏览器 e2e（上述静态构建）：确认 4488 端口空闲后 `cd apps/e2e && E2E_PORT=4488 npx playwright test tests/game.spec.ts tests/life.spec.ts tests/japan-game.spec.ts tests/greece-game.spec.ts --project=desktop --reporter=line`，31 项全部通过，退出码 0；服务由 Playwright 自行起停，跑完端口已释放，删除了 `apps/e2e/test-results`。
+- 视觉检查：临时 Playwright 脚本（放 scratchpad，跑时复制进 `apps/e2e/tests`，跑完删除，未入库）无头截图。配偶存档改到 2028-09-01（Ο.3 已于 2028-06-19 失效）后的快进确认框显示「居留卡有效期到 2028-06-19，快进会直接过完这一季。蓝卡在续期期限内可以先去移民局办事处续期；Ο.3 卡在游戏里不能续期，条件满足后可以在那里申请 Μ.3。」，红框内两行排版正常；蓝卡角色补上三件家具后离开希腊，结局"一点点布置的家"显示阳台藤椅、木百叶窗、台灯。英文快进框的截图脚本没走通（继续存档后还有一张卡片未关），英文文案由网页单测核对。
+
+### 3. 没做或没验证的
+
+- 风险 2 的结局取舍仍需统筹确认（同上一节第 3 段 947）：配偶 Ο.3 失效后游戏继续、没有 `overstayed` 结局。本轮只改提醒文案，没有改规则。
+- 搬家与退租的"当天能申报"没有算从家走到移民局的时间（与日本做法相同）。浏览器里户外每 2 秒走 10 分钟游戏时间，接近 12:30 才搬家的玩家走到时可能已来不及申报；单测里是直接进门。
+- 季末自动退租若发生在 3 个月或 6 个月探亲途中，记下的变更（新一季首日）对应的工作日玩家还在国外，回来后已过两个月期限，只能逾期补报。没有为这一组合另做处理。
+- Μ.3 的逾期费（Ο.3 到期满一年后递交）仍按季首日期判断，与引擎 GF-06 按评估日的说明一致；晓雯的卡到期日固定为 2028-06-19，2029 年 6 月季的工作日 06-12 早于 06-19，季首与当天的判断在可玩日期里不会分歧，所以没有改。
+- 圣诞礼金事件的选项"存起来，留给续卡和考试"对配偶也写"续卡"，是泛指存钱用途，没有改。
+- 本轮没有合入 main：main 在 `3f9dae44` 之后又合入了加拿大完整版页面（`e84896a8`），开 PR 前需要再合一次，冲突预计仍只在 `sw.js` 与 `about-page.test.tsx` 的缓存版本一行。
+- 英国 e2e 截图基线未在本机比对（本机 Playwright 忽略截图）；没有跑 a11y spec 和 mobile project；英文快进框没有截图。
+
+### 4. 发现与建议（范围外，未实现）
+
+- PD 编号：brief 要求"接着希腊已有的编"，但希腊试点用 PD-101–107、109，完整版用满了 PD-300–319，PD-320 起属于爱尔兰等其他国家（马来西亚分支用到 PD-431）。查过 `origin/main`、全部分支与 worktree，PD-150–154 从未使用，所以取 PD-150，放在希腊完整版一节末尾。若统筹另有编号约定，改号只涉及 `pending-details.md`、`hooks.ts` 注释与 `town.ts` 续期说明三处。
+- 卡里姆的护照现在是约 13 年有效期的虚构证件。更贴近现实的做法是加一个换护照动作，按引擎的 `passport-renewed` 变更处理（可在下次换卡时申报），或在 policy-data 明确长期居留申请的离境基准（PD-300），游戏就不必把预计离境日记作卡到期日。
+- 日本与希腊的"当天能申报"都没有步行余量；如需要，可以在各国 balance 里加一个游戏设定的步行分钟数（日本 review111-2 已提）。
+- 共用外壳的居留卡提醒与快进警告按国家取文案，同一国家的两位角色只能共用一句；若以后角色之间的续卡方式差别更大，可以让 `visaStatus` 带一个可选的文案键。
