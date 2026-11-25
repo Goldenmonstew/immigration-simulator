@@ -475,6 +475,25 @@ function conflicts(draft: NzDraft, key: string, errors: Errors) {
   )
     errors['nz-common-residenceFiling-statutoryBar'] ??=
       'nz.error.deportationConflict';
+  // A named visa decides the religious and investor visa checks; a general
+  // work visa or "other" leaves them to the earlier answers.
+  const visa = filing?.currentVisa;
+  const disagrees = (flag: boolean | undefined, required: string) =>
+    flag !== undefined && flag !== (visa === required);
+  if (
+    visa !== undefined &&
+    visa !== 'work' &&
+    visa !== 'other' &&
+    (disagrees(
+      answers.family?.religious?.holdsQualifyingWorkVisa,
+      'religious-work',
+    ) ||
+      disagrees(
+        answers.family?.investment?.business?.holdsBusinessInvestorWorkVisa,
+        'business-investor-work',
+      ))
+  )
+    errors['nz-common-residenceFiling-currentVisa'] ??= 'nz.error.visaConflict';
 }
 
 function checkStep(draft: NzDraft, step: number, validate: boolean) {

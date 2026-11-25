@@ -800,6 +800,67 @@ test('answers that contradict an earlier step are flagged on the later question'
   expect(nz.decodeDraft(shared)).toBeUndefined();
 });
 
+test('the visa held when applying must agree with the religious and investor visa answers', () => {
+  const visaError = {
+    'nz-common-residenceFiling-currentVisa': 'nz.error.visaConflict',
+  };
+  const filing = (
+    goals: NzDraft['goals'],
+    family: object,
+    currentVisa?: string,
+  ) => {
+    const draft = residentDraft(goals);
+    return withAnswers(draft, {
+      family,
+      common: {
+        ...draft.answers.common,
+        residenceFiling: {
+          ...draft.answers.common!.residenceFiling,
+          currentVisa,
+        },
+      },
+    });
+  };
+  const check = (draft: NzDraft) =>
+    nz.validateStep({ ...draft, step: stepIndex('filing') });
+  const religious = (holdsQualifyingWorkVisa: boolean, visa?: string) =>
+    filing(
+      ['religious'],
+      { religious: { inNz: true, holdsQualifyingWorkVisa } },
+      visa,
+    );
+  // A named visa decides the check, so a different flag would be ignored.
+  expect(check(religious(false, 'religious-work'))).toEqual(visaError);
+  expect(check(religious(true, 'critical-purpose-work'))).toEqual(visaError);
+  expect(check(religious(true, 'none'))).toEqual(visaError);
+  expect(check(religious(true, 'religious-work'))).toEqual({});
+  expect(check(religious(false, 'critical-purpose-work'))).toEqual({});
+  // A general work visa, other or no answer leaves the flag to decide.
+  expect(check(religious(true, 'work'))).toEqual({});
+  expect(check(religious(false, 'other'))).toEqual({});
+  expect(check(religious(true))).toEqual({});
+
+  const investor = (holdsBusinessInvestorWorkVisa: boolean, visa: string) =>
+    filing(
+      ['investor'],
+      {
+        investment: {
+          route: 'business',
+          business: { holdsBusinessInvestorWorkVisa },
+        },
+      },
+      visa,
+    );
+  expect(check(investor(false, 'business-investor-work'))).toEqual(visaError);
+  expect(check(investor(true, 'religious-work'))).toEqual(visaError);
+  expect(check(investor(true, 'business-investor-work'))).toEqual({});
+  // Answers on a step the goals hide are not compared.
+  expect(
+    check({ ...investor(false, 'business-investor-work'), goals: ['smc'] }),
+  ).toEqual({});
+  expect(nz.decodeDraft(religious(false, 'religious-work'))).toBeUndefined();
+});
+
 test('a required income list cannot be empty, including in a shared link', () => {
   const draft = withAnswers(residentDraft(['parent']), {
     family: {

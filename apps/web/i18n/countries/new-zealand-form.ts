@@ -68,6 +68,8 @@ export const nzFormZh = {
     '与前面「目前在新西兰境内」或「递交时在新西兰境内」的回答不一致，请修改其中一项。',
   'nz.error.deportationConflict':
     '与「永久居民签证（PRV）」一步中「驱逐责任」的回答不一致，请修改其中一项。',
+  'nz.error.visaConflict':
+    '与前面「持有符合条件的宗教工作者工签」或「持有 Business Investor 工签」的回答不一致，请修改其中一项。',
 
   'nz.f.simulationDate': '模拟日期',
   'nz.f.dateOfBirth': '出生日期',
@@ -728,6 +730,8 @@ export const nzFormEn: Record<keyof typeof nzFormZh, string> = {
     'This does not match your earlier answer to “Currently in New Zealand” or “In New Zealand when applying”. Change one of them.',
   'nz.error.deportationConflict':
     'This does not match your answer to “Liability for deportation” in the permanent resident visa step. Change one of them.',
+  'nz.error.visaConflict':
+    'This does not match your earlier answer to “Holds a qualifying Religious Worker work visa” or “Holds a Business Investor work visa”. Change one of them.',
 
   'nz.f.simulationDate': 'Simulation date',
   'nz.f.dateOfBirth': 'Date of birth',
