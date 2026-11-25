@@ -6,6 +6,7 @@ import type {
   Achievement,
   Activity,
   EndingId,
+  GameEvent,
   IsoDate,
   LogEntry,
   Outcome,
@@ -27,6 +28,7 @@ import { auFish, auItems, auNotices, festivalFoods } from './town';
 
 type AuTools = GameTools<AuTimeline, CountryResult, AuEffect, AuFestival>;
 type AuActivity = Activity<AuEffect, AuFestival>;
+type AuEvent = GameEvent<AuEffect, AuFestival>;
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
 const aud = (value: number) => `AUD ${value.toLocaleString('en-AU')}`;
 const festivalActions = [
@@ -117,6 +119,15 @@ function residencePending(state: AuState) {
           !!check.pendingDetails?.includes('PD-108')),
     )
   );
+}
+
+/**
+ * Every call in this pack is from Wattle Bay or from the family back home,
+ * and the invitations ask the player to turn up. On a trip home none fits, so
+ * calls wait until the player is back (the shared game keeps them for later).
+ */
+export function eventAvailable(state: AuState, event: AuEvent): boolean {
+  return !(state.trip && event.channel === 'phone');
 }
 
 export function actionAvailable(

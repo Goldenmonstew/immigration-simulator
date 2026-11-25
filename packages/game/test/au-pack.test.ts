@@ -458,3 +458,30 @@ test('every change of address says the game files the 491 notice', () => {
   expect(rent.note?.zhCN).toContain('自动退租');
   expect(rent.note?.en).toContain('low balance');
 });
+
+test('no call asks the player to turn up while they are away on a trip', () => {
+  const abroad: string[] = [];
+  let christmasTrips = 0;
+  for (let seed = 1; seed <= 40 && christmasTrips < 3; seed++) {
+    let state = settle(au.newGame('nurse', seed, 'en'));
+    while (state.date < '2026-12-01') state = nextDay(state);
+    // Leaving on the summer quarter's workday with the Christmas call drawn.
+    if (
+      !state.eventQueue.includes('au-christmas') &&
+      !state.day.deliveries.some(({ eventId }) => eventId === 'au-christmas')
+    )
+      continue;
+    christmasTrips++;
+    let trip = au.doActivity(visit(state, 'station', 600), 'travel-1');
+    for (let i = 0; i < 20 && trip.trip; i++) {
+      const event = au.currentEvent(trip);
+      if (!event) trip = au.sleep(trip);
+      else {
+        if (event.channel === 'phone') abroad.push(`${seed} ${event.id}`);
+        trip = au.resolve(trip, event.choices[0].id);
+      }
+    }
+  }
+  expect(christmasTrips).toBeGreaterThan(0);
+  expect(abroad).toEqual([]);
+}, 60_000);

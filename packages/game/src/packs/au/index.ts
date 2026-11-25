@@ -51,6 +51,7 @@ export const auGameContent: GameContentPack<
   rules: auRules,
   endingText: hooks.endingText,
   calendar: hooks.calendar,
+  eventAvailable: hooks.eventAvailable,
   actionAvailable: hooks.actionAvailable,
   actionDetails: hooks.actionDetails,
   actionFlags: hooks.actionFlags,
