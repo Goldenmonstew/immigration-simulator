@@ -349,6 +349,58 @@ test('the diary casts a line on the Ōoka River, not at a pond', () => {
   expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
 });
 
+test('a trip never carries the player past the last day they could renew', () => {
+  // The engineer's stay ends 2027-03-31. A six-month trip from September
+  // returns in March, but the trip lasts until the June quarter, whose one
+  // workday is after the period of stay; a three-month trip comes back in time.
+  let state = settle(jp.newGame('engineer', 7, 'en'));
+  while (state.date < '2026-09-01') state = quarterLater(state);
+  const station = visit(state, 'station', 600);
+  const trips = jp
+    .activities(station, 'station')
+    .map(({ id }) => id)
+    .filter((id) => id.startsWith('travel-'));
+  expect(jp.status(station).expiresOn).toBe('2027-03-31');
+  expect(trips).toEqual(['travel-1', 'travel-3']);
+});
+
+test('a short let given back at quarter end leaves an address notice to file', () => {
+  let state = visit(jp.newGame('engineer', 7, 'en'), 'home', 600);
+  state = settle(jp.doActivity(state, 'rent-brighter-home'));
+  state = settle(jp.doActivity(visit(state, 'ward', 660), 'address-notice'));
+  state.stats.money = 0;
+  const next = quarterLater(state);
+  expect(next.log.some(({ id }) => id === 'brighter-home-return')).toBe(true);
+  expect(next.flags).toContain('address-notice-due');
+  // The move-back card on the first morning records the move that day.
+  expect(
+    next.timeline.permanentResidence.evidence.addressNotices?.at(-1),
+  ).toEqual({ eventOn: next.day.date });
+});
+
+test('a short let given back while abroad is reported after coming home', () => {
+  let state = visit(jp.newGame('engineer', 7, 'en'), 'home', 600);
+  state = settle(jp.doActivity(state, 'rent-brighter-home'));
+  state = settle(jp.doActivity(visit(state, 'ward', 660), 'address-notice'));
+  state = visit(nextDay(state), 'station', 600);
+  const trip = jp
+    .activities(state, 'station')
+    .find(({ id }) => id === 'travel-3')!;
+  // Leave with only the fare, so the quarter end gives the let back abroad.
+  state.stats.money = -trip.effects.reduce(
+    (sum, e) => sum + (e.type === 'money' ? e.delta : 0),
+    0,
+  );
+  // The trip runs to the first quarter after the return day.
+  const home = settle(jp.doActivity(state, 'travel-3'));
+  expect(home.date).toBe('2026-09-01');
+  expect(home.log.some(({ id }) => id === 'brighter-home-return')).toBe(true);
+  const notices = home.timeline.permanentResidence.evidence.addressNotices;
+  expect(notices).toHaveLength(2);
+  expect(notices?.at(-1)).toEqual({ eventOn: home.day.date });
+  expect(home.flags).toContain('address-notice-due');
+});
+
 test('a lapsed period of stay ends the story', () => {
   let state = settle(jp.newGame('spouse', 5, 'en'));
   jp.status(state).expiresOn = '2026-04-30';

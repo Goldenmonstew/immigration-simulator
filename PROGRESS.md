@@ -923,3 +923,7 @@
 | 1224 | AGENTS.md 记录用户 2026-11-25 决定：Gemini 周额度用完后由未参与实现的 Claude 子 agent 终审、通过即合并，Gemini 恢复后补复查 | `AGENTS.md` |
 | 1225 | 任务 116 报告 | `docs/tasks/reports/116-shared-fixes.md` |
 | 1226 | 任务 116 审核建议跟进（review116-1）：删掉 engine 希腊入籍单测的 10 秒单测超时（低于新的 60 秒默认）；`.theme.theme a.secondary` 同样恢复按钮文字色；报告措辞改准 | `packages/engine/test/greece-settlement.test.ts`、`apps/web/app/uk/game/game.module.css`、`docs/tasks/reports/116-shared-fixes.md` |
+| 1230 | 任务 117 日本游戏跟进：行程结束于回程日之后的第一个季首，该季唯一工作日须在在留期间内，否则不提供该行程（工程师 2026-09 季不再提供 6 个月探亲，避免错过更新而必然 overstayed；希腊审核 review108g-2 风险 2 复现） | `packages/game/src/packs/jp/rules.ts`、`packages/game/test/jp-pack.test.ts` |
+| 1231 | 任务 117 日本游戏跟进：季末余额不足自动退租时，用 `afterQuarter` 记一次住址变更（新季首日），产生 14 日内申报义务（SRC-110 第19条の7–9，`immigrationDuties.addressDays`），与手动退租一致；在国外时等回国那一季再记（任务 116 审核 review116-1 建议 3） | `packages/game/src/packs/jp/hooks.ts`、`packages/game/src/packs/jp/index.ts`、`packages/game/test/jp-pack.test.ts` |
+| 1232 | 任务 117 报告 | `docs/tasks/reports/117-jp-followup.md` |
+| 1233 | 任务 117 审核跟进（review117-1 风险 1、建议 1、2）：自动退租不再静默记账，改为新季第一天早上的系统卡"短租到期"，写明 14 日内要到区役所申报，选择后按当天记搬家；补探亲途中退租、回国后才记的单测 | `packages/game/src/packs/jp/events.ts`、`packages/game/src/packs/jp/hooks.ts`、`packages/game/test/jp-pack.test.ts` |

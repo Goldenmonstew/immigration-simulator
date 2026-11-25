@@ -115,6 +115,29 @@ function longestPending(state: JpState) {
   );
 }
 
+// The shared quarter end can give the short let back when money runs low.
+// That is a move like the manual one, so it carries the same address notice
+// (SRC-110 第19条の7–9; `immigrationDuties.addressDays`). Someone still abroad
+// moves back in the quarter they come home.
+export function afterQuarter(
+  state: JpState,
+  _previousFlags: string[],
+  { setFlags }: JpTools,
+): void {
+  const leaseEnded = state.log.some(
+    (entry) =>
+      entry.id === 'brighter-home-return' &&
+      entry.year === state.year &&
+      entry.quarter === state.quarter,
+  );
+  if (leaseEnded) setFlags(state, ['moving-back']);
+  if (state.trip || !state.flags.includes('moving-back')) return;
+  state.flags = state.flags.filter((flag) => flag !== 'moving-back');
+  // A card on the first morning records the move and says the notice is due,
+  // so the player is not left to find out from a random reminder.
+  state.eventQueue.push('system-lease-ended');
+}
+
 export function actionAvailable(
   state: JpState,
   action: JpActivity,

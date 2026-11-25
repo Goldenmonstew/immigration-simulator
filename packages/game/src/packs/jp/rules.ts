@@ -10,7 +10,8 @@ import {
   type JpPrCommonEvidence,
 } from '@uk-immigration/engine';
 import { japanFull2026_11 } from '@uk-immigration/policy-data';
-import { addMonths } from '../../calendar';
+import { addDays, addMonths, firstWeekday } from '../../calendar';
+import { jpBalance as b } from './balance';
 import type { EvaluationAdapter } from '../../content-pack';
 import type { GameState, IsoDate, Progress } from '../../model';
 
@@ -141,9 +142,16 @@ export const jpRules: EvaluationAdapter<
   route: (state) => status(state).kind,
   visaMonthsLeft,
   // Short trips use the deemed re-entry permission (SRC-110 art. 26-2),
-  // which ends with the period of stay.
-  canTravel: (state, through) =>
-    !!status(state).expiresOn && through <= status(state).expiresOn!,
+  // which ends with the period of stay. A trip also ends only at the first
+  // quarter on or after the return day, so that quarter's one workday must
+  // still fall within the period of stay, or the player could never renew.
+  canTravel: (state, through) => {
+    const to = status(state).expiresOn;
+    if (!to || through > to) return false;
+    let back = state.date;
+    while (back < through) back = addMonths(back, b.monthsPerQuarter);
+    return firstWeekday(addDays(back, 7), 2) <= to;
+  },
   recordAbsence(state, trip) {
     state.timeline.trips.push({
       departed: trip.from,

@@ -438,6 +438,23 @@ export const jpEvents: JpEvent[] = [
 
 export const jpSystemEvents: JpEvent[] = [
   {
+    id: 'system-lease-ended',
+    channel: 'morning',
+    title: t('短租到期', 'The short let ends'),
+    text: t(
+      `账户撑不起这份房租，押金退回来了。今天你把纸箱搬回原来的住处——这也是搬家，${addressDays} 天内要到区役所申报住址。`,
+      `The account cannot carry the rent, so the deposit comes back. Today you carry the boxes back to the old place. That is a move too: report the address at the ward office within ${addressDays} days.`,
+    ),
+    weight: 0,
+    choices: [
+      {
+        id: 'move-back',
+        label: t('搬回去', 'Move back'),
+        effects: [{ type: 'moved' }],
+      },
+    ],
+  },
+  {
     id: 'system-exam-failed',
     channel: 'morning',
     title: t('评估结果', 'Assessment result'),
