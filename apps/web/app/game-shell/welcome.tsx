@@ -1,16 +1,19 @@
 'use client';
 
 import { preload } from 'react-dom';
-import { useTranslation } from '../../../i18n/locale';
-import { townBanner } from './art';
-import styles from './game.module.css';
+import { useGameText } from './game-ui';
+import styles from '../uk/game/game.module.css';
 
 // No game code here, so the page's static HTML already has the title and
 // town banner (the largest paint) before the game scripts arrive.
 export function WelcomeIntro({
-  banner = townBanner,
-}: { banner?: string } = {}) {
-  const { t, locale } = useTranslation();
+  country,
+  banner,
+}: {
+  country: string;
+  banner: string;
+}) {
+  const { t, locale } = useGameText(country);
   preload(banner, { as: 'image', fetchPriority: 'high' });
   return (
     <div className={styles.welcomeIntro}>
@@ -32,11 +35,17 @@ export function WelcomeIntro({
   );
 }
 
-export function WelcomeLoading({ banner }: { banner?: string } = {}) {
-  const { t } = useTranslation();
+export function WelcomeLoading({
+  country,
+  banner,
+}: {
+  country: string;
+  banner: string;
+}) {
+  const { t } = useGameText(country);
   return (
     <section className={styles.welcome}>
-      <WelcomeIntro banner={banner} />
+      <WelcomeIntro country={country} banner={banner} />
       <p role="status">{t('game.loading')}</p>
     </section>
   );

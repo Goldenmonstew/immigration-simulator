@@ -1,9 +1,11 @@
 import { jpFormZh, jpFormEn } from './japan-form';
 import { zhCN as moduleZh, en as moduleEn } from './japan-module';
+import { jpGameZh, jpGameEn } from './japan-game';
 
 export const zhCN = {
   ...jpFormZh,
   ...moduleZh,
+  ...jpGameZh,
   'jp.prepare':
     '准备在留及出入境日期、在留资格、家庭关系和与你所选路径有关的证明，例如缴税、年金、医保、日语或人才积分记录。裁量事项可留待主管机关确认。',
   'jp.privacy':
@@ -46,6 +48,7 @@ export const zhCN = {
 export const en: Record<keyof typeof zhCN, string> = {
   ...jpFormEn,
   ...moduleEn,
+  ...jpGameEn,
   'jp.prepare':
     'Have your residence status, dates of stay and travel, and family details ready. Depending on your route, you may also need tax, pension, health insurance, language or points records. Leave discretionary decisions open until the authority confirms them.',
   'jp.privacy':
