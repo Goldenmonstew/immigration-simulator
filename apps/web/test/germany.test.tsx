@@ -1,11 +1,13 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
+import { usePathname } from 'next/navigation';
 import GermanyPage from '../app/germany/page';
 import GermanyPolicyPage from '../app/germany/policy/page';
 import GermanySimulatePage from '../app/germany/simulate/page';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';
 import { LocaleContext } from '../i18n/locale';
 import {
@@ -18,9 +20,15 @@ import {
   type GermanyDraft,
 } from '../lib/germany-draft';
 import { germanyModule as de } from '../lib/germany-module';
-import { decodeDraft, encodeDraft } from '../lib/share';
+import { readPageResult } from '../lib/page-result';
+import { decodeDraft, encodeDraft, linkedResultDraft } from '../lib/share';
 import { draftStorage, readScenarios, saveScenario } from '../lib/storage';
 import { ukModule } from '../lib/uk-module';
+
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
+  usePathname: vi.fn(),
+}));
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -1203,4 +1211,53 @@ test('number lists start empty, report errors on the list and the questionnaire 
     common: { housing: { householdAges: [5, Number.NaN] } },
   }) as GermanyDraft;
   expect(stored.common?.housing?.householdAges).toEqual([5]);
+});
+
+test('a German share link keeps the local draft, and result, edit and comparison links carry the scenario', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local: GermanyDraft = {
+    ...createGermanyDraft(),
+    simulationDate: '2026-10-01',
+    routes: ['R07'],
+  };
+  draftStorage(de, local);
+  const saved = storage.get('de-immigration-draft-v1');
+  const shared = sampleDraft();
+  const page = readPageResult(de, 'zh-CN', encodeDraft(de, shared));
+  expect(page.shared).toBe(true);
+  expect(page.draft?.simulationDate).toBe('2026-11-23');
+  expect(storage.get('de-immigration-draft-v1')).toBe(saved);
+  expect(draftStorage(de).draft).toMatchObject({
+    simulationDate: '2026-10-01',
+    routes: ['R07'],
+  });
+  expect(
+    linkedResultDraft(de, `#draft=${encodeDraft(de, shared)}`)?.draft,
+  ).toMatchObject({
+    simulationDate: '2026-11-23',
+    routes: ['R01', 'R02', 'R07'],
+  });
+});
+
+test('skipping to the main content keeps the scenario fragment on Germany scenario pages', () => {
+  const render = (path: string) => {
+    vi.mocked(usePathname).mockReturnValue(path);
+    return renderToStaticMarkup(
+      <LocaleContext value={{ locale: 'zh-CN', setLocale: () => {} }}>
+        <SiteShell>
+          <main id="main">Content</main>
+        </SiteShell>
+      </LocaleContext>,
+    );
+  };
+  for (const page of ['result', 'simulate', 'whatif']) {
+    const html = render(`/germany/${page}`);
+    expect(html).toContain('<button type="button"');
+    expect(html).not.toContain('href="#main"');
+  }
+  expect(render('/germany/policy')).toContain('href="#main"');
 });

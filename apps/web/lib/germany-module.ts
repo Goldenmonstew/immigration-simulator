@@ -26,6 +26,7 @@ function run(draft: GermanyDraft, locale: Locale) {
 export const germanyModule: CountryModule<GermanyDraft, GermanyWhatIf> = {
   id: 'de',
   version: 1,
+  scenarioLinks: true,
   createDraft: createGermanyDraft,
   storedAnswers: { encode: storeGermanyAnswers, decode: readGermanyAnswers },
   activeAnswers: activeGermanyAnswers,
