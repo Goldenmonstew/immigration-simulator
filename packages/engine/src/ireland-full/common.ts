@@ -61,6 +61,22 @@ export function ageAtLeast(
   return dob === undefined ? undefined : day >= afterYears(dob, age);
 }
 
+// Display group of a check outside the pathway status: fees are a budget and
+// post-grant obligations come after approval. Display metadata only.
+const outsideStatusKind: Partial<
+  Record<IrelandConditionId, CountryCheck['kind']>
+> = {
+  A09: 'budget',
+  A10: 'budget',
+  B02: 'budget',
+  B10: 'budget',
+  C09: 'budget',
+  'FAMILY-ENTRY-FEE': 'budget',
+  B28: 'afterApproval',
+  C08: 'afterApproval',
+  D08: 'afterApproval',
+};
+
 export function assessment(day: IsoDate, locale: Locale | undefined) {
   const L = textFor({ locale });
   const checks: CountryCheck[] = [];
@@ -103,8 +119,9 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
             )
           : title),
       sources: meta.sources,
-      // Display metadata only: a check outside the pathway status is information.
-      kind: requirement ? 'requirement' : 'information',
+      kind: requirement
+        ? 'requirement'
+        : (outsideStatusKind[id] ?? 'information'),
       ...(met === undefined && pendingDetails?.length
         ? { pendingDetails }
         : {}),
@@ -153,7 +170,7 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
               : 'Stamp 4 upgrades: Eligibility criteria',
           },
         ],
-        kind: affectsEligibility ? 'requirement' : 'information',
+        kind: affectsEligibility ? 'time' : 'information',
         ...(previous?.met === undefined && unknownPds[index]?.length
           ? { pendingDetails: unknownPds[index] }
           : {}),

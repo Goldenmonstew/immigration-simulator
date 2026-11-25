@@ -1141,3 +1141,34 @@ test('opening an Irish share link keeps the local draft and the skip link keeps 
     ),
   ).toContain('href="#main"');
 });
+
+test('fees, post-grant steps and time conditions carry their own groups and stay out of the gaps only when they do not decide', () => {
+  const draft: IrelandDraft = {
+    ...naturalisationDraft,
+    citizenship: {
+      ...naturalisationDraft.citizenship,
+      applicationFeePrepared: false,
+    },
+  };
+  const route = pathway(draft, 'IE-NATURALISATION');
+  expect(route.status).toBe('MET');
+  const kind = (id: string) => route.checks.find((c) => c.id === id)?.kind;
+  expect(kind('IE-A09')).toBe('budget');
+  expect(kind('IE-NAT-CONTINUOUS')).toBe('time');
+  expect(kind('IE-A01')).toBe('requirement');
+  expect(gapRules(route).map((c) => c.id)).toEqual([]);
+  const html = render(
+    <ResultView country={ie} result={ie.run(draft, 'zh-CN')} draft={draft} />,
+  );
+  for (const key of [
+    'country.check.budget',
+    'country.check.time',
+    'country.check.requirement',
+    'country.check.information',
+  ] as const)
+    expect(html, key).toContain(t(key));
+  // A time condition still to be met stays in the gaps.
+  const work = pathway(workDraft, 'IE-STAMP4-21');
+  expect(gapRules(work).map((c) => c.id)).toContain('IE-STAMP4-WORK-TIME');
+  expect(work.checks.find((c) => c.id === 'IE-B02')?.kind).toBe('budget');
+});

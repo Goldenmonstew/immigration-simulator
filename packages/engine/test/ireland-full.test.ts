@@ -3608,7 +3608,7 @@ test('both locales expose the same stable path and check IDs, with explanations 
 });
 
 describe('Ireland check kinds', () => {
-  test('checks that do not decide the pathway are procedural information', () => {
+  test('checks are grouped as time, requirements, budget, after approval or information', () => {
     const naturalisation = result('IE-NATURALISATION', {
       citizenship: { ...citizen, vetting: 'outstanding' },
     });
@@ -3617,10 +3617,20 @@ describe('Ireland check kinds', () => {
       status: 'NOT_MET',
       kind: 'information',
     });
-    for (const id of ['A09', 'A10', 'A11', 'A12'])
-      expect(checkOf(naturalisation.checks, id)?.kind, id).toBe('information');
-    for (const id of ['A01', 'A04', 'NAT-CONTINUOUS', 'NAT-PRIOR'])
-      expect(checkOf(naturalisation.checks, id)?.kind, id).toBe('requirement');
+    // Fees are a budget, the residence clock is a time requirement and the
+    // other checks outside the status are procedural information.
+    for (const [id, kind] of [
+      ['A01', 'requirement'],
+      ['A04', 'requirement'],
+      ['NAT-CONTINUOUS', 'time'],
+      ['NAT-PRIOR', 'time'],
+      ['NAT-ABSENCES', 'time'],
+      ['A09', 'budget'],
+      ['A10', 'budget'],
+      ['A11', 'information'],
+      ['A12', 'information'],
+    ])
+      expect(checkOf(naturalisation.checks, id)?.kind, id).toBe(kind);
 
     // The legacy Stamp 1G clock is shown for reference only (task 89, review89-2).
     const independent = result('IE-STAMP4-INDEPENDENT-FAMILY', {
@@ -3643,9 +3653,12 @@ describe('Ireland check kinds', () => {
     });
     expect(checkOf(independent.checks, 'B12')?.kind).toBe('requirement');
 
-    // C08 decides an LTR renewal but is only information on a first application.
+    // C08 decides an LTR renewal but only follows a first grant; the LTR
+    // approval fee is a budget item.
     const request = { permissions: [{ kind: 'stamp4', from: '2021-12-01' }], ltr } satisfies Partial<IrelandFullRequest>;
-    expect(checkOf(result('IE-LTR-PRINCIPAL', request).checks, 'C08')?.kind).toBe('information');
+    const first = result('IE-LTR-PRINCIPAL', request).checks;
+    expect(checkOf(first, 'C08')?.kind).toBe('afterApproval');
+    expect(checkOf(first, 'C09')?.kind).toBe('budget');
     expect(
       checkOf(
         result('IE-LTR-PRINCIPAL', {
@@ -3655,5 +3668,20 @@ describe('Ireland check kinds', () => {
         'C08',
       )?.kind,
     ).toBe('requirement');
+
+    // Stamp 5 registration and EU permanent status maintenance follow a grant.
+    const stamp5 = result('IE-STAMP5', {
+      permissions: [{ kind: 'stamp1-csep', from: '2016-01-01' }],
+      stamp5: { grantReceived: true },
+    }).checks;
+    expect(checkOf(stamp5, 'WCATT-TIME')?.kind).toBe('time');
+    expect(checkOf(stamp5, 'B28')?.kind).toBe('afterApproval');
+    const treaty = result('IE-EU-PERMANENT', { eu }).checks;
+    expect(checkOf(treaty, 'D08')?.kind).toBe('afterApproval');
+    expect(checkOf(treaty, 'D06')?.kind).toBe('information');
+    expect(checkOf(treaty, 'D03')?.kind).toBe('requirement');
+    const work = result('IE-STAMP4-21', { work: {} }).checks;
+    expect(checkOf(work, 'STAMP4-WORK-TIME')?.kind).toBe('time');
+    expect(checkOf(work, 'B02')?.kind).toBe('budget');
   });
 });
