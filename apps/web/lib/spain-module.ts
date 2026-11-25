@@ -34,6 +34,7 @@ function run(draft: SpainDraft, locale: Locale) {
 export const spainModule: CountryModule<SpainDraft, SpainWhatIf> = {
   id: 'es',
   version: 1,
+  scenarioLinks: true,
   createDraft: createSpainDraft,
   activeAnswers: activeSpainAnswers,
   restoreStoredDraft: restoreStoredSpainDraft,
