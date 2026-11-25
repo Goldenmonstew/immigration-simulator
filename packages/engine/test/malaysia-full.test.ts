@@ -933,6 +933,53 @@ describe('citizenship by registration', () => {
   });
 });
 
+describe('29 February birthdays (review113-1 #10)', () => {
+  test('earliest dates and deadlines follow the age in full years', () => {
+    // Born 2004-02-29: 20 on 2025-02-28, 21 on 2025-03-01.
+    const nat = {
+      simulationDate: '2025-01-01',
+      dateOfBirth: '2004-02-29',
+      passes: [],
+      trips: [],
+      citizenship: { permanentResidentSince: '2010-01-01' },
+    } satisfies MyFullRequest;
+    const p = path('my.cit.naturalisation', nat);
+    expect([p.timeStatus, p.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2025-03-01',
+    ]);
+    const feb28 = path('my.cit.naturalisation', {
+      ...nat,
+      simulationDate: '2025-02-28',
+    });
+    expect(feb28.checks.find((c) => c.id === 'my.cit.age')?.status).toBe(
+      'NOT_MET',
+    );
+    expect(feb28.timeStatus).toBe('FUTURE');
+    const mar1 = path('my.cit.naturalisation', {
+      ...nat,
+      simulationDate: '2025-03-01',
+    });
+    expect(mar1.checks.find((c) => c.id === 'my.cit.age')?.status).toBe('MET');
+    expect(mar1.timeStatus).toBe('MET');
+    // Under 18 up to 2026-02-28, so the deadline is 2026-03-01.
+    const child = cond('my.pr.child', 'my.pr.child-age', {
+      simulationDate: '2026-02-28',
+      dateOfBirth: '2008-02-29',
+      family: { tie: 'child-of-citizen' },
+    });
+    expect(child.status).toBe('MET');
+    expect(child.explanation).toContain('须在 2026-03-01 之前递交');
+    const registration = cond('my.cit.child-registration', 'my.cit.age', {
+      simulationDate: '2025-02-28',
+      dateOfBirth: '2004-02-29',
+      family: { tie: 'child-of-citizen' },
+    });
+    expect(registration.status).toBe('MET');
+    expect(registration.explanation).toContain('须在 2025-03-01 之前递交');
+  });
+});
+
 describe('long-term passes', () => {
   test('spouse LTSVP and its security bond', () => {
     expect(path('my.pass.spouse-ltsvp', wife).status).toBe('MET');

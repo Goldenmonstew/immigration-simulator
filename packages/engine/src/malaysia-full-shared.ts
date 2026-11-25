@@ -1,7 +1,7 @@
 import { malaysiaFull2026_11 } from '@uk-immigration/policy-data';
 import type { SourceRef } from '@uk-immigration/policy-data';
 import type { CountryCheck, CountryPathway } from './country-result';
-import { addDays, addMonths, daysBetween, fullYears } from './dates';
+import { addDays, addMonths, addYears, daysBetween, fullYears } from './dates';
 import type { PilotStatus } from './pilot';
 import { textFor, type Lang } from './rule';
 import type { IsoDate, Locale } from './types';
@@ -251,6 +251,11 @@ export const atLeast = (value: number | undefined, minimum: number): Answer =>
   value === undefined ? undefined : value >= minimum;
 export const age = (born: IsoDate | undefined, on: IsoDate) =>
   born === undefined ? undefined : fullYears(born, on);
+/** The first day on which someone born on `born` is `years` old in full years. */
+export function birthday(born: IsoDate, years: number) {
+  const d = addYears(born, years);
+  return fullYears(born, d) < years ? addDays(d, 1) : d;
+}
 export const not = (value: Answer): Answer =>
   value === undefined ? undefined : !value;
 

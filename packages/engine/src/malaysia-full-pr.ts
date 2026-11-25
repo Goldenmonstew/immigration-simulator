@@ -4,6 +4,7 @@ import {
   age,
   all,
   assemble,
+  birthday,
   check,
   heldRun,
   inapplicable,
@@ -763,7 +764,7 @@ export function assessPrChild(ctx: MyContext): MyPathway {
   );
   const underAge = v.prChild.value.underAge;
   const years = age(req.dateOfBirth, date);
-  const deadline = req.dateOfBirth && addYears(req.dateOfBirth, underAge);
+  const deadline = req.dateOfBirth && birthday(req.dateOfBirth, underAge);
   const ageCheck = check(
     'my.pr.child-age',
     L('申请时年龄', 'Age when applying'),

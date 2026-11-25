@@ -3,6 +3,7 @@ import { marriageRegistration } from './malaysia-full-pr';
 import {
   age,
   assemble,
+  birthday,
   check,
   daysIn,
   fullyCovered,
@@ -164,7 +165,7 @@ export function assessNaturalisation(ctx: MyContext): MyPathway {
   const n = v.naturalisation.value;
   const c = req.citizenship;
   const years = age(req.dateOfBirth, date);
-  const adult = req.dateOfBirth && addYears(req.dateOfBirth, n.minAge);
+  const adult = req.dateOfBirth && birthday(req.dateOfBirth, n.minAge);
   const ageCheck = check(
     'my.cit.age',
     L('申请日年龄', 'Age on the application date'),
@@ -564,7 +565,7 @@ export function assessChildRegistration(ctx: MyContext): MyPathway {
   const under = v.childRegistration.value.underAge;
   const tie = req.family?.tie;
   const years = age(req.dateOfBirth, date);
-  const deadline = req.dateOfBirth && addYears(req.dateOfBirth, under);
+  const deadline = req.dateOfBirth && birthday(req.dateOfBirth, under);
   const f = v.citizenshipFeesRm.value;
   const checks: MyCheck[] = [
     check(
