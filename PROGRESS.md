@@ -669,3 +669,4 @@
 | 788 | 任务 102 审核修正（review102-1）风险与建议：收入旋钮不再关联需主管机关结论的 D02、E02，只选 ARI 时不显示；居留葡语旋钮初值按引擎读 PLA 等级与认可、基础课程认可和特殊安排；“无出境”旋钮文案写明不含离开欧盟记录；多选题报错时仍关联提示。 | apps/web/lib/portugal-whatif.ts、apps/web/app/portugal/whatif/controls.tsx、apps/web/i18n/countries/portugal-module.ts、apps/web/app/portugal/simulate/evidence-fields.tsx、apps/web/test/portugal.test.tsx、PROGRESS.md |
 | 789 | 任务 102 审核修正（review102-1）：离线缓存版本改为 `2026-11-25-pt`，关于页单测同步。 | apps/web/public/sw.js、apps/web/test/about-page.test.tsx、PROGRESS.md |
 | 790 | 任务 102 审核修正（review102-1）e2e 发现：问卷清空草稿根层的答案（删除唯一一条出境记录或居留证件、清空在审递交日、出生日期，以及随之隐藏的 emancipação 生效日）时，问卷外壳按补丁合并会把旧值带回；改为把根层删除的答案以 undefined 送出。 | apps/web/app/portugal/simulate/page.tsx、apps/e2e/tests/portugal.spec.ts、PROGRESS.md |
+| 791 | 任务 102 报告补“审核修正（review102-1）”一节：按 commit 与审核编号列修正与回归、验收与 e2e 结果、未做事项及发现与建议。 | docs/tasks/reports/102-pt-pages.md、PROGRESS.md |
