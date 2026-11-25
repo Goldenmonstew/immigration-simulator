@@ -233,11 +233,28 @@ test.each(['cook', 'exporter'])(
       for (const column of ['lt', 'nat'] as const) {
         const pathway = es.pathwayOf(page.result!, column)!;
         const bar = es.progress(state)[column];
-        expect(bar.outcome, `${name} ${column}`).toBe(pathway.status);
-        expect(esCountry.outcomeLabel(bar, zh), `${name} ${column}`).toBe(
-          pathwayTitle(pathway, zh),
-        );
         const gaps = [...new Set(gapRules(pathway).map(({ title }) => title))];
+        // Only time and the fee paid on filing left: the bar names the date.
+        if (bar.outcome === 'TIME_ONLY') {
+          expect(pathway.status, `${name} ${column}`).toBe('NOT_MET');
+          expect(
+            gapRules(pathway).every(({ id }) =>
+              ['ES-N01', 'ES-N15'].includes(id),
+            ),
+            `${name} ${column}`,
+          ).toBe(true);
+          expect(esCountry.outcomeLabel(bar, zh), `${name} ${column}`).toBe(
+            t('es.game.timeFuture').replace(
+              '{date}',
+              pathway.pathwayCompletionDate!,
+            ),
+          );
+        } else {
+          expect(bar.outcome, `${name} ${column}`).toBe(pathway.status);
+          expect(esCountry.outcomeLabel(bar, zh), `${name} ${column}`).toBe(
+            pathwayTitle(pathway, zh),
+          );
+        }
         expect(
           esCountry.missingRules(state, column) ?? [],
           `${name} ${column} gaps`,
@@ -255,6 +272,38 @@ test.each(['cook', 'exporter'])(
   },
   // Plays and assesses many quarters for each character.
   60_000,
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'with only the fee left, the nationality bar shows the time requirement in %s',
+  (locale) => {
+    // Joel has his exams and papers; the 790-026 is paid when he applies.
+    const cook = settle(es.newGame('cook', 4, locale));
+    Object.assign(cook.timeline.nationality, {
+      deleEvidence: 'dele',
+      deleLevel: 'A2',
+      ccse: { verifiedPass: true, issued: '2026-03-01' },
+    });
+    cook.timeline.nationality.criminalRecords!.originRecordOrLawfulAlternative = true;
+    Object.assign(cook.timeline.nationality.documents!, {
+      birthRecord: true,
+      foreignDocumentFormalities: true,
+    });
+    cook.result = es.esRules.evaluate(cook);
+    const bars = render(
+      <esShell.ProgressBars state={cook} onOpen={vi.fn()} />,
+      locale,
+    );
+    expect(bars).toContain(
+      t('es.game.timeFuture', locale).replace('{date}', '2026-09-02'),
+    );
+    expect(es.progress(cook).nat.outcome).toBe('TIME_ONLY');
+    const detail = render(
+      <>{esCountry.progressDetail(cook, 'nat', (key) => t(key, locale))}</>,
+      locale,
+    );
+    expect(detail).toContain(t('es.game.feeOnFiling', locale));
+  },
 );
 
 test('a lapsed card’s warnings name the late filing deadline and close nationality', () => {

@@ -45,8 +45,13 @@ export type EsFestival = 'reis' | 'falles' | 'sant-joan' | 'nou-octubre';
 export type EsState = GameState<EsTimeline, CountryResult, EsFestival>;
 /** Progress columns: national long-term residence and nationality. */
 export type EsColumn = 'lt' | 'nat';
+/**
+ * The engine's statuses, plus one for the nationality bar only: the residence
+ * period is all that is left, besides the 790-026 fee paid with the
+ * application (the result page shows this as not met).
+ */
 export type EsOutcome =
-  CountryResult['columns'][number]['pathways'][number]['status'];
+  CountryResult['columns'][number]['pathways'][number]['status'] | 'TIME_ONLY';
 
 export type EsEffect =
   /** An in-game DELE A2 pass, recorded as the certificate. */
@@ -221,9 +226,23 @@ function progress(state: EsState): Progress<EsColumn, EsOutcome> {
   const result = currentResult(state);
   const entry = (column: EsColumn) => {
     const pathway = pathwayOf(result, column);
+    const open =
+      pathway?.checks.filter(
+        ({ id, status }) => status !== 'MET' && pathway.decidedBy?.includes(id),
+      ) ?? [];
+    const timeOnly =
+      column === 'nat' &&
+      !state.timeline.steps.filed &&
+      !!pathway?.pathwayCompletionDate &&
+      open.some(({ id }) => id === 'ES-N15') &&
+      open.every(
+        ({ id, status }) =>
+          id === 'ES-N15' || (id === 'ES-N01' && status === 'NOT_MET'),
+      );
     // The engine's candidate date for the residence period alone.
-    const earliestDate =
-      pathway?.earliestDate ?? pathway?.pathwayCompletionDate;
+    const earliestDate = timeOnly
+      ? pathway.pathwayCompletionDate
+      : (pathway?.earliestDate ?? pathway?.pathwayCompletionDate);
     const target = earliestDate && Date.parse(earliestDate);
     const percent =
       pathway?.status === 'MET'
@@ -232,7 +251,9 @@ function progress(state: EsState): Progress<EsColumn, EsOutcome> {
           ? ((Date.parse(state.date) - start) / (target - start)) * 100
           : 0;
     return {
-      outcome: pathway?.status ?? ('UNKNOWN' as const),
+      outcome: timeOnly
+        ? ('TIME_ONLY' as const)
+        : (pathway?.status ?? ('UNKNOWN' as const)),
       ...(earliestDate && { earliestDate }),
       percent: Math.round(Math.max(0, Math.min(100, percent))),
     };

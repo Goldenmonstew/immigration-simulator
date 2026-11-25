@@ -109,12 +109,14 @@ export const esCountry: GameCountry<EsKinds> = {
     { id: 'nat', label: 'es.game.natColumn' },
   ],
   outcomeLabel: ({ outcome, earliestDate }, t) =>
-    isDecisionOutcome(outcome)
-      ? t(`outcome.${outcome}`)
-      : t(`country.status.${outcome}`).replace(
-          '{date}',
-          earliestDate ?? t('result.undetermined'),
-        ),
+    outcome === 'TIME_ONLY'
+      ? t('es.game.timeFuture').replace('{date}', earliestDate!)
+      : isDecisionOutcome(outcome)
+        ? t(`outcome.${outcome}`)
+        : t(`country.status.${outcome}`).replace(
+            '{date}',
+            earliestDate ?? t('result.undetermined'),
+          ),
   missingRules(state, id) {
     const pathway = esGame.pathwayOf(esGame.currentResult(state), id);
     const titles = pathway?.checks
@@ -183,6 +185,9 @@ export const esCountry: GameCountry<EsKinds> = {
             <dd>{pathway.earliestDate ?? t('result.undetermined')}</dd>
           </div>
         </dl>
+        {id === 'nat' && !state.timeline.steps.filed && (
+          <p>{t('es.game.feeOnFiling')}</p>
+        )}
       </>
     );
   },

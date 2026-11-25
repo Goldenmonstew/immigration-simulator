@@ -10,6 +10,9 @@ export const esGameZh = {
   'es.game.ltColumn': '长期居留',
   'es.game.natColumn': '入籍',
   'es.game.timeDate': '居住年限最早满足',
+  'es.game.timeFuture': '时间条件最早 {date} 满足',
+  'es.game.feeOnFiling':
+    '790-026 入籍申请费在递交当天一并缴纳，所以递交前评估里「已缴付 790-026」一项显示未满足。',
   'es.game.entry': '玩一局 · 维拉马尔生活',
   'es.game.entryDesc':
     '在瓦伦西亚海边的像素街区上班、钓鱼、过法雅节，看看日常选择怎样影响长期居留与入籍的时间线。',
@@ -56,6 +59,9 @@ export const esGameEn: Record<keyof typeof esGameZh, string> = {
   'es.game.ltColumn': 'Long-term residence',
   'es.game.natColumn': 'Nationality',
   'es.game.timeDate': 'Residence period met from',
+  'es.game.timeFuture': 'Time requirement met from {date}',
+  'es.game.feeOnFiling':
+    'The 790-026 nationality fee is paid on the day you apply, so until then the assessment shows it as not yet paid.',
   'es.game.entry': 'Play a round · Life in Vilamar',
   'es.game.entryDesc':
     'Work, fish and celebrate the Fallas in a pixel-art seaside corner of València, and see how everyday choices shape your long-term residence and nationality timeline.',

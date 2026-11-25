@@ -222,8 +222,9 @@ test('steps taken in town carry their day and join the next quarter’s assessme
     },
   });
   const next = at(dele, '2026-06-01');
+  // The bar shows the time requirement's date, not just "not met".
   expect(es.progress(next).nat).toMatchObject({
-    outcome: 'NOT_MET',
+    outcome: 'TIME_ONLY',
     earliestDate: '2026-09-02',
   });
   expect(natGaps(next)).toEqual(['ES-N01', 'ES-N15']);
@@ -393,9 +394,16 @@ test('the 790-026 fee counts as paid only once the application goes in', () => {
   // Everything else is in place: the fee is paid with the application.
   expect(es.pathwayOf(cook.result, 'nat')?.status).toBe('NOT_MET');
   expect(natGaps(cook)).toEqual(['ES-N15']);
+  // The time requirement is already met: the engine dates it from today.
+  expect(es.progress(cook).nat).toEqual({
+    outcome: 'TIME_ONLY',
+    earliestDate: '2026-12-01',
+    percent: 100,
+  });
   const registry = visit(cook, 'bureau', 600);
   expect(ids(registry, 'bureau')).toEqual(['naturalise']);
   const ended = es.doActivity(registry, 'naturalise');
+  expect(es.progress(ended).nat.outcome).toBe('MET');
   expect(
     es.filingAnswers(ended.timeline, '2026-12-01').nationality,
   ).toMatchObject({ feePaid: true, feePaidOn: '2026-12-01' });
