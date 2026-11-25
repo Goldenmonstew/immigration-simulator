@@ -211,6 +211,19 @@ test.each([
   },
 );
 
+test('the diary casts a line off the jetty, not at a pond', () => {
+  const jetty = visit(au.newGame('nurse', 5, 'en'), 'pond', 600);
+  const cast = au.fish(jetty, false);
+  expect(cast.log.at(-1)).toMatchObject({
+    id: 'fishing',
+    text: { zhCN: '在码头抛竿', en: 'Cast at the jetty' },
+  });
+  const diary = au.narrative(cast);
+  expect(diary.map(({ zhCN }) => zhCN).join('\n')).toContain('码头抛竿 1 次。');
+  expect(diary.map(({ en }) => en).join('\n')).toContain('1 cast at the jetty');
+  expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
+});
+
 test('an ended visa closes the story', () => {
   let state = settle(au.newGame('graduate', 5, 'en'));
   au.currentVisa(state).to = '2026-04-30';

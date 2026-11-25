@@ -40,6 +40,8 @@ export const auGameZh = {
   'au.game.settlementSource.brighterHome': '海景木板屋',
   'au.game.settlementSource.walkingClub': '海滨晨跑团',
   'au.game.noSeeds': '背包里没有当季种子，去街角牛奶吧看看吧。',
+  'au.game.kitchenNoIngredients':
+    '现在凑不齐任何一道菜的食材：蔬菜来自社区菜园的收成，鲬鱼要去码头钓。',
   'au.game.rentFirst': '先在社区菜园租一块地。',
 } as const;
 
@@ -83,5 +85,7 @@ export const auGameEn: Record<keyof typeof auGameZh, string> = {
   'au.game.settlementSource.brighterHome': 'A sea-view weatherboard',
   'au.game.settlementSource.walkingClub': 'Foreshore running club',
   'au.game.noSeeds': 'No seeds for this season. Try the corner milk bar.',
+  'au.game.kitchenNoIngredients':
+    'You do not have the ingredients for any dish yet: vegetables come from community garden harvests, and flathead from the jetty.',
   'au.game.rentFirst': 'Rent a plot at the community garden first.',
 };

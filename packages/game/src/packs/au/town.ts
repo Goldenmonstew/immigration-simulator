@@ -352,6 +352,13 @@ export const auNotices: { id: string; text: Text; season?: Quarter }[] = [
   },
 ];
 
+/** The shared furniture, as the milk bar sells it. */
+export const auFurnishingNames: Record<string, Text> = {
+  'reading-chair': t('藤编扶手椅', 'Cane armchair'),
+  'warm-curtains': t('遮光窗帘', 'Block-out curtains'),
+  'desk-lamp': t('台灯', 'Desk lamp'),
+};
+
 export const auActions: Activity<AuEffect, AuFestival>[] = [
   {
     id: 'rest',
@@ -495,24 +502,16 @@ export const auActions: Activity<AuEffect, AuFestival>[] = [
     ],
   },
   ...[
-    [
-      'reading-chair',
-      '藤编扶手椅（每季心情、健康各加一点）',
-      'Cane armchair (+1 mood and health/quarter)',
-    ],
-    [
-      'warm-curtains',
-      '遮光窗帘（每季心情加一点）',
-      'Block-out curtains (+1 mood/quarter)',
-    ],
-    ['desk-lamp', '台灯（每季健康加一点）', 'Desk lamp (+1 health/quarter)'],
+    ['reading-chair', '每季心情、健康各加一点', '+1 mood and health/quarter'],
+    ['warm-curtains', '每季心情加一点', '+1 mood/quarter'],
+    ['desk-lamp', '每季健康加一点', '+1 health/quarter'],
   ].map(([id, zhCN, en]): Activity<AuEffect, AuFestival> => ({
     id: `furnish-${id}`,
     place: 'shop',
     minutes: b.minutes.buy,
     label: t(
-      `添置${zhCN} · ${aud(b.furnishings[id].price)}，限一件`,
-      `Buy a ${en} · ${aud(b.furnishings[id].price)}, one per home`,
+      `添置${auFurnishingNames[id].zhCN}（${zhCN}） · ${aud(b.furnishings[id].price)}，限一件`,
+      `Buy a ${auFurnishingNames[id].en} (${en}) · ${aud(b.furnishings[id].price)}, one per home`,
     ),
     effects: [{ type: 'money', delta: -b.furnishings[id].price }],
   })),

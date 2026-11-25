@@ -131,6 +131,7 @@ export const auCountry: GameCountry<AuKinds> = {
     harvest: { zhCN: '社区菜园收获', en: 'Community garden harvest' },
     catch: { zhCN: '码头钓鱼', en: 'Fishing off the jetty' },
   },
+  furnishingNames: auGame.auFurnishingNames,
   resultHref: (state) =>
     `${countryPath('au', 'result')}#s=${encodeDraft(australiaModule, gameDraft(state))}`,
   assessment: (state, idPrefix) => (

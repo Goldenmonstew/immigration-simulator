@@ -17,6 +17,7 @@ import {
 import {
   auActions,
   auFestivals,
+  auFurnishingNames,
   auItems,
   auNotices,
   auPlaces,
@@ -34,6 +35,7 @@ export const auGameContent: GameContentPack<
   characters: auProfiles,
   loadCharacter: async (id) => hooks.characterOf(id),
   characterOf: hooks.characterOf,
+  fishingSpot: { zhCN: '码头', en: 'the jetty' },
   places: auPlaces,
   actions: auActions,
   informationAction: { id: 'assessment', place: 'council' },
@@ -105,7 +107,7 @@ export const items = auItems;
 export const recipes = auRecipes;
 export const festivals = auFestivals;
 export const achievements = hooks.auAchievements;
-export { auCharacters, auRules };
+export { auCharacters, auFurnishingNames, auRules };
 export {
   currentVisa,
   lastIncomeYear,
