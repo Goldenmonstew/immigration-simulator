@@ -26,6 +26,16 @@ export interface EsTimeline {
   route: EsNationalityRoute;
   nationality: EsNationalityFacts;
   residence: EsResidenceFacts;
+  /**
+   * Game only: the day each step was taken in town. The questionnaire's
+   * answers take the steps done by the assessment date (see filingAnswers).
+   */
+  steps: {
+    dele?: IsoDate;
+    ccse?: IsoDate;
+    papers?: IsoDate;
+    moves: { movedOn: IsoDate; registeredOn?: IsoDate }[];
+  };
 }
 export type EsFestival = 'reis' | 'falles' | 'sant-joan' | 'nou-octubre';
 export type EsState = GameState<EsTimeline, CountryResult, EsFestival>;
@@ -37,7 +47,7 @@ export type EsOutcome =
 export type EsEffect =
   /** An in-game DELE A2 pass, recorded as the certificate. */
   | { type: 'dele' }
-  /** An in-game CCSE pass, certified on the quarter's evaluation date. */
+  /** An in-game CCSE pass, certified on the day of the exam. */
   | { type: 'ccse' }
   /** Foreign criminal record and birth certificate, legalised and translated. */
   | { type: 'papers' }
@@ -60,14 +70,45 @@ export const currentPermit = (state: { timeline: EsTimeline }) =>
   state.timeline.permits.at(-1)!;
 
 /**
- * The game files on the evaluation date and pays the 790-026 nationality fee
- * with the application (SRC-323, SRC-334), so the assessment and the result
- * page read the fee as paid on that day.
+ * The questionnaire's answers on an assessment date: steps taken later in the
+ * quarter count from the next one. The game files on the assessment date and
+ * pays the 790-026 nationality fee with the application (SRC-323, SRC-334),
+ * so the assessment and the result page read the fee as paid on that day.
  */
 export function filingAnswers(timeline: EsTimeline, date: IsoDate) {
+  const { steps, ...answers } = timeline;
+  const by = (day?: IsoDate): day is IsoDate => !!day && day <= date;
+  const n = answers.nationality;
+  const move = steps.moves.filter(({ movedOn }) => by(movedOn)).at(-1);
   return {
-    ...timeline,
-    nationality: { ...timeline.nationality, feePaid: true, feePaidOn: date },
+    ...answers,
+    nationality: {
+      ...n,
+      ...(by(steps.dele) && {
+        deleEvidence: 'dele' as const,
+        deleLevel: 'A2' as const,
+      }),
+      ...(by(steps.ccse) && {
+        ccse: { verifiedPass: true, issued: steps.ccse },
+      }),
+      ...(by(steps.papers) && {
+        criminalRecords: {
+          ...n.criminalRecords,
+          originRecordOrLawfulAlternative: true,
+        },
+      }),
+      documents: {
+        ...n.documents,
+        ...(by(steps.papers) && {
+          birthRecord: true,
+          foreignDocumentFormalities: true,
+        }),
+        // The padrón shows the latest address only once it is registered.
+        ...(move && !by(move.registeredOn) && { address: false }),
+      },
+      feePaid: true,
+      feePaidOn: date,
+    },
   };
 }
 
@@ -155,36 +196,29 @@ export const esRules: EvaluationAdapter<
       state.timeline.residence.filingWindowAccepted = false;
     return true;
   },
+  // Steps carry the day they are taken, as trips do.
   applyEffect(state, effect, { setFlags }) {
-    const n = state.timeline.nationality;
+    const steps = state.timeline.steps;
+    const day = state.day.date;
     switch (effect.type) {
       case 'dele':
-        n.deleEvidence = 'dele';
-        n.deleLevel = 'A2';
+        steps.dele = day;
         setFlags(state, ['dele-passed', 'quarter-exam-passed']);
         return true;
       case 'ccse':
-        n.ccse = { verifiedPass: true, issued: state.date };
+        steps.ccse = day;
         setFlags(state, ['ccse-passed', 'quarter-exam-passed']);
         return true;
       case 'papers':
-        n.criminalRecords = {
-          ...n.criminalRecords,
-          originRecordOrLawfulAlternative: true,
-        };
-        n.documents = {
-          ...n.documents,
-          birthRecord: true,
-          foreignDocumentFormalities: true,
-        };
+        steps.papers = day;
         setFlags(state, ['papers-ready']);
         return true;
       case 'moved':
-        n.documents = { ...n.documents, address: false };
+        steps.moves.push({ movedOn: day });
         setFlags(state, ['padron-due']);
         return true;
       case 'padron':
-        n.documents = { ...n.documents, address: true };
+        steps.moves.at(-1)!.registeredOn = day;
         state.flags = state.flags.filter((flag) => flag !== 'padron-due');
         return true;
     }

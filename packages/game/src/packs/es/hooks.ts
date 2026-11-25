@@ -80,7 +80,7 @@ export function actionAvailable(
   action: EsActivity,
   { affordable }: EsTools,
 ): boolean | undefined {
-  const n = state.timeline.nationality;
+  const { nationality: n, steps } = state.timeline;
   const affords = affordable(state, action.effects);
   switch (action.id) {
     case 'naturalise':
@@ -93,11 +93,15 @@ export function actionAvailable(
         ['MET', 'FUTURE'].includes(pathwayOf(state.result, 'lt')?.status ?? '')
       );
     case 'ccse':
-      return !n.ccse?.verifiedPass && affords;
+      return !steps.ccse && !n.ccse?.verifiedPass && affords;
     case 'dele':
-      return n.deleEvidence !== 'dele' && affords;
+      return !steps.dele && n.deleEvidence !== 'dele' && affords;
     case 'nat-papers':
-      return !n.criminalRecords?.originRecordOrLawfulAlternative && affords;
+      return (
+        !steps.papers &&
+        !n.criminalRecords?.originRecordOrLawfulAlternative &&
+        affords
+      );
     case 'swim':
       return state.quarter !== 1 && state.day.weather !== 'rain';
     case 'class':
@@ -115,12 +119,12 @@ export function actionDetails(state: EsState, action: EsActivity): void {
     action.note =
       action.id === 'ccse'
         ? t(
-            `游戏内西语 ${state.stats.spanish} / ${b.ccseScore}。通过后记为有效的 CCSE 合格证明（SRC-321 art. 6，SRC-322 art. 10.4）。`,
-            `In-game Spanish ${state.stats.spanish} / ${b.ccseScore}. A pass records a current CCSE certificate (SRC-321 art. 6, SRC-322 art. 10.4).`,
+            `游戏内西语 ${state.stats.spanish} / ${b.ccseScore}。通过后记为当天的 CCSE 合格证明（SRC-321 art. 6，SRC-322 art. 10.4），从下一季的评估起计入。`,
+            `In-game Spanish ${state.stats.spanish} / ${b.ccseScore}. A pass records a CCSE certificate dated that day (SRC-321 art. 6, SRC-322 art. 10.4), counted from next quarter’s assessment.`,
           )
         : t(
-            `游戏内西语 ${state.stats.spanish} / ${b.deleScore}。通过后记为 DELE A2 证书（SRC-321 art. 6.1）。之后年份的价格以 Instituto Cervantes 公布为准，游戏沿用该价格。`,
-            `In-game Spanish ${state.stats.spanish} / ${b.deleScore}. A pass records a DELE A2 certificate (SRC-321 art. 6.1). Later prices follow the Instituto Cervantes; the game keeps this price.`,
+            `游戏内西语 ${state.stats.spanish} / ${b.deleScore}。通过后记为 DELE A2 证书（SRC-321 art. 6.1），从下一季的评估起计入。之后年份的价格以 Instituto Cervantes 公布为准，游戏沿用该价格。`,
+            `In-game Spanish ${state.stats.spanish} / ${b.deleScore}. A pass records a DELE A2 certificate (SRC-321 art. 6.1), counted from next quarter’s assessment. Later prices follow the Instituto Cervantes; the game keeps this price.`,
           );
   }
 }

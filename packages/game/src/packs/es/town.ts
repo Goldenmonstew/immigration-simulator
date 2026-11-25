@@ -604,8 +604,8 @@ export const esActions: EsActivity[] = [
       `Get the home-country police and birth certificates apostilled and sworn-translated (agent and translation ${eur(b.papersCost)}, game setting)`,
     ),
     note: t(
-      '入籍须提交原籍国刑事记录和出生证明，外国公共文书按条约认证并翻译（SRC-321 art. 5，SRC-322 anexo）。',
-      'Nationality needs the home-country criminal record and birth certificate, with foreign public documents legalised and translated (SRC-321 art. 5, SRC-322 annex).',
+      '入籍须提交原籍国刑事记录和出生证明，外国公共文书按条约认证并翻译（SRC-321 art. 5，SRC-322 anexo）。办好的材料从下一季的评估起计入。',
+      'Nationality needs the home-country criminal record and birth certificate, with foreign public documents legalised and translated (SRC-321 art. 5, SRC-322 annex). The papers count from next quarter’s assessment.',
     ),
     minutes: b.minutes.paperwork,
     effects: [{ type: 'money', delta: -b.papersCost }, { type: 'papers' }],

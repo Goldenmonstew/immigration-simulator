@@ -148,29 +148,35 @@ test('a JSON save round trip continues the same quarter after a trip', () => {
   expect(quarterLater(restored)).toEqual(played);
 });
 
-test('the padrón, papers and exams feed the nationality assessment', () => {
+test('steps taken in town carry their day and join the next quarter’s assessment', () => {
   const start = settle(es.newGame('cook', 5, 'en'));
   start.stats.spanish = 60;
-  const n14 = (state: State) =>
-    es.pathwayOf(state.result, 'nat')!.checks.find(({ id }) => id === 'ES-N14')!
-      .status;
+  const answers = (state: State, date = state.date) =>
+    es.filingAnswers(state.timeline, date).nationality;
   const moved = settle(
     es.doActivity(visit(start, 'home', 420), 'rent-brighter-home'),
   );
-  expect(moved.timeline.nationality.documents?.address).toBe(false);
+  const day = moved.day.date;
+  expect([moved.date, day]).toEqual(['2026-03-01', '2026-03-10']);
+  expect(moved.timeline.steps.moves).toEqual([{ movedOn: day }]);
   expect(moved.flags).toContain('padron-due');
+  // The move comes after this quarter's assessment date.
+  expect(answers(moved).documents?.address).toBe(true);
+  expect(answers(moved, '2026-06-01').documents?.address).toBe(false);
   const ward = visit(moved, 'ward', 510);
   expect(ids(ward, 'ward')).toEqual(['padron', 'padron-certificate']);
   const registered = es.doActivity(ward, 'padron');
-  expect(registered.timeline.nationality.documents?.address).toBe(true);
+  expect(registered.timeline.steps.moves).toEqual([
+    { movedOn: day, registeredOn: day },
+  ]);
   expect(registered.flags).not.toContain('padron-due');
+  expect(answers(registered, '2026-06-01').documents?.address).toBe(true);
 
   const registry = visit(registered, 'bureau', 600);
-  expect(n14(registry)).toBe('NOT_MET');
   expect(ids(registry, 'bureau')).toEqual(['nat-papers']);
   const papers = es.doActivity(registry, 'nat-papers');
   expect(papers.stats.money).toBe(registry.stats.money - 180);
-  expect(n14(papers)).toBe('MET');
+  expect(papers.timeline.steps.papers).toBe(day);
   expect(ids(papers, 'bureau')).toEqual([]);
 
   const school = visit(papers, 'college', 700);
@@ -179,18 +185,30 @@ test('the padrón, papers and exams feed the nationality assessment', () => {
   expect(ccse.stats.money).toBe(
     school.stats.money - values.nationalityCcseFee.value,
   );
-  expect(ccse.timeline.nationality.ccse).toEqual({
-    verifiedPass: true,
-    issued: '2026-03-01',
-  });
   const dele = es.doActivity(ccse, 'dele');
-  expect(dele.timeline.nationality).toMatchObject({
+  expect(dele.timeline.steps).toMatchObject({ ccse: day, dele: day });
+  expect(ids(dele, 'college')).toEqual([]);
+  // This quarter's assessment predates all three steps.
+  expect(answers(dele)).toMatchObject({
+    deleEvidence: 'none',
+    ccse: { verifiedPass: false },
+    documents: { birthRecord: false, foreignDocumentFormalities: false },
+  });
+  expect(es.progress(dele).nat.outcome).toBe('NOT_MET');
+  // From the next quarter they count: only the residence period is left,
+  // met from 2026-09-02.
+  expect(answers(dele, '2026-06-01')).toMatchObject({
     deleEvidence: 'dele',
     deleLevel: 'A2',
+    ccse: { verifiedPass: true, issued: day },
+    criminalRecords: { originRecordOrLawfulAlternative: true },
+    documents: {
+      birthRecord: true,
+      foreignDocumentFormalities: true,
+      address: true,
+    },
   });
-  expect(ids(dele, 'college')).toEqual([]);
-  // Only the residence period is left: met from 2026-09-02.
-  expect(es.progress(dele).nat).toMatchObject({
+  expect(es.progress(at(dele, '2026-06-01')).nat).toMatchObject({
     outcome: 'FUTURE',
     earliestDate: '2026-09-02',
   });

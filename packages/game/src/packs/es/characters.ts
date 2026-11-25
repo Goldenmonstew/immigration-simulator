@@ -427,6 +427,7 @@ const cook: EsCharacter = {
       documents: { birthRecord: false, foreignDocumentFormalities: false },
     }),
     residence: residence(),
+    steps: { moves: [] },
   },
   opening: opening(
     'cook',
@@ -485,6 +486,7 @@ const exporter: EsCharacter = {
         ],
       },
     }),
+    steps: { moves: [] },
   },
   opening: opening(
     'exporter',

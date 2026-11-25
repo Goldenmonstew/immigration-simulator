@@ -85,6 +85,12 @@ function untilOver(state: State) {
 }
 const leave = (state: State) =>
   es.doActivity(visit(state, 'station', 900), 'leave');
+function quarterLater(from: State) {
+  let next = from;
+  for (let i = 0; i < 12 && next.date === from.date; i++)
+    next = settle(es.sleep(settle(next)));
+  return next;
+}
 
 /** Each character's states worth opening: trips, mid-quarter events, endings. */
 function endings(id: string): [string, State][] {
@@ -97,8 +103,11 @@ function endings(id: string): [string, State][] {
   );
   const registered = es.doActivity(visit(moved, 'ward', 510), 'padron');
   expect(abroad.timeline.trips).toHaveLength(1);
-  expect(moved.timeline.nationality.documents?.address).toBe(false);
-  expect(registered.timeline.nationality.documents?.address).toBe(true);
+  const day = moved.day.date;
+  expect(moved.timeline.steps.moves).toEqual([{ movedOn: day }]);
+  expect(registered.timeline.steps.moves).toEqual([
+    { movedOn: day, registeredOn: day },
+  ]);
   const ready = structuredClone(opening);
   ready.stats.spanish = 60;
   ready.stats.money = 5_000;
@@ -107,9 +116,13 @@ function endings(id: string): [string, State][] {
     exams = es.doActivity(exams, 'nat-papers');
   exams = es.doActivity(visit(exams, 'college', 700), 'ccse');
   exams = es.doActivity(exams, 'dele');
-  expect(exams.timeline.nationality).toMatchObject({
-    ccse: { verifiedPass: true },
-    deleEvidence: 'dele',
+  expect(exams.timeline.steps).toMatchObject({ ccse: day, dele: day });
+  // The exams count from the next quarter's assessment.
+  const examsLater = quarterLater(exams);
+  expect(gameDraft(exams).nationality.ccse).toEqual({ verifiedPass: false });
+  expect(gameDraft(examsLater).nationality.ccse).toEqual({
+    verifiedPass: true,
+    issued: day,
   });
   // File on a later quarter's working morning, once the conditions are met.
   const later = at(id === 'cook' ? exams : opening, '2026-12-01');
@@ -128,8 +141,10 @@ function endings(id: string): [string, State][] {
     ['opening', opening],
     ['abroad', abroad],
     ['moved, left', leave(moved)],
+    ['moved, next quarter, left', leave(quarterLater(moved))],
     ['registered, left', leave(registered)],
     ['exams, left', leave(exams)],
+    ['exams, next quarter, left', leave(examsLater)],
     ['filed', filed],
     ['overstayed', overstayed],
   ];
@@ -165,6 +180,8 @@ test.each(['cook', 'exporter'])(
       'left',
       'left',
       'left',
+      'left',
+      'left',
       'settled',
       'overstayed',
     ]);
@@ -183,6 +200,12 @@ test.each(['cook', 'exporter'])(
       // Only the answers the questionnaire asks for the chosen routes.
       expect(activeSpainAnswers(draft), name).toEqual(draft);
       expect(draft.simulationDate, name).toBe(state.date);
+      // Nothing that happened after the assessment date is in the draft.
+      for (const date of [
+        draft.nationality.ccse?.issued,
+        ...(draft.trips ?? []).map(({ returned }) => returned),
+      ])
+        if (date) expect(date <= draft.simulationDate, name).toBe(true);
       expect(draft.step, name).toBe(spainSteps(draft).at(-1)!.step);
       // The game shows the assessment as the result page does.
       expect(view(esShown(state)), name).toEqual(view(page.result!));
