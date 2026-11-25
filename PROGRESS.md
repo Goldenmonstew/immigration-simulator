@@ -767,3 +767,4 @@
 | 884 | 任务 113 第四轮审核修正（review113-4 风险 2）：永久居留公民之妻、之夫、子女类与完全外国人类录入了此前被拒日期时，最早日期不早于决定日起满 1 年之日（SRC-505 §8.4 p25），与结婚年限一并交给准证推算：落在准证到期之后按已录入的后续准证重算，落在最后一段之后注明假设续签；未填或无拒绝记录时不影响日期。 | packages/engine/src/malaysia-full-pr.ts、packages/engine/test/malaysia-full.test.ts |
 | 885 | 任务 113 第四轮审核修正（review113-4 建议 1）：归化与公民之妻登记所填未持永久居留而未填出境记录时，居住只因部长同意待确认，挂 PD-413、PD-429（登记另挂 PD-418），说明不再写"未填出境记录"；持永久居留时未填出境记录仍为待确认、不挂 PD。 | packages/engine/src/malaysia-full-citizenship.ts、packages/engine/test/malaysia-full.test.ts |
 | 886 | 任务 113 第四轮审核修正（review113-4 建议 2）：MM2H 每年在马天数只在已填天数、不足 90 天且年满 50 岁时挂 PD-420，未填天数时待确认、不挂；PD-420 处理说明同步。 | packages/engine/src/malaysia-full-passes.ts、packages/engine/test/malaysia-full.test.ts、docs/pending-details.md |
+| 887 | 任务 113 第四轮审核修正（review113-4 建议 3）：Residence Pass 所填关系为"none"时，长期准证年数说明写"所填关系不属第 3–5 类"；REP 家属所填关系为"none"时，结婚年数说明写"所填不是 REP 参与者的配偶或子女"，不再写成未填。判定不变。 | packages/engine/src/malaysia-full-pr.ts、packages/engine/test/malaysia-full.test.ts |

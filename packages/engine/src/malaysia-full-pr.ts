@@ -1142,9 +1142,18 @@ export function assessPrRep(ctx: MyContext): MyPathway {
               undefined,
               [repGuide('§5.3 p16')],
               L(
-                `公民之妻须已结婚至少 ${p.wifeMarriageYears} 年，公民之夫至少 ${p.husbandMarriageYears} 年；未填与 REP 参与者的关系，无法确定所需年数。`,
-                `A wife must have been married for at least ${p.wifeMarriageYears} years and a husband for at least ${p.husbandMarriageYears}; the relationship to the REP participant is not entered, so the years needed are unknown.`,
-              ),
+                `公民之妻须已结婚至少 ${p.wifeMarriageYears} 年，公民之夫至少 ${p.husbandMarriageYears} 年；`,
+                `A wife must have been married for at least ${p.wifeMarriageYears} years and a husband for at least ${p.husbandMarriageYears}; `,
+              ) +
+                (relation === 'none'
+                  ? L(
+                      '所填不是 REP 参与者的配偶或子女。',
+                      'the relationship entered is neither the spouse nor the child of an REP participant.',
+                    )
+                  : L(
+                      '未填与 REP 参与者的关系，无法确定所需年数。',
+                      'the relationship to the REP participant is not entered, so the years needed are unknown.',
+                    )),
             ),
             earliest: undefined,
           }
@@ -1347,10 +1356,15 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
                 '申请日没有有效的长期准证。',
                 ' No long-term pass is valid on the application date.',
               )
-            : L(
-                '未填与公民或永久居民的关系，无法确定所需年数。',
-                ' The relationship to a citizen or permanent resident is not entered, so the years needed are unknown.',
-              )),
+            : tie === 'none'
+              ? L(
+                  '所填关系不属第 3–5 类。',
+                  ' The relationship entered is not in Categories 3 to 5.',
+                )
+              : L(
+                  '未填与公民或永久居民的关系，无法确定所需年数。',
+                  ' The relationship to a citizen or permanent resident is not entered, so the years needed are unknown.',
+                )),
       ),
     );
   } else {

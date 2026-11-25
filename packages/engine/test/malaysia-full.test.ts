@@ -2344,6 +2344,27 @@ describe('review113-4', () => {
       ['PD-420'],
     ]);
   });
+
+  test('a relationship answered "none" is not described as unanswered (suggestion 3)', () => {
+    const passes = [
+      { kind: 'employment' as const, from: '2020-01-01', to: '2030-12-31' },
+    ];
+    const rp = (tie?: 'none') =>
+      cond('my.rp.family', 'my.rp.long-term-pass', {
+        simulationDate: day,
+        family: { tie },
+        passes,
+      }).explanation;
+    expect(rp('none')).not.toContain('未填');
+    expect(rp()).toContain('未填');
+    const rep = (relation?: 'none') =>
+      cond('my.pr.rep-family', 'my.pr.marriage-duration', {
+        simulationDate: day,
+        rep: { relation },
+      }).explanation;
+    expect(rep('none')).not.toContain('未填');
+    expect(rep()).toContain('未填');
+  });
 });
 
 describe('29 February birthdays (review113-1 #10)', () => {
