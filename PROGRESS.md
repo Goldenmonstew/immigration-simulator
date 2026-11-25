@@ -695,3 +695,4 @@
 | 649.2 | 任务 97 第二轮审核修正（review97-2 建议 4）。对比页家庭人数与月收入只在所有读取它的所选路径（E、F、M 非营利）都填了相同值时显示为起始值；有路径未填或各路径不同时为空，输入的值会写入每条路径。输入框旁说明作用范围。 | apps/web/lib/spain-whatif.ts、apps/web/app/spain/whatif/controls.tsx、apps/web/i18n/countries/spain-module.ts、apps/web/test/spain-whatif.test.tsx |
 | 649.3 | 任务 97 第二轮审核修正（review97-2 建议 1）。自由流动永久居留由提前途径或“已取得”决定时，普通年限 ES-U04 标为时间条件、取得前资格期 ES-U05 标为申请条件，不再各自标为“可选依据（满足其一即可）”；普通途径须两项同时满足。 | apps/web/lib/spain-module.ts、apps/web/test/spain.test.tsx |
 | 649.4 | 任务 97 第二轮审核修正（review97-2 建议 2）。西班牙政策页 ES-F01–F04 引用的 SRC-345 Hoja 52 带上与引擎 familyGuide 相同的专属链接，不再跳到 Hoja 51。 | apps/web/lib/spain-policy-rules.ts、apps/web/test/spain.test.tsx |
+| 649.5 | 任务 97 第二轮审核修正（review97-2 建议 3）。问卷“在西出生路径的离境已获认可”英文去掉直接写入的“3 years”，与中文一致，不再在翻译里硬编码政策年限。 | apps/web/i18n/countries/spain-form.ts、apps/web/test/spain-questionnaire.test.tsx |

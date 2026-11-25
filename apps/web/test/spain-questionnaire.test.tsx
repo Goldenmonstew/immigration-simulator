@@ -312,6 +312,11 @@ test('labels shared across questions read correctly in each place', () => {
   expect(step(4)).toContain('Relationship category');
   expect(step(6)).toContain('Retirement (early free-movement acquisition)');
   expect(step(3, 'zh-CN')).not.toContain('散星');
+  // The Spanish-born continuity question names no period in either language.
+  for (const locale of ['zh-CN', 'en'] as const)
+    expect(
+      label(step(3, locale), 'es-res-birthRouteContinuityAccepted'),
+    ).not.toMatch(/\d/);
 });
 
 test('each route only shows and keeps the questions its assessment reads', () => {

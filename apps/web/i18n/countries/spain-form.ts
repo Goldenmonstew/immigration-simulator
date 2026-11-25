@@ -318,7 +318,7 @@ const messages = {
   'es.field.analogousLifelongNonCapitalisable': ['同类失能待遇在西取得且终身不可资本化', 'Analogous disability benefit obtained in Spain, lifelong and non-capitalisable'],
   'es.field.analogousSufficiencyAccepted': ['机关已确认该同类失能待遇足以维持生活', 'Authority confirmed analogous disability benefit is sufficient'],
   'es.field.bornInSpainDocumented': ['在西班牙出生的事实有出生证明', 'Birth in Spain is documented'],
-  'es.field.birthRouteContinuityAccepted': ['在西出生路径：递交前连续居留期间的离境已获认可，不中断连续居留', 'Continuity accepted for absences in the 3 years before filing (Spanish-born route)'],
+  'es.field.birthRouteContinuityAccepted': ['在西出生路径：递交前连续居留期间的离境已获认可，不中断连续居留', 'Spanish-born route: absences during continuous residence before filing were accepted as not breaking continuity'],
   'es.field.atMajorityAccepted': ['机关认可按达到成年时点的条件申请', 'Authority accepted filing under the reaching-majority condition'],
   'es.field.lostSpanishNationalityOfOriginDocumented': ['曾具有原始西班牙国籍且已丧失的证明齐备', 'Former Spanish nationality of origin and its loss documented'],
   'es.field.spanishPublicGuardianship': ['成年以前受西班牙公共机构监护期间', 'Period under guardianship of a Spanish public entity before majority'],
