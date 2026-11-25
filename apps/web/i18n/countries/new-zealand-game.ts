@@ -3,12 +3,12 @@
 // app/game-shell/game-ui.tsx).
 export const nzGameZh = {
   'game.tereo': '毛利语',
-  'game.prepare-fish-and-chips': '鱼裹薄粉，和薯条一起炸到金黄',
-  'game.prepare-corn-fritters': '玉米粒拌进面糊，煎成小圆饼',
-  'game.prepare-roast-veg': '土豆切块，撒盐和迷迭香进烤箱',
-  'game.prepare-vege-soup': '芜菁切丁，和洋葱一起慢慢煮',
-  'game.prepare-pavlova': '蛋白饼上抹奶油，铺满草莓',
-  'game.prepare-salad': '切块，淋一点橄榄油',
+  'nz.game.prepare-fish-and-chips': '鱼裹薄粉，和薯条一起炸到金黄',
+  'nz.game.prepare-corn-fritters': '玉米粒拌进面糊，煎成小圆饼',
+  'nz.game.prepare-roast-veg': '土豆切块，撒盐和迷迭香进烤箱',
+  'nz.game.prepare-vege-soup': '芜菁切丁，和洋葱一起慢慢煮',
+  'nz.game.prepare-pavlova': '蛋白饼上抹奶油，铺满草莓',
+  'nz.game.prepare-salad': '切块，淋一点橄榄油',
   'nz.game.prvColumn': '永久居民签证',
   'nz.game.citColumn': '入籍',
   'nz.game.presenceDate': '在境天数最早满足',
@@ -51,16 +51,17 @@ export const nzGameZh = {
 
 export const nzGameEn: Record<keyof typeof nzGameZh, string> = {
   'game.tereo': 'Te reo',
-  'game.prepare-fish-and-chips':
+  'nz.game.prepare-fish-and-chips':
     'Batter the fish thinly and fry it golden with the chips',
-  'game.prepare-corn-fritters':
+  'nz.game.prepare-corn-fritters':
     'Stir the corn into batter and fry small rounds',
-  'game.prepare-roast-veg':
+  'nz.game.prepare-roast-veg':
     'Cut the potatoes, add salt and rosemary, and roast',
-  'game.prepare-vege-soup': 'Dice the turnip and simmer it slowly with onion',
-  'game.prepare-pavlova':
+  'nz.game.prepare-vege-soup':
+    'Dice the turnip and simmer it slowly with onion',
+  'nz.game.prepare-pavlova':
     'Spread cream on the meringue and pile on strawberries',
-  'game.prepare-salad': 'Chop and drizzle with olive oil',
+  'nz.game.prepare-salad': 'Chop and drizzle with olive oil',
   'nz.game.prvColumn': 'Permanent resident visa',
   'nz.game.citColumn': 'Citizenship',
   'nz.game.presenceDate': 'Days in New Zealand met from',

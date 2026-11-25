@@ -7,7 +7,7 @@ import * as nz from '@uk-immigration/game/nz';
 import { nzGameArt } from '@uk-immigration/game/nz/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
-import { t, withCount } from '../i18n';
+import { t, withCount, type TranslationKey } from '../i18n';
 import { newZealandModule } from '../lib/new-zealand-module';
 import { decodeDraft } from '../lib/share';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
@@ -17,6 +17,7 @@ import {
   nzCountry,
   nzShell,
 } from '../app/new-zealand/game/shell';
+import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/new-zealand/town.json';
 
 type State = ReturnType<typeof nz.newGame>;
@@ -112,6 +113,27 @@ test.each(['zh-CN', 'en'] as const)(
     expect(columns).toBeDefined();
     if (locale === 'en') expect(hud + bars).not.toMatch(/[㐀-鿿]/);
     expect(html).toContain('town-nz.current-law-heading');
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'New Zealand recipes keep their own cooking steps in %s',
+  (locale) => {
+    for (const recipe of nz.recipes) {
+      const shared = `game.prepare-${recipe.id}` as TranslationKey;
+      const own = gameKey('nz', shared);
+      expect(own, recipe.id).toBe(`nz.${shared}`);
+      expect(t(own, locale), recipe.id).not.toBe(t(shared, locale));
+    }
+    // The UK salad with the same recipe ID keeps its own step.
+    expect(t('game.prepare-salad', locale)).toBe(
+      locale === 'en' ? 'Toss gently' : '轻轻拌匀',
+    );
+    expect(t(gameKey('nz', 'game.prepare-salad'), locale)).toBe(
+      locale === 'en'
+        ? 'Chop and drizzle with olive oil'
+        : '切块，淋一点橄榄油',
+    );
   },
 );
 
