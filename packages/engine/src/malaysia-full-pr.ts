@@ -1002,7 +1002,8 @@ export function assessPrRep(ctx: MyContext): MyPathway {
   const relation = r?.relation;
   const childRelation = req.family?.childRelation;
   const separated =
-    relation !== 'child' && req.family?.separatedOrDivorced === true;
+    (relation === 'wife' || relation === 'husband') &&
+    req.family?.separatedOrDivorced === true;
   const cat = category(
     ctx,
     relation === undefined
@@ -1055,13 +1056,27 @@ export function assessPrRep(ctx: MyContext): MyPathway {
       years === undefined ? undefined : years < p.childUnderAge ? date : null;
   } else {
     const years =
-      relation === 'husband' ? p.husbandMarriageYears : p.wifeMarriageYears;
-    const marriage = marriageDuration(
-      ctx,
-      years,
-      [repGuide('§5.3 p16')],
-      false,
-    );
+      relation === 'husband'
+        ? p.husbandMarriageYears
+        : relation === 'wife'
+          ? p.wifeMarriageYears
+          : undefined;
+    const marriage =
+      years === undefined
+        ? {
+            check: check(
+              'my.pr.marriage-duration',
+              L('婚姻存续年数', 'Years of marriage'),
+              undefined,
+              [repGuide('§5.3 p16')],
+              L(
+                `公民之妻须已结婚至少 ${p.wifeMarriageYears} 年，公民之夫至少 ${p.husbandMarriageYears} 年；未填与 REP 参与者的关系，无法确定所需年数。`,
+                `A wife must have been married for at least ${p.wifeMarriageYears} years and a husband for at least ${p.husbandMarriageYears}; the relationship to the REP participant is not entered, so the years needed are unknown.`,
+              ),
+            ),
+            earliest: undefined,
+          }
+        : marriageDuration(ctx, years, [repGuide('§5.3 p16')], false);
     checks.push(
       marriage.check,
       check(
@@ -1139,6 +1154,7 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
   const p = v.residencePass.value;
   const src = v.residencePass.sources;
   const tie = req.family?.tie;
+  const childRelation = req.family?.childRelation;
   const cat = tie && RP_CATEGORY[tie];
   const checks: MyCheck[] = [
     check(
@@ -1146,12 +1162,13 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
       L('Residence Pass 类别', 'Residence Pass category'),
       tie === undefined
         ? undefined
-        : cat !== undefined &&
-            !(
-              tie === 'child-of-pr' &&
-              req.family?.childRelation !== undefined &&
-              req.family.childRelation !== 'biological'
-            ),
+        : cat === undefined
+          ? false
+          : tie === 'child-of-pr'
+            ? childRelation === undefined
+              ? undefined
+              : childRelation === 'biological'
+            : true,
       src,
       L(
         '第 3 类为公民的配偶、子女、父母、公婆及有公民子女监护权的离婚或丧偶者；第 4 类为永久居民的配偶及亲生子女；第 5 类为自愿放弃或被褫夺公民身份的前公民。',
@@ -1162,6 +1179,17 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
               `按所填关系属第 ${cat} 类。`,
               ` The relationship entered falls in Category ${cat}.`,
             )
+          : '') +
+        (tie === 'child-of-pr' && childRelation !== 'biological'
+          ? childRelation === undefined
+            ? L(
+                '第 4 类只限亲生子女，未填与永久居民的亲子关系。',
+                ' Category 4 covers biological children only, and the relationship to the permanent resident is not entered.',
+              )
+            : L(
+                '继子女、养子女不属第 4 类。',
+                ' Step and adopted children are not in Category 4.',
+              )
           : ''),
     ),
   ];

@@ -588,6 +588,45 @@ describe('permanent residence: REP family', () => {
       path('my.pr.rep-family', { ...rep, rep: { relation: 'none' } }).status,
     ).toBe('NOT_APPLICABLE');
   });
+
+  test('marriage years need the relation to the participant (review113-2 #2)', () => {
+    // SRC-506 §5.3 p16: a wife needs three years of marriage, a husband five.
+    for (const marriedOn of ['2023-01-01', '2024-06-01']) {
+      const req = {
+        simulationDate: day,
+        family: { tie: 'husband-of-citizen', marriedOn },
+      } satisfies MyFullRequest;
+      const c = cond('my.pr.rep-family', 'my.pr.marriage-duration', req);
+      expect(c.status, marriedOn).toBe('UNKNOWN');
+      const p = path('my.pr.rep-family', req);
+      expect([p.timeStatus, p.timeEarliestDate], marriedOn).toEqual([
+        'UNKNOWN',
+        undefined,
+      ]);
+    }
+    // Married 2023-01-01, a husband completes five years on 2028-01-01.
+    const husband = path('my.pr.rep-family', {
+      simulationDate: day,
+      family: { marriedOn: '2023-01-01', separatedOrDivorced: false },
+      rep: { relation: 'husband', approvalLetterValidUntil: '2030-12-31' },
+    });
+    expect([husband.timeStatus, husband.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2028-01-01',
+    ]);
+  });
+
+  test('separation text only for a spouse (review113-2 suggestion 3)', () => {
+    for (const relation of [undefined, 'none', 'child'] as const) {
+      const c = cond('my.pr.rep-family', 'my.pr.category', {
+        simulationDate: day,
+        rep: { relation },
+        family: { separatedOrDivorced: true },
+      });
+      expect(c.explanation, relation).not.toContain('分居');
+      expect(c.pendingDetails ?? [], relation).not.toContain('PD-405');
+    }
+  });
 });
 
 describe('Residence Pass', () => {
@@ -623,6 +662,27 @@ describe('Residence Pass', () => {
       ],
     });
     expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', ['PD-429']]);
+  });
+
+  test('a permanent resident’s child must be a biological child (review113-2 #3)', () => {
+    // SRC-508 Category 4: "Biological child to a Permanent Resident aged 18
+    // and below"; only Category 3 adds step and adopted children.
+    const req = (childRelation?: 'biological') =>
+      ({
+        simulationDate: day,
+        dateOfBirth: '2015-01-01',
+        passportExpiry: '2028-01-01',
+        family: { tie: 'child-of-pr', childRelation },
+        passes: [{ kind: 'dependant', from: '2020-01-01', to: '2027-12-31' }],
+        residencePassSponsor: true,
+      }) satisfies MyFullRequest;
+    expect(cond('my.rp.family', 'my.rp.category', req()).status).toBe(
+      'UNKNOWN',
+    );
+    const open = path('my.rp.family', req());
+    expect([open.status, open.earliestDate]).toEqual(['UNKNOWN', undefined]);
+    const met = path('my.rp.family', req('biological'));
+    expect([met.status, met.earliestDate]).toEqual(['MET', day]);
   });
 
   test('children are eligible up to and including age 18', () => {
