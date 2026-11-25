@@ -684,9 +684,26 @@ test('questions are shown, kept and required where the engine reads them (review
     lawfulNonimmigrantStatusAtFiling: true,
     lawfulAdmissionFor245k: true,
   });
-  expect(transfer('cleared')).not.toHaveProperty(
-    'lawfulNonimmigrantStatusAtFiling',
-  );
+  // A confirmed original basis still has its reported bars (review96-2 risk 1).
+  expect(transfer('cleared')).toMatchObject({
+    lawfulNonimmigrantStatusAtFiling: true,
+    lawfulAdmissionFor245k: true,
+  });
+  const barred = spouseAdjustment({
+    lawfulNonimmigrantStatusAtFiling: false,
+    lawfulAdmissionFor245k: false,
+    i485BasisTransfer: {
+      originalPetition: {
+        adjustmentBasis: 'employment',
+        qualifyingBasisAtFiling: 'cleared',
+      },
+    },
+  });
+  expect(
+    pathwayOf(barred).checks.find(
+      (check) => check.id === 'US-C34-ADJUSTMENT-BARS',
+    ),
+  ).toMatchObject({ filingStatus: 'NOT_MET' });
   // The interview date is read for consular cases only (suggestion 4).
   const interview = (process: 'adjustment' | 'consular') =>
     unitedStatesRequest(

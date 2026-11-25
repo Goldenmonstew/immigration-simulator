@@ -763,19 +763,15 @@ export const pendingEventFields: UsField[] = [
     when: inRecord('kind', ['unauthorized-employment']),
   }),
 ];
-// A transfer from an employment basis checks that basis's bars at filing
-// unless the original basis is confirmed.
-const fromEmploymentBasis = (draft: UsAnswers) => {
-  const original = get(draft, [
+// A transfer from an employment basis checks that basis's bars at filing. A
+// confirmed original basis fills blank answers, but a reported bar still applies.
+const fromEmploymentBasis = (draft: UsAnswers) =>
+  get(draft, [
     'admission',
     'i485BasisTransfer',
     'originalPetition',
-  ]);
-  return (
-    get(original, ['adjustmentBasis']) === 'employment' &&
-    get(original, ['qualifyingBasisAtFiling']) !== 'cleared'
-  );
-};
+    'adjustmentBasis',
+  ]) === 'employment';
 const i485Events = list('i485PendingEvents', pendingEventFields, {
   hint: 'i485PendingEvents',
 });
