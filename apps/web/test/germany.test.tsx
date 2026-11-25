@@ -1731,3 +1731,66 @@ test('an unfinished draft with an uncorrected entry reopens with its answers at 
     reopen(unfinished(2, { common: { passport: 'lost' as 'valid' } })),
   ).toBeUndefined();
 });
+
+test('same-named application dates, months and § 9b period options use their own wording (review100-2 suggestions 1, 2)', () => {
+  const page = (draft: Partial<GermanyDraft>, locale: 'zh-CN' | 'en') =>
+    renderToStaticMarkup(
+      <LocaleContext value={{ locale, setLocale: () => {} }}>
+        {GermanySimulatePage().props.children({
+          draft: { ...createGermanyDraft(), ...draft } as GermanyDraft,
+          errors: {},
+          update: () => {},
+        })}
+      </LocaleContext>,
+    );
+  const label = (html: string, id: string) =>
+    html.match(new RegExp(`<label for="${id}">(.*?)</label>`))?.[1];
+  const option = (html: string, id: string, value: string) =>
+    html
+      .match(new RegExp(`<select[^>]* id="${id}"[^>]*>(.*?)</select>`))?.[1]
+      ?.match(new RegExp(`<option value="${value}"[^>]*>(.*?)</option>`))?.[1];
+  const settlement = (locale: 'zh-CN' | 'en') =>
+    page(
+      {
+        step: 3,
+        routes: ['R03', 'R06', 'R18'],
+        settlement: {
+          euMobility: { periods: [{ kind: 'study', from: '', until: '' }] },
+        },
+        mobility: { freedom: { importantAbsences: [{ months: 6 }] } },
+      } as Partial<GermanyDraft>,
+      locale,
+    );
+  const citizenship = (locale: 'zh-CN' | 'en') =>
+    page(
+      {
+        step: 4,
+        routes: ['R07'],
+        citizenship: { criminalRecord: { kind: 'custody', months: 2 } },
+      } as Partial<GermanyDraft>,
+      locale,
+    );
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const l = (zh: string, en: string) => (locale === 'en' ? en : zh);
+    const route = settlement(locale);
+    const nat = citizenship(locale);
+    const blueDate = label(route, 'de-route-R03-blueCard-applicationOn');
+    const natDate = label(nat, 'de-nat-applicationOn');
+    expect(blueDate).toContain(l('蓝卡', 'Blue Card'));
+    expect(natDate).toContain(l('入籍', 'naturalisation'));
+    expect(
+      label(route, 'de-route-R18-freedom-importantAbsences-0-months'),
+    ).toBe(l('该次离德月数 *', 'Months away on this absence *'));
+    expect(label(nat, 'de-nat-criminalRecord-months')).toContain(
+      l('自由刑', 'prison sentences'),
+    );
+    const period = 'de-route-R06-euMobility-periods-0-kind';
+    for (const kind of ['research', 'study', 'protection', 'higher-employment'])
+      expect(option(route, period, kind)).toMatch(
+        /^[^§]*(其他欧盟成员国|another member state)[^§]*§ 9b Abs\. 2 Satz 1 Nr\. 2/,
+      );
+    expect(option(route, period, 'study')).toContain(
+      l('按一半计入', 'counts at half'),
+    );
+  }
+});

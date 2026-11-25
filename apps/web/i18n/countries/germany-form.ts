@@ -244,6 +244,9 @@ export const deFormZh = {
   'de.field.isco': '岗位 ISCO-08 职业代码（如 2512、2141、2411）',
   'de.field.degreeOn': '取得高校学位的日期（用于核对毕业 3 年内低薪资档）',
   'de.field.applicationOn': '本次申请日期',
+  'de.field.blueCardApplicationOn':
+    '本次蓝卡申请（首发或续签）的递交日期（用于核对应届毕业生低薪资档）',
+  'de.field.naturalisationApplicationOn': '入籍申请递交日期',
   'de.field.firstGraduateCardOn':
     '首次以应届毕业生低档获发蓝卡的日期（用于 24 个月内续签判断）',
   'de.field.renewal': '本次为应届毕业生蓝卡的续签',
@@ -437,6 +440,7 @@ export const deFormZh = {
   'de.field.importantAbsences':
     '因怀孕生育、重病、学习培训或外派等重大原因的单次较长离德记录（最多 1 次、不超 12 个月）',
   'de.field.months': '月数',
+  'de.field.importantAbsenceMonths': '该次离德月数',
   'de.field.reasonAccepted': '重大离境原因及期限符合 § 4a Abs. 6 要求',
   'de.field.early': '未满 5 年提前取得永久居住权的法定情形（§ 4a Abs. 2–4）',
   'de.field.qualifyingWorker': '触发事件发生前属合格受雇人员或自雇人员',
@@ -535,6 +539,7 @@ export const deFormZh = {
     '法院合并执行的较低总罚金日额（Gesamtstrafe，如有）',
   'de.field.fineDayRates': '混合刑罚中的各次罚金日额（Tagessätze）',
   'de.field.prisonDays': '混合刑罚中折算的自由刑总天数',
+  'de.field.custodyMonths': '各项自由刑判决的刑期合计（月）',
   'de.field.allCustodySuspendedAndRemitted':
     '全部自由刑均已宣告缓刑并在缓刑期满后免刑',
   'de.field.lowerCombinedDays': '混合刑罚经合并计算的较低总日额／天数（如有）',
@@ -778,7 +783,7 @@ export const deFormZh = {
   'de.option.german-blue': '德国欧盟蓝卡期间',
   'de.option.other-eu-blue': '其他欧盟成员国签发的欧盟蓝卡期间',
   'de.option.higher-employment':
-    '其他欧盟成员国高资质就业许可期间（§ 9b Abs. 2 Nr. 1）',
+    '其他欧盟成员国签发的高资质就业居留许可期间（§ 9b Abs. 2 Satz 1 Nr. 2 Buchst. a）',
   'de.option.outside-eu': '离开欧盟境外的期间',
 
   'de.option.entrepreneur':
@@ -958,6 +963,12 @@ export const deFormZh = {
     '历史西德招募劳工或东德合同工及其配偶（§ 10 Abs. 4 Satz 3）',
   'de.option.careCover.statutory': '德国法定医疗及护理保险',
   'de.option.euPeriod.ineligible': '不可按 § 9b 计入的居留期间',
+  'de.option.euPeriod.research':
+    '其他欧盟成员国签发的研究目的居留许可期间（§ 9b Abs. 2 Satz 1 Nr. 2 Buchst. b）',
+  'de.option.euPeriod.study':
+    '其他欧盟成员国签发的学习目的居留许可期间（按一半计入，§ 9b Abs. 2 Satz 1 Nr. 2 Buchst. c、Satz 2）',
+  'de.option.euPeriod.protection':
+    '在其他欧盟成员国享有国际保护身份的期间（§ 9b Abs. 2 Satz 1 Nr. 2 Buchst. d）',
 } as const;
 
 export const deFormEn: Record<keyof typeof deFormZh, string> = {
@@ -1267,6 +1278,10 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
   'de.field.degreeOn':
     'Date the university degree was obtained (for the 3-year recent graduate reduced threshold)',
   'de.field.applicationOn': 'Application date',
+  'de.field.blueCardApplicationOn':
+    'Filing date of this Blue Card application (first issue or renewal), for the recent-graduate pay band',
+  'de.field.naturalisationApplicationOn':
+    'Filing date of the naturalisation application',
   'de.field.firstGraduateCardOn':
     'Date the first reduced-band recent-graduate Blue Card was issued (for renewals within 24 months)',
   'de.field.renewal': 'This is a renewal of a recent-graduate Blue Card',
@@ -1497,6 +1512,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
   'de.field.importantAbsences':
     'Single longer absence for an important reason such as pregnancy/childbirth, serious illness, study or posting (at most 1 absence up to 12 months)',
   'de.field.months': 'Months',
+  'de.field.importantAbsenceMonths': 'Months away on this absence',
   'de.field.reasonAccepted': 'Important reason and duration meet § 4a Abs. 6',
   'de.field.early':
     'Statutory ground for acquiring permanent residence before 5 years (§ 4a Abs. 2–4)',
@@ -1616,6 +1632,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
     'Lower combined fine total ordered by the court (Gesamtstrafe, if applicable)',
   'de.field.fineDayRates': 'Daily fine units (Tagessätze) in a mixed record',
   'de.field.prisonDays': 'Total prison days counted in a mixed record',
+  'de.field.custodyMonths': 'Total length of the prison sentences (months)',
   'de.field.allCustodySuspendedAndRemitted':
     'All prison sentences were suspended on probation and remitted',
   'de.field.lowerCombinedDays':
@@ -1914,7 +1931,7 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
   'de.option.german-blue': 'German EU Blue Card period',
   'de.option.other-eu-blue': 'EU Blue Card period in another member state',
   'de.option.higher-employment':
-    'Highly qualified employment title in another member state (§ 9b Abs. 2 Nr. 1)',
+    'Highly qualified employment title issued by another member state (§ 9b Abs. 2 Satz 1 Nr. 2 lit. a)',
   'de.option.outside-eu': 'Period outside the European Union',
 
   'de.option.entrepreneur':
@@ -2142,4 +2159,10 @@ export const deFormEn: Record<keyof typeof deFormZh, string> = {
   'de.option.careCover.statutory':
     'German statutory health and long-term care insurance',
   'de.option.euPeriod.ineligible': 'Period not creditable under § 9b',
+  'de.option.euPeriod.research':
+    'Research residence title issued by another member state (§ 9b Abs. 2 Satz 1 Nr. 2 lit. b)',
+  'de.option.euPeriod.study':
+    'Study residence title issued by another member state (counts at half, § 9b Abs. 2 Satz 1 Nr. 2 lit. c, Satz 2)',
+  'de.option.euPeriod.protection':
+    'International protection status in another member state (§ 9b Abs. 2 Satz 1 Nr. 2 lit. d)',
 };

@@ -440,7 +440,7 @@ export const blueCardFields: GermanyField[] = [
   integer('tertiaryLevel'),
   text('isco'),
   actualDate('degreeOn'),
-  date('applicationOn'),
+  labelled(date('applicationOn'), 'blueCardApplicationOn'),
   actualDate('firstGraduateCardOn'),
   ...flags('renewal', 'employmentAgencyApproved'),
   number('relevantItYearsInLookback'),
@@ -482,7 +482,10 @@ export const freeMovementFields: GermanyField[] = [
     'freedomPeriods',
   ),
   numberList('annualOrdinaryAbsenceMonths'),
-  list('importantAbsences', [number('months', true), bool('reasonAccepted')]),
+  list('importantAbsences', [
+    labelled(number('months', true), 'importantAbsenceMonths'),
+    bool('reasonAccepted'),
+  ]),
   group('early', [
     labelled(
       choice(
@@ -692,7 +695,12 @@ export const settlementRouteFields = {
               ],
               true,
             ),
-            { ineligible: 'euPeriod.ineligible' },
+            {
+              research: 'euPeriod.research',
+              study: 'euPeriod.study',
+              protection: 'euPeriod.protection',
+              ineligible: 'euPeriod.ineligible',
+            },
           ),
           'euPeriodKind',
         ),
@@ -848,7 +856,7 @@ const citizenshipTitles = [
 
 export const citizenshipSections = {
   natIdentity: [
-    date('applicationOn'),
+    labelled(date('applicationOn'), 'naturalisationApplicationOn'),
     ...flags(
       'historicAcceleratedApplicationPending',
       'foreignNationalOrStateless',
@@ -1006,7 +1014,10 @@ export const citizenshipSections = {
         (r) => r.kind === 'mixed-sentences',
       ),
       integer('lowerCombinedDays', false, (r) => r.kind === 'mixed-sentences'),
-      number('months', true, (r) => r.kind === 'custody'),
+      labelled(
+        number('months', true, (r) => r.kind === 'custody'),
+        'custodyMonths',
+      ),
       bool('suspendedAndRemitted', false, (r) => r.kind === 'custody'),
       bool(
         'judgmentFoundHateMotive',
