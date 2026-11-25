@@ -389,17 +389,39 @@ test('the questionnaire renders the fields the end-to-end flow uses', () => {
 
 test('separation and divorce, permanent residence and refusals reach the engine as answered', () => {
   const draft = wifeDraft();
+  // review114-1 risk 2: the engine reads separation and divorce apart.
   const family = (separated?: boolean, divorced?: boolean) =>
     malaysiaRequest(
       { ...draft, family: { ...draft.family, separated, divorced } },
       'zh-CN',
-    ).family?.separatedOrDivorced;
-  expect(family(false, false)).toBe(false);
-  expect(family(true, false)).toBe(true);
-  expect(family(false, true)).toBe(true);
-  expect(family(undefined, true)).toBe(true);
-  expect(family(false, undefined)).toBeUndefined();
-  expect(family(undefined, undefined)).toBeUndefined();
+    ).family;
+  expect(family(false, true)).toMatchObject({
+    separated: false,
+    divorced: true,
+  });
+  expect(family(true, false)).toMatchObject({
+    separated: true,
+    divorced: false,
+  });
+  expect(family(undefined, undefined)).not.toHaveProperty('separated');
+  const category = (separated?: boolean, divorced?: boolean) =>
+    check(
+      pathway(
+        {
+          ...wifeDraft(['cit-wife']),
+          family: { ...draft.family, separated, divorced },
+        },
+        'cit-wife',
+      ),
+      'my.cit.category',
+    );
+  expect(category(false, false).status).toBe('MET');
+  expect(category(false, true).status).toBe('NOT_MET');
+  expect(category(false, true).explanation).not.toContain('未区分');
+  expect([
+    category(true, false).status,
+    category(true, false).pendingDetails,
+  ]).toEqual(['UNKNOWN', ['PD-405']]);
 
   const request = malaysiaRequest(draft, 'en');
   expect(request.previousPrRefusalOn).toBeNull();
@@ -433,7 +455,7 @@ test('separation and divorce, permanent residence and refusals reach the engine 
     { ...my.createDraft(), targets: ['pr-wife'] },
     'zh-CN',
   );
-  expect(blank.family).toEqual({ separatedOrDivorced: undefined });
+  expect(blank.family).toEqual({});
   expect(blank.previousPrRefusalOn).toBeUndefined();
   expect(blank.passes).toBeUndefined();
   expect(blank.citizenSponsor).toBeUndefined();
@@ -1122,7 +1144,8 @@ function randomRequests(count: number, start: number): MyFullRequest[] {
       marriageRegistration: maybe(() =>
         pick(['malaysia', 'foreign-only'] as const),
       ),
-      separatedOrDivorced: maybe(() => random() < 0.3),
+      separated: maybe(() => random() < 0.3),
+      divorced: maybe(() => random() < 0.2),
       childRelation: maybe(() =>
         pick(['biological', 'step', 'adopted'] as const),
       ),

@@ -41,11 +41,7 @@ export interface MalaysiaDraft
   // Asked as "ever refused" and the refusal date (engine: null if never).
   prRefused?: boolean;
   prRefusedOn?: string;
-  // Separation and divorce are asked apart; the engine takes either.
-  family: Omit<Evidence<'family'>, 'separatedOrDivorced'> & {
-    separated?: boolean;
-    divorced?: boolean;
-  };
+  family: Evidence<'family'>;
   evidence: Evidence<'evidence'>;
   language: Evidence<'language'>;
   was: Evidence<'was'>;
@@ -222,21 +218,12 @@ export function activeMalaysiaAnswers(draft: MalaysiaDraft): MalaysiaDraft {
   return active;
 }
 
-// Either answer reports a separation or divorce; both "no" confirm neither.
-const separatedOrDivorced = (separated?: boolean, divorced?: boolean) =>
-  separated || divorced
-    ? true
-    : separated === false && divorced === false
-      ? false
-      : undefined;
-
 export function malaysiaRequest(
   draft: MalaysiaDraft,
   locale: Locale,
 ): MyFullRequest {
   const answers = activeMalaysiaAnswers(draft);
   const { prRefused, prRefusedOn } = answers;
-  const { separated, divorced, ...family } = answers.family;
   const { prHeld, permanentResidentSince, ...citizenship } =
     answers.citizenship;
   // The engine ignores the draft's own bookkeeping keys.
@@ -244,10 +231,6 @@ export function malaysiaRequest(
     ...answers,
     locale,
     pathways: answers.targets.map((target) => myPathwayByTarget[target]),
-    family: {
-      ...family,
-      separatedOrDivorced: separatedOrDivorced(separated, divorced),
-    },
     previousPrRefusalOn:
       prRefused === false ? null : prRefused ? prRefusedOn : undefined,
     citizenship: {

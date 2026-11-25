@@ -90,7 +90,10 @@ export interface MyFullRequest {
     tie?: MyFamilyTie;
     marriedOn?: IsoDate;
     marriageRegistration?: 'malaysia' | 'foreign-only';
-    separatedOrDivorced?: boolean;
+    /** Living apart without a divorce: the marriage still subsists in law. */
+    separated?: boolean;
+    /** The marriage has ended in divorce. */
+    divorced?: boolean;
     /** For a child of a citizen. */
     childRelation?: 'biological' | 'step' | 'adopted';
   };
@@ -225,27 +228,40 @@ export function check(
 }
 
 /**
- * A spouse category needs the marriage to subsist. Separation and divorce
- * are asked together, and only a divorce ends the marriage (PD-405).
+ * A spouse category needs the marriage to subsist ("jika perkahwinan itu masih
+ * wujud", SRC-500 Art. 15(1) p39). A divorce ends it; whether a separation
+ * without a divorce bars the category is not stated (PD-405).
  */
 export function marriageSubsists(ctx: MyContext) {
   const { L } = ctx;
-  const answer = ctx.req.family?.separatedOrDivorced;
+  const { separated, divorced } = ctx.req.family ?? {};
+  const met = divorced
+    ? false
+    : separated
+      ? undefined
+      : separated === false && divorced === false
+        ? true
+        : undefined;
   return {
-    met: answer === false ? true : undefined,
-    text:
-      answer === undefined
+    met,
+    divorced: divorced === true,
+    text: divorced
+      ? L(
+          '所填已离婚，婚姻不再存续。',
+          ' A divorce is reported, so the marriage no longer subsists.',
+        )
+      : separated
         ? L(
-            '未填是否已分居或离婚，无法确认婚姻仍存续。',
-            ' Whether the couple has separated or divorced is not entered, so the marriage cannot be confirmed as subsisting.',
+            '所填已分居但未离婚：婚姻在法律上仍存续，分居是否影响此类别未写明，待确认。',
+            ' A separation without a divorce is reported: the marriage still subsists in law, but whether a separation affects this category is not stated.',
           )
-        : answer
-          ? L(
-              '所填已分居或离婚：离婚后婚姻不再存续，只分居则仍存续；此项未区分两者，待确认。',
-              ' A separation or divorce is reported: a divorce ends the marriage while a separation does not, and the answer does not say which.',
-            )
-          : '',
-    pending: answer ? ['PD-405'] : [],
+        : met
+          ? ''
+          : L(
+              '未填是否已离婚或分居，无法确认婚姻仍存续。',
+              ' Whether the couple has divorced or separated is not entered, so the marriage cannot be confirmed as subsisting.',
+            ),
+    pending: separated && !divorced ? ['PD-405'] : [],
   };
 }
 

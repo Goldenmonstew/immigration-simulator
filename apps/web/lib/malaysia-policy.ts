@@ -36,7 +36,8 @@ const answered: MyFullRequest = {
     tie: 'wife-of-citizen',
     marriedOn: '2015-01-01',
     marriageRegistration: 'malaysia',
-    separatedOrDivorced: false,
+    separated: false,
+    divorced: false,
   },
   citizenSponsor: true,
   residencePassSponsor: true,
@@ -108,7 +109,8 @@ const samples: MyFullRequest[] = [
       tie: 'husband-of-citizen',
       marriedOn: '2015-01-01',
       marriageRegistration: 'foreign-only',
-      separatedOrDivorced: true,
+      separated: true,
+      divorced: false,
       childRelation: 'adopted',
     },
     citizenship: {
@@ -153,7 +155,7 @@ const samples: MyFullRequest[] = [
       { kind: 'student', from: '2020-01-01', to: '2021-06-30' },
       { kind: 'student', from: '2026-06-01', to: '2028-05-31' },
     ],
-    family: { ...answered.family, separatedOrDivorced: true },
+    family: { ...answered.family, separated: true, divorced: false },
     mm2h: { ...answered.mm2h, daysPerYear: 30 },
   },
   {

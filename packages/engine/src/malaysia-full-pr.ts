@@ -129,8 +129,15 @@ function marriageDuration(
   noSeparation: boolean,
 ) {
   const { req, date, L } = ctx;
-  const married = req.family?.marriedOn;
-  const separated = noSeparation ? req.family?.separatedOrDivorced : false;
+  const { marriedOn: married, separated: apart, divorced } = req.family ?? {};
+  // Either a separation or a divorce fails "tanpa berpisah atau bercerai".
+  const separated = !noSeparation
+    ? false
+    : apart || divorced
+      ? true
+      : apart === false && divorced === false
+        ? false
+        : undefined;
   const due = married && addYears(married, years);
   const c = check(
     'my.pr.marriage-duration',
@@ -150,7 +157,9 @@ function marriageDuration(
           `The couple must have been married for at least ${years} years before applying.`,
         )) +
       (separated
-        ? L('所填已分居或离婚。', ' A separation or divorce is reported.')
+        ? divorced
+          ? L('所填已离婚。', ' A divorce is reported.')
+          : L('所填已分居。', ' A separation is reported.')
         : (separated === undefined
             ? L(
                 '未填是否已分居或离婚。',
@@ -1242,6 +1251,9 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
     tie === 'husband-of-citizen' ||
     tie === 'spouse-of-pr';
   const subsists = marriageSubsists(ctx);
+  // A citizen's divorcee with a Malaysian citizen biological child is in
+  // Category 3 on that basis (SRC-508), which is not asked.
+  const divorcee = spouse && cat === 3 && subsists.divorced;
   const checks: MyCheck[] = [
     check(
       'my.rp.category',
@@ -1255,7 +1267,9 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
               ? undefined
               : childRelation === 'biological'
             : spouse
-              ? subsists.met
+              ? divorcee
+                ? undefined
+                : subsists.met
               : true,
       src,
       L(
@@ -1279,7 +1293,13 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
                 ' Step and adopted children are not in Category 4.',
               )
           : '') +
-        (spouse ? subsists.text : ''),
+        (spouse ? subsists.text : '') +
+        (divorcee
+          ? L(
+              '离婚者有马来西亚公民亲生子女时属第 3 类的另一情形，本工具未问，待确认。',
+              ' A divorcee with a biological child who is a Malaysian citizen is in Category 3 on that basis, which is not asked here.',
+            )
+          : ''),
       spouse ? subsists.pending : [],
     ),
   ];
