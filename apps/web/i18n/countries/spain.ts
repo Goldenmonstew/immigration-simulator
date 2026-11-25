@@ -1,87 +1,53 @@
+import { esFormZh, esFormEn } from './spain-form';
+import { zhCN as moduleZh, en as moduleEn } from './spain-module';
+
 export const zhCN = {
+  ...esFormZh,
+  ...moduleZh,
   'es.name': '西班牙',
   'es.entryLink': '打开西班牙模拟器',
   'es.entryDesc':
-    '按居留许可与出入境记录，计算国内长期居留与按居住入籍的时间节点。',
-  'es.title': '西班牙：长期居留与入籍的时间',
+    '核对西班牙按居住入籍、国内与欧盟长期居留、跨境欧盟长居迁入与随迁家属、恢复长期居留及欧盟自由流动永久居留的全部法定条件与时间节点。',
+  'es.title': '西班牙：入籍、长期居留、跨境迁居与自由流动模拟',
   'es.intro':
-    '按你在西班牙的居留许可和出入境记录，计算两个只看时间的节点：国内长期居留（residencia de larga duración nacional）与按居住入籍（nacionalidad por residencia）。工作、投资等入境许可与 arraigo 的资格不在范围内。',
+    '选择与你有关的路径，按你的居留许可、出入境记录与各项法定证明，逐项核对申请条件、最早可申请日期与待确认事项。',
   'es.scope':
-    '这里只检查条例与民法典写明的时间条件；语言与宪法考试、品行、放弃原国籍等不检查，结果里逐项列出。原文没说清的计法会标出。所填内容只在你的浏览器里计算，不保存、不上传。',
-  'es.basics': '基本信息',
-  'es.simulationDate': '模拟日期',
-  'es.simulationDateHint': '按这一天判断（按递交日），默认今天。',
-  'es.permits': '居留许可',
-  'es.permitsHint':
-    '每张许可填一行，按时续期的接着填下一张；仍有效的结束日期可留空。国内长期居留许可本身没有期限，TIE 卡到期不影响，结束日期请留空。学习停留请勾选。',
-  'es.permit': '许可 {n}',
-  'es.from': '生效日期',
-  'es.to': '到期日期（仍有效可留空）',
-  'es.study': '这是学习停留（estancia por estudios）',
-  'es.addPermit': '添加许可',
-  'es.trips': '出境记录',
-  'es.tripsHint': '每次离开西班牙填一行，计划中的出行也可以填。',
-  'es.trip': '出境 {n}',
-  'es.departed': '离开西班牙的日期',
-  'es.returned': '回到西班牙的日期',
-  'es.addTrip': '添加出境记录',
-  'es.nationality': '入籍路线',
-  'es.route': '适用的入籍年限',
-  'es.route.general': '一般（中国公民适用）',
-  'es.route.refugee': '已获难民身份',
-  'es.route.ibero':
-    '伊比利亚美洲国家、安道尔、菲律宾、赤道几内亚、葡萄牙原始国籍公民或塞法迪人',
-  'es.route.marriage': '与西班牙公民结婚且未分居',
-  'es.route.one-year': '其他 1 年的情形（如在西班牙出生）',
-  'es.marriedOn': '与西班牙公民结婚的日期',
-  'es.remove': '删除',
-  'es.submit': '计算',
-  'es.errorSummary': '请先修正标红的项目。',
+    '涵盖八条路径：按居住入籍（Código Civil art. 22 及 RD 1004/2015）、国内长期居留（RD 1155/2024 art. 183）、西班牙欧盟长期居留（art. 176）、其他成员国欧盟长居者迁入西班牙（art. 179）及随迁家属（art. 180）、恢复国内或欧盟长期居留（arts. 186–189）和欧盟自由流动制度下的永久居留（RD 240/2007 art. 10）。同时核对时间条件、DELE／CCSE 考试、IPREM 家庭资源、SMI 薪资、医保、刑事与公共秩序审查，以及获批后的 TIE 申领与宣誓登记。',
+  'es.prepare':
+    '准备各段居留或学习停留的起止日期、离境与返回日期，以及与所选路径相关的婚姻或亲属证明、DELE／CCSE 成绩、家庭月收入或雇主合同薪资、医疗保险、无犯罪记录及缴费凭证。不确定的项目可留待确认。',
+  'es.privacy':
+    '问卷在浏览器本地计算，草稿与保存的情景仅留在这台设备。分享链接包含所填资料，收到链接的人可以还原并查看同一情景。',
+  'es.result.finishQuestionnaire':
+    '请返回问卷，完成所选路径的必填项目后再查看结果。',
+  'es.result.otherChecks':
+    '费用、办卡、获批后手续与分支明细（不决定本路径结论）',
+  'es.result.acquiredOn': '已于 {date} 取得永久居留权。',
   'es.error.date': '请填写有效日期。',
-  'es.error.order': '这个日期不能早于开始的日期。',
+  'es.error.order': '结束或返回日期不能早于开始或离开日期。',
 } as const;
 
 export const en: Record<keyof typeof zhCN, string> = {
+  ...esFormEn,
+  ...moduleEn,
   'es.name': 'Spain',
-  'es.entryLink': 'Open Spain',
+  'es.entryLink': 'Open Spain simulator',
   'es.entryDesc':
-    'Use your residence permits and travel record to work out the dates for national long-term residence and citizenship by residence.',
-  'es.title': 'Spain: dates for long-term residence and citizenship',
+    'Check statutory requirements and dates for Spanish citizenship by residence, national and EU long-term residence, EU mobility and family, recovery of status and EU free-movement permanent residence.',
+  'es.title':
+    'Spain: citizenship, long-term residence, EU mobility and free movement',
   'es.intro':
-    'From your Spanish residence permits and trips, this works out two steps that depend on time alone: national long-term residence (residencia de larga duración nacional) and citizenship by residence (nacionalidad por residencia). Eligibility for work, investment or arraigo permits is out of scope.',
+    'Choose the pathways relevant to you and check every statutory requirement, your earliest projected filing date and any unconfirmed details from your residence, travel and supporting evidence.',
   'es.scope':
-    'This checks only the time requirements in the regulations and the Civil Code. It does not check the language and constitution tests, conduct, giving up your nationality or other requirements; each result lists them, and counting the rules leave open is flagged. Your entries are processed in your browser and are not saved or uploaded.',
-  'es.basics': 'About you',
-  'es.simulationDate': 'Simulation date',
-  'es.simulationDateHint':
-    'Results are worked out for this date (the application date). It starts as today.',
-  'es.permits': 'Residence permits',
-  'es.permitsHint':
-    'Add a row for each permit, then the next one if renewed on time; leave the end blank if it is still valid. A national long-term residence permit has no end date and an expired TIE card does not end it, so leave its end blank. Tick study stays.',
-  'es.permit': 'Permit {n}',
-  'es.from': 'Valid from',
-  'es.to': 'Valid until (leave blank if still valid)',
-  'es.study': 'This is a study stay (estancia por estudios)',
-  'es.addPermit': 'Add a permit',
-  'es.trips': 'Trips abroad',
-  'es.tripsHint':
-    'Add a row for each time you left Spain. You can include planned trips.',
-  'es.trip': 'Trip {n}',
-  'es.departed': 'Date you left Spain',
-  'es.returned': 'Date you came back to Spain',
-  'es.addTrip': 'Add a trip',
-  'es.nationality': 'Citizenship route',
-  'es.route': 'Years of residence that apply to you',
-  'es.route.general': 'General (applies to Chinese citizens)',
-  'es.route.refugee': 'Granted refugee status',
-  'es.route.ibero':
-    'National by origin of an Ibero-American country, Andorra, the Philippines, Equatorial Guinea or Portugal, or Sephardic',
-  'es.route.marriage': 'Married to a Spanish citizen and not separated',
-  'es.route.one-year': 'Another one-year case (such as born in Spain)',
-  'es.marriedOn': 'Date you married a Spanish citizen',
-  'es.remove': 'Remove',
-  'es.submit': 'Work out dates',
-  'es.errorSummary': 'Fix the items marked in red first.',
+    'Covers eight pathways: citizenship by residence (Código Civil art. 22 and RD 1004/2015), national long-term residence (RD 1155/2024 art. 183), Spanish EU long-term residence (art. 176), mobility of EU long-term residents from another Member State (art. 179) and their accompanying family (art. 180), recovery of national or EU long-term residence (arts. 186–189) and permanent residence under EU free movement (RD 240/2007 art. 10). Checks time requirements, DELE/CCSE exams, IPREM household resources, SMI salary, health cover, criminal and public-order reviews, and post-grant TIE and oath steps.',
+  'es.prepare':
+    'Have your residence permit and study stay dates, travel history, and route-specific evidence ready, such as family records, DELE/CCSE certificates, monthly household income or employment contract pay, health insurance, criminal record certificates and fee receipts. Leave uncertain items open for confirmation.',
+  'es.privacy':
+    'Calculations run locally in your browser. Drafts and saved scenarios stay on this device. Anyone with a share link can load and inspect the answers it contains.',
+  'es.result.finishQuestionnaire':
+    'Return to the questionnaire and complete the required fields for your selected pathways to see your result.',
+  'es.result.otherChecks':
+    'Fees, cards, post-grant steps and branch details (these do not decide this pathway)',
+  'es.result.acquiredOn': 'Permanent residence was acquired on {date}.',
   'es.error.date': 'Enter a valid date.',
-  'es.error.order': 'This date cannot be before the start date.',
+  'es.error.order': 'The end or return date cannot be before the start or departure date.',
 };
