@@ -1,6 +1,7 @@
 import { isValidElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test, vi } from 'vitest';
+import type { CountryPathway } from '@uk-immigration/engine';
 import CanadaPage from '../app/canada/page';
 import CanadaPolicyPage from '../app/canada/policy/page';
 import CanadaSimulatePage from '../app/canada/simulate/page';
@@ -564,7 +565,8 @@ test('the result lists only chosen routes, with a future date, a met case and a 
     pathway({ ...draft, simulationDate: '2027-12-31' }, 'CA-RESIDENCY'),
   ).toMatchObject({ status: 'MET' });
 
-  // Without the humanitarian answer, the shortfall cannot be settled.
+  // Without the humanitarian answer, the shortfall cannot be settled, and
+  // relief could meet the obligation before the projected day (review95-2 #1).
   const { humanitarianRelief, ...residence } = draft.answers.residence!;
   expect(humanitarianRelief).toBe('none');
   const pending = pathway(
@@ -572,10 +574,11 @@ test('the result lists only chosen routes, with a future date, a met case and a 
     'CA-RESIDENCY',
   );
   expect(pending.status).toBe('UNKNOWN');
-  expect(pending).toMatchObject({
-    timeStatus: 'FUTURE',
-    timeEarliestDate: '2027-06-01',
-  });
+  expect(pending.checks.find((check) => check.id === 'CA-R03')?.status).toBe(
+    'UNKNOWN',
+  );
+  expect(pending.timeStatus).toBeUndefined();
+  expect(pending.timeEarliestDate).toBeUndefined();
   expect(pending.earliestDate).toBeUndefined();
   expect(pending.pendingDetails).toContain('PD-240');
 
@@ -640,6 +643,124 @@ test('settled and undated routes show no time rows or undetermined date', () => 
       />,
     ),
   ).toContain(t('ca.result.earliest'));
+});
+
+// PR since mid-2023 with no trips; the citizenship day records are unanswered.
+function citizenshipDraft(): CanadaDraft {
+  return {
+    ...ca.createDraft(),
+    step: 2,
+    completed: true,
+    simulationDate: '2026-11-24',
+    goals: ['CA-CITIZENSHIP'],
+    answers: {
+      dateOfBirth: '1990-01-01',
+      permanentResident: '2023-06-01',
+      trips: [],
+      temporaryPeriods: [],
+      residence: { prStatus: 'valid' },
+    },
+  };
+}
+const withResidence = (
+  draft: CanadaDraft,
+  residence: NonNullable<CanadaDraft['answers']['residence']>,
+): CanadaDraft => ({
+  ...draft,
+  answers: {
+    ...draft.answers,
+    residence: { ...draft.answers.residence, ...residence },
+  },
+});
+const timeCheck = (assessment: CountryPathway) =>
+  assessment.checks.find((check) => check.kind === 'time')!;
+const factRow = (key: TranslationKey, value: string) =>
+  `<dt>${t(key)}</dt><dd>${value}</dd>`;
+
+// review95-2 #1: the time row reports the checks labelled as time
+// requirements (CA-R03, CA-R08), which count credited and excluded periods,
+// so the row and those checks never disagree.
+test('the time row follows the time requirement checks', () => {
+  const html = (draft: CanadaDraft) =>
+    render(
+      <ResultView country={ca} result={ca.run(draft, 'zh-CN')} draft={draft} />,
+    );
+  // Unanswered credited and excluded periods leave the day count unknown.
+  const { prDays, ...residence } = residencyDraft().answers.residence!;
+  expect(prDays).toBeDefined();
+  const residency = {
+    ...residencyDraft(),
+    answers: { ...residencyDraft().answers, residence },
+  };
+  for (const [draft, id, check] of [
+    [citizenshipDraft(), 'CA-CITIZENSHIP', 'CA-R08'],
+    [residency, 'CA-RESIDENCY', 'CA-R03'],
+  ] as const) {
+    const assessment = pathway(draft, id);
+    expect(assessment.status, id).toBe('UNKNOWN');
+    expect(timeCheck(assessment)).toMatchObject({
+      id: check,
+      status: 'UNKNOWN',
+    });
+    expect(assessment.timeStatus, id).toBeUndefined();
+    expect(assessment.timeEarliestDate, id).toBeUndefined();
+    expect(gapRules(assessment).map((rule) => rule.id)).toContain(check);
+    for (const key of ['country.timeConditions', 'country.timeDate'] as const)
+      expect(html(draft), `${id} ${key}`).not.toContain(`<dt>${t(key)}</dt>`);
+  }
+
+  // Confirmed with no records, CA-R08 is met and the row says so.
+  const confirmed = withResidence(citizenshipDraft(), {
+    citizenshipDays: { credits: [], exclusions: [] },
+  });
+  const met = pathway(confirmed, 'CA-CITIZENSHIP');
+  expect(met.status).toBe('UNKNOWN');
+  expect(timeCheck(met).status).toBe('MET');
+  expect(met.timeStatus).toBe('MET');
+  expect(html(confirmed)).toContain(
+    factRow('country.timeConditions', t('country.status.MET')),
+  );
+
+  // Short of the days, CA-R08 projects when they are met.
+  const short = {
+    ...confirmed,
+    answers: { ...confirmed.answers, permanentResident: '2024-06-01' },
+  };
+  const future = pathway(short, 'CA-CITIZENSHIP');
+  expect(timeCheck(future).status).toBe('NOT_MET');
+  expect(future).toMatchObject({
+    status: 'UNKNOWN',
+    timeStatus: 'FUTURE',
+    timeEarliestDate: '2027-06-01',
+  });
+  expect(html(short)).toContain(
+    factRow(
+      'country.timeDate',
+      '<time dateTime="2027-06-01">2027-06-01</time>',
+    ),
+  );
+});
+
+// review95-2 risk 2: an application already signed is checked on its
+// signing day, so no earlier projected date is shown.
+test('a citizenship application signed before the simulation date shows no past date', () => {
+  const draft = withResidence(citizenshipDraft(), {
+    citizenshipDays: { credits: [], exclusions: [] },
+    signingDate: '2026-01-10',
+  });
+  const assessment = pathway(draft, 'CA-CITIZENSHIP');
+  expect(assessment.status).toBe('NOT_MET');
+  expect(timeCheck(assessment).status).toBe('NOT_MET');
+  expect(assessment.timeStatus).toBeUndefined();
+  expect(assessment.timeEarliestDate).toBeUndefined();
+  const html = render(
+    <ResultView country={ca} result={ca.run(draft, 'zh-CN')} draft={draft} />,
+  );
+  for (const key of ['country.timeConditions', 'country.timeDate'] as const)
+    expect(html, key).not.toContain(`<dt>${t(key)}</dt>`);
+  expect(html).not.toContain(
+    t('country.status.FUTURE').replace('{date}', '2026-05-31'),
+  );
 });
 
 test('comparison controls change only the moved answers and move the date', () => {

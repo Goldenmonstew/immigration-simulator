@@ -19,6 +19,7 @@ import { canadaPolicy } from './canada-policy';
 import { canadaWhatIf, type CanadaWhatIf } from './canada-whatif';
 
 const datedGoals = ['CA-RESIDENCY', 'CA-CITIZENSHIP'];
+const timeChecks = ['CA-R03', 'CA-R08'];
 const fees = ['CA-R27', 'CA-R28', 'CA-R54', 'CA-R70', 'CA-R80'];
 
 // Only requirements and the two day counts are gaps. Fees are a budget, the
@@ -26,7 +27,7 @@ const fees = ['CA-R27', 'CA-R28', 'CA-R54', 'CA-R70', 'CA-R80'];
 // employment is one of several bases. Other guidance (the day-count
 // baseline, PR card and travel document) is information.
 function checkKind(check: CaFullCheck): CountryCheck['kind'] {
-  if (check.id === 'CA-R03' || check.id === 'CA-R08') return 'time';
+  if (timeChecks.includes(check.id)) return 'time';
   if (!check.advisory) return 'requirement';
   if (fees.includes(check.id)) return 'budget';
   if (check.id === 'CA-R16') return 'afterApproval';
@@ -46,26 +47,34 @@ function run(draft: CanadaDraft, locale: Locale): CountryResult {
         .map((pathway) => {
           const settled =
             pathway.status === 'MET' || pathway.status === 'NOT_APPLICABLE';
-          const time = settled
-            ? undefined
-            : pathway.checks.find((check) => check.timeBaseline)?.timeBaseline;
-          // Show the time-only result when other requirements change the
-          // outcome, and its date only when it is a projection.
+          const dated = datedGoals.includes(pathway.id);
+          // The time row reports the day-count requirement (CA-R03, CA-R08),
+          // which counts credited and excluded periods, not the ordinary
+          // baseline. It projects a date only for a day still ahead.
+          const check =
+            !settled && dated
+              ? pathway.checks.find((item) => timeChecks.includes(item.id))
+              : undefined;
+          const time = check && {
+            status: check.earliestDate ? ('FUTURE' as const) : check.status,
+            earliestDate: check.earliestDate,
+          };
+          // Shown when other requirements change the outcome; an unknown day
+          // count is already listed as a gap.
           const timeDiffers =
             time &&
+            time.status !== 'UNKNOWN' &&
             (time.status !== pathway.status ||
               time.earliestDate !== pathway.earliestDate);
           return {
             ...pathway,
             ...(timeDiffers && {
               timeStatus: time.status,
-              ...(time.status === 'FUTURE' && {
-                timeEarliestDate: time.earliestDate,
-              }),
+              timeEarliestDate: time.earliestDate,
             }),
             // Only residence and citizenship project a date; a settled route
             // has none. Null marks that no date applies, so no date row shows.
-            ...((settled || !datedGoals.includes(pathway.id)) && {
+            ...((settled || !dated) && {
               travelDate: null,
             }),
             checks: pathway.checks.map((check) => ({
