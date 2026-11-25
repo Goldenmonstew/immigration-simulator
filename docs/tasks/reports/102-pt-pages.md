@@ -219,3 +219,38 @@
 - **材料类是否进“还差什么”**：材料类不影响路径状态，现在仍列在缺口里，所以路径已满足时，缺口里也可能出现“材料待确认”。如果希望缺口只列影响状态的条件，可以把材料类改成 `information`；这是产品取舍，本节按 brief 未改。
 - **`site-shell.tsx` 的场景路径表**：现在按路径写死日本、澳大利亚、葡萄牙三国。建议改为按当前国家模块的 `scenarioLinks` 判断，新国家就不用再改这里。
 - **共用政策页的中文表头**：`.valueTable th` 设了 `word-break: keep-all`，长中文列名不会换行，会把嵌套表撑出单元格。葡萄牙改用短列名绕开；其他国家若用长中文列名，也会遇到。
+
+### 补记：合入美国页面（#86）与按路径的日期标签
+
+美国页面（任务 96，#86）合入 main 后，本分支再次合入 main，并按上面第 4 段第一条把日期标签改为按路径设置。本补记没有改引擎和参数，共用组件取 main 的版本。
+
+**做了什么（按 commit）**
+
+| PROGRESS | commit message | 内容 |
+|---|---|---|
+| 840 | `Merge: 合入 main（美国完整版页面 #86）` | 四处冲突：`site-shell.tsx` 的场景国家名单取 main 的写法 `(['jp', 'au', 'us', 'pt'] as const).some(...)`；`sw.js` 与 `about-page.test.tsx` 的缓存版本改为 `2026-11-25-pt2`；`PROGRESS.md` 两边的行都保留。`site-countries.ts` 与中英文字典自动合并，美国、葡萄牙的离线页面都在，`hub.us.*`、`hub.pt.*` 已分别移入各自国家字典。`earliestLabelFor`、`EarliestLabel` 等共用改动取 main 的版本。 |
+| 841 | `Fix: 葡萄牙只给自由流动路径设永久居留权取得日标签` | `earliestLabel` 改为按路径的键表，只登记 `PT-FREE-MOVEMENT-PERMANENT` → `pt.result.permanentRightDate`（“永久居留权取得日（推算）”／“Calculated date the permanent right of residence is acquired”）。其余六条路径不登记，由 `earliestLabelFor` 回到共用的 `result.earliest`（“最早可申请日期（推算）”）。删除不再使用的 `pt.result.earliest`。e2e 伴侣路径对比页改读共用标签。 |
+| 842 | `Docs: 任务 102 报告补合入美国页面与按路径日期标签` | 本补记。 |
+
+PROGRESS 编号：800–816 已由 main 使用（任务 101 等），817–820 在 `fable/111-jp-game`，830–836 在 `fable/100-de-pages`，850–874 在 `fable/113-my-rules`。821–829 可能是 111 分支接着用的号段，所以本补记从 840 起编。
+
+上面第 3 段末条（“七条路径共用一个标签”）和第 4 段第一条（日期标签）由 841 解决。
+
+**怎么验证的**
+
+- **先失败后通过**：841 先改测试再改源码。新增 3 项：七条路径逐一用 `earliestLabelFor` 核对标签（自由流动为 `pt.result.permanentRightDate`，其余为 `result.earliest`）；中英文各 1 项，在结果、缺口和对比页分别渲染自由流动（FUTURE，2026-11-24，草稿取引擎测试的普通居留事实）与伴侣入籍（FUTURE，2028-06-02），确认各用各的标签、不混用。改源码前 3 项都失败，改后通过。原来“全部日期用 `pt.result.earliest`”的测试由这 3 项取代。
+- **完整验收**（841 提交前）：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，退出码 0。error-report 2、policy-data 23、engine 6,006（1 项既有跳过）、game 1,348、web 938 项通过；构建生成 44/44 个静态页面，含美国、葡萄牙各五页。
+- **浏览器 e2e**：先用 `lsof -nP -iTCP:4469 -sTCP:LISTEN` 确认端口空闲，再在上面的构建上运行 `cd apps/e2e && E2E_PORT=4469 npx playwright test tests/portugal.spec.ts tests/united-states.spec.ts tests/australia.spec.ts --project=desktop --reporter=line`，6 项通过，退出码 0。跑完删除 `apps/e2e/test-results`，端口已释放。
+- 842 只改本报告与 `PROGRESS.md`。
+
+**没做或没验证的**
+
+- 未 push，未开 PR。
+- 没有在浏览器里截图走查。可见变化只有日期标签文案，单测渲染结果、缺口、对比三处，e2e 覆盖伴侣路径对比页。
+- e2e 只跑了 brief 指定的三个文件、desktop 项目。葡萄牙 e2e 没有走自由流动路径，这条路径的新标签只由单测覆盖。
+- 自由流动“保持永久权”（`operation: 'retain'`）时，日期是用户填写的已取得日，标签同样写“（推算）”。这里沿用了共用标签带“（推算）”的写法，没有为这一分支另设文案。
+
+**发现与建议（范围外，未实现）**
+
+- **PROGRESS 编号重复**：`fable/98-gr-pages`（#87，已推送）的 795–799 是任务 98 的行，本分支 795–799（任务 102，本地 commit，未推送）编号相同，两边都合入 main 后会出现两组 795–799。本补记没有改这些已提交的行。建议推送前或合入后把本分支的 795–799 改号，以后开任务时预先分配号段。
+- **`site-shell.tsx` 的场景国家名单**：合入后列了日本、澳大利亚、美国、葡萄牙四国，上面第 4 段的建议仍然适用：改为按当前国家模块的 `scenarioLinks` 判断。
