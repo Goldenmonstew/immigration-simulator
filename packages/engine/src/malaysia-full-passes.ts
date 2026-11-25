@@ -692,15 +692,25 @@ export function assessDeRantau(ctx: MyContext): MyPathway {
       ref('SRC-528', 'v11 Section B Q3 p4–5'),
       ref('SRC-528', 'v11 Section B Q4 p5'),
     ],
-    freelancer
-      ? L(
-          `自由职业者须与境外客户签约，所有合同须在递交前至少 ${p.contractMonths} 个月开始，另交近 ${p.contractMonths} 个月的发票、收款与银行记录。没有客户合同、收入来自数码内容平台的内容创作者改交平台收入证明。`,
-          `Freelancers work under contracts with foreign clients, every contract started at least ${p.contractMonths} months before applying, with invoices, payments and bank statements for the last ${p.contractMonths} months. Digital content creators without client contracts instead prove their income from the platform.`,
-        )
-      : L(
+    [
+      d.workType !== 'freelancer' &&
+        L(
           `远程雇员的雇主不得在马来西亚注册，雇佣合同须在递交前至少 ${p.contractMonths} 个月开始。`,
           `A remote employee’s employer must not be registered in Malaysia, and the contract must have started at least ${p.contractMonths} months before applying.`,
         ),
+      d.workType !== 'remote-employee' &&
+        L(
+          `自由职业者须与境外客户签约，所有合同须在递交前至少 ${p.contractMonths} 个月开始，另交近 ${p.contractMonths} 个月的发票、收款与银行记录。没有客户合同、收入来自数码内容平台的内容创作者改交平台收入证明。`,
+          `Freelancers work under contracts with foreign clients, every contract started at least ${p.contractMonths} months before applying, with invoices, payments and bank statements for the last ${p.contractMonths} months. Digital content creators without client contracts instead prove their income from the platform.`,
+        ),
+      d.workType === undefined &&
+        L(
+          '未填是远程雇员还是自由职业者。',
+          'Whether the applicant is a remote employee or a freelancer is not entered.',
+        ),
+    ]
+      .filter(Boolean)
+      .join(L('', ' ')),
   );
   const checks: MyCheck[] = [
     check(

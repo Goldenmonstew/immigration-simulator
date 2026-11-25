@@ -1913,6 +1913,16 @@ describe('review113-3 risks and suggestions', () => {
       expect(at('2010-01-01'), id).toEqual(['UNKNOWN', 'UNKNOWN']);
     }
   });
+
+  test('DE Rantau without the work type explains both kinds of work (suggestion 2)', () => {
+    const c = cond('my.pass.de-rantau', 'my.pass.remote-employer', {
+      simulationDate: day,
+    });
+    expect(c.status).toBe('UNKNOWN');
+    expect(c.explanation).toContain('远程雇员');
+    expect(c.explanation).toContain('自由职业者');
+    expect(c.explanation).toContain('未填');
+  });
 });
 
 describe('29 February birthdays (review113-1 #10)', () => {

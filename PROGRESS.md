@@ -721,3 +721,4 @@
 | 875 | 任务 113 第三轮审核修正（review113-3 风险 2）：公民之妻、之夫的最早日期把满结婚年限之日并入准证推算：该日落在当前准证到期之后时按已录入的后续准证（含中断与 6 个月以内的桥接）重算，落在最后一段准证之后时注明假设续签；一致性测试加入随机结婚日。 | packages/engine/src/malaysia-full-shared.ts、packages/engine/src/malaysia-full-pr.ts、packages/engine/test/malaysia-full.test.ts |
 | 876 | 任务 113 第三轮审核修正（review113-3 风险 1）：MM2H 健康保险在所填没有保险且未填生日时待确认（SRC-520 p12 只要求 60 岁及以下投保），说明写明未填生日；有保险时不论年龄满足。 | packages/engine/src/malaysia-full-passes.ts、packages/engine/test/malaysia-full.test.ts |
 | 877 | 任务 113 第三轮审核修正（review113-3 风险 3）：归化与公民之妻登记在所填未持永久居留时，出境记录不影响结论（准证期间只有部长同意才计入），未填出境记录也按已答处理：没有准证时居住与年限状态都判不满足。 | packages/engine/src/malaysia-full-citizenship.ts、packages/engine/test/malaysia-full.test.ts |
+| 878 | 任务 113 第三轮审核修正（review113-3 建议 2）：DE Rantau 未填远程雇员还是自由职业者时，`my.pass.remote-employer` 说明同时列出两种情形的条件（远程雇主不在马注册；境外客户、合同至少提前 3 个月开始），并写明未填。 | packages/engine/src/malaysia-full-passes.ts、packages/engine/test/malaysia-full.test.ts |
