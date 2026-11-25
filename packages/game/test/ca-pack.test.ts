@@ -302,9 +302,24 @@ test('day-count limits are checked on the day itself', () => {
   expect(work('2026-12-08')).toContain('endorsement-request');
 });
 
-test('a lapsed work permit ends the story', () => {
-  let state = settle(ca.newGame('graduate', 5, 'en'));
-  state.timeline.document.expires = '2026-04-30';
+test('a lapsed work permit ends the story, and the assessment shows the lapse', () => {
+  // Every paper in hand, but the permit ends before the filing.
+  let state = nextQuarter(atlanticPapers());
+  state.timeline.document.expires = '2026-07-30';
+  expect(unmet(state, 'CA-AIP')).not.toContain('CA-R25');
   for (let i = 0; i < 6 && !ca.isOver(state); i++) state = nextDay(state);
-  expect(state.ending).toBe('overstayed');
+  expect([state.ending, state.date]).toEqual(['overstayed', '2026-09-01']);
+  // The work stops with the permit, the funds exemption goes with it, and
+  // whether the overstay is noncompliance is for an officer to decide.
+  expect(state.timeline.job).toBeUndefined();
+  expect(state.timeline.atlantic).toMatchObject({
+    workingInCanada: false,
+    fundsExemptionAuthorization: false,
+    workHistory: [{ from: '2025-07-07', to: '2026-07-30' }],
+  });
+  expect(state.timeline.federal?.protectionAndCompliance).toBe('under-review');
+  expect(unmet(state, 'CA-AIP')).toEqual(
+    expect.arrayContaining(['CA-R25', 'CA-R59']),
+  );
+  expect(ca.pathwayOf(state.result, 'CA-AIP')?.status).not.toBe('MET');
 });

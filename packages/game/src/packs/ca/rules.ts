@@ -294,10 +294,24 @@ export const caRules: EvaluationAdapter<
     );
     return true;
   },
-  // A PR card's expiry does not end PR status; a work permit's does.
-  expired: (state) =>
-    state.timeline.document.kind === 'work-permit' &&
-    state.timeline.document.expires < state.date,
+  // A PR card's expiry does not end PR status; a work permit's does. The
+  // ending's assessment must show the lapse: the work stops with the permit,
+  // the funds exemption goes with it (SRC-270 aip-funds), and whether the
+  // overstay is noncompliance is for an officer (SRC-261 IRPA ss.39–42).
+  expired(state) {
+    const { document, job, atlantic } = state.timeline;
+    if (document.kind !== 'work-permit' || document.expires >= state.date)
+      return false;
+    if (atlantic)
+      Object.assign(atlantic, {
+        workingInCanada: false,
+        fundsExemptionAuthorization: false,
+        ...(job && { workHistory: [{ ...job, to: document.expires }] }),
+      });
+    delete state.timeline.job;
+    (state.timeline.federal ??= {}).protectionAndCompliance = 'under-review';
+    return true;
+  },
   applyEffect(state, effect, { setFlags }) {
     const date = state.date;
     const residence = (state.timeline.residence ??= {});
