@@ -4,12 +4,12 @@
 
 | PROGRESS | commit | 内容 |
 |---|---|---|
-| 630 | `Feat: 美国人生模拟内容包与规则适配` | `packages/game/src/packs/us/` 内容包与 `@uk-immigration/game/us`、`us/presentation` 入口；评估适配器把时间线交给 `evaluateUnitedStatesFull`；引擎入口多导出一个 `nextUsBusinessDay`；单测 `packages/game/test/us-pack.test.ts`。 |
-| 631 | `Feat: 接入美国人生模拟页面、地图与美术` | `/united-states/game` 页面；`app/united-states/game/` 的国家配置、场景子类与场景绘制、音效；湖湾地图与原创横幅；注册表 `hasGame: true`、美国首页游戏入口、离线清单与缓存版本；中英文案；网页单测 `apps/web/test/united-states-game.test.tsx`。 |
-| 632 | `Test: 美国人生模拟 e2e` | `apps/e2e/tests/united-states-game.spec.ts`。 |
-| 633 | `Docs: 任务 106 报告` | 本报告。 |
+| 1100 | `Feat: 美国人生模拟内容包与规则适配` | `packages/game/src/packs/us/` 内容包与 `@uk-immigration/game/us`、`us/presentation` 入口；评估适配器把时间线交给 `evaluateUnitedStatesFull`；引擎入口多导出一个 `nextUsBusinessDay`；单测 `packages/game/test/us-pack.test.ts`。 |
+| 1101 | `Feat: 接入美国人生模拟页面、地图与美术` | `/united-states/game` 页面；`app/united-states/game/` 的国家配置、场景子类与场景绘制、音效；湖湾地图与原创横幅；注册表 `hasGame: true`、美国首页游戏入口、离线清单与缓存版本；中英文案；网页单测 `apps/web/test/united-states-game.test.tsx`。 |
+| 1102 | `Test: 美国人生模拟 e2e` | `apps/e2e/tests/united-states-game.spec.ts`。 |
+| 1103 | `Docs: 任务 106 报告` | 本报告。 |
 
-brief 给的 610–619 已被任务 86 的审核轮次（610–618）和任务 96（619 及 619.1–619.3）占满。按任务说明查空号后用 630–633，这一段此前没有被占用（澳大利亚、新西兰、加拿大游戏分别在 520、550、580 段）。
+brief 给的 610–619 已被任务 86 的审核轮次（610–618）和任务 96（619 及 619.1–619.3）占满。按任务说明查空号后当时用了 630–633，但这一段在 main 上已被任务 97（西班牙完整版页面）占用，合入 main 时会重号；review106g-1 后按统筹决定改为 1100–1103（行内容不变）。
 
 结构照日本试点（任务 111 第 4 节）：内容包按英国同名导出，网页国家配置 `usCountry` 交给 `createGameShell`，存档键 `us-immigration-life-v3:<角色>`，静音键 `us-immigration-life-muted`。
 
