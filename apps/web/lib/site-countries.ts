@@ -40,8 +40,10 @@ const calculatorPages = ['', 'simulate', 'result', 'whatif', 'policy'];
 const pagesByCountry: Partial<Record<CountryId, string[]>> = {
   uk: [...calculatorPages, 'about', 'game'],
   au: calculatorPages,
-  gr: [...calculatorPages, 'game'],
+  pt: calculatorPages,
+  nz: calculatorPages,
   jp: [...calculatorPages, 'game'],
+  gr: [...calculatorPages, 'game'],
   de: calculatorPages,
   us: calculatorPages,
 };

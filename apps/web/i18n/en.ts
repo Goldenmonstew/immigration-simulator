@@ -331,10 +331,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.uk.paths': 'Settlement (ILR) · Current law vs reforms',
   'hub.uk.desc':
     'Assess settlement across Skilled Worker, BN(O), Global Talent, family, protection and Long Residence routes, comparing current Immigration Rules with announced reforms.',
-  'hub.nz.code': 'NZ',
-  'hub.nz.paths': 'Permanent Resident Visa · Travel conditions · Citizenship',
-  'hub.nz.desc':
-    'Find when resident visa travel conditions expire. Check how long you have held a resident visa and how many days you have spent in New Zealand for a Permanent Resident Visa (PRV), and count your days in New Zealand for citizenship.',
   'hub.ca.code': 'CA',
   'hub.ca.paths': 'PR residency obligation · Citizenship',
   'hub.ca.desc':
@@ -347,11 +343,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.ie.paths': 'Stamp 4 / 5 · Naturalisation · Spouse route',
   'hub.ie.desc':
     'Use your stamps and travel record to check time requirements for a Stamp 4 upgrade, Stamp 5 (96 months), general naturalisation and naturalisation as the spouse or civil partner of an Irish citizen.',
-  'hub.pt.code': 'PT',
-  'hub.pt.paths':
-    'Naturalisation · Permanent residence · EU long-term · Golden visa',
-  'hub.pt.desc':
-    'Check residence periods for naturalisation under the 2026 nationality law, permanent residence and EU long-term resident status, plus minimum stays and renewal timing for a golden visa (ARI).',
   'site.skip': 'Skip to main content',
   'site.home': 'Home',
   'site.footer':
