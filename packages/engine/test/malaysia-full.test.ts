@@ -1675,6 +1675,8 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
       return span;
     });
   });
+  // A marriage date anywhere around the passes, for the spouse categories.
+  const married = histories.map(() => addDays('2014-01-01', rand(5000)));
   const datesFor = (h: { from: string; to: string; next: string }[]) => [
     addDays(h[0].from, -30),
     ...h.flatMap((s) => [
@@ -1695,6 +1697,8 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
     kind: 'employment' | 'ltsvp-spouse';
     req: Partial<MyFullRequest>;
     years?: boolean;
+    /** The marriage date is also a time condition. */
+    married?: boolean;
   }[] = [
     {
       id: 'my.pr.was',
@@ -1702,19 +1706,22 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
       kind: 'employment',
       req: { family: { tie: 'none' } },
     },
-    ...(['husband', 'wife'] as const).map((s) => ({
-      id: `my.pr.${s}` as const,
-      key: 'my.pr.spouse-pass',
-      kind: 'ltsvp-spouse' as const,
-      req: {
-        family: {
-          tie: `${s}-of-citizen` as const,
-          marriedOn: '2000-01-01',
-          marriageRegistration: 'malaysia' as const,
-          separatedOrDivorced: false,
+    ...(['husband', 'wife'] as const).flatMap((s) =>
+      [false, true].map((married) => ({
+        id: `my.pr.${s}` as const,
+        key: 'my.pr.spouse-pass',
+        kind: 'ltsvp-spouse' as const,
+        req: {
+          family: {
+            tie: `${s}-of-citizen` as const,
+            marriedOn: '2000-01-01',
+            marriageRegistration: 'malaysia' as const,
+            separatedOrDivorced: false,
+          },
         },
-      },
-    })),
+        married,
+      })),
+    ),
     ...(['parent-of-citizen', 'spouse-of-pr', 'former-citizen'] as const).map(
       (tie) => ({
         id: 'my.rp.family' as const,
@@ -1735,10 +1742,20 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
     r: (typeof routes)[number],
     passes: MyFullRequest['passes'],
     simulationDate: string,
+    marriedOn = '2000-01-01',
   ) => {
-    const p = path(r.id, { simulationDate, passes, ...r.req });
+    const p = path(r.id, {
+      simulationDate,
+      passes,
+      ...r.req,
+      family: { ...r.req.family, marriedOn },
+    });
+    const status = (id: string) => p.checks.find((c) => c.id === id)!.status;
     return {
-      check: p.checks.find((c) => c.id === r.key)!.status,
+      check:
+        r.married && status('my.pr.marriage-duration') !== 'MET'
+          ? 'NOT_MET'
+          : status(r.key),
       time: p.timeStatus,
       date: p.timeEarliestDate,
       assumptions: p.assumptions,
@@ -1746,14 +1763,15 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
   };
 
   test('met only when the pass condition is met, and no date without a pass', () => {
-    for (const h of histories) {
+    histories.forEach((h, i) => {
       for (const r of routes) {
         const passes = h.map((s) => ({ kind: r.kind, from: s.from, to: s.to }));
         const end = h[h.length - 1].to;
         const held = (d: string) => h.some((s) => s.from <= d && d <= s.to);
+        const on = r.married ? married[i] : undefined;
         for (const d of datesFor(h)) {
-          const at = run(r, passes, d);
-          const label = `${r.id} ${r.req.family?.tie ?? ''} ${d} ${JSON.stringify(h)}`;
+          const at = run(r, passes, d, on);
+          const label = `${r.id} ${r.req.family?.tie ?? ''} ${on ?? ''} ${d} ${JSON.stringify(h)}`;
           expect(at.time === 'MET', label).toBe(at.check === 'MET');
           if (at.date === undefined) continue;
           if (!held(at.date)) {
@@ -1764,14 +1782,14 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
             ).toEqual(['FUTURE', true, 1]);
             continue;
           }
-          const then = run(r, passes, at.date);
+          const then = run(r, passes, at.date, on);
           expect([then.check, then.time, then.date], label).toEqual([
             'MET',
             'MET',
             at.date,
           ]);
           if (r.years !== false) {
-            const before = run(r, passes, addDays(at.date, -1));
+            const before = run(r, passes, addDays(at.date, -1), on);
             expect([before.time, before.date], label).toEqual([
               'FUTURE',
               at.date,
@@ -1779,7 +1797,7 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
           }
         }
       }
-    }
+    });
   });
 
   test('without the Residence Pass category only "no pass now or later" is certain', () => {
@@ -1805,6 +1823,56 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
         ]);
       }
     }
+  });
+});
+
+describe('review113-3 risks and suggestions', () => {
+  const spouse = (from: string, to: string) => ({
+    kind: 'ltsvp-spouse' as const,
+    from,
+    to,
+  });
+
+  test('a later marriage anniversary is checked against the passes entered (risk 2)', () => {
+    const at = (
+      route: 'wife' | 'husband',
+      marriedOn: string,
+      passes: MyFullRequest['passes'],
+    ) => {
+      const p = path(`my.pr.${route}`, {
+        simulationDate: day,
+        family: {
+          tie: `${route}-of-citizen`,
+          marriedOn,
+          marriageRegistration: 'malaysia',
+          separatedOrDivorced: false,
+        },
+        passes,
+      });
+      return [p.timeStatus, p.timeEarliestDate, p.assumptions.length];
+    };
+    // Three years from 2025-01-01 end on 2028-01-01, after the pass ends on
+    // 2027-06-30, so renewal is assumed (SRC-505 §5.1(c)–(d) p18).
+    expect(
+      at('wife', '2025-01-01', [spouse('2025-01-01', '2027-06-30')]),
+    ).toEqual(['FUTURE', '2028-01-01', 1]);
+    // A pass entered from 2027-10-01 instead: more than 12 months on it from
+    // 2028-10-02.
+    expect(
+      at('wife', '2025-01-01', [
+        spouse('2025-01-01', '2027-06-30'),
+        spouse('2027-10-01', '2030-12-31'),
+      ]),
+    ).toEqual(['FUTURE', '2028-10-02', 0]);
+    // Five years from 2023-01-01 end on 2028-01-01, inside the 123-day break
+    // 2027-10-01..2028-01-31 (SRC-505 §5.2(c)–(d) p19). Holding resumes on
+    // 2028-02-01: 2953 days since 2020-01-01 less 123 exceed 1826.
+    expect(
+      at('husband', '2023-01-01', [
+        spouse('2020-01-01', '2027-09-30'),
+        spouse('2028-02-01', '2032-12-31'),
+      ]),
+    ).toEqual(['FUTURE', '2028-02-01', 0]);
   });
 });
 

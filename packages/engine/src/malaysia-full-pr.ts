@@ -279,6 +279,7 @@ function earlyPassCheck(
   sources: readonly SourceRef[],
   description: string,
   spouse = false,
+  notBefore?: IsoDate,
 ) {
   const { date, L } = ctx;
   const { run, met: strict } = earlyRun(ctx, kinds, months, date);
@@ -287,6 +288,7 @@ function earlyPassCheck(
     kinds,
     date,
     (d) => earlyRun(ctx, kinds, months, d).earliest,
+    notBefore,
   );
   const combined = spouse
     ? earlyRun(ctx, [...kinds, 'residence'], months, date)
@@ -343,6 +345,7 @@ function longPassCheck(
   sources: readonly SourceRef[],
   description: string,
   spouse = false,
+  notBefore?: IsoDate,
 ) {
   const { date, L } = ctx;
   const {
@@ -355,6 +358,7 @@ function longPassCheck(
     kinds,
     date,
     (d) => longRun(ctx, kinds, years, maxGapMonths, d).earliest,
+    notBefore,
   );
   const combined = spouse
     ? longRun(ctx, [...kinds, 'residence'], years, maxGapMonths, date)
@@ -812,6 +816,7 @@ export function assessPrSpouse(
           `The wife-of-citizen social visit pass must have been held for more than ${v.prWife.value.ltsvpMonths} months and still be valid when applying.`,
         ),
         true,
+        marriage.earliest ?? undefined,
       )
     : longPassCheck(
         ctx,
@@ -829,6 +834,7 @@ export function assessPrSpouse(
           `The husband-of-citizen social visit pass must have been held for ${v.prHusband.value.ltsvpYears} continuous years with no break longer than ${v.prHusband.value.maxGapMonths} months.`,
         ),
         true,
+        marriage.earliest ?? undefined,
       );
   const checks = [
     cat,

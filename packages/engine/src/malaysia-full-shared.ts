@@ -424,21 +424,25 @@ export const spanDays = (spans: Span[]) =>
 
 /**
  * The date `earliestAt` gives for the passes held on `date`, which assumes
- * holding goes on. When a pass of `kinds` is entered for later, after a break
- * before that date, the date is worked out again from the later pass.
- * `renewed`: the date falls after the last pass entered.
+ * holding goes on, and no earlier than `notBefore`. Once met, the pass
+ * condition holds until the pass ends; when the date falls after that and a
+ * pass of `kinds` is entered for later, the date is worked out again from the
+ * later pass. `renewed`: the date falls after the last pass entered.
  */
 export function planned(
   passes: MyPassPeriod[] | undefined,
   kinds: readonly MyPassKind[],
   date: IsoDate,
   earliestAt: (d: IsoDate) => IsoDate | null | undefined,
+  notBefore?: IsoDate,
 ) {
   const spans = union(
     (passes ?? []).filter((p) => kinds.includes(p.kind)).map(passSpan),
   );
+  const atLeast = (e: IsoDate | null | undefined) =>
+    typeof e === 'string' && notBefore && notBefore > e ? notBefore : e;
   let d = date;
-  let earliest = earliestAt(d);
+  let earliest = atLeast(earliestAt(d));
   for (;;) {
     const current = spans.find((s) => s.start <= d && d < s.end);
     const next = spans.find((s) => s.start > d);
@@ -449,7 +453,7 @@ export function planned(
     )
       break;
     d = next.start;
-    earliest = earliestAt(d);
+    earliest = atLeast(earliestAt(d));
   }
   const last = spans[spans.length - 1];
   return {
