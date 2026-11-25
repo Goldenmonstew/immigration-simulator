@@ -301,6 +301,31 @@ test('naturalization runs from the N-400 through the interview to the oath', () 
   );
 });
 
+test('the spouse naturalizes as a citizen’s spouse once the conditions are removed', () => {
+  let state = playTo(us.newGame('spouse', 5, 'en'), '2027-09-01');
+  state = settle(us.doActivity(visit(state, 'visa', 600), 'extend'));
+  state = playTo(state, '2028-09-01');
+  // Three years from 2025-09-15, filed up to 90 days early (2028-06-20).
+  expect(us.pathwayOf(state.result, 'cit')).toMatchObject({
+    id: 'US-SPOUSE',
+    status: 'MET',
+  });
+  state.stats.money = Math.max(state.stats.money, fees.n400.paper);
+  state = playTo(
+    us.doActivity(visit(state, 'visa', 600), 'n400'),
+    '2028-12-01',
+  );
+  state.stats.english = 64;
+  state = settle(us.doActivity(visit(state, 'visa', 600), 'interview'));
+  expect(us.pathwayOf(state.result, 'cit')?.approvalStatus).toBe('MET');
+  // The oath is the only settled ending; its text is the character's own.
+  const ended = us.doActivity(visit(state, 'visa', 700), 'oath');
+  expect(ended.ending).toBe('settled');
+  const settlement = us.characterOf('spouse').settlement;
+  expect(us.narrative(ended).at(-1)).toEqual(settlement);
+  expect(ended.log.at(-1)?.text).toEqual(settlement);
+});
+
 test('failing the interview twice denies the N-400, which can be filed again', () => {
   let state = playTo(us.newGame('engineer', 5, 'en'), '2028-06-01');
   state = us.doActivity(visit(state, 'visa', 600), 'n400');
