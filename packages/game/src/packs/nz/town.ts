@@ -359,6 +359,13 @@ export const nzNotices: { id: string; text: Text; season?: Quarter }[] = [
   },
 ];
 
+/** The shared furniture, as the noticeboard ads sell it. */
+export const nzFurnishingNames: Record<string, Text> = {
+  'reading-chair': t('二手单人沙发', 'Second-hand armchair'),
+  'warm-curtains': t('保暖窗帘', 'Thermal curtains'),
+  'desk-lamp': t('台灯', 'Desk lamp'),
+};
+
 const tripNote = t(
   '出境期间旅行条件须一直有效：旅行条件到期时人在境外，居民签证就会失效（SRC-072 RV1.5）。',
   'Your travel conditions must stay valid for the whole trip: a resident visa expires if you are overseas when they end (SRC-072 RV1.5).',
@@ -528,22 +535,19 @@ export const nzActions: NzActivity[] = [
   ...[
     [
       'reading-chair',
-      '二手单人沙发（每季心情、健康各加一点）',
-      'second-hand armchair (+1 mood and health/quarter)',
+      '每季心情、健康各加一点',
+      'a ',
+      '+1 mood and health/quarter',
     ],
-    [
-      'warm-curtains',
-      '保暖窗帘（每季心情加一点）',
-      'set of thermal curtains (+1 mood/quarter)',
-    ],
-    ['desk-lamp', '台灯（每季健康加一点）', 'desk lamp (+1 health/quarter)'],
-  ].map(([id, zhCN, en]): NzActivity => ({
+    ['warm-curtains', '每季心情加一点', '', '+1 mood/quarter'],
+    ['desk-lamp', '每季健康加一点', 'a ', '+1 health/quarter'],
+  ].map(([id, zhCN, article, en]): NzActivity => ({
     id: `furnish-${id}`,
     place: 'board',
     minutes: b.minutes.buy,
     label: t(
-      `按告示板上的转让启事买下${zhCN} · ${nzd(b.furnishings[id].price)}，限一件`,
-      `Buy a ${en} from a noticeboard ad · ${nzd(b.furnishings[id].price)}, one per home`,
+      `按告示板上的转让启事买下${nzFurnishingNames[id].zhCN}（${zhCN}） · ${nzd(b.furnishings[id].price)}，限一件`,
+      `Buy ${article}${nzFurnishingNames[id].en.toLowerCase()} (${en}) from a noticeboard ad · ${nzd(b.furnishings[id].price)}, one per home`,
     ),
     effects: [{ type: 'money', delta: -b.furnishings[id].price }],
   })),

@@ -17,6 +17,7 @@ import {
 import {
   nzActions,
   nzFestivals,
+  nzFurnishingNames,
   nzItems,
   nzNotices,
   nzPlaces,
@@ -44,6 +45,7 @@ export const nzGameContent: GameContentPack<
   recipes: nzRecipes,
   festivals: nzFestivals,
   notices: nzNotices,
+  fishingSpot: { zhCN: '海湾码头', en: 'the harbour wharf' },
   achievements: hooks.nzAchievements,
   balance: b,
   rules: nzRules,
@@ -103,7 +105,7 @@ export const items = nzItems;
 export const recipes = nzRecipes;
 export const festivals = nzFestivals;
 export const achievements = hooks.nzAchievements;
-export { nzCharacters, nzRules };
+export { nzCharacters, nzFurnishingNames, nzRules };
 export {
   pathwayOf,
   timeProjection,

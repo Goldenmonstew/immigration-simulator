@@ -227,6 +227,37 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test.each(['zh-CN', 'en'] as const)(
+  'the kitchen hint and ending furniture use New Zealand wording in %s',
+  (locale) => {
+    const hint = t(gameKey('nz', 'game.kitchenNoIngredients'), locale);
+    expect(hint).not.toBe(t('game.kitchenNoIngredients', locale));
+    expect(hint).not.toMatch(/池塘|河鲈|pond|perch/);
+    const state = settle(nz.newGame('nurse', 4, locale));
+    const board = nz
+      .activities({ ...state, day: { ...state.day, minute: 600 } }, 'board')
+      .filter(({ id }) => id.startsWith('furnish-'))
+      .map(({ label }) => (locale === 'en' ? label.en : label.zhCN));
+    state.flags.push(
+      'furnished-reading-chair',
+      'furnished-warm-curtains',
+      'furnished-desk-lamp',
+    );
+    const names = nzShell
+      .endingMemories(state)
+      .furnishings.map(({ name }) => (locale === 'en' ? name.en : name.zhCN));
+    expect(names).toEqual(
+      locale === 'en'
+        ? ['Second-hand armchair', 'Thermal curtains', 'Desk lamp']
+        : ['二手单人沙发', '保暖窗帘', '台灯'],
+    );
+    expect(board).toHaveLength(names.length);
+    names.forEach((name, i) =>
+      expect(board[i].toLowerCase()).toContain(name.toLowerCase()),
+    );
+  },
+);
+
 test('the immigration office notes the travel conditions and the PRV date', () => {
   const state = settle(nz.newGame('nurse', 4, 'en'));
   expect(nzCountry.placeNote!(state, 'visa')?.en).toBe(

@@ -42,6 +42,8 @@ export const nzGameZh = {
   'nz.game.settlementSource.walkingClub': '海岸步道徒步小组',
   'nz.game.noSeeds': '背包里没有当季种子，去街角小店看看吧。',
   'nz.game.rentFirst': '先在社区菜园租一块地。',
+  'nz.game.kitchenNoIngredients':
+    '现在凑不齐任何一道菜的食材：蔬菜来自社区菜园的收成，真鲷要去海湾码头钓。',
   'nz.game.travelUntil': '居民签证的旅行条件到 {date}，出境须在这天前回来。',
   'nz.game.travelEnded':
     '旅行条件已在 {date} 到期。你仍是居民，但出境会让居民签证失效。',
@@ -96,6 +98,8 @@ export const nzGameEn: Record<keyof typeof nzGameZh, string> = {
   'nz.game.settlementSource.walkingClub': 'Coastal walking group',
   'nz.game.noSeeds': 'No seeds for this season. Try the corner dairy.',
   'nz.game.rentFirst': 'Rent a plot at the community garden first.',
+  'nz.game.kitchenNoIngredients':
+    'You do not have the ingredients for any dish yet: vegetables come from community garden harvests, and snapper from the harbour wharf.',
   'nz.game.travelUntil':
     'Your resident visa’s travel conditions run to {date}. Trips must be back by then.',
   'nz.game.travelEnded':

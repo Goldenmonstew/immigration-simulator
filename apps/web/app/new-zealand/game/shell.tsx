@@ -162,6 +162,7 @@ export const nzCountry: GameCountry<NzKinds> = {
       ...(end >= state.day.date && { validTo: end }),
     };
   },
+  furnishingNames: nzGame.nzFurnishingNames,
   absences: (state) =>
     state.timeline.trips.map((trip) => ({
       from: trip.departed,

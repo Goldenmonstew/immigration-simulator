@@ -258,3 +258,19 @@ test('the Internal Affairs counter reads the presence date from the engine', () 
     nzResidentParameters.citizenshipTestReviewFrom.value.slice(0, 4),
   );
 });
+
+test('the diary casts a line off the harbour wharf, not at a pond', () => {
+  const wharf = visit(nz.newGame('nurse', 5, 'en'), 'pond', 600);
+  const cast = nz.fish(wharf, false);
+  expect(cast.log.at(-1)).toMatchObject({
+    id: 'fishing',
+    text: { zhCN: '在海湾码头抛竿', en: 'Cast at the harbour wharf' },
+  });
+  const diary = nz.narrative(cast);
+  expect(diary.map(({ zhCN }) => zhCN).join('\n')).toContain(
+    '海湾码头抛竿 1 次。',
+  );
+  expect(diary.map(({ en }) => en).join('\n')).toContain(
+    '1 cast at the harbour wharf',
+  );
+});
