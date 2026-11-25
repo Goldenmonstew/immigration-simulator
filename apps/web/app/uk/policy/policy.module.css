@@ -48,6 +48,20 @@
   font-size: 1rem;
   overflow-wrap: anywhere;
 }
+.valueTable {
+  border-collapse: collapse;
+  margin: 4px 0;
+}
+.parameters .valueTable th,
+.parameters .valueTable td {
+  padding: 2px 8px 2px 0;
+  border-bottom: 1px solid #e3e3e3;
+  overflow-wrap: normal;
+}
+/* Keep short CJK column names such as 听力 on one line. */
+.parameters .valueTable th {
+  word-break: keep-all;
+}
 .group {
   margin: 16px 0;
   border-bottom: 1px solid #b1b4b6;
@@ -123,6 +137,35 @@
   .parameters td::before {
     content: attr(data-label) ': ';
     font-weight: 700;
+  }
+  .parameters .valueTable thead {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+  .parameters .valueTable tbody {
+    display: table-row-group;
+  }
+  .parameters .valueTable tr {
+    display: table-row;
+    border: 0;
+    padding: 0;
+  }
+  .parameters .valueTable th,
+  .parameters .valueTable td {
+    display: table-cell;
+    padding: 2px 8px 2px 0;
+  }
+  .parameters .valueTable td::before {
+    content: none;
+  }
+  .parameters .valueTable th {
+    word-break: normal;
+  }
+  .parameters dd {
+    margin-inline-start: 12px;
   }
 }
 

@@ -121,6 +121,7 @@ function run(draft: JapanDraft, locale: Locale) {
 export const japanModule: CountryModule<JapanDraft, JapanWhatIf> = {
   id: 'jp',
   version: 1,
+  scenarioLinks: true,
   createDraft: createJapanDraft,
   storedAnswers: { encode: storeJapanAnswers, decode: readJapanAnswers },
   activeAnswers: activeJapanAnswers,

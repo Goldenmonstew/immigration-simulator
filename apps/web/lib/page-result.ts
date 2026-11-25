@@ -42,11 +42,11 @@ export function readPageResult<D extends CountryDraft, K>(
     const cached =
       !shared && getRememberedResult(country, draft, locale, deviceDay);
     const result = cached || country.run(draft, locale);
-    // A Japanese share can open or reopen while another tab owns the local draft.
+    // A scenario link can open or reopen while another tab owns the local draft.
     const importing =
       shared &&
       mode !== 'refresh' &&
-      (country.id !== 'jp' || !hasDraft(country));
+      (!country.scenarioLinks || !hasDraft(country));
     if (importing) draftStorage(country, draft);
     if (!cached && (importing || source === null))
       rememberResult(country, draft, result, locale, deviceDay);
