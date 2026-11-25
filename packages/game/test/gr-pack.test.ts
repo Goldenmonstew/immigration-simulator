@@ -194,6 +194,24 @@ test('on the 2026 calendar the late fine and late deadline follow the day of fil
   expect(lapsed.timeline.permits.at(-1)?.to).toBe('2026-09-14');
 });
 
+test('a trip may not skip the last day the Blue Card can still be renewed', () => {
+  const trips = (state: State) =>
+    ids(visit(state, 'station', 600), 'station').filter((id) =>
+      id.startsWith('travel-'),
+    );
+  // Back from six months on 2026-09-10, play resumes on 2026-12-01, whose
+  // working day (12-15) is past the late renewal period (to 2026-12-14).
+  const spring = settle(gr.newGame('bluecard', 7, 'en'));
+  expect(trips(spring)).toEqual(['travel-1', 'travel-3']);
+  const summer = nextQuarter(spring);
+  expect(trips(summer)).toEqual(['travel-1']);
+  const renewed = gr.doActivity(visit(summer, 'visa', 600), 'extend');
+  expect(trips(renewed)).toEqual(['travel-1', 'travel-3', 'travel-6']);
+  // The Ο.3 has no renewal in the game, so the spouse only needs a valid card.
+  const spouse = settle(gr.newGame('spouse', 7, 'en'));
+  expect(trips(spouse)).toEqual(['travel-1', 'travel-3', 'travel-6']);
+});
+
 test('a lapsed Blue Card ends the story with both routes unmet', () => {
   let state = settle(gr.newGame('bluecard', 9, 'en'));
   state.date = '2029-12-01';

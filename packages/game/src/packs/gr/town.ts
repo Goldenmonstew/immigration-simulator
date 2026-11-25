@@ -655,8 +655,8 @@ export const grActions: GrActivity[] = [
       `Visit home for ${months} month${months === 1 ? '' : 's'}`,
     ),
     note: t(
-      '回程那天居留卡必须仍然有效。出入境记录会计入长期居留和入籍的连续居住评估。',
-      'Your residence card must still be valid on the day you return. Trips count in the continuous residence checks for long-term residence and naturalisation.',
+      '回程那天居留卡必须仍然有效。游戏按季度计时，回国后要到回程所在那一季的工作日才能再去移民局；蓝卡若在那天之前已过逾期补交截止，就没有一天能续卡，所以不提供这趟行程。出入境记录会计入长期居留和入籍的连续居住评估。',
+      'Your residence card must still be valid on the day you return. The game counts in quarters, so after a trip the migration office is next open on the working day of the quarter you return in. If a Blue Card’s late renewal period ends before that day, no day would be left to renew it, so the trip is not offered. Trips count in the continuous residence checks for long-term residence and naturalisation.',
     ),
     minutes: 0,
     effects: [

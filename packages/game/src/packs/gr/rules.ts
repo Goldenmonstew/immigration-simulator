@@ -10,7 +10,7 @@ import {
   greeceFull2026_11,
   type SourceRef,
 } from '@uk-immigration/policy-data';
-import { addMonths } from '../../calendar';
+import { addDays, addMonths, firstWeekday } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
 import type { GameState, IsoDate, Progress } from '../../model';
 import { grBalance as b } from './balance';
@@ -88,6 +88,17 @@ export function renewalWindow(expiry: IsoDate) {
     early: addMonths(expiry, -timing.renewalWindowMonths.value),
     late: addMonths(expiry, timing.lateRenewalMonths.value),
   };
+}
+
+/**
+ * The working day play resumes on after a trip back by this date: trips end
+ * at the first quarter on or after it, and that quarter's working day is the
+ * first Tuesday after its first week, as the shared calendar sets it.
+ */
+function returnWorkday(state: GrState, through: IsoDate) {
+  let quarter = state.date;
+  while (quarter < through) quarter = addMonths(quarter, b.monthsPerQuarter);
+  return firstWeekday(addDays(quarter, 7), 2);
 }
 
 /** Months to the end of the current card, rounded down. */
@@ -171,8 +182,14 @@ export const grRules: EvaluationAdapter<
   progress,
   route: (state) => state.timeline.pathways[0],
   visaMonthsLeft,
-  // The card must still be valid on the way back.
-  canTravel: (state, through) => through <= state.timeline.currentCardExpiresOn,
+  // The card must still be valid on the way back, and a Blue Card holder must
+  // be back on a working day before the late renewal period ends, or no day
+  // is left to renew the card.
+  canTravel: (state, through) =>
+    through <= state.timeline.currentCardExpiresOn &&
+    (!isBlueCard(state) ||
+      returnWorkday(state, through) <=
+        renewalWindow(state.timeline.currentCardExpiresOn).late),
   recordAbsence(state, trip) {
     state.timeline.trips.push({
       departed: trip.from,
