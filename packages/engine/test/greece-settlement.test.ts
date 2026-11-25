@@ -1242,68 +1242,52 @@ describe('ΚΕΙ naturalisation', () => {
       expect(path.earliestDate).toBeUndefined();
     }
   });
-  test(
-    'naturalisation counts only evidenced diplomatic or consular spouse postings on the three- and seven-year routes',
-    { timeout: 10_000 },
-    () => {
-      const returned = '2026-11-23';
-      const posting = {
-        periods: [{ from: '2023-01-01', through: '2026-11-22' }],
-        qualifyingServiceDocumented: true,
-        yearInGreeceCompletedOn: '2022-01-01',
-      } as const;
-      const facts: Partial<GrFullRequest> = {
-        permits: [
-          { kind: 'regular', from: '2018-01-01', to: '2022-12-31' },
-          { kind: 'regular', from: returned },
-        ],
-        trips: [{ departed: '2022-12-31', returned }],
+  test('naturalisation counts only evidenced diplomatic or consular spouse postings on the three- and seven-year routes', () => {
+    const returned = '2026-11-23';
+    const posting = {
+      periods: [{ from: '2023-01-01', through: '2026-11-22' }],
+      qualifyingServiceDocumented: true,
+      yearInGreeceCompletedOn: '2022-01-01',
+    } as const;
+    const facts: Partial<GrFullRequest> = {
+      permits: [
+        { kind: 'regular', from: '2018-01-01', to: '2022-12-31' },
+        { kind: 'regular', from: returned },
+      ],
+      trips: [{ departed: '2022-12-31', returned }],
+      nationality: {
+        ...satisfactory,
+        diplomaticSpouse: { ...posting, periods: [...posting.periods] },
+      },
+    };
+    expect(full(nat, facts).status).toBe('MET');
+    expect(full(nat, { ...facts, trips: [] }).status).toBe('MET');
+    expect(
+      full(nat, {
+        ...facts,
         nationality: {
-          ...satisfactory,
-          diplomaticSpouse: { ...posting, periods: [...posting.periods] },
+          ...facts.nationality,
+          shortRouteBasis: 'greek-spouse-with-child',
         },
-      };
-      expect(full(nat, facts).status).toBe('MET');
-      expect(full(nat, { ...facts, trips: [] }).status).toBe('MET');
-      expect(
-        full(nat, {
-          ...facts,
-          nationality: {
-            ...facts.nationality,
-            shortRouteBasis: 'greek-spouse-with-child',
-          },
-          route: 'three-year',
-        }).status,
-      ).toBe('MET');
-      expect(full(nat, { ...facts, route: 'twelve-year' }).status).not.toBe(
-        'MET',
-      );
-      expect(
-        full(nat, {
-          ...facts,
-          trips: [
-            ...facts.trips!,
-            { departed: '2020-01-01', returned: '2020-05-01' },
-          ],
-        }).status,
-      ).toBe('UNKNOWN');
-      for (const patch of [
-        { qualifyingServiceDocumented: false },
-        { yearInGreeceCompletedOn: 'not-completed' },
-      ] as const) {
-        expect(
-          full(nat, {
-            ...facts,
-            nationality: {
-              ...facts.nationality,
-              diplomaticSpouse: {
-                ...facts.nationality!.diplomaticSpouse!,
-                ...patch,
-              },
-            },
-          }).status,
-        ).not.toBe('MET');
-      }
+        route: 'three-year',
+      }).status,
+    ).toBe('MET');
+    expect(full(nat, { ...facts, route: 'twelve-year' }).status).not.toBe(
+      'MET',
+    );
+    expect(
+      full(nat, {
+        ...facts,
+        trips: [
+          ...facts.trips!,
+          { departed: '2020-01-01', returned: '2020-05-01' },
+        ],
+      }).status,
+    ).toBe('UNKNOWN');
+    for (const patch of [
+      { qualifyingServiceDocumented: false },
+      { yearInGreeceCompletedOn: 'not-completed' },
+    ] as const) {
       expect(
         full(nat, {
           ...facts,
@@ -1311,19 +1295,31 @@ describe('ΚΕΙ naturalisation', () => {
             ...facts.nationality,
             diplomaticSpouse: {
               ...facts.nationality!.diplomaticSpouse!,
-              yearInGreeceCompletedOn: undefined,
+              ...patch,
             },
           },
         }).status,
-      ).toBe('UNKNOWN');
-      expect(
-        full(nat, { ...facts, permits: facts.permits!.slice(0, 1) }).status,
-      ).toBe('NOT_MET');
-      expect(
-        full(nat, { ...facts, simulationDate: '2026-11-22' }),
-      ).toMatchObject({ status: 'FUTURE', earliestDate: returned });
-    },
-  );
+      ).not.toBe('MET');
+    }
+    expect(
+      full(nat, {
+        ...facts,
+        nationality: {
+          ...facts.nationality,
+          diplomaticSpouse: {
+            ...facts.nationality!.diplomaticSpouse!,
+            yearInGreeceCompletedOn: undefined,
+          },
+        },
+      }).status,
+    ).toBe('UNKNOWN');
+    expect(
+      full(nat, { ...facts, permits: facts.permits!.slice(0, 1) }).status,
+    ).toBe('NOT_MET');
+    expect(full(nat, { ...facts, simulationDate: '2026-11-22' })).toMatchObject(
+      { status: 'FUTURE', earliestDate: returned },
+    );
+  });
   test.each([
     [day, '2027-02-01', 'NOT_MET', 'NOT_MET', undefined],
     [day, '2027-08-15', 'MET', 'FUTURE', '2027-08-15'],

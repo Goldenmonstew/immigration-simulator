@@ -209,9 +209,13 @@ describe('11.2 optional household spending', () => {
     tight.stats.money = 0;
     const returned = quarter(tight);
     expect(returned.flags).not.toContain('brighter-home');
+    // Shared text: every country names its own rental, so this line names none.
     expect(
-      returned.log.some((entry) => entry.id === 'brighter-home-return'),
-    ).toBe(true);
+      returned.log.find((entry) => entry.id === 'brighter-home-return')?.text,
+    ).toEqual({
+      zhCN: '短租住处到期，你搬回原住处，押金回到账户，额外房租停止。',
+      en: 'The short let ends. You move back to the original place, recover the deposit and stop paying the extra rent.',
+    });
     expect(returned.timeline.absences).toEqual(tight.timeline.absences);
   });
   test('club membership is prepaid for this quarter, expires, and never renews silently', () => {
