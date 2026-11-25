@@ -21,6 +21,7 @@ import {
   type CanadaField,
 } from '../lib/canada-fields';
 import { canadaModule as ca } from '../lib/canada-module';
+import { gapRules } from '../lib/gap-summary';
 import { readPageResult } from '../lib/page-result';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { sourceUrls } from '../lib/sources';
@@ -554,7 +555,7 @@ test('the result lists only chosen routes, with a future date, a met case and a 
   ).toEqual([
     ['CA-R01', 'MET', 'requirement'],
     ['CA-R02', 'NOT_MET', 'information'],
-    ['CA-R03', 'NOT_MET', 'requirement'],
+    ['CA-R03', 'NOT_MET', 'time'],
     ['CA-R04', 'UNKNOWN', 'information'],
     ['CA-R05', 'UNKNOWN', 'information'],
   ]);
@@ -614,14 +615,18 @@ test('settled and undated routes show no time rows or undetermined date', () => 
     const html = render(
       <ResultView country={ca} result={ca.run(draft, 'zh-CN')} draft={draft} />,
     );
+    // The rows, not the "time requirement" label on a check.
     for (const key of [
       'country.timeConditions',
       'country.timeDate',
+      'ca.result.earliest',
       'result.earliest',
     ] as const)
-      expect(html, `${id} ${key}`).not.toContain(t(key));
+      expect(html, `${id} ${key}`).not.toContain(`<dt>${t(key)}</dt>`);
+    expect(html).not.toContain(t('ca.result.earliest'));
     const lab = render(<WhatIfView country={ca} draft={draft} />);
     expect(lab).toContain(t('whatif.unchanged'));
+    expect(lab).not.toContain(t('ca.result.earliest'));
     expect(lab).not.toContain(t('result.earliest'));
     expect(lab).not.toContain(t('country.timeDate'));
   }
@@ -634,7 +639,7 @@ test('settled and undated routes show no time rows or undetermined date', () => 
         draft={residencyDraft()}
       />,
     ),
-  ).toContain(t('result.earliest'));
+  ).toContain(t('ca.result.earliest'));
 });
 
 test('comparison controls change only the moved answers and move the date', () => {
@@ -954,4 +959,94 @@ test('skipping to the main content keeps the scenario fragment on Canadian scena
   }
   expect(shell('/canada/policy')).toContain('href="#main"');
   navigation.pathname = null;
+});
+
+// The residency obligation's date is when it is met, not a filing date, so
+// both dated routes use a label that fits each of them.
+test.each(['zh-CN', 'en'] as const)(
+  'the projected date is labelled as the date the requirements are met in %s',
+  (locale) => {
+    expect(ca.earliestLabel).toBe('ca.result.earliest');
+    expect(t('ca.result.earliest', locale)).toMatch(/\S/);
+    const draft = residencyDraft();
+    const html = render(
+      <ResultView country={ca} result={ca.run(draft, locale)} draft={draft} />,
+      locale,
+    );
+    expect(html).toContain(
+      `${t('ca.result.earliest', locale)}${locale === 'en' ? ': ' : '：'}2027-06-01`,
+    );
+    expect(html).not.toContain(t('result.earliest', locale));
+    const lab = render(
+      <WhatIfView country={ca} draft={draft} target={{ focus: 'date' }} />,
+      locale,
+    );
+    expect(lab).toContain(t('ca.result.earliest', locale));
+    expect(lab).not.toContain(t('result.earliest', locale));
+  },
+);
+
+// Fees, the oath after approval and arranged employment (one of several bases)
+// are listed apart from the requirements and time requirements that are gaps.
+test('checks are grouped by kind and only requirements and time are gaps', () => {
+  const draft: CanadaDraft = {
+    ...ca.createDraft(),
+    completed: true,
+    simulationDate: '2026-11-24',
+    goals: canadaGoals,
+    answers: {
+      pnp: { stream: 'ontario-workforce', mode: 'enhanced' },
+      family: { quebec: true },
+    },
+  };
+  const kinds = (next: CanadaDraft) =>
+    new Map(
+      ca
+        .run(next, 'zh-CN')
+        .columns[0].pathways.flatMap((item) =>
+          item.checks.map((check) => [check.id, check.kind]),
+        ),
+    );
+  const grouped = kinds(draft);
+  expect(Object.fromEntries(grouped)).toMatchObject({
+    'CA-R01': 'requirement',
+    'CA-R02': 'information',
+    'CA-R03': 'time',
+    'CA-R04': 'information',
+    'CA-R05': 'information',
+    'CA-R08': 'time',
+    'CA-R16': 'afterApproval',
+    'CA-R17': 'requirement',
+    'CA-R18': 'information',
+    'CA-R27': 'budget',
+    'CA-R28': 'budget',
+    'CA-R37': 'alternative',
+    'CA-R54': 'budget',
+    'CA-R70': 'budget',
+    'CA-R80': 'budget',
+  });
+
+  expect([...grouped.values()]).not.toContain(undefined);
+  // With a grant date the oath and eligibility at grant decide the route.
+  expect(
+    kinds({
+      ...draft,
+      answers: { ...draft.answers, residence: { grantDate: '2027-01-01' } },
+    }).get('CA-R16'),
+  ).toBe('requirement');
+
+  const fsw: CanadaDraft = { ...draft, goals: ['CA-EE-FSW'] };
+  const route = pathway(fsw, 'CA-EE-FSW');
+  const gaps = gapRules(route).map((check) => check.id);
+  expect(gaps).toContain('CA-R20');
+  expect(gaps).not.toContain('CA-R27');
+  expect(gaps).not.toContain('CA-R37');
+  const html = render(
+    <ResultView country={ca} result={ca.run(fsw, 'zh-CN')} draft={fsw} />,
+  );
+  for (const key of [
+    'country.check.budget',
+    'country.check.alternative',
+  ] as const)
+    expect(html).toContain(t(key));
 });

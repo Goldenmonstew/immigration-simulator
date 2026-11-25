@@ -551,6 +551,7 @@
 | 585 | 任务 95 审核修正（review95-1）：`sw.js` 缓存版本改为 `2026-11-24-ca2`，让已安装的离线缓存取到修正后的加拿大页面；同步 about 页测试。 | apps/web/public/sw.js、apps/web/test/about-page.test.tsx |
 | 586 | 任务 95 审核修正（review95-1）报告：逐条对应问题 1–7、风险 1–5、建议 1–3，问题 7 与风险 3 待任务 93 共用修正，风险 4 列入发现与建议；同步更新报告中已过时的共用组件、草稿口径、旋钮与缓存版本说明。 | docs/tasks/reports/95-ca-pages.md |
 | 587 | 任务 95 合入 main 后接入共用选项（review95-1 风险 3）。加拿大模块设 `scenarioLinks: true`：结果、修改与对比链接带场景片段，打开分享链接不覆盖本机草稿；“跳到主要内容”在加拿大问卷、结果、对比页不洗掉 `#s=`。 | apps/web/lib/canada-module.ts、apps/web/components/site-shell.tsx、apps/web/test/canada.test.tsx |
+| 588 | 任务 95 接入共用的日期标签与检查项分组。加拿大设 `earliestLabel`：结果、缺口与对比页的日期行改为“预计满足条件的日期”（居住义务是满足日，不是申请日）；检查项按 `kind` 分组：CA-R03、R08 为时间条件，联邦、安省、魁省费用为费用预算，未填授予日时的宣誓为批准后事项，安排就业为可选依据，其余办理提示不变，只有申请条件与时间条件进“还差什么”。不推算日期或已满足、不适用的路径仍以 `travelDate: null` 表示无日期。 | apps/web/lib/canada-module.ts、apps/web/i18n/countries/canada.ts、apps/web/test/canada.test.tsx、apps/e2e/tests/canada.spec.ts |
 | 590 | 任务 86：核对并登记美国完整版官方快照、哈希及来源网址，追加 PD-260–279。 | docs/SOURCES.md、docs/pending-details.md、policy-sources/、apps/web/lib/sources.ts |
 | 591 | 任务 86：登记美国完整版出处、日期参数、数字门槛及费用。 | packages/policy-data/src/{index.ts,parameters/united-states-2026-11.ts} |
 | 592 | 任务 86：提供美国九路径完整版 CountryResult，接入既有时间计算，增加资格、审查与费用条件、回归测试及页面接线交接。 | packages/engine/src/{index.ts,united-states-full/}、packages/engine/test/united-states-full.test.ts、docs/tasks/reports/86-us-rules.md |
