@@ -1050,3 +1050,118 @@ test('checks are grouped by kind and only requirements and time are gaps', () =>
   ] as const)
     expect(html).toContain(t(key));
 });
+
+// Positional tables (by family size, years of work, adults and children)
+// are shown with labelled rows and columns, never as bare number lists.
+test.each(['zh-CN', 'en'] as const)(
+  'policy parameters show positional tables by meaning in %s',
+  (locale) => {
+    const policy = ca.policy;
+    const label = (key: string) => t(key as TranslationKey, locale);
+    const shown = (name: string) =>
+      policy.displayParameter?.(name, locale) ??
+      policy.parameters[policy.displayedRuleSets[0].id].values[name].value;
+    const size = label('ca.policy.familySize');
+    const amount = label('ca.policy.amount');
+    expect(shown('familyIncomeTable')).toEqual(
+      [30526, 38002, 46720, 56724, 64336, 72560, 80784].map((value, i) => ({
+        [size]: i + 1,
+        [amount]: value,
+      })),
+    );
+    expect(shown('eeFunds')).toMatchObject({
+      amounts: expect.arrayContaining([{ [size]: 1, [amount]: 15263 }]),
+      additional: 4112,
+    });
+    expect(shown('atlanticFunds')).toMatchObject({
+      amounts: expect.arrayContaining([{ [size]: 7, [amount]: 10098 }]),
+    });
+    const years = label('ca.policy.workYears');
+    const points = label('ca.policy.points');
+    expect(shown('fswSelection')).toMatchObject({
+      pass: 67,
+      work: [
+        { [years]: '0', [points]: 0 },
+        { [years]: '1', [points]: 9 },
+        { [years]: '2', [points]: 11 },
+        { [years]: '3', [points]: 11 },
+        { [years]: '4', [points]: 13 },
+        { [years]: '5', [points]: 13 },
+        { [years]: '6+', [points]: 15 },
+      ],
+    });
+    const children = (n: number) =>
+      label('ca.policy.children').replace('{n}', String(n));
+    const quebec = shown('familyQuebecIncome') as Record<string, unknown>;
+    expect(quebec.own).toEqual(
+      [29642, 40015, 49401, 56819, 63237].map((value, i) => ({
+        [size]: i + 1,
+        [amount]: value,
+      })),
+    );
+    expect(quebec.groups).toEqual([
+      {
+        [label('ca.field.adults')]: 0,
+        [children(0)]: 0,
+        [children(1)]: 10261,
+        [children(2)]: 16262,
+        [label('ca.policy.extraChild')]: 5422,
+      },
+      {
+        [label('ca.field.adults')]: 1,
+        [children(0)]: 21682,
+        [children(1)]: 29131,
+        [children(2)]: 32895,
+        [label('ca.policy.extraChild')]: 3760,
+      },
+      {
+        [label('ca.field.adults')]: 2,
+        [children(0)]: 31796,
+        [children(1)]: 35617,
+        [children(2)]: 38450,
+        [label('ca.policy.extraChild')]: 2823,
+      },
+    ]);
+    expect(quebec).not.toHaveProperty('extraChild');
+    const minors = label('ca.policy.minorChildren');
+    expect(shown('quebecSelection2026')).toMatchObject({
+      single: [3957, 5318, 6002, 6687].map((value, i) => ({
+        [minors]: i,
+        [amount]: value,
+      })),
+      couple: [5803, 6500, 7016, 7531].map((value, i) => ({
+        [minors]: i,
+        [amount]: value,
+      })),
+    });
+    expect(
+      (shown('familyQcIntakeSchedule') as Record<string, string>[])[0],
+    ).toEqual({
+      [label('ca.policy.intakeOpens')]: '2026-07-02',
+      [label('ca.policy.lettersThrough')]: '2024-07-31',
+    });
+
+    // No numeric or nested list is left without labels.
+    const bare = (value: unknown): boolean =>
+      Array.isArray(value)
+        ? value.some(
+            (item) =>
+              typeof item === 'number' || Array.isArray(item) || bare(item),
+          )
+        : typeof value === 'object' && value !== null
+          ? Object.values(value).some(bare)
+          : false;
+    for (const name of Object.keys(
+      policy.parameters[policy.displayedRuleSets[0].id].values,
+    ))
+      expect(bare(shown(name)), name).toBe(false);
+
+    const html = render(<CanadaPolicyPage />, locale);
+    for (const header of [size, amount, years, points, minors])
+      expect(html).toContain(`<th scope="col">${header}</th>`);
+    expect(html).not.toContain('lettersThrough');
+    // Calendar years keep their digits; amounts are grouped.
+    expect(html).toContain('referenceYear 2026');
+    expect(html).toContain(`fiveYearCost ${(144390).toLocaleString(locale)}`);
+  },
+);
