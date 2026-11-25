@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, expect, test, vi } from 'vitest';
 import {
   evaluatePortugalFull,
+  type CountryPathway,
   type PtFullRequest,
 } from '@uk-immigration/engine';
 import Home from '../app/page';
@@ -16,6 +17,7 @@ import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';
 import { t, type TranslationKey } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
+import { earliestLabelFor } from '../lib/country-module';
 import { gapRules } from '../lib/gap-summary';
 import { readPageResult } from '../lib/page-result';
 import {
@@ -27,6 +29,7 @@ import {
 import {
   PT_TARGETS,
   portugalSteps,
+  ptPathwayByTarget,
   type PortugalField,
 } from '../lib/portugal-fields';
 import { portugalModule as pt } from '../lib/portugal-module';
@@ -676,26 +679,79 @@ test('results show only the chosen routes with met, future and pending dates', (
   );
 });
 
-// The free-movement date is when the permanent right is acquired, not a filing
-// date, so the module labels every date as when the assessed rules are met.
+// An EU citizen five years into continuous residence on 2026-11-24 (engine
+// fixture): the date is when the permanent right is acquired.
+function freeMovementDraft(): PortugalDraft {
+  return {
+    ...pt.createDraft(),
+    step: 7,
+    completed: true,
+    simulationDate: '2026-11-23',
+    route: 'eu',
+    targets: ['free-movement'],
+    permits: [],
+    trips: [],
+    freeMovement: {
+      applicant: 'eu-eea-swiss',
+      basis: 'ordinary',
+      continuousResidenceFrom: '2021-11-24',
+      expulsionExecuted: false,
+      historicalBasisReview: 'clear',
+      documents: 'standard',
+      publicRestrictions: 'clear',
+      feeMode: 'digital',
+      feePaid: true,
+    },
+  };
+}
+
+// Only the free-movement date is when the permanent right is acquired; the
+// other routes give the earliest application date and keep the shared label.
+test('only the free-movement route has its own date label', () => {
+  for (const id of Object.values(ptPathwayByTarget))
+    expect(earliestLabelFor({ id } as CountryPathway, pt.earliestLabel)).toBe(
+      id === 'PT-FREE-MOVEMENT-PERMANENT'
+        ? 'pt.result.permanentRightDate'
+        : 'result.earliest',
+    );
+});
+
 test.each(['zh-CN', 'en'] as const)(
-  'the result date is labelled as meeting the assessed requirements in results, gaps and comparisons (%s)',
+  'results, gaps and comparisons label the free-movement date as when the permanent right is acquired and other dates as the earliest application date (%s)',
   (locale) => {
-    const draft = partnerDraft(['partner']);
-    const result = pt.run(draft, locale);
-    const label = t('pt.result.earliest', locale);
-    const html = render(
-      <ResultView country={pt} result={result} draft={draft} />,
-      locale,
-    );
-    expect(html).toContain(`<dt>${label}</dt>`);
-    expect(html).toContain(
-      label + (locale === 'en' ? ': ' : '：') + '2028-06-02',
-    );
-    expect(html).not.toContain(t('result.earliest', locale));
-    const whatIf = render(<WhatIfView country={pt} draft={draft} />, locale);
-    expect(whatIf).toContain(`<dt>${label}</dt>`);
-    expect(whatIf).not.toContain(t('result.earliest', locale));
+    const colon = locale === 'en' ? ': ' : '：';
+    const permanent = t('pt.result.permanentRightDate', locale);
+    const earliest = t('result.earliest', locale);
+    const views = (draft: PortugalDraft) => [
+      render(
+        <ResultView
+          country={pt}
+          result={pt.run(draft, locale)}
+          draft={draft}
+        />,
+        locale,
+      ),
+      render(<WhatIfView country={pt} draft={draft} />, locale),
+    ];
+
+    const movement = freeMovementDraft();
+    expect(
+      pathway(movement, 'PT-FREE-MOVEMENT-PERMANENT', locale as never),
+    ).toMatchObject({ status: 'FUTURE', earliestDate: '2026-11-24' });
+    const [movementResult, movementWhatIf] = views(movement);
+    // Result facts and the gap summary.
+    expect(movementResult).toContain(`<dt>${permanent}</dt>`);
+    expect(movementResult).toContain(`${permanent}${colon}2026-11-24`);
+    expect(movementResult).not.toContain(earliest);
+    expect(movementWhatIf).toContain(`<dt>${permanent}</dt>`);
+    expect(movementWhatIf).not.toContain(earliest);
+
+    const [partnerResult, partnerWhatIf] = views(partnerDraft(['partner']));
+    expect(partnerResult).toContain(`<dt>${earliest}</dt>`);
+    expect(partnerResult).toContain(`${earliest}${colon}2028-06-02`);
+    expect(partnerResult).not.toContain(permanent);
+    expect(partnerWhatIf).toContain(`<dt>${earliest}</dt>`);
+    expect(partnerWhatIf).not.toContain(permanent);
   },
 );
 

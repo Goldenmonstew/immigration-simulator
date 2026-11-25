@@ -409,7 +409,7 @@ export const zhCN = {
   'pt.param.infantInPerson': '婴儿·现场',
   'pt.param.urgentOlder': '高于分界年龄·加急',
   'pt.param.urgentYounger': '低于分界年龄·加急',
-  'pt.result.earliest': '满足所评估条件的日期（推算）',
+  'pt.result.permanentRightDate': '永久居留权取得日（推算）',
   'pt.result.finishQuestionnaire':
     '请返回问卷，完成所选路径的必填项目后再查看结果。',
   'pt.result.MET': '所填资料满足这一条件。',
@@ -542,7 +542,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pt.param.infantInPerson': 'Infants, in person',
   'pt.param.urgentOlder': 'Above the age boundary, urgent',
   'pt.param.urgentYounger': 'Below the age boundary, urgent',
-  'pt.result.earliest': 'Calculated date the assessed requirements are met',
+  'pt.result.permanentRightDate':
+    'Calculated date the permanent right of residence is acquired',
   'pt.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields for your selected routes to see your result.',
   'pt.result.MET': 'Your answers meet this requirement.',
