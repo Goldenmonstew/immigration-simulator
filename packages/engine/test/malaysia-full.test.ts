@@ -1700,6 +1700,8 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
     years?: boolean;
     /** The marriage date is also a time condition. */
     married?: boolean;
+    /** Another check the time status also needs. */
+    also?: string;
   }[] = [
     {
       id: 'my.pr.was',
@@ -1737,6 +1739,8 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
       key: 'my.pass.work-years',
       kind: 'employment',
       req: {},
+      // SRC-525: more than three months left on the Employment Pass.
+      also: 'my.pass.ep-validity',
     },
   ];
   const run = (
@@ -1754,7 +1758,8 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
     const status = (id: string) => p.checks.find((c) => c.id === id)!.status;
     return {
       check:
-        r.married && status('my.pr.marriage-duration') !== 'MET'
+        (r.married && status('my.pr.marriage-duration') !== 'MET') ||
+        (r.also && status(r.also) !== 'MET')
           ? 'NOT_MET'
           : status(r.key),
       time: p.timeStatus,
@@ -2064,6 +2069,10 @@ describe('review113-4', () => {
       p.timeEarliestDate,
     ];
   };
+  const time = (id: MyPathwayId, req: MyFullRequest) => {
+    const p = path(id, req);
+    return [p.timeStatus, p.timeEarliestDate, p.assumptions.length];
+  };
 
   test('passes that reach the years only with the Minister’s consent leave the date open (#1)', () => {
     // SRC-500 Art. 15(1)(a) p39: two years before applying; Second Schedule
@@ -2143,6 +2152,57 @@ describe('review113-4', () => {
         day,
       ),
     ).toEqual(['NOT_MET', 'NOT_MET', undefined]);
+  });
+
+  test('RP-T dates need more than three months left on the Employment Pass (risk 1)', () => {
+    // SRC-525 Eligibility: "a valid Employment Pass with more than 3 months
+    // validity during the submission".
+    const ep = (from: string, to: string) => ({
+      kind: 'employment' as const,
+      from,
+      to,
+    });
+    const rpt = (passes: MyFullRequest['passes'], simulationDate = day) => ({
+      simulationDate,
+      passes,
+    });
+    const validity = (req: MyFullRequest) =>
+      cond('my.pass.rpt', 'my.pass.ep-validity', req).status;
+    // Three years on 2027-01-01 with six weeks left: the earliest is the
+    // first day of the renewal assumed, or of the renewal entered.
+    const short = rpt([ep('2024-01-01', '2027-02-15')]);
+    expect(time('my.pass.rpt', short)).toEqual(['FUTURE', '2027-02-16', 1]);
+    const atThree = { ...short, simulationDate: '2027-01-01' };
+    expect(validity(atThree)).toBe('NOT_MET');
+    expect(time('my.pass.rpt', atThree)).toEqual(['FUTURE', '2027-02-16', 1]);
+    expect(
+      time(
+        'my.pass.rpt',
+        rpt([ep('2024-01-01', '2027-02-15'), ep('2027-02-16', '2030-02-15')]),
+      ),
+    ).toEqual(['FUTURE', '2027-02-16', 0]);
+    // Three years long past, but only two months left now.
+    const late = rpt([ep('2022-01-01', '2027-01-31')]);
+    expect(validity(late)).toBe('NOT_MET');
+    expect(time('my.pass.rpt', late)).toEqual(['FUTURE', '2027-02-01', 1]);
+    // Enough left: the three years decide, as before.
+    expect(time('my.pass.rpt', rpt([ep('2024-01-01', '2028-12-31')]))).toEqual([
+      'FUTURE',
+      '2027-01-01',
+      0,
+    ]);
+    expect(time('my.pass.rpt', rpt([ep('2022-01-01', '2028-12-31')]))).toEqual([
+      'MET',
+      '2025-01-01',
+      0,
+    ]);
+    // Met since the renewal began; the old pass had too little left.
+    expect(
+      time(
+        'my.pass.rpt',
+        rpt([ep('2020-01-01', '2026-03-15'), ep('2026-03-16', '2029-03-15')]),
+      ),
+    ).toEqual(['MET', '2026-03-16', 0]);
   });
 });
 

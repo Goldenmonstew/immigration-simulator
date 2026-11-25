@@ -1,4 +1,4 @@
-import { addMonths, addYears } from './dates';
+import { addDays, addMonths, addYears } from './dates';
 import type { IsoDate } from './types';
 import { marriageRegistration } from './malaysia-full-pr';
 import {
@@ -10,10 +10,13 @@ import {
   check,
   heldRun,
   info,
+  latest,
   marriageSubsists,
+  passSpan,
   planned,
   ref,
   timingWithRenewal,
+  union,
   v,
   withFee,
   type MyCheck,
@@ -473,15 +476,77 @@ export function assessMm2h(ctx: MyContext): MyPathway {
   );
 }
 
+/**
+ * RP-T needs `workYears` on an unbroken run of Employment Passes and, on the
+ * same day, more than `epValidityMonths` left on one of them (SRC-525). The
+ * date is the first day from the application date that both hold, or, when
+ * they hold now, the day they began to; past the last pass entered a renewal
+ * from the next day is assumed. Either can only begin on the application
+ * date, the start of a pass, or `workYears` into a run.
+ */
+function rptEarliest(
+  ctx: MyContext,
+  years: { earliest: IsoDate | null | undefined; renewed: boolean },
+  validLeft: (d: IsoDate) => boolean,
+) {
+  const { req, date } = ctx;
+  const w = v.rpt.value.workYears;
+  const from = years.earliest;
+  if (typeof from !== 'string') return years;
+  const eps = (req.passes ?? []).filter((e) => e.kind === 'employment');
+  const both = (d: IsoDate) => {
+    const at = heldRun(eps, ['employment'], d);
+    return at?.valid === true && d >= addYears(at.start, w) && validLeft(d);
+  };
+  const runs = union(eps.map(passSpan));
+  const turns = [
+    date,
+    ...eps.map((e) => e.from),
+    ...runs.map((s) => addYears(s.start, w)),
+  ].sort();
+  const first = turns.find((d) => d >= from && d >= date && both(d));
+  if (first === undefined) {
+    const last = runs[runs.length - 1];
+    return {
+      earliest: latest(addYears(last.start, w), last.end),
+      renewed: true,
+    };
+  }
+  return {
+    earliest:
+      first > date
+        ? first
+        : turns
+            .filter((d) => d >= from && d <= date && !both(addDays(d, -1)))
+            .pop(),
+    renewed: false,
+  };
+}
+
 export function assessRpt(ctx: MyContext): MyPathway {
   const { req, date, L } = ctx;
   const p = v.rpt.value;
   const src = v.rpt.sources;
   const run = heldRun(req.passes, ['employment'], date);
-  const plan = planned(req.passes, ['employment'], date, (d) => {
-    const at = heldRun(req.passes, ['employment'], d);
-    return !at ? undefined : at.valid ? addYears(at.start, p.workYears) : null;
-  });
+  const validLeft = (d: IsoDate) =>
+    (req.passes ?? []).some(
+      (e) =>
+        e.kind === 'employment' &&
+        e.from <= d &&
+        e.to > addMonths(d, p.epValidityMonths),
+    );
+  const plan = rptEarliest(
+    ctx,
+    planned(req.passes, ['employment'], date, (d) => {
+      const at = heldRun(req.passes, ['employment'], d);
+      return !at
+        ? undefined
+        : at.valid
+          ? addYears(at.start, p.workYears)
+          : null;
+    }),
+    validLeft,
+  );
   // The page says "worked in Malaysia" without naming a pass, and work on
   // other passes is not asked (PD-431).
   const anyPass = heldRun(req.passes, ANY_PASS, date);
@@ -521,14 +586,7 @@ export function assessRpt(ctx: MyContext): MyPathway {
     check(
       'my.pass.ep-validity',
       L('就业准证剩余效期', 'Employment Pass validity left'),
-      req.passes === undefined
-        ? undefined
-        : req.passes.some(
-            (e) =>
-              e.kind === 'employment' &&
-              e.from <= date &&
-              e.to > addMonths(date, p.epValidityMonths),
-          ),
+      req.passes === undefined ? undefined : validLeft(date),
       src,
       L(
         `递交时就业准证须还有超过 ${p.epValidityMonths} 个月效期。`,
