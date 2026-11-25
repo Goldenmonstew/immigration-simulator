@@ -148,6 +148,23 @@ function marriageDuration(
   return { check: c, earliest: separated ? null : due };
 }
 
+/** A citizen's spouse who moved to a Residence Pass since `from` (PD-428). */
+function spouseResidencePass(ctx: MyContext, spouse: boolean, from: IsoDate) {
+  return (
+    spouse &&
+    (ctx.req.passes?.some(
+      (p) => p.kind === 'residence' && p.from <= ctx.date && p.to >= from,
+    ) ??
+      false)
+  );
+}
+
+const residencePassText = (ctx: MyContext) =>
+  ctx.L(
+    '近期改持 Residence Pass 的期间能否算作持公民配偶准证待确认。',
+    ' Whether recent time on a Residence Pass counts as holding the spouse-of-citizen pass needs confirmation.',
+  );
+
 function earlyPassCheck(
   ctx: MyContext,
   id: string,
@@ -156,11 +173,17 @@ function earlyPassCheck(
   months: number,
   sources: readonly SourceRef[],
   description: string,
+  spouse = false,
 ) {
   const { req, date, L } = ctx;
   const run = heldRun(req.passes, kinds, date);
   const lastMonths = daysBetween(addMonths(date, -months), date);
-  const met = !run
+  const residencePass = spouseResidencePass(
+    ctx,
+    spouse,
+    addMonths(date, -months),
+  );
+  const strict = !run
     ? undefined
     : !run.valid
       ? false
@@ -169,6 +192,7 @@ function earlyPassCheck(
         : run.total > lastMonths
           ? undefined
           : false;
+  const met = strict === false && residencePass ? undefined : strict;
   const c = check(
     id,
     title,
@@ -186,19 +210,23 @@ function earlyPassCheck(
               ` The current unbroken holding began on ${run.start}.`,
             )
           : '') +
-      (met === undefined && run
+      (strict === undefined && run
         ? L(
             '只有把中断前的期间合并计算才超过所需月数，是否须连续待确认。',
             ' The required months are exceeded only by adding periods before a break; whether they must be continuous needs confirmation.',
           )
-        : ''),
-    ['PD-406'],
+        : met === undefined && residencePass
+          ? residencePassText(ctx)
+          : ''),
+    residencePass ? ['PD-406', 'PD-428'] : ['PD-406'],
   );
   const earliest = !run
     ? undefined
     : run.valid
       ? addDays(addMonths(run.start, months), 1)
-      : null;
+      : residencePass
+        ? undefined
+        : null;
   return { check: c, earliest };
 }
 
@@ -211,25 +239,31 @@ function longPassCheck(
   maxGapMonths: number,
   sources: readonly SourceRef[],
   description: string,
-  husband = false,
+  spouse = false,
 ) {
   const { req, date, L } = ctx;
   const run = heldRun(req.passes, kinds, date, maxGapMonths);
-  const windowStart = addYears(date, -years);
-  const residencePass =
-    husband &&
-    req.passes?.some(
-      (p) => p.kind === 'residence' && p.from <= date && p.to >= windowStart,
-    );
-  const met = !run
+  const residencePass = spouseResidencePass(
+    ctx,
+    spouse,
+    addYears(date, -years),
+  );
+  // Breaks of up to `maxGapMonths` do not restart the count. Without counting
+  // them, `years` are held once the days held since the bridged start reach
+  // the days in the `years` before `d` (PD-407, PD-429); holding is assumed
+  // to continue after `date`.
+  const heldEnough = (d: IsoDate) =>
+    run?.valid === true &&
+    daysBetween(run.tolerantStart, d) - run.gapDays >=
+      daysBetween(addYears(d, -years), d);
+  const strict = !run
     ? undefined
-    : run.valid && date >= addYears(run.start, years)
+    : run.valid && (date >= addYears(run.start, years) || heldEnough(date))
       ? true
       : run.valid && date >= addYears(run.tolerantStart, years)
         ? undefined
-        : residencePass
-          ? undefined
-          : false;
+        : false;
+  const met = strict === false && residencePass ? undefined : strict;
   const c = check(
     id,
     title,
@@ -245,28 +279,35 @@ function longPassCheck(
           ? L(
               `当前不间断持有自 ${run.start} 起。`,
               ` The current unbroken holding began on ${run.start}.`,
-            )
+            ) +
+            (run.gapDays
+              ? L(
+                  `连同 ${maxGapMonths} 个月以内的中断，自 ${run.tolerantStart} 起持有，中断共 ${run.gapDays} 日，不计中断的持有日数与 ${years} 年的日数比较。`,
+                  ` Bridging breaks of up to ${maxGapMonths} months, holding began on ${run.tolerantStart} with ${run.gapDays} days of breaks, which are left out when comparing the days held with ${years} years.`,
+                )
+              : '')
           : '') +
-      (met === undefined &&
-      run?.valid &&
-      date >= addYears(run.tolerantStart, years)
+      (strict === undefined && run?.valid
         ? L(
-            `只有计入 ${maxGapMonths} 个月以内的中断才满 ${years} 年，中断如何计算待确认。`,
-            ` ${years} years are reached only by bridging breaks of up to ${maxGapMonths} months; how breaks count needs confirmation.`,
+            `只有把 ${maxGapMonths} 个月以内的中断也算作持有才满 ${years} 年，中断如何计算待确认。`,
+            ` ${years} years are reached only if breaks of up to ${maxGapMonths} months also count as holding; how breaks count needs confirmation.`,
           )
         : met === undefined && residencePass
-          ? L(
-              '近期改持 Residence Pass 的期间能否算作持公民之夫准证待确认。',
-              ' Whether recent time on a Residence Pass counts as holding the husband-of-citizen pass needs confirmation.',
-            )
+          ? residencePassText(ctx)
           : ''),
     residencePass ? ['PD-407', 'PD-428'] : ['PD-407'],
   );
-  const earliest = !run
+  let earliest: IsoDate | null | undefined = !run
     ? undefined
-    : run.valid
-      ? addYears(run.start, years)
+    : residencePass && !run.valid
+      ? undefined
       : null;
+  if (run?.valid) {
+    const unbroken = addYears(run.start, years);
+    earliest = addYears(run.tolerantStart, years);
+    while (earliest < unbroken && !heldEnough(earliest))
+      earliest = addDays(earliest, 1);
+  }
   return { check: c, earliest };
 }
 
@@ -660,6 +701,7 @@ export function assessPrSpouse(
           `须持"公民之妻"社交访问准证超过 ${v.prWife.value.ltsvpMonths} 个月，且递交时仍有效。`,
           `The wife-of-citizen social visit pass must have been held for more than ${v.prWife.value.ltsvpMonths} months and still be valid when applying.`,
         ),
+        true,
       )
     : longPassCheck(
         ctx,
@@ -1135,7 +1177,7 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
       ),
     ),
   );
-  if (tie === 'husband-of-citizen')
+  if (tie === 'husband-of-citizen' || tie === 'wife-of-citizen')
     checks.push(
       info(
         'my.rp.pr-link',
@@ -1143,11 +1185,23 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
           '与永久居留申请的关系',
           'Effect on a permanent residence application',
         ),
-        [guide('§5.2(d) p19'), ...src],
-        L(
-          `公民之夫申请永久居留须持"公民之夫"社交访问准证连续 ${v.prHusband.value.ltsvpYears} 年；改持 Residence Pass 的期间能否计入待确认。`,
-          `A husband applying for permanent residence needs ${v.prHusband.value.ltsvpYears} continuous years on the husband-of-citizen social visit pass; whether time on a Residence Pass counts needs confirmation.`,
-        ),
+        [
+          guide(tie === 'wife-of-citizen' ? '§5.1(d) p18' : '§5.2(d) p19'),
+          ...src,
+        ],
+        (tie === 'wife-of-citizen'
+          ? L(
+              `公民之妻申请永久居留须持"公民之妻"社交访问准证超过 ${v.prWife.value.ltsvpMonths} 个月且递交时有效；`,
+              `A wife applying for permanent residence needs more than ${v.prWife.value.ltsvpMonths} months on the wife-of-citizen social visit pass, still valid when applying;`,
+            )
+          : L(
+              `公民之夫申请永久居留须持"公民之夫"社交访问准证连续 ${v.prHusband.value.ltsvpYears} 年；`,
+              `A husband applying for permanent residence needs ${v.prHusband.value.ltsvpYears} continuous years on the husband-of-citizen social visit pass;`,
+            )) +
+          L(
+            '改持 Residence Pass 的期间能否计入待确认。',
+            ' whether time on a Residence Pass counts needs confirmation.',
+          ),
         false,
         ['PD-428'],
       ),

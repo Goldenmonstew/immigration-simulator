@@ -315,7 +315,7 @@ export const fullyCovered = (spans: Span[], from: IsoDate, to: IsoDate) =>
 /**
  * The run of passes of `kinds` that is valid on `date`: `start` of the
  * unbroken run, `tolerantStart` when breaks of up to `maxGapMonths` are
- * bridged, and `total` days held before `date`.
+ * bridged, `gapDays` in those breaks, and `total` days held before `date`.
  */
 export function heldRun(
   passes: MyPassPeriod[] | undefined,
@@ -333,13 +333,22 @@ export function heldRun(
   const i = spans.findIndex((s) => s.start <= date && date < s.end);
   if (i < 0) return { valid: false as const, total };
   let tolerantStart = spans[i].start;
+  let gapDays = 0;
   for (
     let j = i - 1;
     j >= 0 && tolerantStart <= addMonths(spans[j].end, maxGapMonths);
     j--
-  )
+  ) {
+    gapDays += daysBetween(spans[j].end, tolerantStart);
     tolerantStart = spans[j].start;
-  return { valid: true as const, start: spans[i].start, tolerantStart, total };
+  }
+  return {
+    valid: true as const,
+    start: spans[i].start,
+    tolerantStart,
+    gapDays,
+    total,
+  };
 }
 
 /** The pass covering `date`, if any. */

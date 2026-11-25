@@ -279,6 +279,46 @@ describe('permanent residence: husband of a citizen', () => {
       ],
     });
     expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', ['PD-407']]);
+    // The count does not restart at the break (review113-1 #1): 1826 days
+    // from 2021-06-01 to 2026-06-01 less the 182-day break reach the 1826
+    // days of five years 182 days later, on 2026-11-30.
+    const p = path('my.pr.husband', {
+      ...husband,
+      passes: [
+        { kind: 'ltsvp-spouse', from: '2021-06-01', to: '2023-12-31' },
+        { kind: 'ltsvp-spouse', from: '2024-07-01', to: '2027-12-31' },
+      ],
+    });
+    expect([p.timeStatus, p.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2026-11-30',
+    ]);
+  });
+
+  test('a bridged break that still leaves five years held is met (review113-1 #1)', () => {
+    // 2019-01-01 to 2021-12-31 is 1096 days and 2022-04-01 to 2024-03-31 is
+    // 731: 1827 days, the days from 2019-04-01 to 2024-04-01.
+    const req = {
+      ...husband,
+      simulationDate: '2024-04-01',
+      family: { ...husband.family, marriedOn: '2015-01-01' },
+      passes: [
+        { kind: 'ltsvp-spouse', from: '2019-01-01', to: '2021-12-31' },
+        { kind: 'ltsvp-spouse', from: '2022-04-01', to: '2027-12-31' },
+      ],
+    } satisfies MyFullRequest;
+    expect(cond('my.pr.husband', 'my.pr.spouse-pass', req).status).toBe('MET');
+    const p = path('my.pr.husband', req);
+    expect([p.timeStatus, p.timeEarliestDate]).toEqual(['MET', '2024-04-01']);
+    // A day earlier five years are reached only by counting the break.
+    const before = { ...req, simulationDate: '2024-03-31' };
+    const c = cond('my.pr.husband', 'my.pr.spouse-pass', before);
+    expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', ['PD-407']]);
+    const q = path('my.pr.husband', before);
+    expect([q.timeStatus, q.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2024-04-01',
+    ]);
   });
 
   test('a longer break restarts the count', () => {
@@ -425,6 +465,20 @@ describe('permanent residence: fully foreign national', () => {
     ).toBe('UNKNOWN');
   });
 
+  test('a short break between passes does not restart the five years (review113-1 #1)', () => {
+    const req = {
+      ...was,
+      simulationDate: '2024-04-01',
+      passes: [
+        { kind: 'employment', from: '2019-01-01', to: '2021-12-31' },
+        { kind: 'employment', from: '2022-04-01', to: '2027-12-31' },
+      ],
+    } satisfies MyFullRequest;
+    expect(cond('my.pr.was', 'my.pr.qualifying-pass', req).status).toBe('MET');
+    const p = path('my.pr.was', req);
+    expect([p.timeStatus, p.timeEarliestDate]).toEqual(['MET', '2024-04-01']);
+  });
+
   test('recognition evidence is pending when absent', () => {
     const c = cond('my.pr.was', 'my.pr.field-recognition', { ...was, was: {} });
     expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', ['PD-408']]);
@@ -526,12 +580,36 @@ describe('Residence Pass', () => {
     ).toBe('NOT_APPLICABLE');
   });
 
-  test('a husband is warned about his permanent residence count', () => {
-    const c = cond('my.rp.family', 'my.rp.pr-link', {
+  test('a husband or wife is warned about the permanent residence count', () => {
+    for (const tie of ['husband-of-citizen', 'wife-of-citizen'] as const) {
+      const c = cond('my.rp.family', 'my.rp.pr-link', {
+        ...wife,
+        family: { ...wife.family, tie },
+      });
+      expect(c.pendingDetails, tie).toEqual(['PD-428']);
+    }
+  });
+
+  test('a wife or husband now on a Residence Pass is treated alike (review113-1 risk 2)', () => {
+    const passes = [
+      { kind: 'ltsvp-spouse', from: '2019-01-01', to: '2024-12-31' },
+      { kind: 'residence', from: '2025-01-01', to: '2029-12-31' },
+    ] satisfies MyFullRequest['passes'];
+    const w = cond('my.pr.wife', 'my.pr.spouse-pass', { ...wife, passes });
+    expect([w.status, w.pendingDetails]).toEqual([
+      'UNKNOWN',
+      ['PD-406', 'PD-428'],
+    ]);
+    const h = cond('my.pr.husband', 'my.pr.spouse-pass', {
       ...wife,
       family: { ...wife.family, tie: 'husband-of-citizen' },
+      passes,
     });
-    expect(c.pendingDetails).toEqual(['PD-428']);
+    expect([h.status, h.pendingDetails]).toEqual([
+      'UNKNOWN',
+      ['PD-407', 'PD-428'],
+    ]);
+    expect(path('my.pr.wife', { ...wife, passes }).timeStatus).toBe('UNKNOWN');
   });
 });
 
