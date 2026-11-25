@@ -454,6 +454,26 @@ test('the spouse naturalizes while USCIS has yet to decide the I-751', () => {
   expect(ended.log.at(-1)?.text).toEqual(settlement);
 });
 
+test('the time-limit ending says how far the naturalization got', () => {
+  let state = playTo(us.newGame('engineer', 5, 'en'), '2035-12-01');
+  expect(us.isOver(state)).toBe(false);
+  const drawer = us.usGameContent.endingText(state, 'timeout');
+  expect(drawer.en).toMatch(/still in the drawer/);
+  // Mailed in the last quarter: the ending must not say it is in the drawer.
+  state.stats.money = Math.max(state.stats.money, fees.n400.paper);
+  expect(us.pathwayOf(state.result, 'cit')?.status).toBe('MET');
+  state = us.doActivity(visit(state, 'visa', 600), 'n400');
+  const ended = quarterLater(state);
+  expect(ended.ending).toBe('timeout');
+  const text = us.narrative(ended).at(-1)!;
+  expect(text.en).toMatch(/N-400 is in the mail/);
+  expect(ended.log.at(-1)?.text).toEqual(text);
+  state.flags.push('interview-passed');
+  expect(us.usGameContent.endingText(state, 'timeout').en).toMatch(
+    /interview is passed/,
+  );
+});
+
 test('failing the interview twice denies the N-400, which can be filed again', () => {
   let state = playTo(us.newGame('engineer', 5, 'en'), '2028-06-01');
   state = us.doActivity(visit(state, 'visa', 600), 'n400');

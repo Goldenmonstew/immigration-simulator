@@ -420,10 +420,22 @@ export function endingText(state: UsState, ending: EndingId): Text {
       '一项记录让审查停了下来，故事在这里停笔。',
       'A record halts the review, and the story stops here.',
     ),
-    timeout: t(
-      '入籍申请还躺在抽屉里。这局走到了时间尽头，湖湾的日记在这里合上。',
-      'The naturalization papers are still in the drawer. This game has reached its time limit, and the Lakebend diary closes here.',
-    ),
+    // Flags are set when the N-400 or interview happens, before the quarter
+    // ends with this ending.
+    timeout: state.flags.includes('interview-passed')
+      ? t(
+          '面谈已经通过，宣誓典礼还没等到，这局就走到了时间尽头。湖湾的日记在这里合上。',
+          'The interview is passed, but the oath ceremony has not come yet when this game reaches its time limit. The Lakebend diary closes here.',
+        )
+      : state.flags.includes('n400-filed')
+        ? t(
+            'N-400 已经寄出，入籍还在路上，这局就走到了时间尽头。湖湾的日记在这里合上。',
+            'The N-400 is in the mail and citizenship is still on its way when this game reaches its time limit. The Lakebend diary closes here.',
+          )
+        : t(
+            '入籍申请还躺在抽屉里。这局走到了时间尽头，湖湾的日记在这里合上。',
+            'The naturalization papers are still in the drawer. This game has reached its time limit, and the Lakebend diary closes here.',
+          ),
   };
   return texts[ending];
 }
