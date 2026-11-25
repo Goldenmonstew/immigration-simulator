@@ -115,14 +115,16 @@ export function marriageRegistration(
   );
 }
 
+/** `noSeparation`: the Permit Masuk guideline adds "tanpa berpisah atau bercerai". */
 function marriageDuration(
   ctx: MyContext,
   years: number,
   sources: readonly SourceRef[],
+  noSeparation: boolean,
 ) {
   const { req, date, L } = ctx;
   const married = req.family?.marriedOn;
-  const separated = req.family?.separatedOrDivorced;
+  const separated = noSeparation ? req.family?.separatedOrDivorced : false;
   const due = married && addYears(married, years);
   const c = check(
     'my.pr.marriage-duration',
@@ -132,10 +134,15 @@ function marriageDuration(
       due === undefined ? undefined : date >= due,
     ),
     sources,
-    L(
-      `须已结婚至少 ${years} 年，且未分居、未离婚。`,
-      `The couple must have been married for at least ${years} years without separating or divorcing.`,
-    ) +
+    (noSeparation
+      ? L(
+          `须已结婚至少 ${years} 年，且未分居、未离婚。`,
+          `The couple must have been married for at least ${years} years without separating or divorcing.`,
+        )
+      : L(
+          `递交前须已结婚至少 ${years} 年。`,
+          `The couple must have been married for at least ${years} years before applying.`,
+        )) +
       (separated
         ? L('所填已分居或离婚。', ' A separation or divorce is reported.')
         : due
@@ -144,7 +151,7 @@ function marriageDuration(
               ` On the marriage date, ${years} years are completed on ${due}.`,
             )
           : ''),
-    ['PD-405'],
+    noSeparation ? ['PD-405'] : [],
   );
   return { check: c, earliest: separated ? null : due };
 }
@@ -686,7 +693,12 @@ export function assessPrSpouse(
     'my.pr.marriage-registration',
     [guide(wife ? '§5.1(b) p18' : '§5.2(b) p19')],
   );
-  const marriage = marriageDuration(ctx, p.value.marriageYears, p.sources);
+  const marriage = marriageDuration(
+    ctx,
+    p.value.marriageYears,
+    p.sources,
+    true,
+  );
   const pass = wife
     ? earlyPassCheck(
         ctx,
@@ -736,6 +748,30 @@ export function assessPrSpouse(
   });
 }
 
+/** "Anak kandung": a stepchild is not one; adoption is not addressed (PD-409). */
+const biologicalChild = (
+  relation: 'biological' | 'step' | 'adopted' | undefined,
+) =>
+  relation === 'biological' ? true : relation === 'step' ? false : undefined;
+
+function childRelationText(
+  ctx: MyContext,
+  relation: 'biological' | 'step' | 'adopted' | undefined,
+) {
+  const { L } = ctx;
+  return relation === 'step'
+    ? L(
+        '继子女不是亲生子女，不属此类别，可考虑 Residence Pass 第 3 类。',
+        ' A stepchild is not a biological child and does not qualify; Residence Pass Category 3 is an alternative.',
+      )
+    : relation === 'adopted'
+      ? L(
+          '依法收养的子女是否视同亲生，指南未写明，待确认；可考虑 Residence Pass 第 3 类。',
+          ' The guideline does not say whether a legally adopted child counts as a biological child; Residence Pass Category 3 is an alternative.',
+        )
+      : '';
+}
+
 export function assessPrChild(ctx: MyContext): MyPathway {
   const { req, date, L } = ctx;
   const tie = req.family?.tie;
@@ -746,21 +782,13 @@ export function assessPrChild(ctx: MyContext): MyPathway {
       ? undefined
       : tie !== 'child-of-citizen'
         ? false
-        : relation === 'biological'
-          ? true
-          : undefined,
-    [guide('§4 p17'), guide('§5.3(c) p20')],
+        : biologicalChild(relation),
+    [guide('§4 p17'), guide('§5.3(c) p20'), guide('附录 C2 p60')],
     L(
       '马来西亚公民的亲生子女；境外出生证须经原籍国使馆与马来西亚外交部认证。',
       'A biological child of a Malaysian citizen; a foreign birth certificate must be certified by the home country’s embassy and the Malaysian Ministry of Foreign Affairs.',
-    ) +
-      (relation === 'step' || relation === 'adopted'
-        ? L(
-            '继子女、养子女能否走此类别待确认，可考虑 Residence Pass 第 3 类。',
-            ' Whether a stepchild or adopted child can use this category needs confirmation; Residence Pass Category 3 is an alternative.',
-          )
-        : ''),
-    ['PD-409'],
+    ) + childRelationText(ctx, relation),
+    relation === 'adopted' ? ['PD-409'] : [],
   );
   const underAge = v.prChild.value.underAge;
   const years = age(req.dateOfBirth, date);
@@ -927,18 +955,40 @@ export function assessPrRep(ctx: MyContext): MyPathway {
   const r = req.rep;
   const p = v.rep.value;
   const relation = r?.relation;
+  const childRelation = req.family?.childRelation;
+  const separated =
+    relation !== 'child' && req.family?.separatedOrDivorced === true;
   const cat = category(
     ctx,
     relation === undefined
       ? undefined
       : relation === 'none'
         ? false
-        : r?.participantHasSatk,
+        : all(
+            r?.participantHasSatk,
+            relation === 'child'
+              ? biologicalChild(childRelation)
+              : separated
+                ? undefined
+                : true,
+          ),
     [repGuide('§4 p16'), repGuide('§5.1 p16')],
     L(
       `REP 参与者（马来西亚公民）的外籍配偶或未满 ${p.childUnderAge} 岁的亲生子女，参与者须已获 TalentCorp 发出的 SATK。`,
       `The foreign spouse or biological child under ${p.childUnderAge} of an REP participant (a Malaysian citizen) who has received the SATK from TalentCorp.`,
-    ),
+    ) +
+      (relation === 'child' ? childRelationText(ctx, childRelation) : '') +
+      (separated
+        ? L(
+            '所填已分居或离婚：离婚后不再是参与者的配偶，只分居则仍是；此项未区分两者，待确认。',
+            ' A separation or divorce is reported: after a divorce the applicant is no longer the participant’s spouse, while a separated spouse still is; the answer does not say which.',
+          )
+        : ''),
+    relation === 'child' && childRelation === 'adopted'
+      ? ['PD-409']
+      : separated
+        ? ['PD-405']
+        : [],
   );
   const checks: MyCheck[] = [cat];
   let earliest: IsoDate | null | undefined;
@@ -961,7 +1011,12 @@ export function assessPrRep(ctx: MyContext): MyPathway {
   } else {
     const years =
       relation === 'husband' ? p.husbandMarriageYears : p.wifeMarriageYears;
-    const marriage = marriageDuration(ctx, years, [repGuide('§5.3 p16')]);
+    const marriage = marriageDuration(
+      ctx,
+      years,
+      [repGuide('§5.3 p16')],
+      false,
+    );
     checks.push(
       marriage.check,
       check(

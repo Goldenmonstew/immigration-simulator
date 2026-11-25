@@ -374,13 +374,17 @@ describe('permanent residence: child of a citizen', () => {
     );
   });
 
-  test('stepchildren are pending rather than excluded', () => {
-    const p = path('my.pr.child', {
-      ...child,
-      family: { tie: 'child-of-citizen', childRelation: 'step' },
-    });
-    expect(p.status).toBe('UNKNOWN');
-    expect(p.checks[0].pendingDetails).toEqual(['PD-409']);
+  test('stepchildren are excluded, adopted children pending (review113-1 suggestion 4)', () => {
+    // SRC-505 §4 p17 and §5.3(c) p20: "anak kandung" (biological child).
+    const as = (childRelation: 'step' | 'adopted') =>
+      path('my.pr.child', {
+        ...child,
+        family: { tie: 'child-of-citizen', childRelation },
+      });
+    expect(as('step').status).toBe('NOT_APPLICABLE');
+    expect(as('step').checks[0].status).toBe('NOT_MET');
+    expect(as('adopted').status).toBe('UNKNOWN');
+    expect(as('adopted').checks[0].pendingDetails).toEqual(['PD-409']);
   });
 
   test('no referees and no interview, but police screening remains', () => {
@@ -537,6 +541,38 @@ describe('permanent residence: REP family', () => {
       { srcId: 'SRC-506', locator: 'Lampiran 9 p36' },
     ]);
     expect(deposit('US').explanation).toContain('满 2 年后可申请退还');
+  });
+
+  test('a REP child must be a biological child (review113-1 #9)', () => {
+    // SRC-506 §4(b) p16: "Anak kandung kepada peserta REP".
+    const child = (childRelation: 'biological' | 'step' | 'adopted') =>
+      cond('my.pr.rep-family', 'my.pr.category', {
+        simulationDate: day,
+        dateOfBirth: '2015-01-01',
+        rep: { relation: 'child', participantHasSatk: true },
+        family: { childRelation },
+      });
+    expect(child('biological').status).toBe('MET');
+    expect(child('step').status).toBe('NOT_MET');
+    expect([child('adopted').status, child('adopted').pendingDetails]).toEqual([
+      'UNKNOWN',
+      ['PD-409'],
+    ]);
+  });
+
+  test('REP marriage years carry no separation condition (review113-1 suggestion 5)', () => {
+    // SRC-506 §5.3 p16 sets only the years of marriage.
+    const separated = {
+      ...rep,
+      family: { ...rep.family, separatedOrDivorced: true },
+    };
+    const c = cond('my.pr.rep-family', 'my.pr.marriage-duration', separated);
+    expect(c.status).toBe('MET');
+    expect(c.explanation).not.toContain('未分居');
+    expect(path('my.pr.rep-family', separated).timeStatus).toBe('MET');
+    // A divorce would end the spouse relationship; the answer does not say which.
+    const cat = cond('my.pr.rep-family', 'my.pr.category', separated);
+    expect([cat.status, cat.pendingDetails]).toEqual(['UNKNOWN', ['PD-405']]);
   });
 
   test('not a REP family', () => {
@@ -886,6 +922,20 @@ describe('citizenship by registration', () => {
       cond('my.cit.wife-registration', 'my.cit.certificate-fee', reg).fee
         ?.amount,
     ).toBe(300);
+  });
+
+  test('a reported separation or divorce leaves the marriage open (review113-1 #8)', () => {
+    // Art. 15(1) p39: a married woman whose husband is a citizen; SRC-513:
+    // "That the marriage is still subsisting".
+    const c = cond('my.cit.wife-registration', 'my.cit.category', {
+      ...reg,
+      family: { ...reg.family, separatedOrDivorced: true },
+    });
+    expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', ['PD-405']]);
+    expect(c.explanation).toContain('所填已分居或离婚');
+    expect(
+      cond('my.cit.wife-registration', 'my.cit.category', reg).status,
+    ).toBe('MET');
   });
 
   test('unanswered absences leave the two years open (review113-1 #2)', () => {
