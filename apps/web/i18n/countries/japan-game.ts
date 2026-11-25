@@ -1,13 +1,14 @@
-// Japan's town game: its own stat and recipes, plus `jp.game.*` wording that
-// replaces the shared game strings (see gameKey in app/game-shell/game-ui.tsx).
+// Japan's town game: its own stat, plus `jp.game.*` wording that replaces the
+// shared game strings or adds its own, recipe steps included (see gameKey in
+// app/game-shell/game-ui.tsx).
 export const jpGameZh = {
   'game.japanese': '日语',
-  'game.prepare-miso-soup': '把芜菁放进味噌汤里煮软',
-  'game.prepare-jaga-butter': '蒸好土豆，放一块黄油',
-  'game.prepare-yaki-corn': '刷上酱油，烤出焦香',
-  'game.prepare-shioyaki': '撒盐，把鱼烤到皮脆',
-  'game.prepare-ichigo-jam': '加糖，慢慢熬',
-  'game.prepare-salad': '切块，拌上芝麻酱',
+  'jp.game.prepare-miso-soup': '把芜菁放进味噌汤里煮软',
+  'jp.game.prepare-jaga-butter': '蒸好土豆，放一块黄油',
+  'jp.game.prepare-yaki-corn': '刷上酱油，烤出焦香',
+  'jp.game.prepare-shioyaki': '撒盐，把鱼烤到皮脆',
+  'jp.game.prepare-ichigo-jam': '加糖，慢慢熬',
+  'jp.game.prepare-salad': '切块，拌上芝麻酱',
   'jp.game.prColumn': '永住許可',
   'jp.game.natColumn': '帰化',
   'jp.game.timeDate': '时间条件最早满足',
@@ -43,12 +44,12 @@ export const jpGameZh = {
 
 export const jpGameEn: Record<keyof typeof jpGameZh, string> = {
   'game.japanese': 'Japanese',
-  'game.prepare-miso-soup': 'Simmer the turnip in miso',
-  'game.prepare-jaga-butter': 'Steam the potato and add butter',
-  'game.prepare-yaki-corn': 'Brush with soy and grill',
-  'game.prepare-shioyaki': 'Salt the fish and grill it crisp',
-  'game.prepare-ichigo-jam': 'Add sugar and simmer slowly',
-  'game.prepare-salad': 'Chop and toss with sesame dressing',
+  'jp.game.prepare-miso-soup': 'Simmer the turnip in miso',
+  'jp.game.prepare-jaga-butter': 'Steam the potato and add butter',
+  'jp.game.prepare-yaki-corn': 'Brush with soy and grill',
+  'jp.game.prepare-shioyaki': 'Salt the fish and grill it crisp',
+  'jp.game.prepare-ichigo-jam': 'Add sugar and simmer slowly',
+  'jp.game.prepare-salad': 'Chop and toss with sesame dressing',
   'jp.game.prColumn': 'Permanent residence',
   'jp.game.natColumn': 'Naturalisation',
   'jp.game.timeDate': 'Time requirement met from',

@@ -2,12 +2,12 @@ import { existsSync } from 'node:fs';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
-import type { Locale } from '@uk-immigration/engine';
+import type { CountryResult, Locale } from '@uk-immigration/engine';
 import * as jp from '@uk-immigration/game/jp';
 import { jpGameArt } from '@uk-immigration/game/jp/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
-import { t, withCount } from '../i18n';
+import { t, withCount, type TranslationKey } from '../i18n';
 import { japanModule } from '../lib/japan-module';
 import { readPageResult } from '../lib/page-result';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
@@ -17,6 +17,7 @@ import {
   jpCountry,
   jpShell,
 } from '../app/japan/game/shell';
+import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/japan/town.json';
 
 type State = ReturnType<typeof jp.newGame>;
@@ -71,7 +72,7 @@ test.each(['engineer', 'spouse'])(
     station = settle(jp.enter(station, 'station'));
     const abroad = settle(jp.doActivity(station, 'travel-1'));
     expect(abroad.timeline.trips).toHaveLength(1);
-    const view = (result: State['result']) =>
+    const view = (result: CountryResult) =>
       result.columns[0].pathways.map((pathway) => ({
         id: pathway.id,
         status: pathway.status,
@@ -136,6 +137,27 @@ test.each(['zh-CN', 'en'] as const)(
     // Official source locators stay in Japanese; the game's own text does not.
     if (locale === 'en') expect(hud + bars).not.toMatch(/[\u3400-\u9fff]/);
     expect(html).toContain('town-jp.current-law-2026-11-heading');
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'Japanese recipes keep their own cooking steps in %s',
+  (locale) => {
+    for (const recipe of jp.recipes) {
+      const shared = `game.prepare-${recipe.id}` as TranslationKey;
+      const own = gameKey('jp', shared);
+      expect(own, recipe.id).toBe(`jp.${shared}`);
+      expect(t(own, locale), recipe.id).not.toBe(t(shared, locale));
+    }
+    // The UK salad with the same recipe ID keeps its own step.
+    expect(t('game.prepare-salad', locale)).toBe(
+      locale === 'en' ? 'Toss gently' : '轻轻拌匀',
+    );
+    expect(t(gameKey('jp', 'game.prepare-salad'), locale)).toBe(
+      locale === 'en'
+        ? 'Chop and toss with sesame dressing'
+        : '切块，拌上芝麻酱',
+    );
   },
 );
 

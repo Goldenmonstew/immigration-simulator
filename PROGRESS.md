@@ -665,3 +665,4 @@
 | 764 | 任务 111：报告，含角色、地点、镇民、节日、活动清单、地图草图与其他国家照做的要点。 | docs/tasks/reports/111-jp-game.md |
 | 765 | 任务 111 审核修正（review111-1 问题 1）：工程师一般永住路线补 2026-10-01 新指南起算日 `newStatusStart`（技人国两版指南都计入），结局链接在结果页能还原同一草稿；网页单测按角色循环检查开局与出境一个月后的结局链接回读、草稿与各路径状态、日期、逐项检查与游戏内一致。 | packages/game/src/packs/jp/characters.ts、apps/web/test/japan-game.test.tsx |
 | 766 | 任务 111 审核修正（review111-1 问题 2）：递交永住或帰化申请的旗标改在 `beforeAction`（效果与结局之前）记下，结局文案按它选择，递交帰化申请后显示帰化文案；内容包单测覆盖帰化结局的叙事与结局日志。 | packages/game/src/packs/jp/{hooks,index}.ts、packages/game/test/jp-pack.test.ts |
+| 767 | 任务 111 审核修正（review111-1 问题 3）：日本 6 道菜的做法文案改用 `jp.game.prepare-<菜谱 ID>`，由外壳 `gameKey` 优先取用，不再被英国同 ID（`salad`）的 `game.prepare-*` 覆盖；英国文案与键不变。网页单测按中英文检查日本菜谱做法键带国家前缀、文案不等于英国同 ID 文案；顺带把结局链接单测的结果类型改为 `CountryResult`（第 765 项 typecheck）。 | apps/web/i18n/countries/japan-game.ts、apps/web/test/japan-game.test.tsx |
