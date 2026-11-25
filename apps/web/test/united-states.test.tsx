@@ -1,124 +1,1715 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, test } from 'vitest';
-import { evaluateUnitedStates } from '@uk-immigration/engine';
+import {
+  evaluateUnitedStatesFull,
+  type CountryPathway,
+  type PilotStatus,
+  type UsFullPathway,
+} from '@uk-immigration/engine';
+import { usePathname } from 'next/navigation';
+import { afterEach, expect, test, vi } from 'vitest';
 import UnitedStatesPage from '../app/united-states/page';
-import { PilotResult } from '../app/pilot/pilot-result';
+import UnitedStatesPolicyPage from '../app/united-states/policy/page';
+import { GET as offlinePages } from '../app/offline-pages.json/route';
+import sitemap from '../app/sitemap';
 import Home from '../app/page';
+import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
+import { UnitedStatesWhatIfControls } from '../app/united-states/whatif/controls';
+import { UsFields } from '../app/united-states/simulate/fields';
 import { t } from '../i18n';
+import { usFormEn, usFormZh } from '../i18n/countries/united-states-form';
 import { LocaleContext } from '../i18n/locale';
-import { emptyUsForm, usRequest, validateUsForm } from '../lib/united-states';
-import type { UsForm } from '../lib/united-states';
+import { decodeDraft, encodeDraft } from '../lib/share';
+import type { UsDraft } from '../lib/united-states-draft';
+import {
+  unitedStatesRequest,
+  unitedStatesSteps,
+} from '../lib/united-states-draft';
+import {
+  employmentFields,
+  familyFields,
+  usStepDefinitions,
+  type UsField,
+} from '../lib/united-states-fields';
+import {
+  pathwayOutcome,
+  unitedStatesModule as us,
+} from '../lib/united-states-module';
+import type { UnitedStatesWhatIf } from '../lib/united-states-whatif';
+import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
+import { gapRules } from '../lib/gap-summary';
+import { earliestLabelFor, pathwayDate } from '../lib/country-module';
+import { readPageResult } from '../lib/page-result';
+import { draftStorage } from '../lib/storage';
 
-const render = (node: React.ReactNode, locale: 'zh-CN' | 'en') =>
+vi.mock('next/navigation', () => ({ usePathname: vi.fn(() => '/') }));
+afterEach(() => vi.unstubAllGlobals());
+
+const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
   renderToStaticMarkup(
     <LocaleContext value={{ locale, setLocale: () => {} }}>
       {node}
     </LocaleContext>,
   );
 
-const filled: UsForm = {
-  ...emptyUsForm('2026-11-21'),
+const pathwayOf = (draft: UsDraft, locale: 'zh-CN' | 'en' = 'zh-CN') =>
+  us.run(draft, locale).columns[0].pathways[0];
+
+// A green card holder abroad, returning on a valid card after seven weeks.
+export const travelDraft = (returned = '2026-12-20'): UsDraft => ({
+  version: 1,
+  step: 13,
+  completed: true,
+  simulationDate: '2026-11-21',
+  pathway: 'US-TRAVEL',
   dateOfBirth: '1990-05-01',
-  permanentResident: '2021-03-01',
+  permanentResident: '2022-03-01',
+  conditional: 'none',
+  trips: [{ departed: '2026-11-01', returned }],
+  travel: {
+    registration: 'registered',
+    carryingEvidence: true,
+    movedOn: 'no-move',
+    cardExpiresOn: '2032-03-01',
+    otherReplacementGround: false,
+    admissionTriggers: 'none',
+    deportability: 'cleared',
+    returnDocument: 'green-card',
+    documentValidAtReturn: true,
+    abandonment: 'cleared',
+    feeForm: 'ar11',
+  },
+  fees: { relief: 'none' },
+});
+
+const naturalizationDraft: UsDraft = {
+  version: 1,
+  step: 13,
+  completed: true,
+  simulationDate: '2026-11-21',
+  pathway: 'US-NATURALIZATION',
+  dateOfBirth: '1990-05-01',
+  permanentResident: '2022-03-01',
+  conditional: 'none',
   stateResidenceFrom: '2020-01-01',
-  trips: [{ departed: '2024-01-10', returned: '2024-02-10' }],
+  trips: [],
 };
 
-test.each(['zh-CN', 'en'] as const)('the form renders in %s', (locale) => {
-  const html = render(<UnitedStatesPage />, locale);
-  for (const key of [
-    'us.title',
-    'us.basics',
-    'us.permanentResident',
-    'us.conditional',
-    'us.married',
-    'us.trips',
-    'us.submit',
-  ] as const)
-    expect(html).toContain(t(key, locale));
+test.each(['zh-CN', 'en'] as const)(
+  'the home page links to the questionnaire and policy in %s',
+  (locale) => {
+    const html = render(<UnitedStatesPage />, locale);
+    expect(html).toContain('href="/united-states/simulate"');
+    expect(html).toContain('href="/united-states/policy"');
+    expect(html).toContain(t('us.title', locale));
+    expect(html).toContain(t('us.outOfScope', locale));
+    expect(render(<Home />, locale)).toContain('href="/united-states"');
+  },
+);
+
+test('all five United States pages are in the offline and sitemap lists', async () => {
+  const offline = await offlinePages().json();
+  const paths = sitemap().map(({ url }) => new URL(url).pathname);
+  for (const sub of ['', '/simulate', '/result', '/whatif', '/policy']) {
+    expect(offline).toContain('/united-states' + sub);
+    expect(paths).toContain('/united-states' + sub);
+  }
 });
 
-test('home links to the United States', () => {
-  expect(render(<Home />, 'zh-CN')).toContain('href="/united-states"');
+test('every question has wording in both languages', () => {
+  const keys = new Set<string>();
+  const collect = (fields: UsField[]) => {
+    for (const field of fields) {
+      keys.add('us.field.' + field.label);
+      if (field.hint) keys.add('us.hint.' + field.hint);
+      for (const option of field.alternatives ?? [])
+        keys.add('us.option.' + option);
+      if (field.type === 'choice')
+        for (const option of field.options)
+          keys.add('us.option.' + (field.labels?.[option] ?? option));
+      if (field.type === 'group' || field.type === 'list')
+        collect(field.fields);
+    }
+  };
+  for (const definition of usStepDefinitions) {
+    keys.add('us.step.' + definition.title);
+    keys.add('us.intro.' + definition.title);
+    for (const section of definition.sections) {
+      collect(section.fields);
+      if (section.title) keys.add('us.section.' + section.title);
+    }
+  }
+  for (const key of keys) {
+    expect(usFormZh, key).toHaveProperty([key]);
+    expect(usFormEn, key).toHaveProperty([key]);
+  }
 });
 
-test('validation marks missing and out-of-order dates', () => {
+test('drafts round-trip in their own share envelope and invalid drafts are rejected', () => {
+  const draft = travelDraft();
+  const encoded = encodeDraft(us, draft);
+  expect(decodeDraft(us, encoded)).toEqual(draft);
+  expect(decodeDraft(japanModule, encoded)).toBeUndefined();
   expect(
-    validateUsForm({
-      ...emptyUsForm('2026-11-21'),
-      permanentResident: '2022-03-01',
-      married: true,
+    decodeDraft(us, encodeDraft(japanModule, japanModule.createDraft())),
+  ).toBeUndefined();
+  const fresh = us.createDraft();
+  expect(us.decodeDraft(fresh)).toEqual(fresh);
+  for (const bad of [
+    null,
+    { ...draft, version: 2 },
+    { ...draft, pathway: 'US-LOTTERY' },
+    { ...draft, step: 2 },
+    { ...draft, trips: 'none' },
+    { ...draft, travel: { ...draft.travel, deportability: 'yes' } },
+    { ...draft, fees: [] },
+  ])
+    expect(us.decodeDraft(bad)).toBeUndefined();
+  // A saved draft that no longer validates reopens at the failing step.
+  const incomplete = { ...draft, permanentResident: undefined };
+  expect(us.decodeDraft(incomplete)).toMatchObject({
+    completed: false,
+    step: 1,
+  });
+  expect(us.decodeDraft(incomplete, true)).toBeUndefined();
+});
+
+test('answers for questions that are not shown stay out of the assessment and the link', () => {
+  const draft: UsDraft = {
+    ...travelDraft(),
+    naturalization: { english: 'passed' },
+    employment: { category: 'eb3' },
+    travel: { ...travelDraft().travel, permitFiledOn: '2026-01-01' },
+  };
+  const active = us.activeAnswers!(draft);
+  expect(active).not.toHaveProperty('naturalization');
+  expect(active).not.toHaveProperty('employment');
+  expect(active.travel).not.toHaveProperty('permitFiledOn');
+  expect(decodeDraft(us, encodeDraft(us, draft))).toEqual(travelDraft());
+});
+
+test('the pathway, the green card date and the employment petition status are required', () => {
+  const fresh = us.createDraft();
+  expect(unitedStatesSteps(fresh)).toHaveLength(1);
+  expect(us.validateStep(fresh)).toEqual({ 'us-pathway': 'us.error.required' });
+  const chosen = { ...fresh, pathway: 'US-NATURALIZATION' as const };
+  expect(us.validateStep(chosen)).toEqual({
+    'us-dateOfBirth': 'us.error.required',
+  });
+  expect(us.validateStep({ ...chosen, step: 1 })).toEqual({
+    'us-permanentResident': 'us.error.required',
+  });
+  expect(unitedStatesSteps(chosen).map(({ step }) => step)).toEqual([
+    0, 1, 3, 4, 13,
+  ]);
+  const family: UsDraft = {
+    ...fresh,
+    pathway: 'US-FAMILY',
+    admission: { process: 'consular' },
+  };
+  expect(unitedStatesSteps(family).map(({ step }) => step)).toEqual([
+    0, 1, 7, 10, 11, 12, 13,
+  ]);
+  expect(us.validateStep({ ...family, step: 10 })).toEqual({});
+  expect(
+    us.validateStep({
+      ...family,
+      step: 10,
+      admission: { process: 'consular', petitionStatus: 'filed-with-i485' },
+    }),
+  ).toEqual({ 'us-admission-petitionStatus': 'us.error.consularPetition' });
+});
+
+test('trips must be in order, after the green card and must not overlap', () => {
+  const draft = { ...travelDraft(), step: 1 };
+  expect(us.validateStep(draft)).toEqual({});
+  expect(
+    us.validateStep({
+      ...draft,
       trips: [
-        { departed: '2024-02-10', returned: '2024-01-10' },
-        { departed: '2021-02-10', returned: '2021-03-10' },
+        { departed: '2026-09-01', returned: '2026-09-20' },
+        { departed: '2026-11-01', returned: '2026-10-20' },
+        { departed: '2021-01-01', returned: '2021-02-01' },
+        { departed: '2026-09-10', returned: '2026-09-25' },
+        { departed: '' as string, returned: '2026-11-05' },
       ],
     }),
   ).toEqual({
-    'us-date-of-birth': 'us.error.date',
-    'us-married-on': 'us.error.date',
-    'us-trip-0-returned': 'us.error.order',
-    'us-trip-1-departed': 'us.error.beforeGreenCard',
+    'us-trips-1-returned': 'us.error.order',
+    'us-trips-2-departed': 'us.error.beforeGreenCard',
+    'us-trips-3-departed': 'us.error.overlap',
+    'us-trips-4-departed': 'us.error.entered',
   });
-  expect(validateUsForm(filled)).toEqual({});
 });
 
-test('the request leaves out an unticked marriage and blank dates', () => {
-  const request = usRequest(filled, 'en');
-  expect(request).not.toHaveProperty('marriage');
-  expect(
-    usRequest({ ...filled, stateResidenceFrom: '' }, 'en'),
-  ).not.toHaveProperty('stateResidenceFrom');
-  expect(
-    usRequest({ ...filled, married: true, marriedOn: '2022-01-01' }, 'en')
-      .marriage,
-  ).toEqual({ married: '2022-01-01' });
+const employmentDraft = (employment: UsDraft['employment']): UsDraft => ({
+  ...us.createDraft(),
+  simulationDate: '2026-11-21',
+  step: 8,
+  pathway: 'US-EMPLOYMENT',
+  admission: { process: 'adjustment', petitionStatus: 'approved' },
+  employment: {
+    category: 'eb3',
+    perm: 'certified',
+    permRecruitment: { laborCertificationFiledOn: '2025-07-01' },
+    ...employment,
+  },
 });
 
-test('filing with a principal applicant needs their date', () => {
-  // A conditional green card asks how it was obtained.
-  expect(validateUsForm({ ...filled, conditional: 'marriage' })).toEqual({
-    'us-role': 'us.error.role',
-  });
-  const joint = {
-    ...filled,
-    conditional: 'investor' as const,
-    role: 'joint' as const,
-  };
-  expect(validateUsForm(joint)).toEqual({
-    'us-principal-since': 'us.error.date',
+test('same-year wage records cannot describe the same wages twice', () => {
+  const row = { year: 2026, paidUsd: 30000 };
+  const errors = (wageYears: object[]) =>
+    us.validateStep(
+      employmentDraft({
+        wageYears: wageYears as never,
+        priorityYearProration: { finding: 'cleared' },
+      }),
+    );
+  // Separate periods and year-to-date records are accepted.
+  expect(
+    errors([
+      { ...row, through: '2026-06-30' },
+      { ...row, from: '2026-07-01' },
+      { year: 2025, through: '2025-06-30', paidUsd: 10000 },
+      { year: 2025, paidUsd: 25000 },
+    ]),
+  ).toEqual({});
+  expect(errors([row, { ...row, paidUsd: 50000 }])).toEqual({
+    'us-employment-wageYears-1-from': 'us.error.wageOverlap',
   });
   expect(
-    validateUsForm({ ...joint, principalSince: '2099-01-01' })[
-      'us-principal-since'
+    errors([
+      { ...row, through: '2026-09-30' },
+      { ...row, from: '2026-07-01' },
+    ]),
+  ).toEqual({ 'us-employment-wageYears-1-from': 'us.error.wageOverlap' });
+  expect(
+    errors([
+      { ...row, through: '2026-06-30', paidUsd: 40000 },
+      { ...row, paidUsd: 35000 },
+    ]),
+  ).toEqual({ 'us-employment-wageYears-1-paidUsd': 'us.error.wageCumulative' });
+  expect(errors([{ ...row, through: '2025-12-31' }])).toEqual({
+    'us-employment-wageYears-0-through': 'us.error.wageYear',
+  });
+});
+
+test('without accepted proration the priority-date year starts on 1 January', () => {
+  const split = {
+    wageYears: [
+      { year: 2025, through: '2025-06-30', netIncomeUsd: -20000 },
+      { year: 2025, from: '2025-07-01', netIncomeUsd: 70000 },
     ],
-  ).toBe('us.error.principalOrder');
+  };
+  expect(us.validateStep(employmentDraft(split))).toEqual({
+    'us-employment-wageYears-1-from': 'us.error.wageProration',
+  });
+  for (const finding of [undefined, 'pending', 'barred'] as const)
+    expect(
+      us.validateStep(
+        employmentDraft({
+          ...split,
+          ...(finding && { priorityYearProration: { finding } }),
+        }),
+      ),
+    ).toHaveProperty(['us-employment-wageYears-1-from']);
   expect(
-    usRequest({ ...joint, principalSince: '2018-01-01' }, 'en')
-      .principalConditional,
-  ).toBe('2018-01-01');
-  // Filing separately needs no date and is passed on as such.
-  const separate = { ...joint, role: 'separate' as const };
-  expect(validateUsForm(separate)).toEqual({});
-  expect(usRequest(separate, 'en')).toMatchObject({ separatePetition: true });
-  expect(usRequest(separate, 'en')).not.toHaveProperty('principalConditional');
-  // Ignored once the green card is not conditional.
-  expect(
-    usRequest(
-      { ...joint, conditional: 'none', principalSince: '2018-01-01' },
-      'en',
+    us.validateStep(
+      employmentDraft({
+        ...split,
+        priorityYearProration: { finding: 'cleared' },
+      }),
     ),
-  ).not.toHaveProperty('principalConditional');
+  ).toEqual({});
+  // A priority date on 1 January needs no split.
+  expect(
+    us.validateStep(
+      employmentDraft({
+        ...split,
+        permRecruitment: { laborCertificationFiledOn: '2025-01-01' },
+      }),
+    ),
+  ).toEqual({});
 });
 
-test.each(['zh-CN', 'en'] as const)('results render in %s', (locale) => {
-  const result = evaluateUnitedStates(usRequest(filled, locale));
-  const html = render(<PilotResult result={result} />, locale);
-  expect(html.match(/data-pathway=/g)).toHaveLength(4);
-  expect(html).toContain('data-pathway="US-NATURALIZATION" data-status="MET"');
-  expect(html).toContain(
-    'data-pathway="US-SPOUSE" data-status="NOT_APPLICABLE"',
+test('a planned return in the future gives the return date, which the comparison can move', () => {
+  const future = pathwayOf(travelDraft());
+  expect(future).toMatchObject({
+    id: 'US-TRAVEL',
+    status: 'FUTURE',
+    earliestDate: '2026-12-20',
+  });
+  const knobs = us.whatif.initial(travelDraft());
+  expect(knobs).toMatchObject({
+    simulationDate: '2026-11-21',
+    returnOn: '2026-12-20',
+    noTrips: false,
+  });
+  const after = us.whatif.apply(travelDraft(), {
+    ...knobs,
+    returnOn: '2027-01-05',
+  });
+  expect(
+    us.whatif.validate(after, { ...knobs, returnOn: '2027-01-05' }),
+  ).toEqual({});
+  expect(after.trips).toEqual([
+    { departed: '2026-11-01', returned: '2027-01-05' },
+  ]);
+  expect(travelDraft().trips![0].returned).toBe('2026-12-20');
+  expect(pathwayOf(after).earliestDate).toBe('2027-01-05');
+  expect(
+    us.whatif.validate(
+      us.whatif.apply(travelDraft(), { ...knobs, returnOn: '2026-10-01' }),
+      { ...knobs, returnOn: '2026-10-01' },
+    ),
+  ).toEqual({ returnOn: 'us.error.order' });
+});
+
+test('a completed return meets the assessed requirements', () => {
+  const draft = { ...travelDraft('2026-11-10') };
+  expect(pathwayOf(draft)).toMatchObject({ status: 'MET' });
+  expect(pathwayOf(draft).checks.every((check) => check.status === 'MET')).toBe(
+    true,
   );
-  expect(html).toContain(`href="${sourceUrls['SRC-081']}"`);
-  expect(html).toContain('PD-092');
+});
+
+test('naturalization with open requirements is pending and lists them with sources', () => {
+  const pathway = pathwayOf(naturalizationDraft);
+  expect(pathway.status).toBe('UNKNOWN');
+  expect(pathway.earliestDate).toBeUndefined();
+  const english = pathway.checks.find((check) => check.id === 'US-C03-ENGLISH');
+  expect(english?.status).toBe('UNKNOWN');
+  expect(pathway.summary).toContain(
+    t('us.result.approval').replace('{status}', t('country.status.UNKNOWN')),
+  );
+  const html = render(
+    <ResultView
+      country={us}
+      result={us.run(naturalizationDraft, 'zh-CN')}
+      draft={naturalizationDraft}
+    />,
+  );
+  expect(html).toContain('一般入籍');
+  expect(html).toContain(`href="${sourceUrls['SRC-291']}"`);
+  // Passing the tests in a comparison resolves those checks only.
+  const knobs = us.whatif.initial(naturalizationDraft);
+  const after = us.whatif.apply(naturalizationDraft, {
+    ...knobs,
+    english: 'passed',
+    civics: 'passed',
+  });
+  expect(after.naturalization).toEqual({
+    english: 'passed',
+    civics: 'passed',
+  });
+  const checks = pathwayOf(after).checks;
+  expect(checks.find((check) => check.id === 'US-C03-ENGLISH')?.status).toBe(
+    'MET',
+  );
+  expect(checks.find((check) => check.id === 'US-C04-CIVICS')?.status).toBe(
+    'MET',
+  );
+  expect(naturalizationDraft).not.toHaveProperty('naturalization');
+  expect(us.whatif.focusForRule('US-C03-ENGLISH', 'US-NATURALIZATION')).toBe(
+    'english',
+  );
+  expect(us.whatif.focusForRule('US-TIME-TRAVEL', 'US-TRAVEL')).toBe(
+    'returnOn',
+  );
+});
+
+const conditionsDraft: UsDraft = {
+  version: 1,
+  step: 13,
+  completed: true,
+  simulationDate: '2026-11-21',
+  pathway: 'US-CONDITIONS',
+  dateOfBirth: '1990-05-01',
+  permanentResident: '2025-06-01',
+  conditional: 'marriage',
+  trips: [],
+  conditions: {
+    marriage: {
+      marriedOn: '2024-01-01',
+      bonaFide: 'cleared',
+      improperConsideration: false,
+      filing: 'joint',
+      spouseJoins: true,
+      finalRemovalOrder: false,
+    },
+  },
+  fees: {
+    channel: 'online',
+    relief: 'none',
+    onlineCategoryAvailable: 'cleared',
+  },
+};
+
+test('removing conditions before the window shows the earliest filing date and the approval stage', () => {
+  const draft = conditionsDraft;
+  // The filing date is kept; the outcome is open while approval requirements
+  // are (review96-2 #2).
+  const pathway = pathwayOf(draft, 'en');
+  expect(pathway).toMatchObject({
+    status: 'UNKNOWN',
+    earliestDate: '2027-03-03',
+    approvalStatus: 'UNKNOWN',
+  });
+  expect(pathway.summary).toContain(
+    t('us.result.approval', 'en').replace(
+      '{status}',
+      t('country.status.UNKNOWN', 'en'),
+    ),
+  );
+  // Moving the assessment date into the window meets the filing timing. The
+  // outcome stays open (review96-1 #6).
+  const knobs = us.whatif.initial(draft);
+  const later = us.whatif.apply(draft, {
+    ...knobs,
+    simulationDate: '2027-03-10',
+  });
+  expect(pathwayOf(later)).toMatchObject({
+    status: 'UNKNOWN',
+    approvalStatus: 'UNKNOWN',
+    earliestDate: '2027-03-10',
+  });
+  expect(pathwayOf(later).summary).toContain(
+    t('us.result.approval').replace('{status}', t('country.status.UNKNOWN')),
+  );
+});
+
+test('month and ground tables become records for the engine', () => {
+  const draft: UsDraft = {
+    ...us.createDraft(),
+    simulationDate: '2026-11-21',
+    pathway: 'US-ADJUSTMENT',
+    admission: {
+      process: 'adjustment',
+      adjustmentBasis: 'other',
+      visaAtFilingByMonth: [{ month: '2026-11', availability: 'available' }],
+      otherInadmissibilityByGround: [{ ground: '6(C)', finding: 'cleared' }],
+    },
+  };
+  expect(unitedStatesRequest(draft, 'en').admission).toMatchObject({
+    visaAtFilingByMonth: { '2026-11': 'available' },
+    otherInadmissibilityByGround: { '6(C)': 'cleared' },
+  });
+  expect(
+    us.validateStep({
+      ...draft,
+      step: 10,
+      admission: {
+        ...draft.admission,
+        petitionStatus: 'pending',
+        visaAtFilingByMonth: [
+          { month: '2026-11', availability: 'available' },
+          { month: '2026-11', availability: 'unavailable' },
+        ],
+      },
+    }),
+  ).toEqual({
+    'us-admission-visaAtFilingByMonth-1-month': 'us.error.duplicate',
+  });
+  expect(
+    us.validateStep({
+      ...draft,
+      step: 12,
+      admission: {
+        ...draft.admission,
+        otherInadmissibilityByGround: [{ ground: '4', finding: 'cleared' }],
+      },
+    }),
+  ).toEqual({
+    'us-admission-otherInadmissibilityByGround-0-ground': 'us.error.ground',
+  });
+});
+
+test('result explanations do not repeat the condition title', () => {
+  for (const draft of [travelDraft(), naturalizationDraft])
+    for (const locale of ['zh-CN', 'en'] as const)
+      for (const check of pathwayOf(draft, locale).checks)
+        expect(check.explanation.startsWith(check.title), check.id).toBe(false);
+});
+
+test('the policy page lists every condition, United States sources only, under a country title', () => {
+  const rules = us.policy.rules['us.current-law-2026-11'];
+  const ids = rules.map((rule) => rule.id);
+  expect(new Set(ids).size).toBe(ids.length);
+  // Including the pending-I-485 condition (review96-1 #7).
+  expect(ids).toHaveLength(105);
+  expect(ids).toContain('US-I485-PENDING-ELIGIBILITY');
+  for (const rule of rules) {
+    expect(rule.titleEn, rule.id).toBeTruthy();
+    expect(rule.sources.length, rule.id).toBeGreaterThan(0);
+  }
+  for (const draft of [travelDraft(), naturalizationDraft])
+    for (const check of pathwayOf(draft).checks)
+      expect(ids).toContain(check.id);
+  const sources = Object.keys(us.policy.sourceUrls);
+  expect(sources).toContain('SRC-309');
+  expect(
+    sources.every((id) => {
+      const n = Number(id.slice(4));
+      return (n >= 79 && n <= 82) || (n >= 290 && n <= 319);
+    }),
+  ).toBe(true);
+  expect(t('us.policy.pageTitle')).toBe('美国政策依据');
+  expect(t('us.policy.pageTitle', 'en')).toBe(
+    'Policy basis for the United States',
+  );
+  const html = render(<UnitedStatesPolicyPage />, 'en');
+  expect(html).toContain('data-pathway="US-HUMANITARIAN"');
+  expect(html).toContain('data-rule="US-C29-ABILITY-TO-PAY"');
+  expect(html).toContain('data-source="SRC-315"');
+  expect(html).not.toContain('undefined');
+});
+
+const immigrantDraft = (
+  pathway: 'US-FAMILY' | 'US-EMPLOYMENT' | 'US-ADJUSTMENT',
+  admission: UsDraft['admission'],
+  extra: Partial<UsDraft> = {},
+): UsDraft => ({
+  ...us.createDraft(),
+  simulationDate: '2026-11-21',
+  step: 10,
+  pathway,
+  admission,
+  ...extra,
+});
+
+test('questions are shown, kept and required where the engine reads them (review96-1)', () => {
+  // A consular decision in a later month uses that month's chart (#1).
+  const consular = immigrantDraft(
+    'US-FAMILY',
+    {
+      process: 'consular',
+      decisionOn: '2026-12-10',
+      visaAtFilingByMonth: [{ month: '2026-11', availability: 'available' }],
+      visaAtDecisionByMonth: [{ month: '2026-12', availability: 'available' }],
+    },
+    { family: { petitioner: 'lpr', relationship: 'spouse' } },
+  );
+  const consularRequest = unitedStatesRequest(consular, 'en').admission;
+  expect(consularRequest?.visaAtDecisionByMonth).toEqual({
+    '2026-12': 'available',
+  });
+  expect(consularRequest).not.toHaveProperty('visaAtFilingByMonth');
+  // The petition status can stay open unless a blank answer would date an
+  // employment petition from the I-485 receipt (#3).
+  expect(us.validateStep(consular)).toEqual({});
+  for (const adjustmentBasis of ['245i', 'other'] as const)
+    expect(
+      us.validateStep(
+        immigrantDraft('US-ADJUSTMENT', {
+          process: 'adjustment',
+          adjustmentBasis,
+        }),
+      ),
+    ).toEqual({});
+  expect(
+    us.validateStep(immigrantDraft('US-EMPLOYMENT', { process: 'adjustment' })),
+  ).toEqual({ 'us-admission-petitionStatus': 'us.error.required' });
+  expect(
+    us.validateStep(
+      immigrantDraft('US-ADJUSTMENT', {
+        process: 'adjustment',
+        adjustmentBasis: 'employment',
+      }),
+    ),
+  ).toEqual({ 'us-admission-petitionStatus': 'us.error.required' });
+  // An employer filing for an EB-1A or NIW beneficiary pays by employer size (#4).
+  const eb1a = immigrantDraft(
+    'US-EMPLOYMENT',
+    { process: 'consular' },
+    {
+      employment: {
+        category: 'eb1a',
+        i140SelfPetition: false,
+        employerEmployees: 50,
+        employerNonprofit: false,
+      },
+      fees: { channel: 'paper', relief: 'none' },
+    },
+  );
+  expect(unitedStatesRequest(eb1a, 'en').employment).toMatchObject({
+    employerEmployees: 50,
+    employerNonprofit: false,
+  });
+  expect(
+    pathwayOf(eb1a).checks.find((check) => check.id === 'US-C44-I140')?.status,
+  ).toBe('MET');
+  const selfPetition = unitedStatesRequest(
+    { ...eb1a, employment: { ...eb1a.employment, i140SelfPetition: true } },
+    'en',
+  ).employment;
+  expect(selfPetition).not.toHaveProperty('employerEmployees');
+  expect(selfPetition).not.toHaveProperty('employerNonprofit');
+  // VAWA on the family path and SIJ on the employment path replace the petition (#10).
+  const steps = (draft: UsDraft) =>
+    unitedStatesSteps(draft).map(({ step }) => step);
+  expect(
+    steps(
+      immigrantDraft('US-FAMILY', {
+        process: 'adjustment',
+        adjustmentBasis: 'vawa',
+      }),
+    ),
+  ).toEqual([0, 1, 10, 11, 12, 13]);
+  expect(
+    steps(
+      immigrantDraft('US-EMPLOYMENT', {
+        process: 'adjustment',
+        adjustmentBasis: 'sij',
+      }),
+    ),
+  ).toEqual([0, 1, 10, 11, 12, 13]);
+  // A transfer from an employment basis checks that basis's adjustment bars (risk 1).
+  const transfer = (qualifyingBasisAtFiling?: 'cleared') =>
+    unitedStatesRequest(
+      immigrantDraft('US-FAMILY', {
+        process: 'adjustment',
+        lawfulNonimmigrantStatusAtFiling: true,
+        lawfulAdmissionFor245k: true,
+        i485BasisTransfer: {
+          originalPetition: {
+            adjustmentBasis: 'employment',
+            qualifyingBasisAtFiling,
+          },
+        },
+      }),
+      'en',
+    ).admission;
+  expect(transfer()).toMatchObject({
+    lawfulNonimmigrantStatusAtFiling: true,
+    lawfulAdmissionFor245k: true,
+  });
+  // A confirmed original basis still has its reported bars (review96-2 risk 1).
+  expect(transfer('cleared')).toMatchObject({
+    lawfulNonimmigrantStatusAtFiling: true,
+    lawfulAdmissionFor245k: true,
+  });
+  const barred = spouseAdjustment({
+    lawfulNonimmigrantStatusAtFiling: false,
+    lawfulAdmissionFor245k: false,
+    i485BasisTransfer: {
+      originalPetition: {
+        adjustmentBasis: 'employment',
+        qualifyingBasisAtFiling: 'cleared',
+      },
+    },
+  });
+  expect(
+    pathwayOf(barred).checks.find(
+      (check) => check.id === 'US-C34-ADJUSTMENT-BARS',
+    ),
+  ).toMatchObject({ filingStatus: 'NOT_MET' });
+  // The interview date is read for consular cases only (suggestion 4).
+  const interview = (process: 'adjustment' | 'consular') =>
+    unitedStatesRequest(
+      immigrantDraft('US-FAMILY', { process, interviewOn: '2027-01-05' }),
+      'en',
+    ).admission;
+  expect(interview('adjustment')).not.toHaveProperty('interviewOn');
+  expect(interview('consular')).toHaveProperty('interviewOn', '2027-01-05');
+  // A regular green card has no removal-of-conditions step.
+  expect(
+    steps({
+      ...us.createDraft(),
+      pathway: 'US-CONDITIONS',
+      conditional: 'none',
+    }),
+  ).toEqual([0, 1, 13]);
+});
+
+test('wage and trip checks read the records as the engine does (review96-1)', () => {
+  // A blank end date in the coverage year runs to the coverage date (#5).
+  expect(
+    us.validateStep(
+      employmentDraft({
+        profferedWageUsd: 75000,
+        permRecruitment: { laborCertificationFiledOn: '2026-01-01' },
+        wagePeriodComplete: true,
+        wageYears: [
+          { year: 2026, through: '2026-11-21', paidUsd: 50000 },
+          { year: 2026, paidUsd: 80000 },
+        ],
+      }),
+    ),
+  ).toEqual({ 'us-employment-wageYears-1-from': 'us.error.wageOverlap' });
+  // An EB-1B petition filed with the I-485 takes its receipt as the priority date (#5).
+  const concurrent: UsDraft = {
+    ...us.createDraft(),
+    simulationDate: '2026-11-23',
+    step: 8,
+    pathway: 'US-EMPLOYMENT',
+    admission: { process: 'adjustment', petitionStatus: 'filed-with-i485' },
+    employment: {
+      category: 'eb1b',
+      profferedWageUsd: 60000,
+      wagePeriodComplete: true,
+      wageYears: [
+        { year: 2026, through: '2026-11-22', netIncomeUsd: -20000 },
+        {
+          year: 2026,
+          from: '2026-11-23',
+          through: '2026-11-23',
+          netIncomeUsd: 70000,
+        },
+      ],
+    },
+  };
+  expect(us.validateStep(concurrent)).toEqual({
+    'us-employment-wageYears-1-from': 'us.error.wageProration',
+  });
+  // While proration is undecided, wages paid from the priority date are
+  // accepted; net income still covers the whole year (risk 3).
+  const afterPriority = (
+    finding?: 'pending' | 'barred',
+    amounts: object = { paidUsd: 45000 },
+  ) =>
+    us.validateStep(
+      employmentDraft({
+        profferedWageUsd: 60000,
+        wageYears: [
+          { year: 2025, from: '2025-07-01', ...amounts },
+          { year: 2026, paidUsd: 60000 },
+        ],
+        ...(finding && { priorityYearProration: { finding } }),
+      }),
+    );
+  const proration = {
+    'us-employment-wageYears-0-from': 'us.error.wageProration',
+  };
+  expect(afterPriority()).toEqual({});
+  expect(afterPriority('pending')).toEqual({});
+  expect(afterPriority('barred')).toEqual(proration);
+  expect(afterPriority('pending', { netIncomeUsd: 70000 })).toEqual(proration);
+  // Years have four digits (risk 4).
+  expect(
+    us.validateStep(employmentDraft({ wageYears: [{ year: 25, paidUsd: 1 }] })),
+  ).toEqual({ 'us-employment-wageYears-0-year': 'us.error.year' });
+  // A blank departure is reported once, not as an overlap (risk 4).
+  expect(
+    us.validateStep({
+      ...travelDraft(),
+      step: 1,
+      trips: [
+        { departed: '', returned: '2026-11-05' },
+        { departed: '2026-09-01', returned: '2026-09-20' },
+      ],
+    }),
+  ).toEqual({ 'us-trips-0-departed': 'us.error.entered' });
+});
+
+test('comparison controls drive the engine and keep answers tied to the assessment date (review96-1)', () => {
+  const f2a = (admission: UsDraft['admission']) =>
+    immigrantDraft(
+      'US-FAMILY',
+      {
+        process: 'adjustment',
+        petitionStatus: 'approved',
+        decisionOn: '2027-02-01',
+        ...admission,
+      },
+      { family: { petitioner: 'lpr', relationship: 'spouse' } },
+    );
+  const decisionMonths = (draft: UsDraft) =>
+    unitedStatesRequest(draft, 'en').admission?.visaAtDecisionByMonth;
+  const visa = (draft: UsDraft) =>
+    pathwayOf(draft).checks.find(
+      (check) => check.id === 'US-C33-VISA-AND-ENTRY',
+    )?.status;
+  // The decision-month chart drives the knob and the engine (#2).
+  const charted = f2a({
+    visaAtDecisionByMonth: [{ month: '2027-02', availability: 'unavailable' }],
+  });
+  const knobs = us.whatif.initial(charted);
+  expect(knobs.visaAtDecision).toBe('unavailable');
+  const available = us.whatif.apply(charted, {
+    ...knobs,
+    visaAtDecision: 'available',
+    visaChanged: true,
+  });
+  expect(decisionMonths(available)).toEqual({ '2027-02': 'available' });
+  expect(visa(charted)).toBe('NOT_MET');
+  expect(visa(available)).not.toBe('NOT_MET');
+  const blank = f2a({});
+  expect(us.whatif.initial(blank).visaAtDecision).toBeUndefined();
+  expect(
+    decisionMonths(
+      us.whatif.apply(blank, {
+        ...us.whatif.initial(blank),
+        visaAtDecision: 'available',
+        visaChanged: true,
+      }),
+    ),
+  ).toEqual({ '2027-02': 'available' });
+  // A later decision date reads that month's answer; the untouched control
+  // shows it, and a changed control sets it (#2, review96-2 #1).
+  const sameMonth = f2a({
+    decisionOn: '2026-11-30',
+    visaAtDecision: 'available',
+  });
+  const sameKnobs = us.whatif.initial(sameMonth);
+  expect(sameKnobs.visaAtDecision).toBe('available');
+  const later = us.whatif.apply(sameMonth, {
+    ...sameKnobs,
+    decisionOn: '2027-01-15',
+  });
+  expect(decisionMonths(later)).toBeUndefined();
+  expect(visa(later)).toBe('UNKNOWN');
+  expect(
+    render(
+      <UnitedStatesWhatIfControls
+        afterDraft={later}
+        knobs={{ ...sameKnobs, decisionOn: '2027-01-15' }}
+        errors={{}}
+        update={() => {}}
+      />,
+    ),
+  ).toMatch(/id="us-whatif-visa"><option value="" selected=""/);
+  expect(
+    decisionMonths(
+      us.whatif.apply(sameMonth, {
+        ...sameKnobs,
+        decisionOn: '2027-01-15',
+        visaAtDecision: 'available',
+        visaChanged: true,
+      }),
+    ),
+  ).toEqual({ '2027-01': 'available' });
+  // Answers for the assessment date stay with that date when it moves (risk 5).
+  const bound = f2a({
+    decisionOn: undefined,
+    visaAtFiling: 'available',
+    visaAtDecision: 'available',
+  });
+  const moved = us.whatif.apply(bound, {
+    ...us.whatif.initial(bound),
+    simulationDate: '2027-01-10',
+  });
+  expect(moved.admission).toMatchObject({
+    visaAtFilingByMonth: [{ month: '2026-11', availability: 'available' }],
+    visaAtDecisionByMonth: [{ month: '2026-11', availability: 'available' }],
+  });
+  expect(moved.admission).not.toHaveProperty('visaAtFiling');
+  expect(moved.admission).not.toHaveProperty('visaAtDecision');
+  const refugee: UsDraft = {
+    ...us.createDraft(),
+    simulationDate: '2026-11-21',
+    pathway: 'US-HUMANITARIAN',
+    humanitarian: { status: 'refugee', presenceDays: 300 },
+  };
+  expect(
+    us.whatif.apply(refugee, {
+      ...us.whatif.initial(refugee),
+      simulationDate: '2027-01-10',
+    }).humanitarian,
+  ).toMatchObject({ presenceDays: 300, presenceThrough: '2026-11-21' });
+  const wages = employmentDraft({ wageYears: [{ year: 2026, paidUsd: 1 }] });
+  expect(
+    us.whatif.apply(wages, {
+      ...us.whatif.initial(wages),
+      simulationDate: '2027-01-10',
+    }).employment,
+  ).toMatchObject({ wagePeriodThrough: '2026-11-21' });
+  // Untouched controls leave the result as it is.
+  for (const draft of [
+    travelDraft(),
+    naturalizationDraft,
+    charted,
+    blank,
+    sameMonth,
+    bound,
+    refugee,
+    wages,
+  ])
+    expect(
+      us.run(us.whatif.apply(draft, us.whatif.initial(draft)), 'en'),
+    ).toEqual(us.run(draft, 'en'));
+  // A cleared return date is an error, not the old date (#8).
+  const travelKnobs = us.whatif.initial(travelDraft());
+  expect(
+    us.whatif.validate(
+      us.whatif.apply(travelDraft(), { ...travelKnobs, returnOn: '' }),
+      { ...travelKnobs, returnOn: '' },
+    ),
+  ).toEqual({ returnOn: 'us.error.date' });
+  // Without a trip, the return-date link lands on an explanation (risk 2).
+  const noTrip = { ...travelDraft(), trips: undefined };
+  expect(us.whatif.focusForRule('US-TIME-TRAVEL', 'US-TRAVEL')).toBe(
+    'returnOn',
+  );
+  const controls = (draft: UsDraft) =>
+    render(
+      <UnitedStatesWhatIfControls
+        afterDraft={draft}
+        knobs={us.whatif.initial(draft)}
+        errors={{}}
+        update={() => {}}
+      />,
+    );
+  expect(controls(noTrip)).toMatch(
+    /<p id="us-whatif-return" tabindex="-1"[^>]*>问卷里没有出入境记录/,
+  );
+  expect(controls(travelDraft())).toContain(
+    'id="us-whatif-return" type="date"',
+  );
+  // The date hint is announced with the date (suggestion 4).
+  expect(controls(travelDraft())).toContain(
+    'aria-describedby="us-whatif-date-hint"',
+  );
+});
+
+// A permanent resident's spouse adjusting status with every answer filled
+// (review96-2).
+const spouseAdjustment = (admission: UsDraft['admission'] = {}): UsDraft => ({
+  ...us.createDraft(),
+  simulationDate: '2026-11-21',
+  step: 13,
+  completed: true,
+  pathway: 'US-FAMILY',
+  dateOfBirth: '1990-01-01',
+  trips: [],
+  admission: {
+    process: 'adjustment',
+    petitionStatus: 'approved',
+    petitionFiledOn: '2024-01-10',
+    qualifyingBasis: 'cleared',
+    i485FiledOn: '2026-10-01',
+    legalEntry: 'admitted',
+    otherAdjustmentBar: 'none',
+    qualifyingViolationsDays: 0,
+    discretion: 'cleared',
+    visaAtFilingByMonth: [{ month: '2026-10', availability: 'available' }],
+    classAHealth: 'cleared',
+    vaccines: 'cleared',
+    medicalEvidence: 'cleared',
+    i693SignedOn: '2026-09-20',
+    i693LinkedToAnotherClosedCase: false,
+    publicChargeExempt: false,
+    publicCharge: 'cleared',
+    benefits: 'none',
+    crime: {
+      unclassifiedRecord: false,
+      cimtCount: 0,
+      convictionCount: 0,
+      combinedSentenceMonths: 0,
+      confinementDays: 0,
+      controlledSubstance: 'none',
+      duiCount: 0,
+    },
+    criminalOtherGround: 'cleared',
+    drugTraffickingBar: false,
+    securityGround: 'clear',
+    party: { membership: 'none' },
+    immigrationFraud: false,
+    falseCitizenship: false,
+    unlawfulDeparture: 'none',
+    unlawfulReentryBar: false,
+    otherInadmissibility: 'cleared',
+    ...admission,
+  },
+  family: {
+    petitioner: 'lpr',
+    relationship: 'spouse',
+    relationshipValid: 'cleared',
+    priorMarriageLprSince: 'not-applicable',
+    marriageDuringRemoval: false,
+    priorMarriageFraud: false,
+    adamWalsh: 'cleared',
+    petitionerAge: 40,
+    beneficiaryAge: 36,
+  },
+  support: {
+    exemption: 'none',
+    sponsorAge: 40,
+    relationshipToBeneficiary: 'spouse',
+    sponsorStatus: 'lpr',
+    domiciledInUs: 'cleared',
+    affidavitSubmitted: true,
+    household: { region: 'contiguous', size: 2, incomeUsd: 200000 },
+    beneficiaryAge: 36,
+  },
+  fees: {
+    channel: 'paper',
+    relief: 'none',
+    specialFeeExemption: false,
+    adjustmentSupplementA: false,
+    applyingWithParent: false,
+  },
+});
+
+test('an untouched availability control keeps the answer for the month the decision falls in (review96-2 #1)', () => {
+  const compare = (draft: UsDraft, change: Partial<UnitedStatesWhatIf>) => {
+    const knobs = { ...us.whatif.initial(draft), ...change };
+    const after = us.whatif.apply(draft, knobs);
+    const html = render(
+      <UnitedStatesWhatIfControls
+        afterDraft={after}
+        knobs={knobs}
+        errors={{}}
+        update={() => {}}
+      />,
+    );
+    const shown = html
+      .split('id="us-whatif-visa"')[1]
+      .split('</select>')[0]
+      .match(/<option value="([^"]*)" selected=""/)?.[1];
+    return { after, shown };
+  };
+  const stages = (draft: UsDraft) => {
+    const pathway = pathwayOf(draft) as UsFullPathway;
+    return {
+      status: pathway.status,
+      approvalStatus: pathway.approvalStatus,
+      approvalEarliestDate: pathway.approvalEarliestDate,
+    };
+  };
+  const withAdmission = (draft: UsDraft, admission: UsDraft['admission']) => ({
+    ...draft,
+    admission: { ...draft.admission, ...admission },
+  });
+  // A: the decision moves to a month with its own answer.
+  for (const [february, march] of [
+    ['available', 'unavailable'],
+    ['unavailable', 'available'],
+  ] as const) {
+    const draft = spouseAdjustment({
+      decisionOn: '2027-02-01',
+      visaAtDecisionByMonth: [
+        { month: '2027-02', availability: february },
+        { month: '2027-03', availability: march },
+      ],
+    });
+    expect(us.validateStep({ ...draft, step: 10 })).toEqual({});
+    const { after, shown } = compare(draft, { decisionOn: '2027-03-10' });
+    const asked = withAdmission(draft, { decisionOn: '2027-03-10' });
+    expect(after.admission?.visaAtDecisionByMonth).toEqual(
+      draft.admission?.visaAtDecisionByMonth,
+    );
+    expect(us.run(after, 'en')).toEqual(us.run(asked, 'en'));
+    expect(stages(after).approvalStatus).toBe(
+      march === 'available' ? 'FUTURE' : 'NOT_MET',
+    );
+    expect(shown).toBe(march);
+  }
+  // B: the decision moves into the assessment month, which has a single answer.
+  const single = spouseAdjustment({
+    decisionOn: '2027-02-01',
+    visaAtDecision: 'unavailable',
+    visaAtDecisionByMonth: [{ month: '2027-02', availability: 'available' }],
+  });
+  const november = compare(single, { decisionOn: '2026-11-30' });
+  expect(november.after.admission?.visaAtDecision).toBe('unavailable');
+  expect(us.run(november.after, 'en')).toEqual(
+    us.run(withAdmission(single, { decisionOn: '2026-11-30' }), 'en'),
+  );
+  expect(stages(november.after).approvalStatus).toBe('NOT_MET');
+  expect(november.shown).toBe('unavailable');
+  // C: the assessment date moves into a month with its own answer.
+  const assessed = spouseAdjustment({
+    visaAtDecision: 'available',
+    visaAtDecisionByMonth: [{ month: '2027-01', availability: 'unavailable' }],
+  });
+  const january = compare(assessed, { simulationDate: '2027-01-15' });
+  expect(
+    [...(january.after.admission?.visaAtDecisionByMonth ?? [])].sort((a, b) =>
+      a.month.localeCompare(b.month),
+    ),
+  ).toEqual([
+    { month: '2026-11', availability: 'available' },
+    { month: '2027-01', availability: 'unavailable' },
+  ]);
+  expect(stages(january.after)).toEqual(
+    stages({ ...assessed, simulationDate: '2027-01-15' }),
+  );
+  expect(stages(january.after).approvalStatus).toBe('NOT_MET');
+  expect(january.shown).toBe('unavailable');
+  // A changed control still sets the month the decision falls in.
+  const chosen = compare(
+    spouseAdjustment({
+      decisionOn: '2027-02-01',
+      visaAtDecisionByMonth: [
+        { month: '2027-03', availability: 'unavailable' },
+      ],
+    }),
+    {
+      decisionOn: '2027-03-10',
+      visaAtDecision: 'available',
+      visaChanged: true,
+    },
+  );
+  expect(chosen.after.admission?.visaAtDecisionByMonth).toEqual([
+    { month: '2027-03', availability: 'available' },
+  ]);
+  expect(chosen.shown).toBe('available');
+  // Untouched controls leave each of these as it is.
+  for (const draft of [single, assessed])
+    expect(
+      us.run(us.whatif.apply(draft, us.whatif.initial(draft)), 'en'),
+    ).toEqual(us.run(draft, 'en'));
+});
+
+const noCrime = {
+  unclassifiedRecord: false,
+  cimtCount: 0,
+  convictionCount: 0,
+  combinedSentenceMonths: 0,
+  confinementDays: 0,
+  controlledSubstance: 'none',
+  duiCount: 0,
+} as const;
+// Every filing requirement is met; the English test was failed (review96-1 #6).
+const failedEnglish: UsDraft = {
+  ...naturalizationDraft,
+  simulationDate: '2026-11-23',
+  permanentResident: '2018-03-01',
+  stateResidenceFrom: '2018-03-01',
+  naturalization: {
+    lawfulAdmission: 'cleared',
+    removalProcess: 'none',
+    residenceThroughOath: true,
+    lprResidenceYears: 8,
+    english: 'failed',
+    civics: 'passed',
+    disability: { requested: false },
+    goodMoralCharacter: 'cleared',
+    murderConviction: false,
+    aggravatedFelonyConvictedOn: 'none',
+    persecutionBar: false,
+    statutoryPeriodCrime: noCrime,
+    otherGmcBar: 'cleared',
+    falseOralTestimony: false,
+    benefitsAndSupport: 'clear',
+    constitutionalAttachment: true,
+    party: { membership: 'none' },
+    selectiveService: 'registered',
+    warDesertionOrAlienageExemption: 'cleared',
+    oath: 'willing',
+    titlesRenounced: true,
+    truthfulApplication: true,
+  },
+  fees: { channel: 'paper', relief: 'none' },
+};
+
+test('results show the approval stage and keep procedural notes out of the gaps (review96-1)', () => {
+  const failed = pathwayOf(failedEnglish);
+  expect(failed).toMatchObject({
+    status: 'NOT_MET',
+    approvalStatus: 'NOT_MET',
+    earliestDate: '2026-11-23',
+  });
+  expect(failed.summary).toBe(
+    '所填资料满足已评估的递交条件。' +
+      t('us.result.approval').replace('{status}', t('country.status.NOT_MET')),
+  );
+  const failedHtml = render(
+    <ResultView
+      country={us}
+      result={us.run(failedEnglish, 'zh-CN')}
+      draft={failedEnglish}
+    />,
+  );
+  expect(failedHtml).not.toContain(t('gap.met'));
+  expect(failedHtml).toContain('?focus=english');
+  // Fees and other procedural notes are not gaps (#6).
+  const notes = travelDraft();
+  delete notes.travel!.registration;
+  delete notes.travel!.feeForm;
+  const pathway = pathwayOf(notes);
+  expect(pathway.status).toBe('FUTURE');
+  const kind = (id: string) =>
+    pathway.checks.find((check) => check.id === id)?.kind;
+  expect(kind('US-C18-REGISTRATION')).toBe('information');
+  expect(kind('US-TIME-TRAVEL')).toBe('time');
+  for (const check of pathway.checks)
+    if (/^US-C4[45]-/.test(check.id))
+      expect(check.kind, check.id).toBe('budget');
+  expect(gapRules(pathway)).toEqual([]);
+  // The return date is named as the planned return (#6, task 93 shared fix).
+  expect(pathwayDate(pathway, us.earliestLabel)?.label).toBe(
+    'us.result.returnDate',
+  );
+  // Pending details use the country wording, not the UK one (#6).
+  const pendingHtml = render(
+    <ResultView
+      country={us}
+      result={us.run(naturalizationDraft, 'zh-CN')}
+      draft={naturalizationDraft}
+    />,
+  );
+  expect(pendingHtml).toContain(t('pilot.pending'));
+  expect(pendingHtml).not.toContain(t('gap.pending'));
+  expect(pendingHtml).not.toContain(t('result.pendingDetails'));
+  // Chinese sentences are joined without a space (suggestion 4).
+  for (const draft of [travelDraft(), naturalizationDraft, failedEnglish])
+    expect(pathwayOf(draft).summary).not.toMatch(/。 /);
+});
+
+test('an expected decision before the I-485 receipt is flagged (review96-2 suggestion 3)', () => {
+  const error = { 'us-admission-decisionOn': 'us.error.decisionBeforeI485' };
+  // The I-485 receipt is 2026-10-01.
+  const process = (decisionOn: string, extra: UsDraft['admission'] = {}) =>
+    us.validateStep({
+      ...spouseAdjustment({ decisionOn, ...extra }),
+      step: 10,
+    });
+  expect(process('2026-09-30')).toEqual(error);
+  expect(process('2026-10-01')).toEqual({});
+  // A consular case has no I-485 receipt, whatever an earlier answer left.
+  expect(process('2026-09-30', { process: 'consular' })).not.toHaveProperty(
+    'us-admission-decisionOn',
+  );
+  const refugee = (decisionOn: string): UsDraft => ({
+    ...us.createDraft(),
+    simulationDate: '2026-11-21',
+    step: 9,
+    pathway: 'US-HUMANITARIAN',
+    admission: { i485FiledOn: '2026-10-01', decisionOn },
+  });
+  expect(us.validateStep(refugee('2026-09-30'))).toMatchObject(error);
+  expect(us.validateStep(refugee('2026-10-01'))).not.toHaveProperty(
+    'us-admission-decisionOn',
+  );
+  // The comparison shows the conflict on the decision date control.
+  const draft = spouseAdjustment({ decisionOn: '2027-02-01' });
+  const knobs = { ...us.whatif.initial(draft), decisionOn: '2026-09-30' };
+  expect(us.whatif.validate(us.whatif.apply(draft, knobs), knobs)).toEqual({
+    decision: 'us.error.decisionBeforeI485',
+  });
+});
+
+// Filing (or return) by approval: the outcome shown for each pair.
+const approvalStages = [
+  undefined,
+  'MET',
+  'FUTURE',
+  'NOT_MET',
+  'UNKNOWN',
+  'NOT_APPLICABLE',
+] as const;
+const outcomeTable: Record<PilotStatus, PilotStatus[]> = {
+  MET: ['MET', 'MET', 'MET', 'NOT_MET', 'UNKNOWN', 'NOT_APPLICABLE'],
+  FUTURE: [
+    'FUTURE',
+    'FUTURE',
+    'FUTURE',
+    'NOT_MET',
+    'UNKNOWN',
+    'NOT_APPLICABLE',
+  ],
+  UNKNOWN: [
+    'UNKNOWN',
+    'UNKNOWN',
+    'UNKNOWN',
+    'NOT_MET',
+    'UNKNOWN',
+    'NOT_APPLICABLE',
+  ],
+  NOT_MET: [
+    'NOT_MET',
+    'NOT_MET',
+    'NOT_MET',
+    'NOT_MET',
+    'NOT_MET',
+    'NOT_APPLICABLE',
+  ],
+  NOT_APPLICABLE: Array(6).fill('NOT_APPLICABLE'),
+};
+
+test.each(
+  Object.entries(outcomeTable).flatMap(([filing, outcomes]) =>
+    approvalStages.map((approval, index) => ({
+      filing: filing as PilotStatus,
+      approval,
+      outcome: outcomes[index],
+    })),
+  ),
+)(
+  'filing $filing with approval $approval shows $outcome (review96-2 #2)',
+  ({ filing, approval, outcome }) => {
+    expect(pathwayOutcome(filing, approval)).toBe(outcome);
+  },
+);
+
+test('the outcome follows the stage that settles it for every pair the engine gives (review96-2 #2)', () => {
+  const nat = (
+    simulationDate: string,
+    answers: Partial<NonNullable<UsDraft['naturalization']>> = {},
+  ): UsDraft => ({
+    ...failedEnglish,
+    simulationDate,
+    permanentResident: '2022-03-01',
+    stateResidenceFrom: '2020-01-01',
+    naturalization: {
+      ...failedEnglish.naturalization,
+      lprResidenceYears: 4.7,
+      ...answers,
+    },
+  });
+  const samples: [UsDraft, PilotStatus, PilotStatus | undefined][] = [
+    [travelDraft(), 'FUTURE', undefined],
+    [travelDraft('2026-11-10'), 'MET', undefined],
+    [
+      { ...conditionsDraft, conditional: 'none', conditions: undefined },
+      'NOT_APPLICABLE',
+      'NOT_APPLICABLE',
+    ],
+    [naturalizationDraft, 'UNKNOWN', 'UNKNOWN'],
+    [failedEnglish, 'MET', 'NOT_MET'],
+    [
+      {
+        ...failedEnglish,
+        naturalization: { ...failedEnglish.naturalization, english: 'passed' },
+      },
+      'MET',
+      'MET',
+    ],
+    [
+      {
+        ...failedEnglish,
+        naturalization: {
+          ...failedEnglish.naturalization,
+          goodMoralCharacter: undefined,
+        },
+      },
+      'UNKNOWN',
+      'NOT_MET',
+    ],
+    [
+      {
+        ...failedEnglish,
+        naturalization: {
+          ...failedEnglish.naturalization,
+          murderConviction: true,
+        },
+      },
+      'NOT_MET',
+      'NOT_MET',
+    ],
+    [nat('2026-11-23', { english: 'failed' }), 'FUTURE', 'NOT_MET'],
+    [nat('2026-11-23', { english: 'passed' }), 'FUTURE', 'FUTURE'],
+    [conditionsDraft, 'FUTURE', 'UNKNOWN'],
+    [
+      spouseAdjustment({
+        decisionOn: '2027-02-01',
+        visaAtDecisionByMonth: [
+          { month: '2027-02', availability: 'available' },
+        ],
+      }),
+      'MET',
+      'FUTURE',
+    ],
+    [spouseAdjustment({ decisionOn: '2027-02-01' }), 'MET', 'UNKNOWN'],
+  ];
+  for (const [draft, filing, approval] of samples) {
+    const engine = evaluateUnitedStatesFull(unitedStatesRequest(draft, 'en'))
+      .columns[0].pathways[0];
+    const label = `${draft.pathway} ${filing}/${approval}`;
+    expect([engine.status, engine.approvalStatus], label).toEqual([
+      filing,
+      approval,
+    ]);
+    const shown = pathwayOf(draft);
+    expect(shown.status, label).toBe(
+      outcomeTable[filing][approvalStages.indexOf(approval)],
+    );
+    expect(shown.earliestDate, label).toBe(engine.earliestDate);
+  }
+  // Waiting for the filing date cannot meet a failed English test, so the
+  // outcome does not get worse when the comparison moves the date there.
+  const waiting = nat('2026-11-23', { english: 'failed' });
+  const later = us.whatif.apply(waiting, {
+    ...us.whatif.initial(waiting),
+    simulationDate: '2027-01-15',
+  });
+  expect(pathwayOf(waiting)).toMatchObject({
+    status: 'NOT_MET',
+    earliestDate: '2026-12-01',
+  });
+  expect(pathwayOf(later).status).toBe('NOT_MET');
+  const html = render(
+    <ResultView
+      country={us}
+      result={us.run(waiting, 'zh-CN')}
+      draft={waiting}
+    />,
+  );
+  expect(html).toContain('?focus=english');
+  expect(html).toContain('2026-12-01');
+});
+
+test('labels, hints, errors and row buttons are tied to their controls (review96-1 suggestion 1)', () => {
+  const fields = (
+    list: UsField[],
+    values: Record<string, unknown>,
+    errors: Record<string, string> = {},
+  ) =>
+    render(
+      <UsFields
+        fields={list}
+        values={values}
+        prefix="us-x"
+        draft={{ pathway: 'US-FAMILY' }}
+        errors={errors as never}
+        change={() => {}}
+      />,
+    );
+  const cspa = familyFields.filter((field) => field.name === 'cspaAge');
+  // Before a number is entered, the label and the descriptions name the choice.
+  const choosing = fields(cspa, {}, { 'us-x-cspaAge': 'us.error.required' });
+  expect(choosing).toContain('for="us-x-cspaAge"');
+  expect(choosing).toMatch(
+    /<select id="us-x-cspaAge"[^>]*aria-describedby="us-x-cspaAge-hint us-x-cspaAge-error"/,
+  );
+  // Once entered, the label names the number and the choice keeps its own name.
+  const entered = fields(cspa, { cspaAge: 12 });
+  expect(entered).toMatch(/<select id="us-x-cspaAge-mode" aria-label="/);
+  expect(entered).toMatch(/<input id="us-x-cspaAge"/);
+  // Date rows announce their errors, and each remove button names its row.
+  const dates = (
+    employmentFields.find((field) => field.name === 'permRecruitment') as {
+      fields: UsField[];
+    }
+  ).fields.filter((field) => field.name === 'advertisementDates');
+  const rows = fields(
+    dates,
+    { advertisementDates: ['2026-01-05', ''] },
+    { 'us-x-advertisementDates-1': 'us.error.date' },
+  );
+  expect(rows).toMatch(
+    /id="us-x-advertisementDates-1"[^>]*aria-describedby="us-x-advertisementDates-1-error"/,
+  );
+  expect(rows).toContain(
+    `aria-label="${t('us.form.remove')} ${t('us.field.advertisementDates')} 2"`,
+  );
+});
+
+test('opening a United States share link keeps the local draft and the skip link keeps the scenario (task 93 shared fix)', () => {
+  expect(us.scenarioLinks).toBe(true);
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local: UsDraft = {
+    ...us.createDraft(),
+    simulationDate: '2026-10-01',
+    pathway: 'US-SPOUSE',
+  };
+  draftStorage(us, local);
+  const page = readPageResult(us, 'zh-CN', encodeDraft(us, travelDraft()));
+  expect(page.shared).toBe(true);
+  expect(page.draft?.pathway).toBe('US-TRAVEL');
+  expect(JSON.parse(storage.get('us-immigration-draft-v1')!)).toEqual(local);
+  expect(draftStorage(us).draft).toEqual(local);
+  // "Skip to main content" moves focus without replacing the #s= fragment.
+  for (const sub of ['simulate', 'result', 'whatif']) {
+    vi.mocked(usePathname).mockReturnValue(`/united-states/${sub}`);
+    const html = render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    );
+    expect(html, sub).not.toContain('href="#main"');
+    expect(html, sub).toMatch(/<button type="button"[^>]*>跳到主要内容/);
+  }
+});
+
+test('a planned return is labelled as the return date, other pathways as the filing date (task 93 shared fix, review96-2 suggestion 2)', () => {
+  const future = pathwayOf(travelDraft());
+  expect(pathwayDate(future, us.earliestLabel)).toEqual({
+    label: 'us.result.returnDate',
+    date: '2026-12-20',
+  });
+  // A completed return has no date to show.
+  expect(
+    pathwayDate(pathwayOf(travelDraft('2026-11-10')), us.earliestLabel),
+  ).toBeUndefined();
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const label = t('us.result.returnDate', locale);
+    const html = render(
+      <ResultView
+        country={us}
+        result={us.run(travelDraft(), locale)}
+        draft={travelDraft()}
+      />,
+      locale,
+    );
+    // Result facts and the gap summary both name the planned return.
+    expect(html).toContain(`<dt>${label}</dt>`);
+    expect(html).toContain(
+      `${label}${locale === 'en' ? ': ' : '：'}2026-12-20`,
+    );
+    expect(html).not.toContain(t('result.earliest', locale));
+  }
+  // Filing pathways name the earliest filing date, also when approval leaves
+  // the outcome open (review96-2 #2, suggestion 2).
+  for (const id of [
+    'US-NATURALIZATION',
+    'US-SPOUSE',
+    'US-MILITARY',
+    'US-CONDITIONS',
+    'US-FAMILY',
+    'US-EMPLOYMENT',
+    'US-ADJUSTMENT',
+    'US-HUMANITARIAN',
+  ])
+    expect(earliestLabelFor({ id } as CountryPathway, us.earliestLabel)).toBe(
+      'us.result.filingDate',
+    );
+  const filing = pathwayOf(conditionsDraft);
+  expect(filing).toMatchObject({
+    status: 'UNKNOWN',
+    earliestDate: '2027-03-03',
+  });
+  const waiting: UsDraft = {
+    ...failedEnglish,
+    permanentResident: '2022-03-01',
+    stateResidenceFrom: '2020-01-01',
+    naturalization: {
+      ...failedEnglish.naturalization,
+      english: 'passed',
+      lprResidenceYears: 4.7,
+    },
+  };
+  expect(pathwayOf(waiting)).toMatchObject({
+    status: 'FUTURE',
+    earliestDate: '2026-12-01',
+  });
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const label = t('us.result.filingDate', locale);
+    const colon = locale === 'en' ? ': ' : '：';
+    const html = (draft: UsDraft) =>
+      render(
+        <ResultView
+          country={us}
+          result={us.run(draft, locale)}
+          draft={draft}
+        />,
+        locale,
+      );
+    // Result facts for an open outcome, and the gap summary while waiting.
+    expect(html(conditionsDraft)).toContain(`<dt>${label}</dt>`);
+    expect(html(waiting)).toContain(`${label}${colon}2026-12-01`);
+    for (const draft of [conditionsDraft, waiting])
+      expect(html(draft)).not.toContain(t('result.earliest', locale));
+  }
+});
+
+test('checks are grouped as time, requirement, budget or information, and only the first two are gaps (task 93 shared fix)', () => {
+  const kinds = (draft: UsDraft) =>
+    Object.fromEntries(
+      pathwayOf(draft).checks.map((check) => [check.id, check.kind]),
+    );
+  const notes = travelDraft();
+  delete notes.travel!.registration;
+  delete notes.travel!.feeForm;
+  for (const draft of [notes, naturalizationDraft, conditionsDraft])
+    for (const [id, kind] of Object.entries(kinds(draft)))
+      expect(kind, id).toBe(
+        id.startsWith('US-TIME-')
+          ? 'time'
+          : /^US-C4[45]-/.test(id)
+            ? 'budget'
+            : [
+                  'US-C05-N648',
+                  'US-C18-REGISTRATION',
+                  'US-C19-ADDRESS',
+                  'US-C19-REPLACEMENT',
+                ].includes(id)
+              ? 'information'
+              : 'requirement',
+      );
+  expect(kinds(notes)['US-C44-TRAVEL-FORM']).toBe('budget');
+  // The oath is an approval requirement asked on the N-400, not a step after
+  // approval, so it stays a gap.
+  expect(kinds(naturalizationDraft)['US-C12-OATH']).toBe('requirement');
+  // Budget and procedural notes are not gaps; unmet time requirements are.
+  expect(gapRules(pathwayOf(notes))).toEqual([]);
+  const short = pathwayOf({
+    ...naturalizationDraft,
+    permanentResident: '2024-03-01',
+  });
+  expect(
+    gapRules(short).find((rule) => rule.id === 'US-TIME-LPR'),
+  ).toMatchObject({ kind: 'time', status: 'NOT_MET' });
+  const html = render(
+    <ResultView country={us} result={us.run(notes, 'zh-CN')} draft={notes} />,
+  );
+  for (const key of [
+    'country.check.time',
+    'country.check.budget',
+    'country.check.information',
+    'country.check.requirement',
+  ] as const)
+    expect(html, key).toContain(`· ${t(key)}`);
+});
+
+test('the policy page shows nested parameters by meaning and keeps years ungrouped (task 93 shared fix)', () => {
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const html = render(<UnitedStatesPolicyPage />, locale);
+    const row = (name: string) =>
+      html.split(`data-parameter="${name}"`)[1].split('</tr></tbody>')[0];
+    const label = (key: Parameters<typeof t>[0]) => t(key, locale);
+    const list = locale === 'en' ? ', ' : '、';
+    // A calendar year keeps its digits.
+    expect(row('poverty')).toMatch(/>year<\/dt><dd>2026</);
+    expect(html).not.toContain('2,026');
+    // Exemption thresholds are a table with named columns.
+    const exemptions = row('englishExemptions');
+    expect(exemptions).toContain(`>${label('us.policy.minAge')}</th>`);
+    expect(exemptions).toContain(`>${label('us.policy.minLprYears')}</th>`);
+    expect(exemptions).not.toContain('>lprYears</th>');
+    // Periods of hostilities have a start and an end column.
+    const military = row('military');
+    expect(military).toContain(`>${label('us.policy.periodStart')}</th>`);
+    expect(military).toContain(`>${label('us.policy.periodEnd')}</th>`);
+    expect(military).not.toContain(`1917-04-06${list}`);
+    // H.R. 1 pairs are the amounts before and from the adjustment date.
+    const hr1 = row('hr1Fees');
+    expect(hr1).toContain(
+      label('us.policy.before').replace('{date}', '2026-10-16'),
+    );
+    expect(hr1).toContain(
+      label('us.policy.from').replace('{date}', '2026-10-16'),
+    );
+    expect(hr1).toContain('USD 1,050');
+    expect(hr1).not.toContain(`102${list}105`);
+    // Fee tables carry the currency and the filing channel.
+    const fees = row('fees');
+    expect(fees).toContain('USD 1,440');
+    expect(fees).toContain(label('us.policy.paper'));
+    expect(fees).toContain(label('us.policy.online'));
+    expect(fees).toMatch(/>smallEmployerMax<\/dt><dd>25</);
+    expect(row('consularFees')).toContain('USD 325');
+    expect(row('eb5Fees')).toContain('USD 7,615');
+    // Ground lists name the INA paragraph.
+    expect(row('otherImmigrationGrounds')).toContain('INA 212(a)(5)(A)(i)');
+    expect(row('sijAdmissionExemptions')).toContain('INA 212(a)(4)');
+    expect(html).not.toContain('undefined');
+  }
+});
+
+test('amounts in result explanations are grouped (review96-1 suggestion 3)', () => {
+  const draft = immigrantDraft(
+    'US-FAMILY',
+    { process: 'adjustment' },
+    {
+      dateOfBirth: '1990-05-01',
+      family: { petitioner: 'citizen', relationship: 'spouse' },
+      support: { household: { region: 'contiguous', size: 2 } },
+      fees: { channel: 'paper', relief: 'none' },
+    },
+  );
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const checks = pathwayOf(draft, locale).checks;
+    const explanation = (id: string) =>
+      checks.find((check) => check.id === id)?.explanation;
+    expect(explanation('US-C44-I485')).toContain('USD 1,440');
+    for (const check of checks)
+      expect(check.explanation, check.id).not.toMatch(/USD \d{4}/);
+  }
 });
