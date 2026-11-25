@@ -14,11 +14,12 @@ import { isDecisionOutcome, pathwayTitle } from '../../../lib/country-module';
 import { encodeDraft } from '../../../lib/share';
 import { countryPath } from '../../../lib/site-countries';
 import {
+  activeSpainAnswers,
   createSpainDraft,
   spainSteps,
   type SpainDraft,
 } from '../../../lib/spain-draft';
-import { spainModule } from '../../../lib/spain-module';
+import { presentSpainResult, spainModule } from '../../../lib/spain-module';
 import { createGameShell } from '../../game-shell/shell';
 import type { GameCountry } from '../../game-shell/types';
 import styles from '../../uk/game/game.module.css';
@@ -66,7 +67,10 @@ export function itemIcon(id: string) {
   return esAsset(files[id] ?? '/assets/indoor/item.png');
 }
 
-/** The game timeline as a completed questionnaire for the result page. */
+/**
+ * The game timeline as a completed questionnaire for the result page, with
+ * only the answers the chosen routes' questions ask for, as a share link keeps.
+ */
 export function gameDraft(state: EsState): SpainDraft {
   const draft: SpainDraft = {
     ...createSpainDraft(),
@@ -74,8 +78,12 @@ export function gameDraft(state: EsState): SpainDraft {
     simulationDate: state.date,
     completed: true,
   };
-  return { ...draft, step: spainSteps(draft).at(-1)!.step };
+  return activeSpainAnswers({ ...draft, step: spainSteps(draft).at(-1)!.step });
 }
+
+/** The game's assessment as the result page shows it. */
+export const shownResult = (state: EsState) =>
+  presentSpainResult(structuredClone(state.result), state.locale);
 
 const lateMonths = spainFull2026_11.values.longTermLateMonths;
 
@@ -133,7 +141,7 @@ export const esCountry: GameCountry<EsKinds> = {
   assessment: (state, idPrefix) => (
     <CountryAssessmentColumns
       country={spainModule}
-      result={state.result}
+      result={shownResult(state)}
       simulationDate={state.date}
       idPrefix={idPrefix}
     />
@@ -141,13 +149,13 @@ export const esCountry: GameCountry<EsKinds> = {
   endingAssessment: (state) => (
     <CountryAssessmentColumns
       country={spainModule}
-      result={state.result}
+      result={shownResult(state)}
       simulationDate={state.date}
       idPrefix="ending-"
     />
   ),
   progressDetail(state, id, t) {
-    const pathway = esGame.pathwayOf(state.result, id);
+    const pathway = esGame.pathwayOf(shownResult(state), id);
     if (!pathway)
       return <p className={styles.lead}>{t('result.undetermined')}</p>;
     return (

@@ -410,8 +410,8 @@ const cook: EsCharacter = {
     targets: ['L', 'N'],
     timeRecordsComplete: true,
     permits: [
-      { from: '2024-09-02', to: '2025-09-01' },
-      { from: '2025-09-02', to: '2027-08-31' },
+      { from: '2024-09-02', to: '2025-09-01', study: false },
+      { from: '2025-09-02', to: '2027-08-31', study: false },
     ],
     trips: [],
     route: 'ibero',
@@ -465,8 +465,8 @@ const exporter: EsCharacter = {
     targets: ['L', 'N'],
     timeRecordsComplete: true,
     permits: [
-      { from: '2021-10-04', to: '2023-10-03' },
-      { from: '2023-10-04', to: '2027-04-30' },
+      { from: '2021-10-04', to: '2023-10-03', study: false },
+      { from: '2023-10-04', to: '2027-04-30', study: false },
     ],
     trips: [],
     route: 'general',

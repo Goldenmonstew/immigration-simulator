@@ -2,21 +2,25 @@ import { existsSync } from 'node:fs';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
-import type { Locale } from '@uk-immigration/engine';
+import type { CountryResult, Locale } from '@uk-immigration/engine';
 import * as es from '@uk-immigration/game/es';
 import { esGameArt } from '@uk-immigration/game/es/presentation';
 import SpainPage from '../app/spain/page';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount, type TranslationKey } from '../i18n';
-import { decodeDraft } from '../lib/share';
+import { pathwayTitle } from '../lib/country-module';
+import { gapRules } from '../lib/gap-summary';
+import { readPageResult } from '../lib/page-result';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
+import { activeSpainAnswers, spainSteps } from '../lib/spain-draft';
 import { spainModule } from '../lib/spain-module';
 import {
   esCountry,
   esShell,
   gameDraft,
   itemIcon,
+  shownResult as esShown,
 } from '../app/spain/game/shell';
 import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/spain/town.json';
@@ -60,27 +64,152 @@ test('Spain has a game page, entries and its own save and sound keys', () => {
   expect(storage.get('es-immigration-life-muted')).toBe('false');
 });
 
-test('the ending link restores the same timeline on the Spain result page', () => {
-  const state = settle(es.newGame('exporter', 4, 'en'));
-  const href = esCountry.resultHref(state);
-  expect(href.startsWith('/spain/result#s=')).toBe(true);
-  const draft = decodeDraft(spainModule, href.split('#s=')[1], true)!;
-  expect(draft).toEqual(gameDraft(state));
-  expect(draft.completed).toBe(true);
-  expect(draft.simulationDate).toBe(state.date);
-  expect(draft.targets).toEqual(['L', 'N']);
-  expect(draft.permits).toEqual(state.timeline.permits);
-  const shown = spainModule.run(draft, 'en').columns[0].pathways;
-  expect(
-    shown.map(({ id, status, earliestDate }) => [id, status, earliestDate]),
-  ).toEqual(
-    state.result.columns[0].pathways.map(({ id, status, earliestDate }) => [
-      id,
-      status,
-      earliestDate,
-    ]),
+/** Walk to an open place at a given time, as the town map would. */
+function visit(state: State, place: string, minute: number) {
+  state = settle(state);
+  if (state.day.minute < minute)
+    state = settle(es.tick(state, minute - state.day.minute));
+  return settle(es.enter(state, place));
+}
+/** Move a saved game to a later quarter start and re-run the assessment. */
+function at(state: State, date: string) {
+  const next = structuredClone(state);
+  next.date = date;
+  next.result = es.esRules.evaluate(next);
+  return next;
+}
+function untilOver(state: State) {
+  for (let i = 0; i < 8 && !es.isOver(state); i++)
+    state = settle(es.sleep(settle(state)));
+  return state;
+}
+const leave = (state: State) =>
+  es.doActivity(visit(state, 'station', 900), 'leave');
+
+/** Each character's states worth opening: trips, mid-quarter events, endings. */
+function endings(id: string): [string, State][] {
+  const opening = settle(es.newGame(id, 7, 'zh-CN'));
+  const abroad = settle(
+    es.doActivity(visit(opening, 'station', 600), 'travel-1'),
   );
-});
+  const moved = settle(
+    es.doActivity(visit(opening, 'home', 420), 'rent-brighter-home'),
+  );
+  const registered = es.doActivity(visit(moved, 'ward', 510), 'padron');
+  expect(abroad.timeline.trips).toHaveLength(1);
+  expect(moved.timeline.nationality.documents?.address).toBe(false);
+  expect(registered.timeline.nationality.documents?.address).toBe(true);
+  const ready = structuredClone(opening);
+  ready.stats.spanish = 60;
+  ready.stats.money = 5_000;
+  let exams = visit(ready, 'bureau', 600);
+  if (es.activities(exams, 'bureau').some(({ id }) => id === 'nat-papers'))
+    exams = es.doActivity(exams, 'nat-papers');
+  exams = es.doActivity(visit(exams, 'college', 700), 'ccse');
+  exams = es.doActivity(exams, 'dele');
+  expect(exams.timeline.nationality).toMatchObject({
+    ccse: { verifiedPass: true },
+    deleEvidence: 'dele',
+  });
+  // File on a later quarter's working morning, once the conditions are met.
+  const later = at(id === 'cook' ? exams : opening, '2026-12-01');
+  later.day.minute = 540;
+  if (id === 'exporter') later.flags.push('cita-booked');
+  const filed =
+    id === 'cook'
+      ? es.doActivity(visit(later, 'bureau', 600), 'naturalise')
+      : es.doActivity(visit(later, 'visa', 600), 'settle');
+  const lapsed = structuredClone(opening);
+  if (id === 'cook') es.currentPermit(lapsed).to = '2026-04-30';
+  const overstayed = untilOver(
+    id === 'cook' ? lapsed : at(lapsed, '2027-06-01'),
+  );
+  return [
+    ['opening', opening],
+    ['abroad', abroad],
+    ['moved, left', leave(moved)],
+    ['registered, left', leave(registered)],
+    ['exams, left', leave(exams)],
+    ['filed', filed],
+    ['overstayed', overstayed],
+  ];
+}
+
+test.each(['cook', 'exporter'])(
+  'the ending link opens the same %s timeline on the Spain result page',
+  (id) => {
+    const storage = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => storage.set(key, value),
+      removeItem: (key: string) => storage.delete(key),
+    });
+    const view = (result: CountryResult) =>
+      result.columns[0].pathways.map((pathway) => ({
+        id: pathway.id,
+        status: pathway.status,
+        earliestDate: pathway.earliestDate,
+        pathwayCompletionDate: pathway.pathwayCompletionDate,
+        summary: pathway.summary,
+        checks: pathway.checks.map((check) => [
+          check.id,
+          check.status,
+          check.kind,
+        ]),
+      }));
+    const zh = (key: TranslationKey) => t(key, 'zh-CN');
+    const states = endings(id);
+    expect(states.map(([, state]) => state.ending)).toEqual([
+      undefined,
+      undefined,
+      'left',
+      'left',
+      'left',
+      'settled',
+      'overstayed',
+    ]);
+    for (const [name, state] of states) {
+      const href = esCountry.resultHref(state);
+      expect(href.startsWith('/spain/result#s='), name).toBe(true);
+      const page = readPageResult(
+        spainModule,
+        'zh-CN',
+        href.split('#s=')[1],
+        'result',
+      );
+      expect(page.correction, name).toBeUndefined();
+      const draft = gameDraft(state);
+      expect(page.draft, name).toEqual(draft);
+      // Only the answers the questionnaire asks for the chosen routes.
+      expect(activeSpainAnswers(draft), name).toEqual(draft);
+      expect(draft.simulationDate, name).toBe(state.date);
+      expect(draft.step, name).toBe(spainSteps(draft).at(-1)!.step);
+      // The game shows the assessment as the result page does.
+      expect(view(esShown(state)), name).toEqual(view(page.result!));
+      for (const column of ['lt', 'nat'] as const) {
+        const pathway = es.pathwayOf(page.result!, column)!;
+        const bar = es.progress(state)[column];
+        expect(bar.outcome, `${name} ${column}`).toBe(pathway.status);
+        expect(esCountry.outcomeLabel(bar, zh), `${name} ${column}`).toBe(
+          pathwayTitle(pathway, zh),
+        );
+        const gaps = [...new Set(gapRules(pathway).map(({ title }) => title))];
+        expect(
+          esCountry.missingRules(state, column) ?? [],
+          `${name} ${column} gaps`,
+        ).toEqual(gaps);
+      }
+    }
+    const [, overstayed] = states.at(-1)!;
+    for (const pathway of readPageResult(
+      spainModule,
+      'zh-CN',
+      esCountry.resultHref(overstayed).split('#s=')[1],
+      'result',
+    ).result!.columns[0].pathways)
+      expect(pathway.status).toBe('NOT_MET');
+  },
+);
 
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak Spanish residence in %s',
