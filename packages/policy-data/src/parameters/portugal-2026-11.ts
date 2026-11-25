@@ -312,6 +312,10 @@ export const portugalFull2026_11 = {
       'Lei 110/2009 annex art. 53, gazette PDF p12',
       'https://files.diariodarepublica.pt/gratuitos/1s/2009/09/18000.pdf',
     ),
+    // A temporary permit lasts two years from issue and is renewed for three
+    // years at a time (Lei 18/2022 republication; later amendments keep n.º 1).
+    temporaryPermitYears: input(2, foreigners, 'Lei 23/2007 art. 75(1), p65'),
+    temporaryRenewalYears: input(3, foreigners, 'Lei 23/2007 art. 75(1), p65'),
     permanentCrimeWindowYears: input(
       5,
       foreigners,
