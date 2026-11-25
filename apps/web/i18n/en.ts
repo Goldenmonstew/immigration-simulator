@@ -336,10 +336,6 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Citizenship · National and EU long-term residence · EU mobility and family · Recovery · Free movement',
   'hub.es.desc':
     'Check residence periods, absence continuity, DELE and CCSE exams, IPREM household means, SMI salary, health cover, conduct and post-grant steps across eight pathways. Compare scenarios, share links and inspect official sources.',
-  'hub.ie.code': 'IE',
-  'hub.ie.paths': 'Stamp 4 / 5 · Naturalisation · Spouse route',
-  'hub.ie.desc':
-    'Use your stamps and travel record to check time requirements for a Stamp 4 upgrade, Stamp 5 (96 months), general naturalisation and naturalisation as the spouse or civil partner of an Irish citizen.',
   'site.skip': 'Skip to main content',
   'site.home': 'Home',
   'site.footer':
