@@ -933,3 +933,4 @@
 | 974 | 任务 114 第二轮审核修正（review114-2 风险 1）：家庭关系一步在"与公民或永久居民的关系"和"与 REP 参与者的关系"共用婚姻或亲子答案时加说明；两者不一致（如永久居民的配偶与参与者之妻、公民的子女与参与者之夫）时提示核对。评估不变。 | apps/web/lib/malaysia-draft.ts、apps/web/app/malaysia/simulate/page.tsx、apps/web/i18n/countries/malaysia-form.ts、apps/web/test/malaysia.test.tsx |
 | 975 | 任务 114 第二轮审核修正（review114-2 风险 2）：Residence Pass 公民离婚配偶的说明补上 SRC-508 第 3 类（iii）的条件：须经法院判给马来西亚公民亲生子女的完全或共同监护权；PD-405 说明同步。 | packages/engine/src/malaysia-full-pr.ts、packages/engine/test/malaysia-full.test.ts、docs/pending-details.md |
 | 976 | 任务 114 第二轮审核修正（review114-2 建议 1、2）：问卷某节按当前答案没有可见问题时不显示该节标题（如只选 REP 且未答或答"不是参与者的配偶或子女"时的家庭关系）；第 1 步把路径列表放到最前面，路径未选的错误也最先聚焦。 | apps/web/app/malaysia/simulate/page.tsx、apps/web/lib/malaysia-draft.ts、apps/web/test/malaysia.test.tsx |
+| 977 | 任务 114 第二轮审核修正报告（review114-2）：报告末尾加四段，逐条对应问题 1–2、风险 1–2、建议 1–4，记录截图走查与验证结果。 | docs/tasks/reports/114-my-pages.md、PROGRESS.md |
