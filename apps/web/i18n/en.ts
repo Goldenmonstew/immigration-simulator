@@ -339,10 +339,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.ca.paths': 'PR residency obligation · Citizenship',
   'hub.ca.desc':
     'Check the day count for keeping permanent resident status and the days of physical presence in Canada for citizenship. The citizenship calculation includes eligible days spent in Canada before permanent residence.',
-  'hub.us.code': 'US',
-  'hub.us.paths': 'Naturalization · Removing conditions · Trips abroad',
-  'hub.us.desc':
-    'Check residence and physical presence for general naturalization and naturalization as the spouse of a U.S. citizen, filing windows for removing green card conditions (I-751/I-829), and how time abroad affects your ability to return on your green card.',
   'hub.es.code': 'ES',
   'hub.es.paths':
     'Citizenship · National and EU long-term residence · EU mobility and family · Recovery · Free movement',
