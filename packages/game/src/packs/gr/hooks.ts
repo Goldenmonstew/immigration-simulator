@@ -185,8 +185,12 @@ export function actionAvailable(
       state.timeline.nationality.exam !== 'certificate' &&
       affordable(state, action.effects)
     );
-  if (action.id === 'report-change')
-    return state.stats.money >= (lateReport(state)?.fine ?? 0);
+  // A late report's fine joins the effects only in actionDetails. An on-time
+  // report is free and falls through to the shared check.
+  if (action.id === 'report-change') {
+    const late = lateReport(state);
+    if (late) return state.stats.money >= late.fine;
+  }
   if (action.id === 'tax-return') return unfiledTaxYear(state) !== undefined;
   if (action.id === 'extend') {
     const { early, late } = renewalWindow(state.timeline.currentCardExpiresOn);

@@ -440,6 +440,12 @@ test('a late address report needs the money for its fine', () => {
   expect(ids(visit(short, 'visa', 600), 'visa')).not.toContain('report-change');
   const exact = { ...due, stats: { ...due.stats, money: firstFine } };
   expect(report(exact).after.stats.money).toBe(0);
+  // An on-time report is free, even in the red.
+  const moved = movedOnDayOne();
+  const inDebt = { ...moved, stats: { ...moved.stats, money: -500 } };
+  const free = report(inDebt);
+  expect(free.action).toBeDefined();
+  expect(free.after.stats.money).toBe(-500);
 });
 
 test('a lease that ends on a low balance is a move to report', () => {
