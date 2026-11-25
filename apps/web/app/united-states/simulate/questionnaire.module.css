@@ -1,0 +1,9 @@
+.section {
+  margin-block: 32px;
+  min-width: 0;
+}
+
+.section input,
+.section select {
+  max-width: 100%;
+}
