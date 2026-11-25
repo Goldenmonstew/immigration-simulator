@@ -763,8 +763,8 @@ const titles = {
     'Permanent residence (Permit Masuk): husband of a citizen',
   ],
   child: [
-    '永久居留（Permit Masuk）：公民的 18 岁以下子女',
-    'Permanent residence (Permit Masuk): child of a citizen under 18',
+    `永久居留（Permit Masuk）：公民的未满 ${v.prChild.value.underAge} 岁子女`,
+    `Permanent residence (Permit Masuk): child of a citizen under ${v.prChild.value.underAge}`,
   ],
   was: [
     '永久居留（Permit Masuk）：完全外国人（投资者、专家、专业人士）',

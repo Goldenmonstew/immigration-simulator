@@ -143,8 +143,8 @@ export function assessSpouseLtsvp(ctx: MyContext): MyPathway {
         ) +
           (conflicting
             ? L(
-                `移民局费率表把日本、韩国、澳门、香港同列在 RM1000 与 RM750 两档，未列孟加拉、印度、巴基斯坦、菲律宾、缅甸、斯里兰卡、尼泊尔；MDEC 同名费率表把这四地列为 RM1000、这七国列为 RM750。所填国籍属冲突档位，金额待确认。`,
-                ` The Immigration rate table lists Japan, South Korea, Macao and Hong Kong under both RM1000 and RM750 and does not list Bangladesh, India, Pakistan, the Philippines, Myanmar, Sri Lanka or Nepal; MDEC's table of the same name puts the four at RM1000 and the seven at RM750. The nationality entered falls in a conflicting rate, so the amount needs confirmation.`,
+                `移民局费率表把日本、韩国、澳门、香港同列在 RM${bond.mdecOnly.JP} 与 RM${bond.mdecOnly.BD} 两档，未列孟加拉、印度、巴基斯坦、菲律宾、缅甸、斯里兰卡、尼泊尔；MDEC 同名费率表把这四地列为 RM${bond.mdecOnly.JP}、这七国列为 RM${bond.mdecOnly.BD}。所填国籍属冲突档位，金额待确认。`,
+                ` The Immigration rate table lists Japan, South Korea, Macao and Hong Kong under both RM${bond.mdecOnly.JP} and RM${bond.mdecOnly.BD} and does not list Bangladesh, India, Pakistan, the Philippines, Myanmar, Sri Lanka or Nepal; MDEC's table of the same name puts the four at RM${bond.mdecOnly.JP} and the seven at RM${bond.mdecOnly.BD}. The nationality entered falls in a conflicting rate, so the amount needs confirmation.`,
               )
             : bondAmount !== undefined
               ? L(
