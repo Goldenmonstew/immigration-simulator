@@ -349,6 +349,21 @@ test('the diary casts a line on the Ōoka River, not at a pond', () => {
   expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
 });
 
+test('a trip never carries the player past the last day they could renew', () => {
+  // The engineer's stay ends 2027-03-31. A six-month trip from September
+  // returns in March, but the trip lasts until the June quarter, whose one
+  // workday is after the period of stay; a three-month trip comes back in time.
+  let state = settle(jp.newGame('engineer', 7, 'en'));
+  while (state.date < '2026-09-01') state = quarterLater(state);
+  const station = visit(state, 'station', 600);
+  const trips = jp
+    .activities(station, 'station')
+    .map(({ id }) => id)
+    .filter((id) => id.startsWith('travel-'));
+  expect(jp.status(station).expiresOn).toBe('2027-03-31');
+  expect(trips).toEqual(['travel-1', 'travel-3']);
+});
+
 test('a lapsed period of stay ends the story', () => {
   let state = settle(jp.newGame('spouse', 5, 'en'));
   jp.status(state).expiresOn = '2026-04-30';
