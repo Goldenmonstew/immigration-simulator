@@ -367,6 +367,11 @@ const fees = {
   pegp: values.naturalisationExam.value.fee,
   naturalisation: values.naturalisationFees.value.initial,
 };
+const reporting = values.changeReporting.value;
+const moveNote = t(
+  `搬家后 ${reporting.months} 个月内向移民局申报新住址，漏报罚款 ${euro(reporting.firstFine)}（${src(values.changeReporting)}）。游戏里的日子之间会跳过一段时间，所以只在移民局当天还能受理时提供搬家和退租，搬完当天就去申报。`,
+  `Report the new address to the migration office within ${reporting.months} months of moving; a missed report costs ${euro(reporting.firstFine)} (${src(values.changeReporting)}). The game skips ahead between days, so moving in or out is offered only while the migration office can still take the report; report it the same day.`,
+);
 
 export const grActions: GrActivity[] = [
   {
@@ -406,10 +411,7 @@ export const grActions: GrActivity[] = [
       `搬到带阳台的海景公寓（押金 ${euro(b.housingDeposit)}、搬家 ${euro(b.housingMoveCost)}，每季加租 ${euro(b.housingRent)}；心情、健康持续改善；余额低时退租返押金）`,
       `Move to a flat with a sea-view balcony (${euro(b.housingDeposit)} deposit, ${euro(b.housingMoveCost)} moving, +${euro(b.housingRent)}/quarter; ongoing mood and health; a low balance ends the lease and returns the deposit)`,
     ),
-    note: t(
-      `搬家后 ${values.changeReporting.value.months} 个月内向移民局申报新住址，漏报罚款 ${euro(values.changeReporting.value.firstFine)}（${src(values.changeReporting)}）。`,
-      `Report the new address to the migration office within ${values.changeReporting.value.months} months of moving; a missed report costs ${euro(values.changeReporting.value.firstFine)} (${src(values.changeReporting)}).`,
-    ),
+    note: moveNote,
     minutes: b.minutes.paperwork,
     effects: [
       { type: 'money', delta: -b.housingDeposit - b.housingMoveCost },
@@ -423,6 +425,7 @@ export const grActions: GrActivity[] = [
       '退租海景公寓，退回押金',
       'Leave the sea-view flat and recover the deposit',
     ),
+    note: moveNote,
     minutes: b.minutes.paperwork,
     when: [{ flag: 'brighter-home' }],
     effects: [{ type: 'money', delta: b.housingDeposit }, { type: 'moved' }],

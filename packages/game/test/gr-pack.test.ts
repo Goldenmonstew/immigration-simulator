@@ -2,6 +2,7 @@ import { beforeAll, expect, test } from 'vitest';
 import { evaluateGreeceFull } from '@uk-immigration/engine';
 import { greece2026_11, greeceFull2026_11 } from '@uk-immigration/policy-data';
 import * as gr from '../src/packs/gr';
+import { grBalance } from '../src/packs/gr/balance';
 
 type State = ReturnType<typeof gr.newGame>;
 const values = greeceFull2026_11.values;
@@ -287,6 +288,39 @@ test('the Saturday street market sells this season’s produce', () => {
       .filter(({ kind }) => kind === 'seed')
       .map(({ id }) => id),
   ).toEqual(['seed-potato', 'seed-strawberry']);
+});
+
+test('moving is offered only while the migration office can take the report', () => {
+  const office = gr.places.find(({ id }) => id === 'visa')!.hours!;
+  // Moving and reporting each take an hour of paperwork.
+  const latest = office.closes - 2 * grBalance.minutes.paperwork;
+  const workday = settle(gr.newGame('bluecard', 5, 'en'));
+  const lease = (state: State) => ({
+    ...state,
+    flags: [...state.flags, 'brighter-home'],
+  });
+  for (const [state, id] of [
+    [workday, 'rent-brighter-home'],
+    [lease(workday), 'leave-brighter-home'],
+  ] as const) {
+    expect(ids(visit(state, 'home', latest), 'home')).toContain(id);
+    expect(ids(visit(state, 'home', latest + 1), 'home')).not.toContain(id);
+  }
+  const moved = settle(
+    gr.doActivity(visit(workday, 'home', latest), 'rent-brighter-home'),
+  );
+  expect(ids(visit(moved, 'visa', moved.day.minute), 'visa')).toContain(
+    'report-change',
+  );
+  // The office is shut at the weekend, so neither move is offered.
+  const saturday = nextDay(workday);
+  expect(saturday.day.kind).toBe('weekend');
+  expect(ids(visit(saturday, 'home', 600), 'home')).not.toContain(
+    'rent-brighter-home',
+  );
+  expect(ids(visit(lease(saturday), 'home', 600), 'home')).not.toContain(
+    'leave-brighter-home',
+  );
 });
 
 test('address changes carry the day and join the assessment next quarter', () => {

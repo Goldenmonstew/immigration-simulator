@@ -26,7 +26,14 @@ import {
   type GrState,
   type GrTimeline,
 } from './rules';
-import { euro, festivalFoods, grFish, grItems, grNotices } from './town';
+import {
+  euro,
+  festivalFoods,
+  grFish,
+  grItems,
+  grNotices,
+  grPlaces,
+} from './town';
 
 type GrTools = GameTools<GrTimeline, CountryResult, GrEffect, GrFestival>;
 type GrActivity = Activity<GrEffect, GrFestival>;
@@ -132,11 +139,26 @@ const lateReport = (state: GrState) =>
         state.day.date,
   );
 
+const visaHours = grPlaces.find((place) => place.id === 'visa')!.hours!;
+/**
+ * Whether the migration office can still take an address report today after
+ * an action. Play skips ahead between days, so the next working day may fall
+ * outside the reporting period.
+ */
+const reportableToday = (state: GrState, minutes: number) =>
+  visaHours.dayKinds!.includes(state.day.kind) &&
+  state.day.minute + minutes + b.minutes.paperwork <= visaHours.closes;
+
 export function actionAvailable(
   state: GrState,
   action: GrActivity,
   { affordable }: GrTools,
 ): boolean | undefined {
+  if (action.id === 'rent-brighter-home' || action.id === 'leave-brighter-home')
+    return (
+      reportableToday(state, action.minutes) &&
+      affordable(state, action.effects)
+    );
   // Fees added in actionDetails count towards what the player can afford.
   if (action.id === 'settle')
     return (
