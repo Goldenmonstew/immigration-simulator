@@ -880,3 +880,4 @@
 | 1222 | 任务 116 测试稳定性：日本英文 e2e 的存款断言改为只匹配金额格式（开局卡片会花钱，种子取当前时间，约 3.75% 偶发失败）；`game.test.ts` 内容契约测试在负载下超过默认 5 秒，单独设 30 秒超时，断言不变 | `apps/e2e/tests/japan-game.spec.ts`、`packages/game/test/game.test.ts` |
 | 1223 | 任务 116 共用游戏修正：结局页"在模拟器里打开这条时间线"链接按钮被 `.theme.theme a` 覆盖成深绿字配绿底（对比度约 1.3:1），链接按钮恢复白字；英国 e2e 核对颜色 | `apps/web/app/uk/game/game.module.css`、`apps/e2e/tests/game.spec.ts` |
 | 1224 | AGENTS.md 记录用户 2026-11-25 决定：Gemini 周额度用完后由未参与实现的 Claude 子 agent 终审、通过即合并，Gemini 恢复后补复查 | `AGENTS.md` |
+| 1225 | 任务 116 报告 | `docs/tasks/reports/116-shared-fixes.md` |
