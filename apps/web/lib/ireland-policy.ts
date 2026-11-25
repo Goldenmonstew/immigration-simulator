@@ -2,6 +2,7 @@ import {
   IRELAND_CONDITION_IDS,
   IRELAND_FULL_PATHWAY_TITLES,
   irelandCondition,
+  type Locale,
   type RuleMeta,
   type RuleSetId,
 } from '@uk-immigration/engine';
@@ -14,6 +15,7 @@ import { t, type TranslationKey } from '../i18n';
 import {
   withPolicySources,
   type CountryPolicy,
+  type PolicyParameterValue,
   type PolicyRuleSet,
 } from './policy';
 
@@ -209,6 +211,50 @@ for (const [name, entry] of Object.entries(full)) {
       parameters[`${name}.${child}`] = value;
 }
 
+// Irish association evidence categories, in the order of SRC-400 Table 1.
+const associationCategories = [
+  'ie.policy.association.experiential',
+  'ie.policy.association.family',
+  'ie.policy.association.cultural',
+  'ie.policy.association.establishment',
+] as const;
+
+// Positional lists are shown as labelled tables.
+function displayParameter(
+  name: string,
+  locale: Locale,
+): PolicyParameterValue | undefined {
+  const label = (key: TranslationKey) => t(key, locale);
+  if (name === 'naturalisation.association') {
+    const value = full.naturalisation.association.value;
+    return {
+      ...value,
+      maxByCategory: associationCategories.map((key, i) => ({
+        [label('ie.policy.category')]: label(key),
+        [label('ie.policy.maxPoints')]: value.maxByCategory[i],
+      })),
+    };
+  }
+  if (name === 'family.income') {
+    const value = full.family.income.value;
+    const amounts = value.categoryCWithChildren;
+    const income = label('ie.policy.minimumNetIncome').replace(
+      '{year}',
+      value.childrenTableYear,
+    );
+    return {
+      ...value,
+      // The last threshold applies to that many children or more (SRC-386).
+      categoryCWithChildren: amounts.map((amount, i) => ({
+        [label('ie.policy.children')]:
+          `${i + 1}${i === amounts.length - 1 ? '+' : ''}`,
+        [income]: `€${amount.toLocaleString(locale)}`,
+      })),
+    };
+  }
+  return undefined;
+}
+
 function change(
   date: string,
   key: 'family2026' | 'family2025' | 'registrationFee' | 'minor',
@@ -238,6 +284,7 @@ export const irelandPolicy = withPolicySources({
     },
   },
   rules: { [ruleSetId]: irelandRules },
+  displayParameter,
   changelog: [
     change(full.family.versions.value.currentFrom, 'family2026', [
       ...full.family.versions.sources,

@@ -47,6 +47,14 @@ export const zhCN = {
   'ie.policy.change.registrationFeeSummary': `自此日起，须缴费的登记或续期按 S.I. 421/2025 收费 ${registrationFee}，法定豁免情形除外。`,
   'ie.policy.change.minor': '境内出生未成年人入籍居住要求',
   'ie.policy.change.minorSummary': `自此日起，在共和国出生的未成年人按递交前连续 ${minorContinuous} 年加此前 ${minor.windowYears} 年内累计 ${minor.priorYears} 年的居住核对（s15B 修订）。`,
+  'ie.policy.category': '类别',
+  'ie.policy.maxPoints': '满分',
+  'ie.policy.association.experiential': '经历关联',
+  'ie.policy.association.family': '家庭关联',
+  'ie.policy.association.cultural': '文化关联',
+  'ie.policy.association.establishment': '在境内立足',
+  'ie.policy.children': '子女数',
+  'ie.policy.minimumNetIncome': '最低年净收入（{year}）',
   'ie.result.finishQuestionnaire':
     '请返回问卷，完成所选路径的必填项目后再查看结果。',
   'ie.result.projected':
@@ -114,6 +122,14 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.policy.change.registrationFeeSummary': `From this date, a registration or renewal that is not exempt costs ${registrationFee} under S.I. 421/2025.`,
   'ie.policy.change.minor': 'Residence for minors born in the State',
   'ie.policy.change.minorSummary': `From this date, a minor born in the State needs ${minorContinuous} year of continuous residence before filing plus ${minor.priorYears} years in the ${minor.windowYears} before that (amended s15B).`,
+  'ie.policy.category': 'Category',
+  'ie.policy.maxPoints': 'Maximum points',
+  'ie.policy.association.experiential': 'Experiential connection',
+  'ie.policy.association.family': 'Family connection',
+  'ie.policy.association.cultural': 'Cultural connection',
+  'ie.policy.association.establishment': 'Establishment in the State',
+  'ie.policy.children': 'Number of children',
+  'ie.policy.minimumNetIncome': 'Minimum annual net income ({year})',
   'ie.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields for your pathways before viewing results.',
   'ie.result.projected':

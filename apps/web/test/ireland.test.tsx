@@ -1172,3 +1172,53 @@ test('fees, post-grant steps and time conditions carry their own groups and stay
   expect(gapRules(work).map((c) => c.id)).toContain('IE-STAMP4-WORK-TIME');
   expect(work.checks.find((c) => c.id === 'IE-B02')?.kind).toBe('budget');
 });
+
+test('the policy page labels association points and the net income table for children', () => {
+  const { maxByCategory } = irelandFull2026_11.naturalisation.association.value;
+  const income = irelandFull2026_11.family.income.value;
+  const thresholds = income.categoryCWithChildren;
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const html = render(<IrelandPolicyPage />, locale);
+    const list = locale === 'en' ? ', ' : '、';
+    // No bare positional lists.
+    expect(html).not.toContain(maxByCategory.join(list));
+    expect(html).not.toContain(
+      thresholds.map((n) => n.toLocaleString(locale)).join(list),
+    );
+    const cell = (text: string | number) => `<td>${text}</td>`;
+    const header = (text: string) => `<th scope="col">${text}</th>`;
+    expect(html).toContain(header(t('ie.policy.category', locale)));
+    expect(html).toContain(header(t('ie.policy.maxPoints', locale)));
+    // Category order follows SRC-400 Table 1.
+    expect(html).toMatch(
+      new RegExp(
+        [
+          'ie.policy.association.experiential',
+          'ie.policy.association.family',
+          'ie.policy.association.cultural',
+          'ie.policy.association.establishment',
+        ]
+          .map(
+            (key, i) =>
+              `${cell(t(key as TranslationKey, locale))}${cell(maxByCategory[i])}`,
+          )
+          .join('[^]*?'),
+      ),
+    );
+    expect(html).toContain(header(t('ie.policy.children', locale)));
+    expect(html).toContain(
+      header(
+        t('ie.policy.minimumNetIncome', locale).replace(
+          '{year}',
+          income.childrenTableYear,
+        ),
+      ),
+    );
+    expect(html).toContain(
+      `${cell(1)}${cell(`€${thresholds[0].toLocaleString(locale)}`)}`,
+    );
+    expect(html).toContain(
+      `${cell(`${thresholds.length}+`)}${cell(`€${thresholds.at(-1)!.toLocaleString(locale)}`)}`,
+    );
+  }
+});
