@@ -942,3 +942,10 @@
 | 1117 | 任务 106 审核修正（review106g-2 建议 4）：时间上限结局再区分"宣誓已开放但没去"：结局定稿时日期已进入下一季，所以按刚玩完那一季重新评估，宣誓当时已开放（核准满足，或只剩 I-751 待决）时写"宣誓典礼已经开放，你还没去参加"；面谈在最后一季、宣誓尚未开放时仍是"宣誓典礼还没等到"。宣誓开放的判断抽成 `oathOpen`，与联邦大楼的宣誓选项同一条件。 | packages/game/src/packs/us/hooks.ts、packages/game/test/us-pack.test.ts |
 | 1118 | 任务 106 审核修正（review106g-2 建议 5）：第二次补考没过时，N-400 被拒改为面谈动作的 `n400Denied` 效果，在效果里删掉 `filed.n400`；共用代码随时间线变化当场重算评估，游戏内评估不再暂时带着被拒申请的递交日。单测用替身记录评估调用，确认被拒后立即重算且不含旧递交日。 | packages/game/src/packs/us/{rules,hooks}.ts、packages/game/test/us-pack.test.ts |
 | 1119 | 任务 106 审核修正报告（review106g-2）：报告末尾补"审核修正（review106g-2）"一节，四段逐条对应风险 1 与建议 1–6，记录合入 main（马来西亚规则）、整链、e2e 与手机宽度截图结果。 | docs/tasks/reports/106-us-game.md |
+| 1220 | 任务 116 共用游戏修正：进度条详情弹窗标题改为该路径名（原为"进入新一年前 → 进入新一年后"，与内容不符；美国、澳大利亚游戏报告提出），日本 e2e 核对弹窗名 | `apps/web/app/game-shell/game-client.tsx`、`apps/e2e/tests/japan-game.spec.ts` |
+| 1221 | 任务 116 共用游戏修正：日记申请分组加入 `naturalise`（日本递交帰化后出现"文件夹越装越厚"；德国游戏审核提出）；季末自动退租日志与日记菜地收成英文不再写英国的"明亮住处""allotment"，各国通用（澳大利亚游戏审核提出）；单测核对 | `packages/game/src/game.ts`、`packages/game/test/jp-pack.test.ts`、`packages/game/test/time-and-economy.test.ts` |
+| 1222 | 任务 116 测试稳定性：日本英文 e2e 的存款断言改为只匹配金额格式（开局卡片会花钱，种子取当前时间，约 3.75% 偶发失败）；`apps/web` 与 `packages/engine` 的 `test` 脚本照 `packages/game` 设 `--testTimeout=60000`（CI runner 慢，西班牙游戏、葡萄牙政策页等重测试超过默认 5 秒） | `apps/e2e/tests/japan-game.spec.ts`、`apps/web/package.json`、`packages/engine/package.json` |
+| 1223 | 任务 116 共用游戏修正：结局页"在模拟器里打开这条时间线"链接按钮被 `.theme.theme a` 覆盖成深绿字配绿底（对比度约 1.3:1），链接按钮恢复白字；英国 e2e 核对颜色 | `apps/web/app/uk/game/game.module.css`、`apps/e2e/tests/game.spec.ts` |
+| 1224 | AGENTS.md 记录用户 2026-11-25 决定：Gemini 周额度用完后由未参与实现的 Claude 子 agent 终审、通过即合并，Gemini 恢复后补复查 | `AGENTS.md` |
+| 1225 | 任务 116 报告 | `docs/tasks/reports/116-shared-fixes.md` |
+| 1226 | 任务 116 审核建议跟进（review116-1）：删掉 engine 希腊入籍单测的 10 秒单测超时（低于新的 60 秒默认）；`.theme.theme a.secondary` 同样恢复按钮文字色；报告措辞改准 | `packages/engine/test/greece-settlement.test.ts`、`apps/web/app/uk/game/game.module.css`、`docs/tasks/reports/116-shared-fixes.md` |
