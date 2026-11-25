@@ -48,6 +48,15 @@ function jump(from: State, date: string, day: string) {
   state.result = ca.caRules.evaluate(state);
   return state;
 }
+/**
+ * The ending log. Each character files one kind of application (the citizen
+ * only signs for citizenship, the graduate only files for the Atlantic
+ * program), so the settled text is the character's own.
+ */
+const endings = (state: State) =>
+  state.log
+    .filter(({ kind }) => kind === 'ending')
+    .map(({ id, text }) => [id, text]);
 const ids = (state: State, place: string) =>
   ca.activities(state, place).map(({ id }) => id);
 const unmet = (state: State, id: Parameters<typeof ca.pathwayOf>[1]) =>
@@ -215,6 +224,9 @@ test('the Atlantic route: offer, settlement plan, endorsement, test, certificate
   expect(ca.narrative(ended).at(-1)).toEqual(
     ca.characterOf('graduate').settlement,
   );
+  expect(endings(ended)).toEqual([
+    ['settled', ca.characterOf('graduate').settlement],
+  ]);
 });
 
 test('citizenship: sign when the days are in, pass the test, then take the oath', () => {
@@ -259,6 +271,9 @@ test('citizenship: sign when the days are in, pass the test, then take the oath'
   expect(ca.narrative(ended).at(-1)).toEqual(
     ca.characterOf('citizen').settlement,
   );
+  expect(endings(ended)).toEqual([
+    ['settled', ca.characterOf('citizen').settlement],
+  ]);
 });
 
 test('what the player does on a day carries that day and joins the next quarter', () => {
