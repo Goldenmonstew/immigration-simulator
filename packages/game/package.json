@@ -6,7 +6,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./core": "./src/core.ts",
-    "./uk/presentation": "./src/packs/uk/presentation.ts"
+    "./uk/presentation": "./src/packs/uk/presentation.ts",
+    "./jp": "./src/packs/jp/index.ts",
+    "./jp/presentation": "./src/packs/jp/presentation.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

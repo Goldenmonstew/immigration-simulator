@@ -111,6 +111,8 @@ export interface GameContentPack<
   home?: PlaceId;
   /** Registered fishing location. Defaults to `pond`. */
   fishingPlace?: PlaceId;
+  /** Where the diary says lines were cast. Defaults to the pond. */
+  fishingSpot?: Text;
   /** Registered location for the `rent-plot` activity and growing crops. Defaults to `allotment`. */
   allotmentPlace?: PlaceId;
   places: readonly Place[];
