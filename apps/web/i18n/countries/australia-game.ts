@@ -34,6 +34,8 @@ export const auGameZh = {
   'au.game.visaVisit': '去政府服务中心',
   'au.game.noVisaActions': '眼下这里没有可办的签证手续。',
   'au.game.councilDetails': '去移民代理那里看详情',
+  'au.game.residencePending':
+    '只剩「连续通常居住」待内政部个案核对（PD-108）：进度条显示 0%，但政府服务中心开门的工作日就能递交。',
   'au.game.collectionMemory.pond': '那天{weather}，你在码头钓到了它。',
   'au.game.fishJunk': '海湾的小意外，也一起带上岸吧。',
   'au.game.openTimeline': '在澳大利亚模拟器里打开这条时间线',
@@ -78,6 +80,8 @@ export const auGameEn: Record<keyof typeof auGameZh, string> = {
   'au.game.visaVisit': 'Visit the government service centre',
   'au.game.noVisaActions': 'No visa applications are available here right now.',
   'au.game.councilDetails': 'Visit the migration agent for details',
+  'au.game.residencePending':
+    'Only continuous usual residence is left for Home Affairs to decide case by case (PD-108): the bar shows 0%, but you can lodge at the service centre on a workday.',
   'au.game.collectionMemory.pond':
     'You caught it off the jetty on a {weather} day.',
   'au.game.fishJunk': 'A little surprise from the bay, brought safely ashore.',

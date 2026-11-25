@@ -1,5 +1,5 @@
 import type { CountryResult } from '@uk-immigration/engine';
-import { auCharges } from '@uk-immigration/policy-data';
+import { auCharges, australia2026_11 } from '@uk-immigration/policy-data';
 import { addDays, addMonths, firstWeekday } from '../../calendar';
 import type { GameTools } from '../../content-pack';
 import type {
@@ -31,6 +31,8 @@ type AuActivity = Activity<AuEffect, AuFestival>;
 type AuEvent = GameEvent<AuEffect, AuFestival>;
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
 const aud = (value: number) => `AUD ${value.toLocaleString('en-AU')}`;
+// Trips back within these years before lodging need the case-by-case call.
+const hongKongYears = australia2026_11.values.hongKongRegionalYears.value;
 const festivalActions = [
   'festival',
   'beach-cricket',
@@ -107,7 +109,7 @@ function lodgementFee(state: AuState) {
  * case-by-case call after a trip (PD-108): the application can go in and
  * Home Affairs decides it. Fees are a budget, not a requirement.
  */
-function residencePending(state: AuState) {
+export function residencePending(state: AuState) {
   const pathway = pathwayOf(currentResult(state));
   return (
     pathway?.status === 'UNKNOWN' &&
@@ -205,8 +207,8 @@ export function actionDetails(state: AuState, action: AuActivity): void {
     action.label = t('冬天下海游一圈（冷！）', 'A winter dip (cold!)');
   if (action.id.startsWith('travel-') && state.timeline.pathway === 'AU-191-HK')
     action.note = t(
-      `${action.note!.zhCN}香港类别离境后是否仍算连续通常居住须个案判断（PD-108）：回来后评估会一直把这一项显示为待确认，进度条也不再给出日期；其他条件都满足后，仍可在政府服务中心递交，由内政部核对。`,
-      `${action.note!.en} Whether the Hong Kong streams still treat you as continuously usually resident after a trip is a case-by-case call (PD-108): from then on the assessment shows it as unknown and the progress bar gives no date. Once everything else is met, you can still lodge at the service centre and Home Affairs decides it.`,
+      `${action.note!.zhCN}香港类别离境后是否仍算连续通常居住须个案判断（PD-108，SRC-200 191.232）：回来后的 ${hongKongYears} 年内，评估会把这一项显示为待确认，进度条也不给日期；其他条件都满足后，仍可在政府服务中心递交，由内政部核对。`,
+      `${action.note!.en} Whether the Hong Kong streams still treat you as continuously usually resident after a trip is a case-by-case call (PD-108, SRC-200 191.232): for ${hongKongYears} years after you return, the assessment shows it as unknown and the progress bar gives no date. Once everything else is met, you can still lodge at the service centre and Home Affairs decides it.`,
     );
 }
 

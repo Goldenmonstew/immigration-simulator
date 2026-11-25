@@ -171,6 +171,9 @@ export const auCountry: GameCountry<AuKinds> = {
             <dd>{pathway.earliestDate ?? t('result.undetermined')}</dd>
           </div>
         </dl>
+        {auGame.residencePending(state) && (
+          <p>{t('au.game.residencePending')}</p>
+        )}
       </>
     );
   },

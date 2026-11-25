@@ -101,7 +101,7 @@ export const {
   visaMonthsLeft,
 } = createGame(auGameContent);
 export const characters = auProfiles;
-export const { characterOf } = hooks;
+export const { characterOf, residencePending } = hooks;
 export const loadCharacter = auGameContent.loadCharacter;
 export const places = auPlaces;
 export const npcs = auNpcs;

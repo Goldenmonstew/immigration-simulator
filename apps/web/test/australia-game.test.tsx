@@ -190,8 +190,8 @@ test('a Hong Kong application lodged with usual residence pending links the same
     setItem: () => {},
     removeItem: () => {},
   });
-  let state = settle(au.newGame('graduate', 7, 'zh-CN'));
-  state = au.doActivity(visit(state, 'station', 540), 'health-exam');
+  const opening = settle(au.newGame('graduate', 7, 'zh-CN'));
+  let state = au.doActivity(visit(opening, 'station', 540), 'health-exam');
   state = au.doActivity(visit(state, 'post', 900), 'police-check');
   state = settle(au.doActivity(visit(state, 'station', 1000), 'travel-1'));
   const later = structuredClone(state);
@@ -210,6 +210,18 @@ test('a Hong Kong application lodged with usual residence pending links the same
   expect(view(page.result!)).toEqual(view(shownResult(lodged)));
   expect(view(page.result!)[0].status).toBe('UNKNOWN');
   expect(au.progress(lodged).pr.outcome).toBe('UNKNOWN');
+  // The bar reads 0%, but the application can go in that day.
+  expect(au.progress(later).pr.percent).toBe(0);
+  for (const locale of ['zh-CN', 'en'] as const)
+    expect(
+      render(
+        auCountry.progressDetail(later, 'pr', (key) => t(key, locale)),
+        locale,
+      ),
+    ).toContain(t('au.game.residencePending', locale));
+  expect(
+    render(auCountry.progressDetail(opening, 'pr', (key) => t(key, 'zh-CN'))),
+  ).not.toContain(t('au.game.residencePending', 'zh-CN'));
 });
 
 test.each(['zh-CN', 'en'] as const)(

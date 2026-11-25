@@ -3,6 +3,7 @@ import { evaluateAustraliaFull } from '@uk-immigration/engine';
 import {
   auCharges,
   auRegionalParameters,
+  australia2026_11,
   australiaFull2026_11,
 } from '@uk-immigration/policy-data';
 import * as au from '../src/packs/au';
@@ -308,6 +309,11 @@ test('after a trip home, the Hong Kong stream can be lodged once only usual resi
   expect(trip.note?.zhCN).toContain('PD-108');
   expect(trip.note?.zhCN).toContain('仍可在政府服务中心递交');
   expect(trip.note?.en).toContain('you can still lodge');
+  // Only trips back within the stream's years before lodging count.
+  const years = australia2026_11.values.hongKongRegionalYears.value;
+  expect(trip.note?.zhCN).toContain(`回来后的 ${years} 年内`);
+  expect(trip.note?.en).toContain(`for ${years} years after you return`);
+  expect(trip.note?.zhCN).not.toContain('一直');
   state = settle(au.doActivity(station, 'travel-1'));
   expect(state.timeline.trips).toEqual([
     { departed: '2026-03-10', returned: '2026-04-10' },
