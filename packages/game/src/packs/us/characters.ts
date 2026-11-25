@@ -504,6 +504,7 @@ const engineer: UsCharacter = {
     fees: { channel: 'paper', relief: 'none' },
     annualIncomeUsd: 108_000,
     moves: [],
+    filed: {},
   },
   opening: opening(
     'engineer',
@@ -579,6 +580,7 @@ const spouse: UsCharacter = {
     fees: { channel: 'paper', relief: 'none' },
     annualIncomeUsd: 106_000,
     moves: [],
+    filed: {},
   },
   opening: opening(
     'spouse',

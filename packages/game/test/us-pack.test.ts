@@ -270,29 +270,53 @@ test('missing the I-751 window ends conditional residence', () => {
 });
 
 test('naturalization runs from the N-400 through the interview to the oath', () => {
+  // The answers the questionnaire gets for a quarter's assessment date.
+  const answers = (state: State) =>
+    us.usRequest(
+      state.timeline,
+      'US-NATURALIZATION',
+      us.filingDay(state.date),
+      'en',
+    );
   let state = playTo(us.newGame('engineer', 5, 'en'), '2028-03-01');
   expect(us.pathwayOf(state.result, 'cit')?.status).toBe('FUTURE');
   state = playTo(state, '2028-06-01');
   expect(us.pathwayOf(state.result, 'cit')?.status).toBe('MET');
   const office = visit(state, 'visa', 600);
   expect(ids(office, 'visa')).toEqual(['n400']);
+  // Mailed on the quarter's workday, after its assessment date.
+  const mailed = office.day.date;
+  expect(mailed > us.filingDay(office.date)).toBe(true);
   const filed = us.doActivity(office, 'n400');
   expect(filed.stats.money).toBe(office.stats.money - fees.n400.paper);
-  expect(filed.timeline.fees?.filingOn).toBe('2028-06-01');
+  expect(answers(filed).fees?.filingOn).toBeUndefined();
   // USCIS schedules the interview later: next quarter in the game.
   expect(ids(filed, 'visa')).toEqual([]);
   const later = playTo(filed, '2028-09-01');
+  expect(answers(later).fees?.filingOn).toBe(mailed);
   later.stats.english = 64;
   const interview = visit(later, 'visa', 600);
   expect(ids(interview, 'visa')).toEqual(['interview']);
+  const interviewed = interview.day.date;
   const passed = settle(us.doActivity(interview, 'interview'));
-  expect(passed.timeline.naturalization).toMatchObject({
+  expect(passed.flags).toContain('interview-passed');
+  // The tests are passed on the day, so they join next quarter's assessment.
+  expect(answers(passed).naturalization).toMatchObject({
+    english: 'preparing',
+    civics: 'preparing',
+  });
+  expect(answers(passed).naturalization?.interviewOn).toBeUndefined();
+  expect(us.pathwayOf(passed.result, 'cit')?.approvalStatus).toBe('UNKNOWN');
+  expect(ids(visit(passed, 'visa', 700), 'visa')).toEqual([]);
+  const sworn = playTo(passed, '2028-12-01');
+  expect(answers(sworn).naturalization).toMatchObject({
     english: 'passed',
     civics: 'passed',
+    interviewOn: interviewed,
   });
   // Five full years from 2023-06-15 have passed, so approval is met too.
-  expect(us.pathwayOf(passed.result, 'cit')?.approvalStatus).toBe('MET');
-  const oath = visit(passed, 'visa', 700);
+  expect(us.pathwayOf(sworn.result, 'cit')?.approvalStatus).toBe('MET');
+  const oath = visit(sworn, 'visa', 600);
   expect(ids(oath, 'visa')).toEqual(['oath']);
   const ended = us.doActivity(oath, 'oath');
   expect(ended.ending).toBe('settled');
@@ -317,6 +341,8 @@ test('the spouse naturalizes as a citizen’s spouse once the conditions are rem
   );
   state.stats.english = 64;
   state = settle(us.doActivity(visit(state, 'visa', 600), 'interview'));
+  // The interview joins the assessment next quarter.
+  state = playTo(state, '2029-03-01');
   expect(us.pathwayOf(state.result, 'cit')?.approvalStatus).toBe('MET');
   // The oath is the only settled ending; its text is the character's own.
   const ended = us.doActivity(visit(state, 'visa', 700), 'oath');

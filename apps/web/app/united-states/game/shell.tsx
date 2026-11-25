@@ -109,6 +109,12 @@ function federalBuildingNote(state: UsState) {
       `I-751 最早 ${card.earliestDate} 可以递交。`,
       `The I-751 can be filed from ${card.earliestDate}.`,
     );
+  const { interview } = state.timeline.filed;
+  if (interview && interview > usGame.filingDay(state.date))
+    return t(
+      '面谈已通过，宣誓通知下一季才会到。',
+      'Interview passed. The oath notice comes next quarter.',
+    );
   if (state.flags.includes('interview-passed'))
     return citizenship?.approvalStatus === 'FUTURE'
       ? t(

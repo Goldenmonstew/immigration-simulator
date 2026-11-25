@@ -142,13 +142,14 @@ test.each(['engineer', 'spouse'])(
       states.push(lapsed);
     } else {
       let state = playTo(opening, '2028-06-01');
-      state = playTo(
-        us.doActivity(visit(state, 'visa', 600), 'n400'),
-        '2028-09-01',
-      );
+      state = us.doActivity(visit(state, 'visa', 600), 'n400');
+      states.push(leave(state));
+      state = playTo(state, '2028-09-01');
       state.stats.english = 64;
       state = settle(us.doActivity(visit(state, 'visa', 600), 'interview'));
-      const sworn = us.doActivity(visit(state, 'visa', 700), 'oath');
+      states.push(leave(state));
+      state = playTo(state, '2028-12-01');
+      const sworn = us.doActivity(visit(state, 'visa', 600), 'oath');
       expect(sworn.ending).toBe('settled');
       states.push(sworn);
     }
@@ -166,6 +167,18 @@ test.each(['engineer', 'spouse'])(
       expect(draft).toEqual(gameDraft(state));
       expect(draft.simulationDate).toBe(us.filingDay(state.date));
       expect(draft.step).toBe(unitedStatesSteps(draft).at(-1)!.step);
+      // The N-400 and the interview enter on their own day, never earlier.
+      const { filed } = state.timeline;
+      expect(draft.fees?.filingOn).toBe(
+        filed.n400 && filed.n400 <= draft.simulationDate
+          ? filed.n400
+          : undefined,
+      );
+      expect(draft.naturalization?.interviewOn).toBe(
+        filed.interview && filed.interview <= draft.simulationDate
+          ? filed.interview
+          : undefined,
+      );
       const column = state.ending === 'overstayed' ? 'gc' : ('cit' as const);
       expect(draft.pathway).toBe(us.pathwayOf(state.result, column)!.id);
       // The game's assessment, progress bar and detail show the same result.
@@ -258,6 +271,16 @@ test('the Federal Building says when the next filing opens', () => {
   const engineer = settle(us.newGame('engineer', 4, 'zh-CN'));
   expect(usCountry.placeNote?.(engineer, 'visa')?.zhCN).toBe(
     'N-400 最早 2028-03-17 可以递交。',
+  );
+  // The interview joins the assessment next quarter, and the oath with it.
+  const interviewed = structuredClone(engineer);
+  interviewed.flags.push('n400-filed', 'interview-passed');
+  interviewed.timeline.filed = {
+    n400: '2026-01-13',
+    interview: interviewed.day.date,
+  };
+  expect(usCountry.placeNote?.(interviewed, 'visa')?.zhCN).toBe(
+    '面谈已通过，宣誓通知下一季才会到。',
   );
   expect(usCountry.endingActionText?.(engineer, 'oath')).toEqual({
     label: 'us.game.oath',

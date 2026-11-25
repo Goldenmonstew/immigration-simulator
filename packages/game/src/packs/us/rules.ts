@@ -44,6 +44,11 @@ export type UsTimeline = Omit<
      * assessment date (see usRequest).
      */
     moves: { movedOn: IsoDate; reportedOn?: IsoDate }[];
+    /**
+     * Game only: the day the N-400 was mailed and the interview held. The
+     * questionnaire's answers take those by the assessment date (usRequest).
+     */
+    filed: { n400?: IsoDate; interview?: IsoDate };
   };
 export type UsFestival =
   'polar-plunge' | 'cinco-de-mayo' | 'fourth-of-july' | 'halloween';
@@ -100,18 +105,30 @@ export function usRequest(
   locale: Locale,
 ): UsFullRequest {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { annualIncomeUsd, moves, ...answers } = timeline;
-  const move = moves.filter(({ movedOn }) => movedOn <= simulationDate).at(-1);
+  const { annualIncomeUsd, moves, filed, ...answers } = timeline;
+  const by = (date?: IsoDate): date is IsoDate =>
+    !!date && date <= simulationDate;
+  const move = moves.filter(({ movedOn }) => by(movedOn)).at(-1);
   return {
     ...answers,
+    ...(by(filed.n400) && {
+      fees: { ...answers.fees, filingOn: filed.n400 },
+    }),
+    ...(by(filed.interview) && {
+      naturalization: {
+        ...answers.naturalization,
+        english: 'passed',
+        civics: 'passed',
+        interviewOn: filed.interview,
+      },
+    }),
     travel: {
       ...answers.travel,
       movedOn: move?.movedOn ?? 'no-move',
       ...(move && {
-        addressReportedOn:
-          move.reportedOn && move.reportedOn <= simulationDate
-            ? move.reportedOn
-            : 'not-reported',
+        addressReportedOn: by(move.reportedOn)
+          ? move.reportedOn
+          : 'not-reported',
       }),
     },
     pathway,
@@ -256,19 +273,13 @@ export const usRules: EvaluationAdapter<
         );
         setFlags(state, ['card-renewed', 'quarter-visa-renewed']);
         return true;
+      // The postmark and the interview carry their own day, as moves do.
       case 'n400':
-        state.timeline.fees = {
-          ...state.timeline.fees,
-          filingOn: filingDay(state.date),
-        };
+        state.timeline.filed.n400 = state.day.date;
         setFlags(state, ['n400-filed', 'quarter-n400-filed']);
         return true;
       case 'interview':
-        Object.assign(naturalization, {
-          english: 'passed',
-          civics: 'passed',
-          interviewOn: filingDay(state.date),
-        });
+        state.timeline.filed.interview = state.day.date;
         setFlags(state, ['interview-passed']);
         return true;
       // Moves and reports carry the day they happen, as trips do.
