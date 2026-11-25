@@ -684,3 +684,4 @@
 | 790 | 任务 102 审核修正（review102-1）e2e 发现：问卷清空草稿根层的答案（删除唯一一条出境记录或居留证件、清空在审递交日、出生日期，以及随之隐藏的 emancipação 生效日）时，问卷外壳按补丁合并会把旧值带回；改为把根层删除的答案以 undefined 送出。 | apps/web/app/portugal/simulate/page.tsx、apps/e2e/tests/portugal.spec.ts、PROGRESS.md |
 | 791 | 任务 102 报告补“审核修正（review102-1）”一节：按 commit 与审核编号列修正与回归、验收与 e2e 结果、未做事项及发现与建议。 | docs/tasks/reports/102-pt-pages.md、PROGRESS.md |
 | 792 | 任务 102 合入 main（澳大利亚完整版页面 #81）：共用政策页取 main 版本（标题回退、年份不分组、`displayParameter`），离线页面登记澳大利亚与葡萄牙两国，离线缓存版本保持 2026-11-25-pt。 | apps/web/{components/policy-page.tsx,lib/site-countries.ts,public/sw.js,test/about-page.test.tsx}、PROGRESS.md |
+| 793 | 任务 102 接入共用选项：葡萄牙模块设 `scenarioLinks`，打开分享链接不覆盖本机草稿，结果、修改与对比之间带场景片段；“跳到主要内容”在葡萄牙结果、问卷、对比页不洗掉片段。 | apps/web/{lib/portugal-module.ts,components/site-shell.tsx,test/portugal.test.tsx}、PROGRESS.md |

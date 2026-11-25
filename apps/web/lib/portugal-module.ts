@@ -71,6 +71,7 @@ function run(draft: PortugalDraft, locale: Locale) {
 export const portugalModule: CountryModule<PortugalDraft, PortugalWhatIf> = {
   id: 'pt',
   version: 1,
+  scenarioLinks: true,
   createDraft: createPortugalDraft,
   activeAnswers: activePortugalAnswers,
   restoreStoredDraft: restoreStoredPortugalDraft,

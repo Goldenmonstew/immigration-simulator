@@ -1,5 +1,6 @@
+import { usePathname } from 'next/navigation';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { expect, test } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import {
   evaluatePortugalFull,
   type PtFullRequest,
@@ -11,6 +12,7 @@ import PortugalPolicyPage from '../app/portugal/policy/page';
 import PortugalSimulatePage from '../app/portugal/simulate/page';
 import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';
 import { t, type TranslationKey } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
@@ -24,9 +26,16 @@ import {
 } from '../lib/portugal-draft';
 import { portugalSteps, type PortugalField } from '../lib/portugal-fields';
 import { portugalModule as pt } from '../lib/portugal-module';
-import { decodeDraft, encodeDraft } from '../lib/share';
+import { decodeDraft, encodeDraft, linkedResultDraft } from '../lib/share';
 import { sourceUrls } from '../lib/sources';
+import { draftStorage } from '../lib/storage';
 import { ukModule } from '../lib/uk-module';
+
+vi.mock('next/navigation', () => ({ usePathname: vi.fn() }));
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.mocked(usePathname).mockReset();
+});
 
 const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
   renderToStaticMarkup(
@@ -349,6 +358,47 @@ test('drafts round-trip in their country envelope and reject other countries', (
     step: 0,
   });
 });
+
+// Shared options from task 93: scenario fragments between result, edit and
+// comparison, and shared links that never replace the local draft.
+test('opening a Portuguese share link keeps the local draft and result links carry the scenario', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local: PortugalDraft = {
+    ...pt.createDraft(),
+    simulationDate: '2026-10-01',
+    route: 'eu',
+  };
+  draftStorage(pt, local);
+  const shared = partnerDraft(['partner']);
+  const page = readPageResult(pt, 'zh-CN', encodeDraft(pt, shared));
+  expect(page.shared).toBe(true);
+  expect(page.draft?.route).toBe('other');
+  expect(JSON.parse(storage.get('pt-immigration-draft-v1')!)).toEqual(local);
+  expect(draftStorage(pt).draft).toEqual(local);
+  const linked = linkedResultDraft(pt, `#draft=${encodeDraft(pt, shared)}`);
+  expect(linked).toEqual({
+    draft: activePortugalAnswers(shared),
+    resultHash: '',
+  });
+});
+
+test.each(['result', 'simulate', 'whatif'])(
+  'skipping to the main content on /portugal/%s keeps the scenario fragment',
+  (sub) => {
+    vi.mocked(usePathname).mockReturnValue(`/portugal/${sub}`);
+    const html = render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    );
+    expect(html).toContain(`${t('site.skip')}</button>`);
+    expect(html).not.toContain('href="#main"');
+  },
+);
 
 test('answers for routes or branches the user left are not assessed or shared', () => {
   const draft: PortugalDraft = {
