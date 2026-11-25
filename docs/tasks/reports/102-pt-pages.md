@@ -89,8 +89,8 @@
 | 787 | `Fix: 蓝卡依据的欧盟长期居民可答国际保护，长期居民手续默认值与引擎一致（review102-1）` | 问题 5、风险“永居后续手续的默认值” |
 | 788 | `Fix: 葡萄牙对比旋钮关联与葡语初值按引擎判断，补无出境范围与多选提示（review102-1）` | 建议“旋钮关联”“葡语旋钮初值”“无障碍”，风险“无出境的范围” |
 | 789 | `Chore: 离线缓存版本改为 2026-11-25-pt（review102-1）` | 缓存版本，`about-page.test.tsx` 同步 |
-| 790 | `Fix: 葡萄牙问卷清空根层答案时真正删除（review102-1）` | 运行 e2e 时发现，关系到问题 1、2 |
-| 791 | `Docs: 任务 102 报告补审核修正（review102-1）` | 本节 |
+| 900 | `Fix: 葡萄牙问卷清空根层答案时真正删除（review102-1）` | 运行 e2e 时发现，关系到问题 1、2 |
+| 901 | `Docs: 任务 102 报告补审核修正（review102-1）` | 本节 |
 
 各 commit 都含 `PROGRESS.md` 对应行，尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。本轮没有改共用组件，也没有改引擎和参数。
 
@@ -151,14 +151,14 @@
 
 | PROGRESS | commit message | 内容 |
 |---|---|---|
-| 792 | `Merge: 合入 main（澳大利亚完整版页面 #81）` | 解决四处冲突。`policy-page.tsx` 取 main 的版本：本分支 780 的两处改动（非英国读 `<国家>.policy.pageTitle`、非英国一律分组千分位）已被 main 的通用写法取代（标题回退、按字段语义判断年份、`displayParameter`），本分支对该文件没有别的改动。`site-countries.ts` 的离线页面同时登记澳大利亚与葡萄牙。`sw.js` 与 `about-page.test.tsx` 的缓存版本保持 `2026-11-25-pt`。`PROGRESS.md`、中英文字典自动合并，两边的行和键都在。 |
-| 793 | `Fix: 葡萄牙分享链接不覆盖本机草稿，结果、修改与对比之间带场景` | 葡萄牙模块设 `scenarioLinks: true`；`site-shell.tsx` 的场景路径判断加上 `/portugal/{result,simulate,whatif}`。 |
-| 794 | `Fix: 葡萄牙结果日期标为满足所评估条件的日期` | 设 `earliestLabel: 'pt.result.earliest'`，中文“满足所评估条件的日期（推算）”，英文“Calculated date the assessed requirements are met”。e2e 对比页改读该标签。 |
-| 795 | `Fix: 葡萄牙检查项分组，费用、获批后事项、可选依据与提示不进还差什么` | 在模块的 `run` 里为每个检查项设 `kind`，分法见下表。 |
-| 796 | `Fix: 葡萄牙政策页嵌套参数按含义展示` | 葡萄牙政策提供 `displayParameter`，28 个嵌套参数全部换成中英文字段名。 |
-| 797 | `Fix: 葡萄牙政策页费表表头带币种，窄屏不挤占来源列` | 浏览器验收发现的问题，见第 2 段。 |
-| 798 | `Test: 葡萄牙 e2e 覆盖修改与对比链接的场景片段及根层清空` | e2e 补场景片段与根层清空。 |
-| 799 | `Docs: 任务 102 报告补合入 main 与共用选项接入` | 本节。 |
+| 902 | `Merge: 合入 main（澳大利亚完整版页面 #81）` | 解决四处冲突。`policy-page.tsx` 取 main 的版本：本分支 780 的两处改动（非英国读 `<国家>.policy.pageTitle`、非英国一律分组千分位）已被 main 的通用写法取代（标题回退、按字段语义判断年份、`displayParameter`），本分支对该文件没有别的改动。`site-countries.ts` 的离线页面同时登记澳大利亚与葡萄牙。`sw.js` 与 `about-page.test.tsx` 的缓存版本保持 `2026-11-25-pt`。`PROGRESS.md`、中英文字典自动合并，两边的行和键都在。 |
+| 903 | `Fix: 葡萄牙分享链接不覆盖本机草稿，结果、修改与对比之间带场景` | 葡萄牙模块设 `scenarioLinks: true`；`site-shell.tsx` 的场景路径判断加上 `/portugal/{result,simulate,whatif}`。 |
+| 904 | `Fix: 葡萄牙结果日期标为满足所评估条件的日期` | 设 `earliestLabel: 'pt.result.earliest'`，中文“满足所评估条件的日期（推算）”，英文“Calculated date the assessed requirements are met”。e2e 对比页改读该标签。 |
+| 905 | `Fix: 葡萄牙检查项分组，费用、获批后事项、可选依据与提示不进还差什么` | 在模块的 `run` 里为每个检查项设 `kind`，分法见下表。 |
+| 906 | `Fix: 葡萄牙政策页嵌套参数按含义展示` | 葡萄牙政策提供 `displayParameter`，28 个嵌套参数全部换成中英文字段名。 |
+| 907 | `Fix: 葡萄牙政策页费表表头带币种，窄屏不挤占来源列` | 浏览器验收发现的问题，见第 2 段。 |
+| 908 | `Test: 葡萄牙 e2e 覆盖修改与对比链接的场景片段及根层清空` | e2e 补场景片段与根层清空。 |
+| 909 | `Docs: 任务 102 报告补合入 main 与共用选项接入` | 本节。 |
 
 各 commit 含 `PROGRESS.md` 对应行，尾注 `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`。
 
