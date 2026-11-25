@@ -272,11 +272,30 @@ test('English mobile questionnaire compares dates and shows Portuguese policy so
   ).toBeVisible();
   await noHorizontalScroll(page);
 
+  // Editing a result carries its scenario in the fragment, and an answer
+  // cleared at the draft root stays cleared in that edit (review102-1).
+  await page
+    .getByRole('main')
+    .getByRole('link', { name: en['result.edit'], exact: true })
+    .first()
+    .click();
+  await expect(page).toHaveURL(new RegExp(`${path('simulate')}#draft=`));
+  const birth = page.locator('#pt-birthDate');
+  await birth.fill('1990-01-01');
+  await birth.fill('');
+  await expect(birth).toHaveValue('');
+  await page.reload();
+  await expect(birth).toHaveValue('');
+  await expect(page.locator('#pt-route')).toHaveValue('other');
+  await page.goBack();
+  await expect(page).toHaveURL(path('result'));
+
   await page
     .getByRole('main')
     .getByRole('link', { name: en['whatif.title'], exact: true })
     .first()
     .click();
+  await expect(page).toHaveURL(new RegExp(`${path('whatif')}#draft=`));
   const comparison = assessment(page, en)
     .getByText(en['pt.result.earliest'], { exact: true })
     .locator('xpath=following-sibling::dd[1]');

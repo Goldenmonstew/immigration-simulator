@@ -689,3 +689,4 @@
 | 795 | 任务 102 接入共用选项：葡萄牙检查项设 `kind`。费用为预算，ARI 批件持续义务为获批后事项，旧在审入籍的现行法时间为可选依据，回执与出境风险提示为办理提示，这些引擎不计入状态的项目不进“还差什么”；居留时间、出境与续期窗口标为时间条件，其余为申请条件。保持或换发永久卡时临时许可年限只作提示。 | apps/web/{lib/portugal-module.ts,test/portugal.test.tsx}、PROGRESS.md |
 | 796 | 任务 102 接入共用选项：葡萄牙政策页用 `displayParameter` 按含义展示 28 个嵌套参数。入籍年限按国籍列表，AIMA 四张费表按费目与标准栏、减免栏列表并带 EUR，其余字段换成中英文名称，金额带 EUR，比例显示为百分比；葡萄牙参数没有公历年份，千分位按 main 规则照常分组。 | apps/web/{lib/portugal-policy.ts,i18n/countries/portugal-module.ts,test/portugal.test.tsx}、PROGRESS.md |
 | 797 | 任务 102 政策页浏览器验收修正：AIMA 费表改用短列名“标准栏（EUR）／减免栏（XIV，EUR）”，币种写进表头、单元格只写金额，不再挤进来源列，英文 375px 下不截断；自由流动费用改为“费目—金额（EUR）”小表；其余 EUR 金额与数字之间不断行。 | apps/web/{lib/portugal-policy.ts,i18n/countries/portugal-module.ts,test/portugal.test.tsx}、PROGRESS.md |
+| 798 | 任务 102 e2e：从结果页“修改输入”进入问卷时网址带 `#draft=` 片段，在该编辑中清空根层的出生日期后刷新仍为空，确认按 `undefined` 送出根层删除在场景片段模式下仍有效；对比链接带场景片段。 | apps/e2e/tests/portugal.spec.ts、PROGRESS.md |
