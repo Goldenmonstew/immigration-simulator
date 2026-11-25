@@ -13,6 +13,7 @@ import type {
 import { esBalance as b } from './balance';
 import { esCharacters } from './characters';
 import {
+  currentResult,
   esRules,
   freeCcseRetake,
   pathwayOf,
@@ -105,7 +106,9 @@ export function actionAvailable(
     case 'cita-previa':
       return (
         !state.flags.includes('cita-booked') &&
-        ['MET', 'FUTURE'].includes(pathwayOf(state.result, 'lt')?.status ?? '')
+        ['MET', 'FUTURE'].includes(
+          pathwayOf(currentResult(state), 'lt')?.status ?? '',
+        )
       );
     case 'ccse':
       return (

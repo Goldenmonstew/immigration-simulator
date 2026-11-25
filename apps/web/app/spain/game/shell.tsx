@@ -84,7 +84,10 @@ export function gameDraft(state: EsState): SpainDraft {
 
 /** The game's assessment as the result page shows it. */
 export const shownResult = (state: EsState) =>
-  presentSpainResult(structuredClone(state.result), state.locale);
+  presentSpainResult(
+    structuredClone(esGame.currentResult(state)),
+    state.locale,
+  );
 
 const lateMonths = spainFull2026_11.values.longTermLateMonths;
 
@@ -113,7 +116,7 @@ export const esCountry: GameCountry<EsKinds> = {
           earliestDate ?? t('result.undetermined'),
         ),
   missingRules(state, id) {
-    const pathway = esGame.pathwayOf(state.result, id);
+    const pathway = esGame.pathwayOf(esGame.currentResult(state), id);
     const titles = pathway?.checks
       .filter(
         (check) =>
@@ -181,7 +184,7 @@ export const esCountry: GameCountry<EsKinds> = {
   placeNote(state, place) {
     if (place !== 'visa') return;
     const to = esGame.currentPermit(state).to!;
-    const lt = esGame.pathwayOf(state.result, 'lt')?.status;
+    const lt = esGame.pathwayOf(esGame.currentResult(state), 'lt')?.status;
     const cita =
       lt === 'MET' && !state.flags.includes('cita-booked')
         ? {
@@ -190,7 +193,7 @@ export const esCountry: GameCountry<EsKinds> = {
           }
         : undefined;
     const card =
-      to < state.date
+      to < state.day.date
         ? {
             zhCN: `居留卡已于 ${to} 到期。到期后 ${lateMonths.value} 个月内仍可递交长期居留（SRC-083 art. 184.2）。`,
             en: `Your residence card expired on ${to}. Long-term residence can still be filed within ${lateMonths.value} months of expiry (SRC-083 art. 184.2).`,

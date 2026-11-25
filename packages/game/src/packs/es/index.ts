@@ -117,7 +117,9 @@ export { esCharacters, esFurnishingNames, esRules };
 export {
   assessmentDate,
   currentPermit,
+  currentResult,
   filingAnswers,
+  lateFilingDeadline,
   pathwayOf,
   type EsColumn,
   type EsEffect,

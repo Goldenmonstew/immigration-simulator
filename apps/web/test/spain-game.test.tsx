@@ -137,6 +137,16 @@ function endings(id: string): [string, State][] {
     id === 'cook'
       ? es.doActivity(visit(later, 'bureau', 600), 'naturalise')
       : es.doActivity(visit(later, 'visa', 600), 'settle');
+  // The card runs out between the quarter's assessment date and its day.
+  const lapsing = structuredClone(opening);
+  lapsing.timeline.permits.at(-1)!.to = '2026-12-05';
+  const midQuarter = at(lapsing, '2026-12-01');
+  midQuarter.day.date = '2026-12-10';
+  midQuarter.day.minute = 540;
+  expect(esCountry.placeNote!(midQuarter, 'visa')?.zhCN).toContain(
+    '居留卡已于 2026-12-05 到期',
+  );
+  expect(es.visaMonthsLeft(midQuarter)).toBe(0);
   const lapsed = structuredClone(opening);
   if (id === 'cook') es.currentPermit(lapsed).to = '2026-04-30';
   const overstayed = untilOver(
@@ -151,6 +161,7 @@ function endings(id: string): [string, State][] {
     ['exams, left', leave(exams)],
     ['exams, next quarter, left', leave(examsLater)],
     ['filed', filed],
+    ['card lapsed mid-quarter, left', leave(midQuarter)],
     ['overstayed', overstayed],
   ];
 }
@@ -188,6 +199,7 @@ test.each(['cook', 'exporter'])(
       'left',
       'left',
       'settled',
+      'left',
       'overstayed',
     ]);
     for (const [name, state] of states) {
@@ -205,7 +217,9 @@ test.each(['cook', 'exporter'])(
       // Only the answers the questionnaire asks for the chosen routes.
       expect(activeSpainAnswers(draft), name).toEqual(draft);
       expect(draft.simulationDate, name).toBe(
-        name === 'filed' ? '2026-12-10' : state.date,
+        ['filed', 'card lapsed mid-quarter, left'].includes(name)
+          ? '2026-12-10'
+          : state.date,
       );
       // Nothing that happened after the assessment date is in the draft.
       for (const date of [

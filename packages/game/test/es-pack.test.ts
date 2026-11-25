@@ -473,6 +473,56 @@ test('the diary casts a line off the breakwater, not at a pond', () => {
   expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
 });
 
+test('the card’s lapse counts from the day being played', () => {
+  // 2026-04-05 is less than a month after the playable day 2026-03-10.
+  const fresh = settle(es.newGame('cook', 5, 'en'));
+  es.currentPermit(fresh).to = '2026-04-05';
+  expect(fresh.day.date).toBe('2026-03-10');
+  expect(es.visaMonthsLeft(fresh)).toBe(0);
+
+  // Joel's card runs out on 2026-12-05, between the quarter's assessment
+  // date and its playable day.
+  let cook = settle(es.newGame('cook', 5, 'en'));
+  Object.assign(cook.timeline.nationality, {
+    deleEvidence: 'dele',
+    deleLevel: 'A2',
+    ccse: { verifiedPass: true, issued: '2026-06-01' },
+  });
+  cook.timeline.nationality.criminalRecords!.originRecordOrLawfulAlternative = true;
+  Object.assign(cook.timeline.nationality.documents!, {
+    birthRecord: true,
+    foreignDocumentFormalities: true,
+  });
+  es.currentPermit(cook).to = '2026-12-05';
+  cook = at(cook, '2026-12-01');
+  expect(es.assessmentDate(cook)).toBe('2026-12-01');
+  cook.day.date = '2026-12-10';
+  expect(es.assessmentDate(cook)).toBe('2026-12-10');
+  expect(es.pathwayOf(es.currentResult(cook), 'nat')?.status).toBe('NOT_MET');
+  expect(es.progress(cook).nat.outcome).toBe('NOT_MET');
+});
+
+test('a trip ending this quarter counts when the lapsed card is checked', () => {
+  const exporter = at(settle(es.newGame('exporter', 5, 'en')), '2027-06-01');
+  expect(es.esRules.expired!(structuredClone(exporter), '2027-03-01')).toBe(
+    false,
+  );
+  // Back at this quarter's start from eight months away (SRC-083 art. 183.2).
+  const back = structuredClone(exporter);
+  back.trip = { from: '2026-10-01', to: '2027-06-01' };
+  expect(es.esRules.expired!(back, '2027-03-01')).toBe(true);
+});
+
+test('the late filing window closes on the next working day after a weekend', () => {
+  // Three months after 2026-11-28 is Sunday 2027-02-28, so Monday 2027-03-01.
+  const cook = settle(es.newGame('cook', 5, 'en'));
+  es.currentPermit(cook).to = '2026-11-28';
+  const quarter = at(cook, '2027-03-01');
+  expect(es.esRules.expired!(quarter, '2026-12-01')).toBe(true);
+  expect(quarter.timeline.residence.filingWindowAccepted).toBeUndefined();
+  expect(es.lateFilingDeadline('2026-11-28')).toBe('2027-03-01');
+});
+
 test('a lapsed card ends the story unless long-term residence can still be filed', () => {
   const exporter = settle(es.newGame('exporter', 5, 'en'));
   // Within three months of the 2027-04-30 expiry (SRC-083 art. 184.2).

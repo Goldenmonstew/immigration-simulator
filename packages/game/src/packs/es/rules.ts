@@ -9,9 +9,9 @@ import {
   type EsTrip,
 } from '@uk-immigration/engine';
 import { spainFull2026_11 } from '@uk-immigration/policy-data';
-import { addMonths } from '../../calendar';
+import { addDays, addMonths } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
-import type { GameState, IsoDate, Progress } from '../../model';
+import type { GameState, IsoDate, Locale, Progress } from '../../model';
 import { esBalance as b } from './balance';
 
 const values = spainFull2026_11.values;
@@ -132,20 +132,40 @@ export function filingAnswers(timeline: EsTimeline, date: IsoDate) {
   };
 }
 
-/** The quarter's assessment date, or the day the application went in. */
-export const assessmentDate = (state: {
+/**
+ * The last day to file long-term residence after the card ends (SRC-083 art.
+ * 184.2); a deadline on a Saturday or Sunday moves to the Monday (SRC-090 art.
+ * 30.2). The game has no local holiday calendar.
+ */
+export function lateFilingDeadline(to: IsoDate): IsoDate {
+  let day = addMonths(to, values.longTermLateMonths.value);
+  while ([0, 6].includes(new Date(`${day}T00:00:00Z`).getUTCDay()))
+    day = addDays(day, 1);
+  return day;
+}
+
+/** What an assessment reads: a saved game, or a new one before its first day. */
+type Assessed = {
   date: IsoDate;
   timeline: EsTimeline;
-}) => state.timeline.steps.filed ?? state.date;
+  locale: Locale;
+  day?: { date: IsoDate };
+};
 
-const evaluate: EvaluationAdapter<
-  EsTimeline,
-  CountryResult,
-  EsEffect,
-  EsColumn,
-  EsOutcome,
-  EsFestival
->['evaluate'] = (input) => {
+/**
+ * The date the game assesses on: the day the application went in; otherwise
+ * the quarter's start, unless the card ran out before the day being played,
+ * so the card does not show as still in effect.
+ */
+export function assessmentDate(state: Omit<Assessed, 'locale'>): IsoDate {
+  if (state.timeline.steps.filed) return state.timeline.steps.filed;
+  const day = state.day?.date;
+  return day && day > state.date && currentPermit(state).to! < day
+    ? day
+    : state.date;
+}
+
+const evaluate = (input: Assessed) => {
   const date = assessmentDate(input);
   return evaluateSpainFull({
     ...filingAnswers(input.timeline, date),
@@ -154,19 +174,40 @@ const evaluate: EvaluationAdapter<
   });
 };
 
-/** Months to the end of the current card, rounded down. */
+/** The assessment for the day being played. */
+export const currentResult = (state: EsState): CountryResult =>
+  state.timeline.steps.filed || assessmentDate(state) === state.date
+    ? state.result
+    : evaluate(state);
+
+/** Months to the end of the current card from the day being played. */
 function visaMonthsLeft(state: EsState): number {
   const to = currentPermit(state).to;
-  if (!to || to < state.date) return 0;
+  const today = state.day.date;
+  if (!to || to < today) return 0;
   let months = 0;
-  while (addMonths(state.date, months + 1) <= to) months++;
+  while (addMonths(today, months + 1) <= to) months++;
   return months;
+}
+
+// A home visit is an ordinary, lawful trip outside the EU.
+function recordAbsence(
+  state: { timeline: EsTimeline },
+  trip: { from: IsoDate; to: IsoDate },
+) {
+  const dates = { departed: trip.from, returned: trip.to };
+  state.timeline.trips.push(dates);
+  state.timeline.residence.tripDetails = [
+    ...(state.timeline.residence.tripDetails ?? []),
+    { ...dates, reason: 'ordinary', irregularExit: false, outsideEu: true },
+  ];
 }
 
 function progress(state: EsState): Progress<EsColumn, EsOutcome> {
   const start = Date.parse(state.timeline.permits[0].from);
+  const result = currentResult(state);
   const entry = (column: EsColumn) => {
-    const pathway = pathwayOf(state.result, column);
+    const pathway = pathwayOf(result, column);
     // The engine's candidate date for the residence period alone.
     const earliestDate =
       pathway?.earliestDate ?? pathway?.pathwayCompletionDate;
@@ -204,23 +245,19 @@ export const esRules: EvaluationAdapter<
       state.flags.filter((flag) => /^promotion-\d+$/.test(flag)).length,
   // The core records the promotion flag that `earnings` counts.
   promote: () => true,
-  // A home visit is an ordinary, lawful trip outside the EU.
-  recordAbsence(state, trip) {
-    const dates = { departed: trip.from, returned: trip.to };
-    state.timeline.trips.push(dates);
-    state.timeline.residence.tripDetails = [
-      ...(state.timeline.residence.tripDetails ?? []),
-      { ...dates, reason: 'ordinary', irregularExit: false, outsideEu: true },
-    ];
-  },
+  recordAbsence,
   // A lapsed card ends the story, unless long-term residence can still be
   // filed in the late window the engine allows (SRC-083 art. 184.2). Once
   // that window has passed, the ending records it as closed.
   expired(state) {
     const to = currentPermit(state).to!;
-    if (to >= state.date || pathwayOf(evaluate(state), 'lt')?.status === 'MET')
-      return false;
-    if (state.date > addMonths(to, values.longTermLateMonths.value))
+    if (to >= state.date) return false;
+    // The shared game records a trip ending now only after this check.
+    const checked = { ...state, timeline: structuredClone(state.timeline) };
+    if (state.trip && state.trip.to <= state.date)
+      recordAbsence(checked, state.trip);
+    if (pathwayOf(evaluate(checked), 'lt')?.status === 'MET') return false;
+    if (state.date > lateFilingDeadline(to))
       state.timeline.residence.filingWindowAccepted = false;
     return true;
   },
