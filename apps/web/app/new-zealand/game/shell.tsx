@@ -11,13 +11,22 @@ import type {
 import type { Text } from '@uk-immigration/game/core';
 import { CountryAssessmentColumns } from '../../../components/result-view';
 import { nzGameEn, nzGameZh } from '../../../i18n/countries/new-zealand-game';
-import { isDecisionOutcome, pathwayTitle } from '../../../lib/country-module';
 import {
+  isDecisionOutcome,
+  pathwayDate,
+  pathwayTitle,
+} from '../../../lib/country-module';
+import { gapRules } from '../../../lib/gap-summary';
+import {
+  activeNzAnswers,
   createNzDraft,
   nzSteps,
   type NzDraft,
 } from '../../../lib/new-zealand-draft';
-import { newZealandModule } from '../../../lib/new-zealand-module';
+import {
+  newZealandModule,
+  presentNewZealandResult,
+} from '../../../lib/new-zealand-module';
 import { encodeDraft } from '../../../lib/share';
 import { countryPath } from '../../../lib/site-countries';
 import { createGameShell } from '../../game-shell/shell';
@@ -65,18 +74,38 @@ export function itemIcon(id: string) {
   return nzAsset(files[id] ?? '/assets/indoor/item.png');
 }
 
-/** The game timeline as a completed questionnaire for the result page. */
+const goals: NzDraft['goals'] = ['prv', 'citizenship'];
+
+/**
+ * The game timeline as a completed questionnaire for the result page, with
+ * only the answers its steps ask for the two pathways.
+ */
 export function gameDraft(state: NzState): NzDraft {
-  const goals: NzDraft['goals'] = ['prv', 'citizenship'];
-  return {
+  return activeNzAnswers({
     ...createNzDraft(),
     goals,
     answers: structuredClone(state.timeline),
     simulationDate: state.date,
     step: nzSteps({ goals }).at(-1)!.step,
     completed: true,
-  };
+  });
 }
+
+/** The game's assessment as the result page shows it. */
+export const shownResult = (state: NzState) =>
+  presentNewZealandResult(state.result, goals);
+const shownPathway = (state: NzState, column: NzColumn) =>
+  nzGame.pathwayOf(shownResult(state), column);
+
+/** The two pathways, as the New Zealand result page shows them. */
+const assessment = (state: NzState, idPrefix: string) => (
+  <CountryAssessmentColumns
+    country={newZealandModule}
+    result={shownResult(state)}
+    simulationDate={state.date}
+    idPrefix={idPrefix}
+  />
+);
 
 const say = (
   key: keyof typeof nzGameZh,
@@ -118,14 +147,10 @@ export const nzCountry: GameCountry<NzKinds> = {
           '{date}',
           earliestDate ?? t('result.undetermined'),
         ),
+  // The result page's gaps: requirements and time requirements still open.
   missingRules(state, id) {
-    const pathway = nzGame.pathwayOf(state.result, id);
-    const titles = pathway?.checks
-      .filter(
-        (check) =>
-          pathway.decidedBy?.includes(check.id) && check.status !== 'MET',
-      )
-      .map((check) => check.title);
+    const pathway = shownPathway(state, id);
+    const titles = pathway && gapRules(pathway).map((check) => check.title);
     return titles?.length ? [...new Set(titles)] : undefined;
   },
   // Valid or ended as of the day being played, not the quarter's start.
@@ -149,29 +174,18 @@ export const nzCountry: GameCountry<NzKinds> = {
   },
   resultHref: (state) =>
     `${countryPath('nz', 'result')}#s=${encodeDraft(newZealandModule, gameDraft(state))}`,
-  assessment: (state, idPrefix) => (
-    <CountryAssessmentColumns
-      country={newZealandModule}
-      result={state.result}
-      simulationDate={state.date}
-      idPrefix={idPrefix}
-    />
-  ),
-  endingAssessment: (state) => (
-    <CountryAssessmentColumns
-      country={newZealandModule}
-      result={state.result}
-      simulationDate={state.date}
-      idPrefix="ending-"
-    />
-  ),
+  assessment,
+  endingAssessment: (state) => assessment(state, 'ending-'),
+  // The result page's outcome and date rows, plus the presence projection
+  // the bar fills with.
   progressDetail(state, id, t) {
-    const pathway = nzGame.pathwayOf(state.result, id);
+    const pathway = shownPathway(state, id);
     if (!pathway)
       return <p className={styles.lead}>{t('result.undetermined')}</p>;
     const presence = nzGame
       .timeProjection(state)
       .find(({ id: pathwayId }) => pathwayId === pathway.id);
+    const date = pathwayDate(pathway, newZealandModule.earliestLabel);
     return (
       <>
         <p className={styles.lead}>
@@ -182,10 +196,12 @@ export const nzCountry: GameCountry<NzKinds> = {
             <dt>{t('nz.game.presenceDate')}</dt>
             <dd>{presence?.earliestDate ?? t('result.undetermined')}</dd>
           </div>
-          <div>
-            <dt>{t('result.earliest')}</dt>
-            <dd>{pathway.earliestDate ?? t('result.undetermined')}</dd>
-          </div>
+          {date && (
+            <div>
+              <dt>{t(date.label)}</dt>
+              <dd>{date.date ?? t('result.undetermined')}</dd>
+            </div>
+          )}
         </dl>
       </>
     );

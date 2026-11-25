@@ -1,6 +1,7 @@
 import {
   evaluateNewZealandFull,
   type CountryCheck,
+  type CountryResult,
   type Locale,
 } from '@uk-immigration/engine';
 import type { CountryModule } from './country-module';
@@ -12,6 +13,7 @@ import {
   nzRequest,
   validateNzStep,
   type NzDraft,
+  type NzGoal,
 } from './new-zealand-draft';
 import { newZealandPolicy } from './new-zealand-policy';
 import { nzWhatIf, type NzWhatIf } from './new-zealand-whatif';
@@ -61,23 +63,40 @@ function checkKind(id: string, decides: boolean): CountryCheck['kind'] {
 }
 
 // The engine assesses all ten pathways; show the ones the user chose, with
-// every condition grouped on its pathway.
-function run(draft: NzDraft, locale: Locale) {
-  const result = evaluateNewZealandFull(nzRequest(draft, locale));
-  const chosen = new Set(draft.goals.map((goal) => nzGoalPathways[goal]));
-  for (const column of result.columns)
-    column.pathways = column.pathways
-      .filter((pathway) => chosen.has(pathway.id))
-      .map(({ decidedBy, ...pathway }) => ({
-        ...pathway,
-        // A pathway a held PRV replaces has no date to apply.
-        ...(pathway.status === 'NOT_APPLICABLE' && { travelDate: null }),
-        checks: pathway.checks.map((check) => ({
-          ...check,
-          kind: checkKind(check.id, !decidedBy || decidedBy.includes(check.id)),
+// every condition grouped on its pathway. The town game shows its own
+// assessment through the same function.
+export function presentNewZealandResult(
+  result: CountryResult,
+  goals: readonly NzGoal[],
+): CountryResult {
+  const chosen = new Set(goals.map((goal) => nzGoalPathways[goal]));
+  return {
+    ...result,
+    columns: result.columns.map((column) => ({
+      ...column,
+      pathways: column.pathways
+        .filter((pathway) => chosen.has(pathway.id))
+        .map(({ decidedBy, ...pathway }) => ({
+          ...pathway,
+          // A pathway a held PRV replaces has no date to apply.
+          ...(pathway.status === 'NOT_APPLICABLE' && { travelDate: null }),
+          checks: pathway.checks.map((check) => ({
+            ...check,
+            kind: checkKind(
+              check.id,
+              !decidedBy || decidedBy.includes(check.id),
+            ),
+          })),
         })),
-      }));
-  return result;
+    })),
+  };
+}
+
+function run(draft: NzDraft, locale: Locale) {
+  return presentNewZealandResult(
+    evaluateNewZealandFull(nzRequest(draft, locale)),
+    draft.goals,
+  );
 }
 
 export const newZealandModule: CountryModule<NzDraft, NzWhatIf> = {

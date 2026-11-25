@@ -60,25 +60,26 @@ function progress(state: NzState): Progress<NzColumn, NzOutcome> {
   const start = Date.parse(state.timeline.residentVisa.granted);
   const entry = (column: NzColumn) => {
     const pathway = pathwayOf(state.result, column);
-    const projected = time.find(({ id }) => id === nzPathways[column]);
-    const waiting = pathway?.status !== 'MET' && projected?.status === 'FUTURE';
-    const earliestDate = waiting
-      ? projected.earliestDate
-      : pathway?.earliestDate;
-    const target = earliestDate && Date.parse(earliestDate);
-    const percent =
-      pathway?.status === 'MET'
-        ? 100
-        : target && target > start
-          ? ((Date.parse(state.date) - start) / (target - start)) * 100
-          : 0;
-    return {
-      outcome: waiting
-        ? ('FUTURE' as const)
-        : (pathway?.status ?? ('UNKNOWN' as const)),
-      ...(earliestDate && { earliestDate }),
-      percent: Math.round(Math.max(0, Math.min(100, percent))),
+    if (!pathway) return { outcome: 'UNKNOWN' as const, percent: 0 };
+    // The label is the pathway's outcome, as the result page shows it; the
+    // bar fills with the presence projection.
+    const outcome = pathway.status;
+    const label = {
+      outcome,
+      ...(outcome === 'FUTURE' &&
+        pathway.earliestDate && { earliestDate: pathway.earliestDate }),
     };
+    if (outcome === 'MET') return { ...label, percent: 100 };
+    const presence = time.find(({ id }) => id === pathway.id);
+    if (presence?.status === 'FUTURE' && presence.earliestDate) {
+      const target = Date.parse(presence.earliestDate);
+      const elapsed = (Date.parse(state.date) - start) / (target - start);
+      return {
+        ...label,
+        percent: Math.round(Math.max(0, Math.min(100, elapsed * 100))),
+      };
+    }
+    return { ...label, percent: presence?.status === 'MET' ? 100 : 0 };
   };
   return { prv: entry('prv'), cit: entry('cit') };
 }

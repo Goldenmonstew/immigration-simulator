@@ -2,20 +2,21 @@ import { existsSync } from 'node:fs';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
-import type { Locale } from '@uk-immigration/engine';
+import type { CountryResult, Locale } from '@uk-immigration/engine';
 import * as nz from '@uk-immigration/game/nz';
 import { nzGameArt } from '@uk-immigration/game/nz/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount, type TranslationKey } from '../i18n';
 import { newZealandModule } from '../lib/new-zealand-module';
-import { decodeDraft } from '../lib/share';
+import { readPageResult } from '../lib/page-result';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
 import {
   gameDraft,
   itemIcon,
   nzCountry,
   nzShell,
+  shownResult,
 } from '../app/new-zealand/game/shell';
 import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/new-zealand/town.json';
@@ -58,21 +59,94 @@ test('New Zealand has a game page, entries and its own save and sound keys', () 
   expect(storage.get('nz-immigration-life-muted')).toBe('false');
 });
 
-test('the ending link restores the same timeline on the New Zealand result page', () => {
-  const state = settle(nz.newGame('partner', 4, 'en'));
-  const href = nzCountry.resultHref(state);
-  expect(href.startsWith('/new-zealand/result#s=')).toBe(true);
-  const draft = decodeDraft(newZealandModule, href.split('#s=')[1], true)!;
-  expect(draft.completed).toBe(true);
-  expect(draft.goals).toEqual(['prv', 'citizenship']);
-  expect(draft.simulationDate).toBe(state.date);
-  expect(draft.answers.residentVisa).toEqual(state.timeline.residentVisa);
-  const shown = newZealandModule.run(draft, 'en').columns[0].pathways;
-  expect(shown.map(({ id, status }) => [id, status])).toEqual(
-    state.result.columns[0].pathways.map(({ id, status }) => [id, status]),
-  );
-  expect(gameDraft(state).step).toBeGreaterThan(0);
-});
+/** Answer events and read letters until nothing is pending. */
+function settleAll(state: State) {
+  for (;;) {
+    state = settle(state);
+    if (!nz.mailbox(state).length) return state;
+    state = nz.readMail(state);
+  }
+}
+function visit(state: State, place: string, minute: number) {
+  state = settleAll(state);
+  if (state.day.minute < minute)
+    state = settleAll(nz.tick(state, minute - state.day.minute));
+  return settleAll(nz.enter(state, place));
+}
+/** Jump to a later quarter, its assessment and its playable workday. */
+function jump(from: State, date: string, day: string) {
+  const state = structuredClone(from);
+  state.date = date;
+  state.day = { ...state.day, date: day, minute: 540, done: [] };
+  state.result = nz.nzRules.evaluate(state);
+  return state;
+}
+const leave = (state: State) =>
+  nz.doActivity(visit(state, 'station', 900), 'leave');
+
+/** Each pathway as the result page shows it, with every check. */
+const view = (result: CountryResult) =>
+  result.columns[0].pathways.map((pathway) => ({
+    id: pathway.id,
+    status: pathway.status,
+    earliestDate: pathway.earliestDate,
+    timeStatus: pathway.timeStatus,
+    timeEarliestDate: pathway.timeEarliestDate,
+    travelDate: pathway.travelDate,
+    checks: pathway.checks.map(({ id, status, kind }) => [id, status, kind]),
+  }));
+
+/** Open each state's ending link the way the result page does. */
+function readBack(states: State[]) {
+  vi.stubGlobal('localStorage', {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  });
+  for (const state of states) {
+    const label = `${state.characterId} ${state.date} ${state.ending}`;
+    const href = nzCountry.resultHref(state);
+    expect(href.startsWith('/new-zealand/result#s='), label).toBe(true);
+    const page = readPageResult(
+      newZealandModule,
+      'zh-CN',
+      href.split('#s=')[1],
+      'result',
+    );
+    expect(page.correction, label).toBeUndefined();
+    expect(page.draft, label).toEqual(gameDraft(state));
+    expect(page.draft!.goals, label).toEqual(['prv', 'citizenship']);
+    expect(page.draft!.simulationDate, label).toBe(state.date);
+    expect(view(page.result!), label).toEqual(view(shownResult(state)));
+    const progress = nz.progress(state);
+    for (const [column, id] of [
+      ['prv', 'NZ-PRV'],
+      ['cit', 'NZ-CITIZENSHIP'],
+    ] as const)
+      expect(progress[column].outcome, `${label} ${column}`).toBe(
+        page.result!.columns[0].pathways.find((pathway) => pathway.id === id)!
+          .status,
+      );
+  }
+}
+
+test.each([
+  ['nurse', '2027-09-01', '2027-09-14'],
+  ['partner', '2028-03-01', '2028-03-14'],
+])(
+  'the %s’s ending links open the same timeline on the result page',
+  (id, eligible, workday) => {
+    const opening = settleAll(nz.newGame(id, 5, 'zh-CN'));
+    const abroad = settleAll(
+      nz.doActivity(visit(opening, 'station', 600), 'travel-1'),
+    );
+    expect(abroad.timeline.trips).toHaveLength(1);
+    const ready = jump(abroad, eligible, workday);
+    const filed = nz.doActivity(visit(ready, 'visa', 600), 'settle');
+    expect(filed.ending).toBe('settled');
+    readBack([opening, abroad, leave(opening), leave(abroad), ready, filed]);
+  },
+);
 
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak New Zealand residence in %s',
@@ -93,6 +167,15 @@ test.each(['zh-CN', 'en'] as const)(
     expect(bars).toContain(
       t('country.status.FUTURE', locale).replace('{date}', '2027-08-18'),
     );
+    // Citizenship: the result page's outcome; the presence date is a detail.
+    expect(bars).toContain(t('country.status.NOT_MET', locale));
+    expect(bars).not.toContain('2030-04-15');
+    const detail = render(
+      nzCountry.progressDetail(state, 'cit', (key) => t(key, locale)),
+      locale,
+    );
+    expect(detail).toContain(t('nz.game.presenceDate', locale));
+    expect(detail).toContain('2030-04-15');
     const office = settle(nz.enter(settle(state), 'council'));
     let menu: React.ReactNode;
     function Probe() {
@@ -104,13 +187,20 @@ test.each(['zh-CN', 'en'] as const)(
       return menu;
     }
     const html = render(<Probe />, locale);
-    let columns: React.ReactElement | undefined;
+    let columns: React.ReactElement<{ result: CountryResult }> | undefined;
     React.Children.forEach(menu, function find(node) {
       if (!React.isValidElement<{ children?: React.ReactNode }>(node)) return;
-      if (node.type === CountryAssessmentColumns) columns = node;
+      if (node.type === CountryAssessmentColumns)
+        columns = node as React.ReactElement<{ result: CountryResult }>;
       React.Children.forEach(node.props.children, find);
     });
-    expect(columns).toBeDefined();
+    // The advice centre shows the assessment as the result page does.
+    expect(columns!.props.result).toEqual(shownResult(office));
+    expect(
+      columns!.props.result.columns[0].pathways[0].checks.every(
+        (check) => check.kind,
+      ),
+    ).toBe(true);
     if (locale === 'en') expect(hud + bars).not.toMatch(/[㐀-鿿]/);
     expect(html).toContain('town-nz.current-law-heading');
   },

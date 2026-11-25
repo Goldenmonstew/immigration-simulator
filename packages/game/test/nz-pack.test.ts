@@ -94,8 +94,9 @@ test('the New Zealand rules engine assesses the permanent resident visa and citi
     earliestDate: '2027-08-18',
     percent: 27,
   });
-  // The full assessment gives no citizenship date yet; the bar shows the
-  // engine's presence projection (SRC-070 s8).
+  // The full assessment gives no citizenship date yet. The bar keeps the
+  // result page's outcome and fills with the engine's presence projection
+  // (SRC-070 s8).
   expect(nz.pathwayOf(nurse.result, 'cit')?.status).toBe('NOT_MET');
   expect(
     evaluateNewZealand({
@@ -103,10 +104,7 @@ test('the New Zealand rules engine assesses the permanent resident visa and citi
       simulationDate: nurse.date,
     }).pathways.find(({ id }) => id === 'NZ-CITIZENSHIP')?.earliestDate,
   ).toBe('2030-04-15');
-  expect(nz.progress(nurse).cit).toMatchObject({
-    outcome: 'FUTURE',
-    earliestDate: '2030-04-15',
-  });
+  expect(nz.progress(nurse).cit).toEqual({ outcome: 'NOT_MET', percent: 11 });
   const partner = nz.newGame('partner', 5, 'zh-CN');
   expect(nz.progress(partner).prv).toMatchObject({
     outcome: 'FUTURE',
@@ -141,7 +139,10 @@ test('a JSON save round trip continues the same quarter after a trip', () => {
   expect([state.date, state.quarter]).toEqual(['2026-06-01', 3]);
   // A month away keeps the PRV date but moves citizenship presence back.
   expect(nz.progress(state).prv.earliestDate).toBe('2028-01-20');
-  expect(nz.progress(state).cit.earliestDate).toBe('2030-10-17');
+  expect(
+    nz.timeProjection(state).find(({ id }) => id === 'NZ-CITIZENSHIP')
+      ?.earliestDate,
+  ).toBe('2030-10-17');
   const restored: State = JSON.parse(JSON.stringify(state));
   const quarterLater = (from: State) => {
     let next = from;
