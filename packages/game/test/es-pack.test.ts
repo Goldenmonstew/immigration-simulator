@@ -3,6 +3,7 @@ import { evaluateSpainFull } from '@uk-immigration/engine';
 import { spainFull2026_11 } from '@uk-immigration/policy-data';
 import { addMonths } from '../src/calendar';
 import * as es from '../src/packs/es';
+import { esBalance } from '../src/packs/es/balance';
 
 type State = ReturnType<typeof es.newGame>;
 const values = spainFull2026_11.values;
@@ -217,6 +218,53 @@ test('steps taken in town carry their day and join the next quarter’s assessme
     outcome: 'FUTURE',
     earliestDate: '2026-09-02',
   });
+});
+
+test('a lease the balance cannot carry ends with a move to register', () => {
+  const quarterLater = (from: State) => {
+    let next = from;
+    for (let i = 0; i < 12 && next.date === from.date; i++)
+      next = settle(es.sleep(settle(next)));
+    return next;
+  };
+  const n14 = (state: State) =>
+    es.pathwayOf(state.result, 'nat')!.checks.find(({ id }) => id === 'ES-N14')!
+      .status;
+  const start = settle(es.newGame('cook', 5, 'en'));
+  const moved = settle(
+    es.doActivity(visit(start, 'home', 420), 'rent-brighter-home'),
+  );
+  const registered = es.doActivity(visit(moved, 'ward', 510), 'padron');
+  const papers = es.doActivity(visit(registered, 'bureau', 600), 'nat-papers');
+  // Below the reserve and next quarter's rent: the shared game ends the lease.
+  papers.stats.money = 900;
+  const next = quarterLater(papers);
+  expect(next.date).toBe('2026-06-01');
+  expect(next.flags).not.toContain('brighter-home');
+  expect(next.timeline.steps.moves.at(-1)).toEqual({ movedOn: '2026-06-01' });
+  expect(next.flags).toContain('padron-due');
+  expect(
+    es.filingAnswers(next.timeline, next.date).nationality.documents?.address,
+  ).toBe(false);
+  expect(n14(next)).toBe('NOT_MET');
+  const lease = next.log.find(({ id }) => id === 'brighter-home-return')!;
+  expect(lease.text.zhCN).toContain('带阳台的公寓');
+  expect(lease.text.en).toContain('flat with a balcony');
+  // Updating the padrón next quarter restores the address evidence.
+  const ward = visit(next, 'ward', 510);
+  const updated = es.doActivity(ward, 'padron');
+  expect(updated.timeline.steps.moves.at(-1)).toEqual({
+    movedOn: '2026-06-01',
+    registeredOn: ward.day.date,
+  });
+
+  // Away on a long trip, the move is made when play resumes.
+  const leaving = visit(papers, 'station', 900);
+  leaving.stats.money = 900 + 6 * esBalance.travelCostPerMonth;
+  const away = settle(es.doActivity(leaving, 'travel-6'));
+  expect(away.date).toBe('2026-12-01');
+  expect(away.timeline.steps.moves.at(-1)).toEqual({ movedOn: '2026-12-01' });
+  expect(away.flags).toContain('padron-due');
 });
 
 test('a failed exam costs the fee and queues the result card', () => {

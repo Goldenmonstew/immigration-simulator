@@ -158,6 +158,37 @@ export function actionDetails(state: EsState, action: EsActivity): void {
   }
 }
 
+/**
+ * The shared quarter settlement ends the balcony flat's lease when the balance
+ * runs low. That is a move too, made as play resumes in the new quarter (after
+ * a trip still under way, on return), so the padrón needs updating as after
+ * leaving the flat by hand.
+ */
+export function afterQuarter(
+  state: EsState,
+  _previousFlags: string[],
+  { setFlags }: EsTools,
+): void {
+  const lease = state.log.find(
+    (entry) =>
+      entry.id === 'brighter-home-return' &&
+      entry.year === state.year &&
+      entry.quarter === state.quarter,
+  );
+  if (lease) {
+    lease.text = t(
+      '带阳台的公寓短租到期，你搬回原来的住处，押金回到账户，额外房租停止。住址变了，记得更新 padrón。',
+      'The lease on the flat with a balcony ends. You move back to your old place, recover the deposit and stop paying the extra rent. A new address means updating the padrón.',
+    );
+    setFlags(state, ['lease-ended']);
+  }
+  if (state.trip || !state.flags.includes('lease-ended')) return;
+  state.flags = state.flags.filter((flag) => flag !== 'lease-ended');
+  state.timeline.steps.moves.push({ movedOn: state.date });
+  setFlags(state, ['padron-due']);
+  state.result = esRules.evaluate(state);
+}
+
 /** Remember which application was filed before the ending text is written. */
 export function beforeAction(state: EsState, action: EsActivity): void {
   const flag =
