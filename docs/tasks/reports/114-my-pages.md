@@ -153,7 +153,7 @@ PVIP 不读取任何答案（`my.pass.pvip-terms` 恒为待确认），只选 PV
   - Residence Pass 第 3 类另列"Divorcee/widow/widower to citizens with a biological child who is a Malaysian citizen"（SRC-508 Residence Pass Categories），问卷不问有无公民子女，所以公民的离婚配偶在 Residence Pass 为待确认、不挂 PD，说明写明这一情形；永久居民的离婚配偶判不满足。
   - 只分居未离婚：婚姻在法律上仍存续，但分居是否影响这些类别未写明，仍为待确认并挂 PD-405。
   - 永久居留之妻、之夫：指南写"tanpa berpisah atau bercerai"（SRC-505 §5.1(c) p18、§5.2(c) p19），任一为是即结婚年数不满足，说明分别写"所填已离婚""所填已分居"。
-  - 只答其一或都未答时为待确认、不挂 PD。`docs/pending-details.md` 的 PD-405 处理说明同步改写。
+  - "已离婚"答是时不论"已分居"如何都按离婚处理；"已分居"答是而"已离婚"未答、只答一项且答否、或都未答时为待确认、不挂 PD（第二轮审核前，"已分居"答是而"已离婚"未答时误挂 PD-405，见 review114-2 一节）。`docs/pending-details.md` 的 PD-405 处理说明同步改写。
 - **建议 1**：共用 `CountryWhatIf` 加可选的 `compared`，`diffPathways` 只把它返回真的条件放进"翻转为满足""翻转为未满足／未知""仍未满足"；不适用一组不变。马来西亚设为申请条件与时间条件，与"还差什么"同口径。其他国家不设置，行为不变。
 - **建议 2**：出生日期只在 PR 子女、REP、Residence Pass、三类公民身份、MM2H、DE Rantau 下显示；国籍只在 WAS、REP（押金）、公民配偶 LTSVP（担保金）、DE Rantau 下显示（按引擎读取 `dateOfBirth`、`nationality` 的位置核对）。
 - **建议 3**：`my.cit.residence` 的"去 What-if"链到"假设 MyPR 签发日"（只出现在归化与公民之妻登记，两者都显示该控件）。

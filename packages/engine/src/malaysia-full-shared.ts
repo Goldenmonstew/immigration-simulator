@@ -227,21 +227,42 @@ export function check(
   };
 }
 
+/** "Not entered" for the separation and divorce answers still open. */
+export function apartMissing(ctx: MyContext) {
+  const { L } = ctx;
+  const { separated, divorced } = ctx.req.family ?? {};
+  return separated === undefined && divorced === undefined
+    ? L(
+        '未填是否已分居或离婚。',
+        ' Whether the couple has separated or divorced is not entered.',
+      )
+    : divorced === undefined
+      ? L(
+          '未填是否已离婚。',
+          ' Whether the couple has divorced is not entered.',
+        )
+      : separated === undefined
+        ? L(
+            '未填是否已分居。',
+            ' Whether the couple has separated is not entered.',
+          )
+        : '';
+}
+
 /**
  * A spouse category needs the marriage to subsist ("jika perkahwinan itu masih
- * wujud", SRC-500 Art. 15(1) p39). A divorce ends it; whether a separation
- * without a divorce bars the category is not stated (PD-405).
+ * wujud", SRC-500 Art. 15(1) p39). A divorce ends it. Whether a separation
+ * without a divorce bars the category is not stated (PD-405); that question
+ * arises only once "not divorced" is answered.
  */
 export function marriageSubsists(ctx: MyContext) {
   const { L } = ctx;
   const { separated, divorced } = ctx.req.family ?? {};
   const met = divorced
     ? false
-    : separated
-      ? undefined
-      : separated === false && divorced === false
-        ? true
-        : undefined;
+    : separated === false && divorced === false
+      ? true
+      : undefined;
   return {
     met,
     divorced: divorced === true,
@@ -250,18 +271,20 @@ export function marriageSubsists(ctx: MyContext) {
           '所填已离婚，婚姻不再存续。',
           ' A divorce is reported, so the marriage no longer subsists.',
         )
-      : separated
+      : separated && divorced === false
         ? L(
             '所填已分居但未离婚：婚姻在法律上仍存续，分居是否影响此类别未写明，待确认。',
             ' A separation without a divorce is reported: the marriage still subsists in law, but whether a separation affects this category is not stated.',
           )
         : met
           ? ''
-          : L(
-              '未填是否已离婚或分居，无法确认婚姻仍存续。',
-              ' Whether the couple has divorced or separated is not entered, so the marriage cannot be confirmed as subsisting.',
+          : (separated ? L('所填已分居，', ' A separation is reported.') : '') +
+            apartMissing(ctx) +
+            L(
+              '无法确认婚姻仍存续。',
+              ' The marriage cannot be confirmed as subsisting.',
             ),
-    pending: separated && !divorced ? ['PD-405'] : [],
+    pending: separated && divorced === false ? ['PD-405'] : [],
   };
 }
 

@@ -928,3 +928,4 @@
 | 969 | 任务 114 审核修正（review114-1 建议 3）：归化与公民之妻登记的居住年限缺口改链到对比页"假设 MyPR 签发日"控件；e2e 改为跟随该链接并核对聚焦。 | apps/web/lib/malaysia-whatif.ts、apps/web/test/malaysia.test.tsx、apps/e2e/tests/malaysia.spec.ts |
 | 970 | 任务 114 审核修正（review114-1 建议 4）："曾被拒绝永久居留申请"保持可留空，提示写明留空时被拒后的等待期显示待确认、年限日期也不计入等待期。 | apps/web/lib/malaysia-fields.ts、apps/web/i18n/countries/malaysia-form.ts、apps/web/test/malaysia.test.tsx |
 | 971 | 任务 114 审核修正报告（review114-1）：报告末尾加四段，逐条对应合入 main、问题 1–3、风险 2–3、建议 1–4；正文中问卷字段、日期标签、对比旋钮与分居离婚的说明同步改正。 | docs/tasks/reports/114-my-pages.md、PROGRESS.md |
+| 972 | 任务 114 第二轮审核修正（review114-2 问题 1、建议 3）：引擎只在"已离婚"明确答否、"已分居"答是时写"已分居但未离婚"并挂 PD-405；"已分居"答是而"已离婚"未答时说明写未填是否已离婚、待确认不挂 PD；"已离婚"答是即不满足（Residence Pass 公民配偶仍待确认）。婚姻存续与永久居留配偶类结婚年数的说明指出具体未填哪一项；PD-405 说明与报告措辞同步。 | packages/engine/src/malaysia-full-{shared,pr}.ts、packages/engine/test/malaysia-full.test.ts、docs/pending-details.md、docs/tasks/reports/114-my-pages.md |

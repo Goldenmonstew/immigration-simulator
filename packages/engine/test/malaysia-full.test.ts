@@ -1540,10 +1540,32 @@ describe('a subsisting marriage across the spouse pathways (review113-2 risk 4)'
         'UNKNOWN',
         undefined,
       ]);
-      expect(at().explanation, id).toContain('未填是否已离婚或分居');
-      // One answer alone does not confirm the marriage.
-      expect(at(false, undefined).status, id).toBe('UNKNOWN');
-      expect(at(undefined, false).status, id).toBe('UNKNOWN');
+      expect(at().explanation, id).toContain('未填是否已分居或离婚');
+      // One answer alone does not confirm the marriage, and only an answered
+      // "not divorced" makes a separation the open question of PD-405
+      // (review114-2 #1). The explanation names the missing answer.
+      const missing = (
+        separated: boolean | undefined,
+        divorced: boolean | undefined,
+        text: string,
+      ) => {
+        const c = at(separated, divorced);
+        expect(
+          [c.status, c.pendingDetails],
+          `${id} ${separated} ${divorced}`,
+        ).toEqual(['UNKNOWN', undefined]);
+        expect(c.explanation, `${id} ${separated} ${divorced}`).toContain(text);
+        expect(c.explanation).not.toContain('未离婚：');
+      };
+      missing(false, undefined, '未填是否已离婚');
+      missing(true, undefined, '所填已分居，未填是否已离婚');
+      missing(undefined, false, '未填是否已分居');
+      expect(at(true, false).explanation, id).toContain('所填已分居但未离婚');
+      // A divorce answered alone still ends the marriage.
+      const alone = at(undefined, true);
+      expect([alone.status, alone.pendingDetails], id).toEqual(
+        id === 'my.rp.family' ? ['UNKNOWN', undefined] : ['NOT_MET', undefined],
+      );
       // A divorce ends the marriage. A citizen's divorcee with a citizen
       // child is in Residence Pass Category 3 on that basis instead (SRC-508),
       // which the questions do not ask.
@@ -1572,6 +1594,19 @@ describe('a subsisting marriage across the spouse pathways (review113-2 risk 4)'
     expect(path('my.pr.wife', as(false, false)).timeStatus).toBe('MET');
     expect(path('my.pr.wife', as(true, false)).timeStatus).toBe('NOT_MET');
     expect(path('my.pr.wife', as(false, true)).timeStatus).toBe('NOT_MET');
+    // Either "yes" fails it whatever the other answer (review114-2 #1), and an
+    // open answer is named (review114-2 suggestion 3).
+    const duration = (separated?: boolean, divorced?: boolean) =>
+      cond('my.pr.wife', 'my.pr.marriage-duration', as(separated, divorced));
+    expect(duration(true, undefined).status).toBe('NOT_MET');
+    expect(duration(undefined, true).status).toBe('NOT_MET');
+    expect(duration(false, undefined).explanation).toContain(
+      '未填是否已离婚。',
+    );
+    expect(duration(undefined, false).explanation).toContain(
+      '未填是否已分居。',
+    );
+    expect(duration().explanation).toContain('未填是否已分居或离婚。');
   });
 });
 

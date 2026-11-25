@@ -12,6 +12,7 @@ import {
   info,
   latest,
   marriageSubsists,
+  apartMissing,
   planned,
   ref,
   timingWithRenewal,
@@ -160,12 +161,7 @@ function marriageDuration(
         ? divorced
           ? L('所填已离婚。', ' A divorce is reported.')
           : L('所填已分居。', ' A separation is reported.')
-        : (separated === undefined
-            ? L(
-                '未填是否已分居或离婚。',
-                ' Whether the couple has separated or divorced is not entered.',
-              )
-            : '') +
+        : (separated === undefined ? apartMissing(ctx) : '') +
           (due
             ? L(
                 `按结婚日，${due} 满 ${years} 年。`,
