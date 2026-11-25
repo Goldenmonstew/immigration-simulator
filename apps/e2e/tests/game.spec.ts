@@ -272,7 +272,12 @@ test('leaving the UK ends the game with life memories and a simulator link', asy
   await expect(memories.locator('xpath=..')).toHaveScreenshot(
     'ending-memories.png',
   );
-  await page.getByRole('link', { name: '在模拟器里打开这条时间线' }).click();
+  const timelineLink = page.getByRole('link', {
+    name: '在模拟器里打开这条时间线',
+  });
+  // A link styled as a button keeps the button's white text.
+  await expect(timelineLink).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await timelineLink.click();
   await expect(
     page.getByRole('heading', { name: '你的路径模拟' }),
   ).toBeVisible();

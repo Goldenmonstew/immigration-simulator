@@ -103,9 +103,18 @@ test('the English interface shows the period of stay and Japanese study', async 
   const hud = page.locator('header').filter({ hasText: 'Siyuan Chen' });
   await expect(hud.getByText('Period of stay: 12 months left')).toBeVisible();
   await expect(hud.getByText('Japanese', { exact: true })).toBeVisible();
-  await expect(hud.getByText('¥1,800,000')).toBeVisible();
+  // The opening card can spend a little, so match the format, not the amount.
+  await expect(hud.getByText(/^¥1,\d{3},\d{3}$/)).toBeVisible();
   expect(await hud.innerText()).not.toMatch(/[㐀-鿿]/);
   await walkTo(page, 'Minatozaka Shrine');
+});
+
+test('the progress detail is titled with its pathway', async ({ page }) => {
+  await startJapanGame(page, characters[0].en, 'en');
+  await page.getByRole('button', { name: /Permanent residence/ }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'Permanent residence' }),
+  ).toBeVisible();
 });
 
 test.describe('at phone width', () => {
