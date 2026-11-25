@@ -351,4 +351,11 @@ test('a lapsed period of stay ends the story', () => {
   jp.status(state).expiresOn = '2026-04-30';
   for (let i = 0; i < 6 && !jp.isOver(state); i++) state = nextDay(state);
   expect(state.ending).toBe('overstayed');
+  // review111-3: the ending's assessment reflects the lapse.
+  const checks = state.result!.columns[0].pathways.flatMap((p) => p.checks);
+  const status = (id: string) => checks.find((c) => c.id === id)?.status;
+  expect(status('jp.pr.lawful-filing-status')).toBe('NOT_MET');
+  expect(status('jp.nat.lawful-domicile')).toBe('NOT_MET');
+  for (const pathway of state.result!.columns[0].pathways)
+    expect(pathway.status).toBe('NOT_MET');
 });

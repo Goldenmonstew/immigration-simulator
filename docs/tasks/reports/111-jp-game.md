@@ -206,3 +206,22 @@
 - 其他国家照做的要点补一条：结果页问卷不接受晚于模拟日期的已发生事项。季中按当天日期写进时间线的事实，评估与结果页草稿要用同一个"评估日视图"去掉（日本是 `timelineOn`），只在草稿里删会让结果页与游戏内不一致（跨季补报就是例子）。
 - 审核风险 1 的步行余量：`reportableToday` 可以在 `paperwork` 之外再留出从公寓走到区役所的游戏时间（审核估计 30–40 分钟），这个数是游戏平衡参数，可放进 `jpBalance`。
 - `packages/game/src/model.ts` 里 `DayState.date` 的注释仍写"时间线效果仍用 `state.date`"，已过时（review111-1 已提）。
+
+## 审核修正（review111-3）
+
+### 1. 做了什么
+
+- `Fix: 日本游戏在留期限过期结局反映身份失效（review111-3）`（PROGRESS 820）：`jpRules.expired` 判定逾期时，把当前在留资格的 `valid` 与 `timelyRenewalPending` 写为 `false`，把帰化证据的 `lawfulDomicile` 写为 `false`，再返回 `true`。季末结局评估与结局链接打开的结果页因此把 `jp.pr.lawful-filing-status`、`jp.nat.lawful-domicile` 判为未满足，两条路径为未满足。实现：Fable（Claude Opus 5.5）。
+
+### 2. 怎么验证的
+
+- `packages/game/test/jp-pack.test.ts` 的逾期用例补断言：两项检查与全部路径为 `NOT_MET`。先在未修改的 `rules.ts` 上运行，断言失败（实际 `MET`）；修改后通过，内容包测试 14 项通过。
+- `apps/web/test/japan-game.test.tsx` 13 项通过；`pnpm --filter web build` 退出码 0；`japan-game.spec.ts` desktop 5 项通过。
+
+### 3. 没做或没验证的
+
+- 没有重跑整仓完整验收（改动只在日本内容包规则与其测试）；CI 会再跑一次。
+
+### 4. 发现与建议
+
+- 无。

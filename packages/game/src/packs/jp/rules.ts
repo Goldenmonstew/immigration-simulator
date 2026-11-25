@@ -173,9 +173,17 @@ export const jpRules: EvaluationAdapter<
     );
     return true;
   },
-  // The game files renewals before expiry; a lapse ends this story.
-  expired: (state) =>
-    !!status(state).expiresOn && status(state).expiresOn! < state.date,
+  // The game files renewals before expiry; a lapse ends this story. The
+  // ending's assessment must show the lapse: no valid status, no pending
+  // renewal and no lawful domicile from here on.
+  expired(state) {
+    const current = status(state);
+    if (!current.expiresOn || current.expiresOn >= state.date) return false;
+    current.valid = false;
+    current.timelyRenewalPending = false;
+    state.timeline.naturalisation.evidence.lawfulDomicile = false;
+    return true;
+  },
   applyEffect(state, effect, { setFlags }) {
     const pr = state.timeline.permanentResidence.evidence;
     const nat = state.timeline.naturalisation.evidence;
