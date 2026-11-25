@@ -283,6 +283,10 @@ export const en: Record<keyof typeof zhCN, string> = {
   'country.check.requirement': 'Requirement',
   'country.check.factor': 'Assessment factor',
   'country.check.information': 'Procedural information',
+  'country.check.time': 'Time requirement',
+  'country.check.budget': 'Fee budget',
+  'country.check.afterApproval': 'After approval',
+  'country.check.alternative': 'Alternative ground (one is enough)',
   'country.fee': 'Fee',
   'country.reducedFee': 'Possible reduced fee',
   'policyPage.title': 'Policy basis',
@@ -327,10 +331,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'hub.uk.paths': 'Settlement (ILR) · Current law vs reforms',
   'hub.uk.desc':
     'Assess settlement across Skilled Worker, BN(O), Global Talent, family, protection and Long Residence routes, comparing current Immigration Rules with announced reforms.',
-  'hub.au.code': 'AU',
-  'hub.au.paths': 'Permanent residence · RRV · Citizenship',
-  'hub.au.desc':
-    'Check visa or residence periods for subclass 191 and the Hong Kong streams (189/191), visa and full-time sponsored employment periods and age at application for 186 TRT, and the wait for the permanent partner visa (801/100). Check days in Australia for a Resident Return visa and residence periods for citizenship.',
   'hub.nz.code': 'NZ',
   'hub.nz.paths': 'Permanent Resident Visa · Travel conditions · Citizenship',
   'hub.nz.desc':

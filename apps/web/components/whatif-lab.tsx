@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import type { CountryPathway, CountryResult } from '@uk-immigration/engine';
+import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import { punct } from '../i18n/punctuation';
 import {
@@ -43,9 +44,11 @@ function pairById<T extends { id: string }>(before: T[], after: T[]) {
 function Comparison({
   before,
   after,
+  earliestLabel,
 }: {
   before?: CountryPathway;
   after?: CountryPathway;
+  earliestLabel?: TranslationKey;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
@@ -56,8 +59,8 @@ function Comparison({
     (group) =>
       group !== 'becameInapplicable' || diff.becameInapplicable.length > 0,
   );
-  const beforeDate = pathwayDate(before);
-  const afterDate = pathwayDate(after);
+  const beforeDate = pathwayDate(before, earliestLabel);
+  const afterDate = pathwayDate(after, earliestLabel);
   const primaryDate = afterDate ?? beforeDate;
   const years = (assessment?: CountryPathway) =>
     assessment?.pathwayYears === undefined
@@ -333,6 +336,7 @@ function WhatIfLab<D extends CountryDraft, K>({
                             <Comparison
                               before={path.before}
                               after={path.after}
+                              earliestLabel={country.earliestLabel}
                             />
                           </Fragment>
                         );
@@ -456,7 +460,7 @@ function StoredWhatIfPage<D extends CountryDraft, K>({
       loaded.current = country;
       open(window.location.hash);
     }
-    if (country.id === 'jp') return watchScenarioHash(open);
+    if (country.scenarioLinks) return watchScenarioHash(open);
   }, [country]);
   return (
     <main id="main" className={site.main}>
