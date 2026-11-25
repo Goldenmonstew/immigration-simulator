@@ -588,10 +588,17 @@ test('the time-limit ending says how far the naturalization got', () => {
   const text = us.narrative(ended).at(-1)!;
   expect(text.en).toMatch(/N-400 is in the mail/);
   expect(ended.log.at(-1)?.text).toEqual(text);
-  state.flags.push('interview-passed');
-  expect(us.usGameContent.endingText(state, 'timeout').en).toMatch(
-    /interview is passed/,
-  );
+  // As the ending is written, the date is already the next quarter's.
+  const final = (interview: string) => {
+    const at = structuredClone(ended);
+    at.flags.push('interview-passed');
+    at.timeline.filed.interview = interview;
+    return us.usGameContent.endingText(at, 'timeout').en;
+  };
+  // Interviewed in the last quarter: the oath had not opened yet.
+  expect(final('2035-12-11')).toMatch(/oath ceremony has not come yet/);
+  // Interviewed long before: the oath was open and not taken.
+  expect(final('2028-09-12')).toMatch(/oath ceremony was open/);
 });
 
 test('failing the interview twice denies the N-400, which can be filed again', () => {

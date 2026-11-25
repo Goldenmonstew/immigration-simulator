@@ -22,6 +22,7 @@ import {
   filingDay,
   pathwayOf,
   usRequest,
+  usRules,
   values,
   type UsEffect,
   type UsFestival,
@@ -170,6 +171,26 @@ const extendFee = (state: UsState) =>
 const reportableToday = (state: UsState, minutes: number) =>
   state.day.minute + minutes + b.minutes.board <= b.midnight;
 
+/** The oath opens once approval is met, or only the undecided I-751 is left. */
+const oathOpen = (state: UsState) =>
+  state.flags.includes('interview-passed') &&
+  (pathwayOf(state.result, 'cit')?.approvalStatus === 'MET' ||
+    onlyI751Pending(state));
+
+/**
+ * Whether the oath was open in the quarter just played. The time-limit ending
+ * is written after the date moves on, so that quarter is assessed again.
+ */
+function oathWasOpen(state: UsState) {
+  const date = addMonths(state.date, -b.monthsPerQuarter);
+  const result = usRules.evaluate({
+    date,
+    timeline: state.timeline,
+    locale: state.locale,
+  });
+  return oathOpen({ ...state, date, result });
+}
+
 export function actionAvailable(
   state: UsState,
   action: UsActivity,
@@ -212,12 +233,7 @@ export function actionAvailable(
       !flags.includes('quarter-n400-filed') &&
       !flags.includes('quarter-interview')
     );
-  if (action.id === 'oath')
-    return (
-      flags.includes('interview-passed') &&
-      (pathwayOf(state.result, 'cit')?.approvalStatus === 'MET' ||
-        onlyI751Pending(state))
-    );
+  if (action.id === 'oath') return oathOpen(state);
   if (
     action.id === 'class' &&
     state.day.kind === 'workday' &&
@@ -477,20 +493,25 @@ export function endingText(state: UsState, ending: EndingId): Text {
     ),
     // Flags are set when the N-400 or interview happens, before the quarter
     // ends with this ending.
-    timeout: state.flags.includes('interview-passed')
+    timeout: oathWasOpen(state)
       ? t(
-          '面谈已经通过，宣誓典礼还没等到，这局就走到了时间尽头。湖湾的日记在这里合上。',
-          'The interview is passed, but the oath ceremony has not come yet when this game reaches its time limit. The Lakebend diary closes here.',
+          '宣誓典礼已经开放，你还没去参加，这局就走到了时间尽头。湖湾的日记在这里合上。',
+          'The oath ceremony was open, but you had not gone when this game reaches its time limit. The Lakebend diary closes here.',
         )
-      : state.flags.includes('n400-filed')
+      : state.flags.includes('interview-passed')
         ? t(
-            'N-400 已经寄出，入籍还在路上，这局就走到了时间尽头。湖湾的日记在这里合上。',
-            'The N-400 is in the mail and citizenship is still on its way when this game reaches its time limit. The Lakebend diary closes here.',
+            '面谈已经通过，宣誓典礼还没等到，这局就走到了时间尽头。湖湾的日记在这里合上。',
+            'The interview is passed, but the oath ceremony has not come yet when this game reaches its time limit. The Lakebend diary closes here.',
           )
-        : t(
-            '入籍申请还躺在抽屉里。这局走到了时间尽头，湖湾的日记在这里合上。',
-            'The naturalization papers are still in the drawer. This game has reached its time limit, and the Lakebend diary closes here.',
-          ),
+        : state.flags.includes('n400-filed')
+          ? t(
+              'N-400 已经寄出，入籍还在路上，这局就走到了时间尽头。湖湾的日记在这里合上。',
+              'The N-400 is in the mail and citizenship is still on its way when this game reaches its time limit. The Lakebend diary closes here.',
+            )
+          : t(
+              '入籍申请还躺在抽屉里。这局走到了时间尽头，湖湾的日记在这里合上。',
+              'The naturalization papers are still in the drawer. This game has reached its time limit, and the Lakebend diary closes here.',
+            ),
   };
   return texts[ending];
 }
