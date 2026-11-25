@@ -586,6 +586,56 @@ test('the REP relation shows the marriage and child questions it needs', () => {
   expect(activeMalaysiaAnswers(wife).family).toEqual({ tie: 'none' });
 });
 
+// review114-2 risk 1: the tie and the REP relation share one set of
+// marriage and child answers; the questionnaire says so, and flags answers
+// that disagree. The assessment is unchanged.
+test('the family step notes answers shared with the REP route and flags conflicts', () => {
+  const family = (
+    targets: MyTarget[],
+    tie: MalaysiaDraft['family']['tie'],
+    relation?: MalaysiaDraft['rep']['relation'],
+  ) =>
+    step({
+      ...my.createDraft(),
+      step: 2,
+      targets,
+      family: { tie },
+      rep: { relation },
+    });
+  const shared = t('my.form.familyShared');
+  const conflict = t('my.form.familyConflict');
+  const both: MyTarget[] = ['pr-wife', 'pr-rep'];
+  expect(family(both, 'wife-of-citizen', 'wife')).toContain(shared);
+  expect(family(both, 'wife-of-citizen', 'wife')).not.toContain(conflict);
+  expect(
+    family(['rp-family', 'pr-rep'], 'child-of-citizen', 'child'),
+  ).toContain(shared);
+  for (const [targets, tie, relation] of [
+    [['rp-family', 'pr-rep'], 'spouse-of-pr', 'wife'],
+    [['pr-child', 'pr-rep'], 'child-of-citizen', 'husband'],
+    [both, 'wife-of-citizen', 'child'],
+    [both, 'husband-of-citizen', 'wife'],
+  ] as const) {
+    const html = family([...targets], tie, relation);
+    expect(html, `${tie} ${relation}`).toContain(conflict);
+    expect(html).not.toContain(shared);
+  }
+  // Nothing to say without both questions answered, or without REP.
+  for (const html of [
+    family(['pr-rep'], undefined, 'wife'),
+    family(both, undefined, 'wife'),
+    family(both, 'wife-of-citizen', 'none'),
+    family(['pr-wife'], 'wife-of-citizen'),
+    // A child registration does not read the marriage answers.
+    family(['cit-child', 'pr-rep'], 'wife-of-citizen', 'wife'),
+  ]) {
+    expect(html).not.toContain(shared);
+    expect(html).not.toContain(conflict);
+  }
+  for (const key of ['my.form.familyShared', 'my.form.familyConflict'] as const)
+    expect(t(key, 'en')).not.toBe(key);
+});
+
 test('a changed answer clears the sub-answers it hides, but not those of other routes', () => {
   const draft: MalaysiaDraft = {
     ...wifeDraft(['pr-wife', 'pass-de-rantau']),

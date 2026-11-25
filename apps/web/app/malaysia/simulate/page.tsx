@@ -5,6 +5,7 @@ import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import {
   clearHiddenMalaysiaAnswers,
+  familyNote,
   malaysiaStepList,
   readPath,
   sectionPrefix,
@@ -115,9 +116,11 @@ function MalaysiaStep(props: StepProps) {
         )
           return <div key={section.id}>{fields}</div>;
         const heading = `my-section-${section.id}`;
+        const note = section.id === 'family' && familyNote(draft);
         return (
           <section key={section.id} aria-labelledby={heading}>
             <h2 id={heading}>{t(`my.section.${section.id}`)}</h2>
+            {note && <p className={form.hint}>{t(note)}</p>}
             {fields}
           </section>
         );

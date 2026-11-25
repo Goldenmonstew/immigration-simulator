@@ -17,6 +17,10 @@ export const myFormZh = {
   'my.form.resetRecords': '撤销「没有记录」',
   'my.form.emptyConfirmed': '已确认没有记录。',
   'my.form.stateless': '无国籍',
+  'my.form.familyShared':
+    '下面的婚姻与亲子答案同时用于「与马来西亚公民或永久居民的关系」和「与 REP 参与者的关系」对应的路径，请按同一段婚姻或同一亲子关系填写。',
+  'my.form.familyConflict':
+    '「与马来西亚公民或永久居民的关系」与「与 REP 参与者的关系」不一致：REP 参与者是马来西亚公民，其配偶或子女通常也就是公民之妻、之夫或子女。下面的婚姻与亲子答案同时用于两者，请核对。',
   'my.error.date': '请填写有效日期。',
   'my.error.order': '这个日期不能早于开始的日期。',
   'my.error.number': '请填写不小于 0 的数字。',
@@ -233,6 +237,10 @@ export const myFormEn: Record<keyof typeof myFormZh, string> = {
   'my.form.resetRecords': 'Undo “No records”',
   'my.form.emptyConfirmed': 'Confirmed: no records.',
   'my.form.stateless': 'Stateless',
+  'my.form.familyShared':
+    'The marriage and child answers below serve both the relationship to a Malaysian citizen or permanent resident and the relationship to the REP participant. Answer them for the same marriage or parent.',
+  'my.form.familyConflict':
+    'The relationship to a Malaysian citizen or permanent resident does not match the relationship to the REP participant. The REP participant is a Malaysian citizen, so their spouse or child is usually a citizen’s wife, husband or child. The marriage and child answers below serve both; check them.',
   'my.error.date': 'Enter a valid date.',
   'my.error.order': 'This date cannot be before the start date.',
   'my.error.number': 'Enter a number of 0 or more.',

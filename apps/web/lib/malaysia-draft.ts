@@ -241,6 +241,38 @@ export function malaysiaRequest(
   };
 }
 
+// The REP participant is a citizen, so each REP relation matches one tie.
+const repTies = {
+  wife: 'wife-of-citizen',
+  husband: 'husband-of-citizen',
+  child: 'child-of-citizen',
+} as const;
+const familyFields = malaysiaSteps
+  .flatMap((step) => step.sections)
+  .find((section) => section.id === 'family')!.fields;
+// Whether a route other than REP shows the question, by the tie answer.
+const byTie = (name: string, draft: MalaysiaDraft) =>
+  fieldShown(
+    { ...familyFields.find((field) => field.name === name)!, rep: undefined },
+    draft.family,
+    scopeOf(draft),
+  );
+
+/**
+ * The family step's note when the tie and the REP relation both use its
+ * marriage or child answers: shared, or in conflict when the two disagree.
+ */
+export function familyNote(draft: MalaysiaDraft): TranslationKey | undefined {
+  const relation = draft.rep.relation;
+  if (!draft.targets.includes('pr-rep') || !relation || relation === 'none')
+    return undefined;
+  if (draft.family.tie === undefined || !byTie('tie', draft)) return undefined;
+  if (draft.family.tie !== repTies[relation]) return 'my.form.familyConflict';
+  return byTie(relation === 'child' ? 'childRelation' : 'separated', draft)
+    ? 'my.form.familyShared'
+    : undefined;
+}
+
 type Errors = Record<string, TranslationKey>;
 
 function order(errors: Errors, id: string, start: unknown, end: unknown) {
