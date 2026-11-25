@@ -31,7 +31,9 @@ export function SpainWhatIfControls({
   const hasTrips = has('N', 'L', 'E', 'U', 'M');
   const hasResources = has('E', 'F') || purpose === 'non-working';
   const hasSalary = purpose === 'employment';
-  const hasInsurance = has('E', 'F', 'R-E') || purpose === 'non-working';
+  // M and F read cover only for a non-working holder (ES-M03, ES-F04).
+  const hasInsurance =
+    has('E', 'R-E') || afterDraft.mobility.purpose === 'non-working';
   const hasConduct = has('N', 'L', 'E', 'M', 'R-N', 'R-E', 'U');
 
   function choice(

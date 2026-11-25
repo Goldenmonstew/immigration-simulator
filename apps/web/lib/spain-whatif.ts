@@ -383,13 +383,14 @@ export const spainWhatIf: CountryWhatIf<SpainDraft, SpainWhatIf> = {
         recovery = { ...recovery, insurance: cover(answer, date) };
       if (purpose === 'non-working')
         holder({ healthCover: cover(answer, filed(mobility.holder?.filedOn)) });
-      if (has('F')) {
+      // ES-F04 reads cover only when the holder does not come to work.
+      if (has('F') && mobility.purpose === 'non-working') {
         family({
           healthCover: cover(answer, filed(mobility.family?.filedOn)),
         });
-        // Without cover, the holder's policy no longer covers the family member.
+        // Without cover, the holder's policy cannot cover the family member either.
         const held = mobility.holder?.healthCover;
-        if (held && !answer && !has('M'))
+        if (!answer && (held || answer === false))
           holder({ healthCover: { ...held, coversFamilyMember: answer } });
       }
     }

@@ -209,6 +209,51 @@ test('insurance and conduct answers apply to every selected route', () => {
     expect(status(cleared, id)).toBe('MET');
 });
 
+test('family cover follows the holder purpose that the family route reads', () => {
+  // Only the family member's own cover is recorded; the holder's is unanswered.
+  const family = (
+    targets: SpainDraft['targets'],
+    purpose?: 'non-working' | 'employment' | 'self-employment',
+  ): SpainDraft => ({
+    ...base(targets),
+    mobility: { purpose, family: { healthCover: insured } },
+  });
+  const pathway = (draft: SpainDraft, id: string) =>
+    es.run(draft, 'en').columns[0].pathways.find((p) => p.id === id);
+  for (const targets of [['F'], ['E', 'F']] as SpainDraft['targets'][]) {
+    const draft = family(targets, 'non-working');
+    expect(status(draft, 'ES-F04')).toBe('MET');
+    const without = compare(draft, { healthCover: false });
+    expect(status(without, 'ES-F04')).toBe('NOT_MET');
+    expect(pathway(without, 'ES-F')?.status).toBe('NOT_MET');
+    expect(status(compare(draft, { healthCover: true }), 'ES-F04')).toBe('MET');
+  }
+
+  const html = (draft: SpainDraft) =>
+    render(<WhatIfView country={es} draft={draft} />);
+  expect(html(family(['F'], 'non-working'))).toContain(
+    'id="es-whatif-insurance"',
+  );
+  // A working holder has no cover condition for F (or M).
+  for (const draft of [
+    family(['F'], 'employment'),
+    family(['F'], 'self-employment'),
+    family(['F', 'M'], 'employment'),
+  ]) {
+    expect(pathway(draft, 'ES-F')?.checks.map((c) => c.id)).not.toContain(
+      'ES-F04',
+    );
+    expect(html(draft)).not.toContain('id="es-whatif-insurance"');
+  }
+  // Without a purpose, ES-F04 stays unconfirmed whatever the cover.
+  const unanswered = family(['F']);
+  expect(status(unanswered, 'ES-F04')).toBe('UNKNOWN');
+  expect(status(compare(unanswered, { healthCover: false }), 'ES-F04')).toBe(
+    'UNKNOWN',
+  );
+  expect(html(unanswered)).not.toContain('id="es-whatif-insurance"');
+});
+
 test('income, household size and salary controls change the routes that read them', () => {
   const factors = v.mobilityNonWorkingFactors.value;
   const single = v.ipremMonthly.value * factors.applicant;
