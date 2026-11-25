@@ -19,8 +19,15 @@ export const zhCN = {
     '准备居民签证和出入境日期、身份与体检及警方证明，以及所选路径需要的工作、收入、英语、家庭关系或投资资料。不确定的事项可以留待确认。',
   'nz.privacy':
     '问卷在浏览器内计算，草稿与保存的方案留在这台设备。分享链接包含所填资料，拿到链接的人可以还原问卷。',
+  'nz.result.earliest': '预计满足条件的日期',
   'nz.policy.pageTitle': '新西兰政策依据',
   'nz.policy.title': '新西兰现行规则',
+  'nz.policy.monthsInWindow': '{window} 个月中满足 {required} 个月',
+  'nz.policy.lowToHigh': '由低到高',
+  'nz.policy.from': '起始日',
+  'nz.policy.occupation': 'ANZSCO 职业代码',
+  'nz.policy.hourlyRate': '时薪（NZD）',
+  'nz.policy.medianWage': '年化中位工资（NZD）',
   'nz.policy.unlawfulChildChange': '居民签证新增非法居留受抚养子女的筛查',
   'nz.policy.unlawfulChildSummary':
     '自该日起，居民签证申请须核对每位申请人在新西兰非法居留的受抚养子女（包括不随行的子女），只有全部符合年龄及无权迁出的例外才能通过（R5.125）。',
@@ -37,7 +44,7 @@ export const zhCN = {
   'nz.whatif.lastReturn': '最近一次出境的返回日期',
   'nz.whatif.englishScore': '主申请人的英语考试总分',
   'nz.whatif.englishHint':
-    '问卷已填考试时只改分数；没有考试记录时，按在模拟日线下参加 IELTS 计算。',
+    '问卷已填 IELTS、TOEFL、PTE 或 Cambridge 时只改分数；没有考试记录或填的是按等级评分的 OET 时，按在模拟日线下参加 IELTS 计算。',
   'nz.whatif.invalid':
     '对比后的资料不完整或日期无效，请调整旋钮或返回问卷修改。',
 } as const;
@@ -60,8 +67,15 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Have your resident visa and travel dates, identity, medical and police certificates ready, plus any work, income, English, family or investment details your pathways need. You can leave uncertain items to be confirmed.',
   'nz.privacy':
     'Calculations run in your browser. Drafts and saved scenarios stay on this device. Anyone with a share link can read the answers it contains.',
+  'nz.result.earliest': 'Projected date the conditions are met',
   'nz.policy.pageTitle': 'Policy basis for New Zealand',
   'nz.policy.title': 'Current New Zealand rules',
+  'nz.policy.monthsInWindow': '{required} of {window} months',
+  'nz.policy.lowToHigh': 'Lowest to highest',
+  'nz.policy.from': 'From',
+  'nz.policy.occupation': 'ANZSCO code',
+  'nz.policy.hourlyRate': 'Hourly rate (NZD)',
+  'nz.policy.medianWage': 'Annualised median wage (NZD)',
   'nz.policy.unlawfulChildChange':
     'Residence screening for dependent children unlawfully in New Zealand',
   'nz.policy.unlawfulChildSummary':
@@ -79,7 +93,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'nz.whatif.lastReturn': 'Return date of your latest trip',
   'nz.whatif.englishScore': 'Principal applicant’s overall English test score',
   'nz.whatif.englishHint':
-    'With a test in your answers only the score changes. Without one, an in-person IELTS on the simulation date is assumed.',
+    'With an IELTS, TOEFL, PTE or Cambridge result in your answers only the score changes. Without a test, or with a graded OET result, an in-person IELTS on the simulation date is assumed.',
   'nz.whatif.invalid':
     'The compared answers are incomplete or have an invalid date. Adjust the controls or return to the questionnaire.',
 };

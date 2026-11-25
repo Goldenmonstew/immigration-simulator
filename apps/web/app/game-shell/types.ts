@@ -149,6 +149,8 @@ export interface GameCountry<K extends GameKinds> {
   ): { label: TranslationKey; confirm: TranslationKey } | undefined;
   /** Festival actions whose result waits for an interrupting call. */
   festivalCallResult?: { festival: K['festival']; actions: string[] };
+  /** The ending's names for the shared furniture, by furnishing ID. */
+  furnishingNames?: Record<string, Text>;
   loadTownCanvas(): Promise<{
     default: React.ComponentType<import('./town-canvas').TownCanvasProps<K>>;
   }>;

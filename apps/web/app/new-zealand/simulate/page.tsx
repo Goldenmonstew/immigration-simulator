@@ -1,11 +1,13 @@
 'use client';
 
+import { Fragment } from 'react';
 import { QuestionnaireShell } from '../../../components/questionnaire-shell';
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import {
   nzGoalGroups,
   nzGoals,
+  nzSectionShown,
   nzStepDefinitions,
   nzSteps,
   recordAt,
@@ -93,21 +95,32 @@ function Basics({ draft, errors, update }: StepProps) {
 
 function NzStep(props: StepProps) {
   const { draft, errors, update } = props;
+  const { t } = useTranslation();
   return (
     <>
       {draft.step === 0 && <Basics {...props} />}
-      {nzStepDefinitions[draft.step].sections.map(({ path, fields }) => (
-        <NzFields
-          key={path.join('.')}
-          fields={fields}
-          values={recordAt(draft.answers, path)}
-          prefix={['nz', ...path].join('-')}
-          errors={errors}
-          change={(record) =>
-            update({ answers: withRecordAt(draft.answers, path, record) })
-          }
-        />
-      ))}
+      {nzStepDefinitions[draft.step].sections.map((section, index) =>
+        nzSectionShown(section, draft) ? (
+          <Fragment key={index}>
+            {/* An answer group such as English can be left blank. */}
+            {section.path.length > 0 &&
+              section.fields.some((field) => field.required) && (
+                <p className={form.hint}>{t('nz.form.optionalGroup')}</p>
+              )}
+            <NzFields
+              fields={section.fields}
+              values={recordAt(draft.answers, section.path)}
+              prefix={['nz', ...section.path].join('-')}
+              errors={errors}
+              change={(record) =>
+                update({
+                  answers: withRecordAt(draft.answers, section.path, record),
+                })
+              }
+            />
+          </Fragment>
+        ) : null,
+      )}
     </>
   );
 }

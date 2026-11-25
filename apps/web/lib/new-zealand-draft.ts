@@ -9,6 +9,7 @@ import {
   englishOtherFields,
   evidenceFields,
   feeBand,
+  feeFields,
   filingFields,
   greenFields,
   healthFields,
@@ -58,6 +59,8 @@ type Record_ = Record<string, unknown>;
 type Errors = Record<string, TranslationKey>;
 export interface NzSection {
   path: string[];
+  /** Shown only for these goals; omitted for every selection. */
+  goals?: readonly NzGoal[];
   fields: NzField[];
 }
 
@@ -65,6 +68,9 @@ const residenceGoals: NzGoal[] = [
   ...nzGoalGroups.skilled,
   ...nzGoalGroups.family,
 ];
+// Citizenship is not a visa application: it reads only the fee from the
+// filing step and none of the health, character or family answers.
+const visaGoals = nzGoals.filter((goal) => goal !== 'citizenship');
 const dependants: NzField = {
   name: 'dependants',
   label: 'dependants',
@@ -159,12 +165,18 @@ export const nzStepDefinitions: {
   {
     key: 'filing',
     sections: [
-      { path: ['common', 'residenceFiling'], fields: filingFields },
-      { path: ['common'], fields: lodgementFields },
+      {
+        path: ['common', 'residenceFiling'],
+        goals: visaGoals,
+        fields: filingFields,
+      },
+      { path: ['common'], goals: visaGoals, fields: lodgementFields },
+      { path: ['common'], fields: feeFields },
     ],
   },
   {
     key: 'health',
+    goals: visaGoals,
     sections: [
       { path: ['common'], fields: healthFields },
       { path: ['common', 'evidence'], fields: evidenceFields },
@@ -174,12 +186,26 @@ export const nzStepDefinitions: {
     key: 'english',
     goals: residenceGoals,
     sections: [
-      { path: ['common', 'english'], fields: englishFields },
+      // Family pathways ask for the principal's English on their own step.
+      {
+        path: ['common', 'english'],
+        goals: nzGoalGroups.skilled,
+        fields: englishFields,
+      },
       { path: ['common'], fields: englishOtherFields },
     ],
   },
-  { key: 'family', sections: [{ path: ['common'], fields: [dependants] }] },
+  {
+    key: 'family',
+    goals: visaGoals,
+    sections: [{ path: ['common'], fields: [dependants] }],
+  },
 ];
+
+export const nzSectionShown = (
+  { goals }: NzSection,
+  draft: Pick<NzDraft, 'goals'>,
+) => !goals || goals.some((goal) => draft.goals.includes(goal));
 
 export function nzSteps(draft: Pick<NzDraft, 'goals'>) {
   return nzStepDefinitions
@@ -201,7 +227,7 @@ export function createNzDraft(): NzDraft {
     completed: false,
     simulationDate: today(),
     goals: [],
-    answers: { trips: [] },
+    answers: {},
   };
 }
 
@@ -252,6 +278,14 @@ const tree = answerTree();
 const visible = (field: NzField, record: Record_) =>
   !field.when || field.when(record);
 
+// Drop the answers a change hides, so hidden questions cannot block a step.
+export function withoutHidden(fields: NzField[], record: Record_): Record_ {
+  const kept = { ...record };
+  for (const field of fields)
+    if (!visible(field, kept)) delete kept[field.name];
+  return kept;
+}
+
 // Keep only the questions shown for the current answers; drop empty groups.
 function prune(fields: NzField[], record: Record_): Record_ {
   const kept: Record_ = {};
@@ -275,8 +309,9 @@ export function activeNzAnswers(draft: NzDraft): NzDraft {
   const shown = new Set(nzSteps(draft).map(({ step }) => step));
   let answers = draft.answers;
   nzStepDefinitions.forEach(({ sections }, step) => {
-    if (shown.has(step)) return;
-    for (const { path, fields } of sections) {
+    for (const section of sections) {
+      if (shown.has(step) && nzSectionShown(section, draft)) continue;
+      const { path, fields } = section;
       const record = { ...recordAt(answers, path) };
       for (const field of fields) delete record[field.name];
       answers = withRecordAt(answers, path, record);
@@ -304,7 +339,10 @@ function checkFields(
   prefix: string,
   errors: Errors,
   validate: boolean,
-  enforceRequired = Object.keys(record).length > 0,
+  // An optional group needs its required answers once a shown one is given.
+  enforceRequired = fields.some(
+    (field) => visible(field, record) && record[field.name] !== undefined,
+  ),
 ) {
   for (const field of fields) {
     if (!visible(field, record)) continue;
@@ -398,6 +436,7 @@ function checkFields(
           !items.every(entry)
         )
           invalid();
+        else if (validate && field.required && !items.length) invalid();
         else if (validate && items.includes(null))
           invalid(
             field.type === 'tuple'
@@ -412,6 +451,56 @@ function checkFields(
   }
 }
 
+// Steps ask some facts twice for different pathways. The engine prefers one
+// answer silently, so a later answer must agree with the earlier one.
+function conflicts(draft: NzDraft, key: string, errors: Errors) {
+  const { answers } = activeNzAnswers(draft);
+  const inNz = answers.resident?.travel?.currentlyInNz;
+  const religiousInNz = answers.family?.religious?.inNz;
+  const filing = answers.common?.residenceFiling;
+  if (
+    key === 'religious' &&
+    inNz !== undefined &&
+    religiousInNz !== undefined &&
+    inNz !== religiousInNz
+  )
+    errors['nz-family-religious-inNz'] ??= 'nz.error.inNzConflict';
+  if (key !== 'filing') return;
+  const overseas = filing?.filingFromOverseas;
+  if (overseas !== undefined && [inNz, religiousInNz].includes(overseas))
+    errors['nz-common-residenceFiling-filingFromOverseas'] ??=
+      'nz.error.overseasConflict';
+  const liability = answers.resident?.prv?.deportationLiability;
+  const bar = filing?.statutoryBar;
+  if (
+    (liability === 'liable' &&
+      bar !== undefined &&
+      bar !== 'liable-for-deportation') ||
+    (liability === 'none' && bar === 'liable-for-deportation')
+  )
+    errors['nz-common-residenceFiling-statutoryBar'] ??=
+      'nz.error.deportationConflict';
+  // A named visa decides the religious and investor visa checks; a general
+  // work visa or "other" leaves them to the earlier answers.
+  const visa = filing?.currentVisa;
+  const disagrees = (flag: boolean | undefined, required: string) =>
+    flag !== undefined && flag !== (visa === required);
+  if (
+    visa !== undefined &&
+    visa !== 'work' &&
+    visa !== 'other' &&
+    (disagrees(
+      answers.family?.religious?.holdsQualifyingWorkVisa,
+      'religious-work',
+    ) ||
+      disagrees(
+        answers.family?.investment?.business?.holdsBusinessInvestorWorkVisa,
+        'business-investor-work',
+      ))
+  )
+    errors['nz-common-residenceFiling-currentVisa'] ??= 'nz.error.visaConflict';
+}
+
 function checkStep(draft: NzDraft, step: number, validate: boolean) {
   const errors: Errors = {};
   if (step === 0 && validate) {
@@ -419,7 +508,9 @@ function checkStep(draft: NzDraft, step: number, validate: boolean) {
       errors['nz-simulationDate'] = 'nz.error.date';
     if (!draft.goals.length) errors['nz-goals'] = 'nz.form.goalError';
   }
-  for (const { path, fields } of nzStepDefinitions[step].sections)
+  for (const section of nzStepDefinitions[step].sections) {
+    if (!nzSectionShown(section, draft)) continue;
+    const { path, fields } = section;
     checkFields(
       fields,
       recordAt(draft.answers, path),
@@ -428,8 +519,11 @@ function checkStep(draft: NzDraft, step: number, validate: boolean) {
       validate,
       path.length > 0 ? undefined : true,
     );
+  }
   const { answers } = draft;
-  if (validate && nzStepDefinitions[step].key === 'history') {
+  const { key } = nzStepDefinitions[step];
+  if (validate) conflicts(draft, key, errors);
+  if (validate && key === 'history') {
     if (
       answers.firstArrival &&
       answers.dateOfBirth &&

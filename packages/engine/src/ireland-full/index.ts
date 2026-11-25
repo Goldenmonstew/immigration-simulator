@@ -100,6 +100,8 @@ const workRenewalKinds = [
 ] as const;
 
 export type IrelandFullPathwayId = keyof typeof titles;
+/** Pathway titles in Chinese and English, in assessment order. */
+export const IRELAND_FULL_PATHWAY_TITLES = titles;
 
 export interface IrelandFullRequest extends Omit<IeRequest, 'stamp4Route'> {
   pathways?: readonly IrelandFullPathwayId[];
@@ -368,6 +370,8 @@ export function evaluateIrelandFull(
   };
 }
 
+export { IRELAND_CONDITION_IDS, irelandCondition } from './conditions';
+export type { IrelandConditionId } from './conditions';
 export type {
   IrelandCharacter,
   IrelandRegistration,

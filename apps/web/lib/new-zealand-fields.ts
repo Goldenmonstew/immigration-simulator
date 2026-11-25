@@ -11,7 +11,9 @@ export type NzField = {
   /** Questions for one member of a union; hidden answers are not sent. */
   when?: (record: Record<string, unknown>) => boolean;
 } & (
-  | { type: 'boolean' | 'date' | 'number' | 'text' | 'numbers' }
+  | { type: 'boolean' | 'date' | 'number' | 'text' }
+  /** none: an empty list is a meaningful answer the user can confirm. */
+  | { type: 'numbers'; none?: boolean }
   | { type: 'choice' | 'multi'; options: readonly NzOption[]; set?: string }
   // A date or number, or one fixed alternative such as "not yet" or "indefinite".
   | {
@@ -25,7 +27,7 @@ export type NzField = {
 );
 
 const field =
-  (type: 'boolean' | 'date' | 'number' | 'text' | 'numbers') =>
+  (type: 'boolean' | 'date' | 'number' | 'text') =>
   (
     name: string,
     extra: { label?: Label; required?: boolean } = {},
@@ -39,7 +41,10 @@ const bool = field('boolean');
 const date = field('date');
 const num = field('number');
 const text = field('text');
-const numbers = field('numbers');
+const numbers = (
+  name: string,
+  extra: { required?: boolean; none?: boolean } = {},
+): NzField => ({ name, label: name, type: 'numbers', ...extra });
 const flags = (...names: string[]) => names.map((name) => bool(name));
 const counts = (...names: string[]) => names.map((name) => num(name));
 const choice = (
@@ -217,7 +222,8 @@ export const prvFields: NzField[] = [
     'successfulBusinessMonthsImmediatelyBeforeApplication',
   ),
   bool('goingConcernAccountsCertified'),
-  numbers('includedFamilyDaysInTwoYears'),
+  // No included family members is an answer: [] meets the base commitment.
+  numbers('includedFamilyDaysInTwoYears', { none: true }),
   date('homePurchasedOn'),
   bool('stillOwnAndOccupyFamilyHome'),
   num('qualifyingEmploymentMonthsInTwoYears'),
@@ -406,7 +412,8 @@ export const sectorFields: NzField[] = [
   ...workResidence,
 ];
 
-const familyEnglish = (name: string): NzField =>
+// A principal applicant cannot rely on prepaid ESOL.
+const familyEnglish = (name: string, principal = false): NzField =>
   group(name, [
     choice(
       'method',
@@ -415,7 +422,7 @@ const familyEnglish = (name: string): NzField =>
         'accepted-alternative',
         'alternative-under-review',
         'none',
-        'esol-paid',
+        ...(principal ? [] : ['esol-paid']),
       ],
       { label: 'englishMethod', required: true, set: 'fmethod' },
     ),
@@ -543,7 +550,7 @@ export const investorFields: NzField[] = [
       choice('stage', ['work', 'residence'], { set: 'stage' }),
       num('workApplicationAge'),
       date('workApplicationDate'),
-      familyEnglish('principalEnglish'),
+      familyEnglish('principalEnglish', true),
       num('cleanBankruptcyYears'),
       choice('fitAndProper', assessment),
       num('reserveFunds'),
@@ -586,7 +593,7 @@ export const religiousFields: NzField[] = [
     'claimed-or-granted',
     'tax-credit-or-unclear',
   ]),
-  familyEnglish('principalEnglish'),
+  familyEnglish('principalEnglish', true),
 ];
 
 const applicantFiling: NzField[] = [
@@ -633,9 +640,9 @@ export const filingFields: NzField[] = [
   ]),
 ];
 
+export const feeFields: NzField[] = [bool('requiredFeePaid')];
 export const lodgementFields: NzField[] = [
   bool('identityDocuments'),
-  bool('requiredFeePaid'),
   choice('levyBasis', [
     'ordinary',
     'samoan-citizen',
@@ -728,6 +735,10 @@ export const englishFields: NzField[] = [
 
 export const englishOtherFields: NzField[] = [
   bool('testSpecificallyRequested'),
+];
+// Read for family members only.
+const dependantEnglishFields: NzField[] = [
+  ...englishOtherFields,
   choice('religiousEnglishBackground', assessment),
   bool('registeredForSmc'),
   choice('esol', ['paid-and-signed', 'declined', 'planned']),
@@ -748,7 +759,7 @@ export const dependantFields: NzField[] = [
   ...healthFields,
   group('evidence', evidenceFields),
   group('english', englishFields),
-  ...englishOtherFields,
+  ...dependantEnglishFields,
   group('prvApplication', [
     date('firstArrival'),
     residentVisa,

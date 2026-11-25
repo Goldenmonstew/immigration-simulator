@@ -35,11 +35,12 @@ export function ResultPage<D extends CountryDraft, K>({
     undefined,
   );
   useEffect(() => {
+    const hashTracked = !!country.scenarioLinks;
     const read = (linkHash?: string) => {
       const hash = linkHash ?? window.location.hash;
       const current = displayedScenario.current;
       const refresh =
-        country.id === 'jp' &&
+        hashTracked &&
         current &&
         (linkHash === undefined || linkHash === current.hash);
       const source = refresh
@@ -60,15 +61,14 @@ export function ResultPage<D extends CountryDraft, K>({
           refresh ? 'refresh' : 'result',
         );
         if (!refresh)
-          displayedScenario.current =
-            country.id === 'jp'
-              ? { hash, source: source ?? next.draft }
-              : undefined;
+          displayedScenario.current = hashTracked
+            ? { hash, source: source ?? next.draft }
+            : undefined;
         setPage(next);
       }
     };
     read();
-    if (country.id !== 'jp') {
+    if (!hashTracked) {
       const openLocation = () => read(window.location.hash);
       window.addEventListener('hashchange', openLocation);
       return () => window.removeEventListener('hashchange', openLocation);
@@ -100,7 +100,7 @@ export function ResultPage<D extends CountryDraft, K>({
   const { draft, result, shared, mock, correction } = page ?? {};
   const principalResult = draft && country.principal?.(draft, locale);
   const scenarioHash =
-    country.id === 'jp' && draft
+    country.scenarioLinks && draft
       ? `#${shared ? 's' : 'draft'}=${encodeDraft(country, draft)}`
       : '';
   const compareHref = countryPath(country.id, 'whatif') + scenarioHash;
@@ -203,7 +203,7 @@ export function ResultPage<D extends CountryDraft, K>({
           country={country}
           draft={result ? draft : undefined}
           onLoad={(next) => {
-            if (country.id === 'jp')
+            if (country.scenarioLinks)
               displayedScenario.current = { hash: '', source: next };
             setPage(readPageResult(country, locale, next));
           }}

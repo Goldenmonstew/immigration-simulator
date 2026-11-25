@@ -1,17 +1,21 @@
 import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { ReactNode } from 'react';
-import { expect, test } from 'vitest';
+import { usePathname } from 'next/navigation';
+import { afterEach, expect, test, vi } from 'vitest';
 import NewZealandPage from '../app/new-zealand/page';
 import NewZealandPolicyPage from '../app/new-zealand/policy/page';
 import NewZealandSimulatePage from '../app/new-zealand/simulate/page';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
+import { SiteShell } from '../components/site-shell';
 import { WhatIfView } from '../components/whatif-lab';
+import site from '../app/site.module.css';
 import { t, type TranslationKey } from '../i18n';
 import { nzFormZh } from '../i18n/countries/new-zealand-form';
 import { LocaleContext } from '../i18n/locale';
+import { punct } from '../i18n/punctuation';
 import { japanModule } from '../lib/japan-module';
 import {
   nzStepDefinitions,
@@ -21,8 +25,15 @@ import {
 import type { NzField } from '../lib/new-zealand-fields';
 import { newZealandModule as nz } from '../lib/new-zealand-module';
 import { readPageResult } from '../lib/page-result';
-import { decodeDraft, encodeDraft } from '../lib/share';
+import { decodeDraft, encodeDraft, linkedResultDraft } from '../lib/share';
+import { draftStorage } from '../lib/storage';
 import { ukModule } from '../lib/uk-module';
+
+vi.mock('next/navigation', () => ({ usePathname: vi.fn() }));
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.resetAllMocks();
+});
 
 const render = (node: ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
   renderToStaticMarkup(
@@ -196,11 +207,10 @@ test('drafts round-trip in the New Zealand envelope and malformed drafts are rej
 
 test('steps follow the chosen pathways and validate required answers', () => {
   const fresh = nz.createDraft();
+  // Health and family questions appear once a visa pathway is chosen.
   expect(nzSteps(fresh).map(({ title }) => title)).toEqual([
     'nz.step.basics',
     'nz.step.filing',
-    'nz.step.health',
-    'nz.step.family',
   ]);
   expect(nz.validateStep(fresh)).toEqual({ 'nz-goals': 'nz.form.goalError' });
   expect(nz.validateStep({ ...fresh, simulationDate: '2026-02-30' })).toEqual({
@@ -251,8 +261,8 @@ test('steps follow the chosen pathways and validate required answers', () => {
   expect(
     english({ method: 'test', test: 'oet', grades: ['A', null, null, null] }),
   ).toEqual({ 'nz-common-english-grades': 'nz.form.tupleError' });
-  expect(english({ score: 7 })).toEqual({
-    'nz-common-english-method': 'nz.form.required',
+  expect(english({ method: 'test', score: 7 })).toEqual({
+    'nz-common-english-test': 'nz.form.required',
   });
   expect(english({ method: 'test', test: 'ielts', score: -1 })).toEqual({
     'nz-common-english-score': 'nz.form.numberError',
@@ -449,3 +459,151 @@ test('the policy page lists every pathway and condition with New Zealand sources
     'Policy basis for New Zealand',
   );
 });
+
+test('opening a New Zealand share link keeps the local draft, and skipping to the content keeps the link', () => {
+  const storage = new Map<string, string>();
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, json: string) => storage.set(key, json),
+  });
+  const local: NzDraft = { ...nz.createDraft(), simulationDate: '2026-10-01' };
+  draftStorage(nz, local);
+  const shared = citizenshipDraft();
+  const page = readPageResult(nz, 'zh-CN', encodeDraft(nz, shared));
+  expect(page.shared).toBe(true);
+  expect(page.draft?.simulationDate).toBe('2026-11-23');
+  expect(JSON.parse(storage.get('nz-immigration-draft-v1')!)).toEqual(local);
+  expect(draftStorage(nz).draft).toEqual(local);
+  // Edit and comparison links carry the assessed answers.
+  expect(
+    linkedResultDraft(nz, '#draft=' + encodeDraft(nz, shared))?.draft,
+  ).toMatchObject({ simulationDate: '2026-11-23' });
+
+  for (const sub of ['result', 'simulate', 'whatif']) {
+    vi.mocked(usePathname).mockReturnValue(`/new-zealand/${sub}`);
+    const html = render(
+      <SiteShell>
+        <main id="main" />
+      </SiteShell>,
+    );
+    expect(html, sub).not.toContain('href="#main"');
+    expect(html, sub).toContain(
+      `<button type="button" class="${site.skip}">${t('site.skip')}</button>`,
+    );
+  }
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'only the travel conditions date is labelled as the date the conditions are met (%s)',
+  (locale) => {
+    const own = t('nz.result.earliest', locale);
+    const shared = t('result.earliest', locale);
+    const result = (draft: NzDraft) =>
+      render(
+        <ResultView
+          country={nz}
+          result={nz.run(draft, locale)}
+          draft={draft}
+        />,
+        locale,
+      );
+    // Travel conditions follow the first resident entry, not a filing date.
+    const travel: NzDraft = {
+      ...citizenshipDraft(),
+      goals: ['travel'],
+      answers: {
+        dateOfBirth: '1990-01-01',
+        firstArrival: '2026-11-23',
+        residentVisa: { granted: '2026-11-23', category: 'general' },
+        trips: [],
+        resident: {
+          travel: {
+            grantLocation: 'onshore',
+            currentlyInNz: true,
+            restrictedEntry: false,
+            action: 'initial',
+            passportCoversInitialConditions: true,
+          },
+        },
+        common: { requiredFeePaid: true },
+      },
+    };
+    expect(pathways(travel, locale)).toMatchObject([
+      { id: 'NZ-TRAVEL', status: 'MET', earliestDate: '2026-11-23' },
+    ]);
+    const travelHtml = result(travel);
+    expect(travelHtml).toContain(`<dt>${own}</dt>`);
+    expect(travelHtml).not.toContain(shared);
+
+    // Residence and citizenship dates are the earliest filing dates, in the
+    // facts, the gaps and the comparison.
+    for (const draft of [citizenshipDraft(), residentDraft('2025-11-01')]) {
+      const html = result(draft);
+      expect(html).toContain(`<dt>${shared}</dt>`);
+      expect(html).not.toContain(own);
+    }
+    expect(result(citizenshipDraft())).toContain(
+      `${shared}${punct(locale).colon}2027-06-12`,
+    );
+    const whatIf = render(
+      <WhatIfView country={nz} draft={citizenshipDraft()} />,
+      locale,
+    );
+    expect(whatIf).toContain(`<dt>${shared}</dt>`);
+    expect(whatIf).not.toContain(own);
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'the policy page shows rate tables, the work window and the OET order by meaning (%s)',
+  (locale) => {
+    const html = render(<NewZealandPolicyPage />, locale);
+    const l = (key: TranslationKey) => t(key, locale);
+    const head = (...keys: TranslationKey[]) =>
+      keys.map((key) => `<th scope="col">${l(key)}</th>`).join('');
+    const cell = (name: string) =>
+      html.match(
+        new RegExp(
+          `data-parameter="${name}">.*?<td data-label="${l('policyPage.value')}">(.*?)</td><td data-label="${l('result.sources')}">`,
+        ),
+      )?.[1] ?? '';
+    const list = locale === 'en' ? ', ' : '、';
+    // SR5.15(a): 24 of the 30 months, not years.
+    expect(cell('workResidenceMonths')).toBe(
+      l('nz.policy.monthsInWindow')
+        .replace('{required}', '24')
+        .replace('{window}', '30'),
+    );
+    expect(cell('workResidenceMonths')).toContain(
+      locale === 'en' ? 'months' : '个月',
+    );
+    expect(cell('englishOetGrades')).toBe(
+      l('nz.policy.lowToHigh') +
+        (locale === 'en' ? ': ' : '：') +
+        ['E', 'D', 'C', 'C+', 'B', 'A'].join(list),
+    );
+    for (const name of ['smcRateBase', 'greenRateTwice', 'careRates'])
+      expect(cell(name), name).toContain(
+        head('nz.policy.from', 'nz.policy.hourlyRate'),
+      );
+    expect(cell('smcRateBase')).toMatch(
+      /2020-02-24<\/time><\/td><td>25\.5<\/td>/,
+    );
+    expect(cell('parentMedianIncome')).toContain(
+      head('nz.policy.from', 'nz.policy.medianWage'),
+    );
+    expect(cell('parentMedianIncome')).toContain('<td>53,040</td>');
+    for (const name of ['tierOneEmployeeRates', 'tierOneContractRates'])
+      expect(cell(name), name).toContain(
+        head('nz.policy.occupation', 'nz.policy.hourlyRate'),
+      );
+    expect(cell('tierOneEmployeeRates')).toContain(
+      '<td>221213</td><td>45.5</td>',
+    );
+    expect(html).not.toContain('2020-02-24 25.5');
+    expect(html).not.toContain('221213 45.5');
+    // Amounts and counts are grouped; no parameter holds a calendar year.
+    expect(html).toContain('significantCostNzd 81,000');
+    expect(html).toContain('1,350');
+  },
+);
