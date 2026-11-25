@@ -24,7 +24,9 @@ export const deGameZh = {
   'de.game.visaUrgent': '居留许可即将到期',
   'de.game.visaReminderTitle': '新一季，看看居留许可',
   'de.game.visaReminder':
-    '居留许可还剩 {count} 个月。这局游戏不办理延期，到期前可到外管局递交定居申请，或到入籍科递交入籍申请。',
+    '居留许可还剩 {count} 个月。到期前去外管局看看：蓝卡可以申请延期，条件满足时可以递交定居申请，也可以到入籍科递交入籍申请。',
+  'de.game.renewedThisSeason': '本季已办好蓝卡延期。',
+  'de.game.renewedThrough': '本季已办好蓝卡延期，新卡有效至 {date}。',
   'de.game.fastVisaWarning':
     '居留许可到 {date} 为止。快进会直接过完这一季、跨过这一天，先去外管局看看吧。',
   'de.game.fastVisaWarningNone':
@@ -67,7 +69,10 @@ export const deGameEn: Record<keyof typeof deGameZh, string> = {
   'de.game.visaUrgent': 'Residence permit ending soon',
   'de.game.visaReminderTitle': 'A new quarter: check your residence permit',
   'de.game.visaReminder':
-    'Your residence permit has {count} month{count:s} left. This game does not extend permits: before it ends, apply for settlement at the Ausländerbehörde or for naturalisation at the naturalisation office.',
+    'Your residence permit has {count} month{count:s} left. Before it ends, visit the Ausländerbehörde: a Blue Card can be extended there, and you can apply for settlement once you qualify, or for naturalisation at the naturalisation office.',
+  'de.game.renewedThisSeason': 'You extended your Blue Card this season.',
+  'de.game.renewedThrough':
+    'You extended your Blue Card this season; the new card runs to {date}.',
   'de.game.fastVisaWarning':
     'Your residence permit runs until {date}. Fast-forwarding runs past that date to the end of the quarter, so visit the Ausländerbehörde first.',
   'de.game.fastVisaWarningNone':

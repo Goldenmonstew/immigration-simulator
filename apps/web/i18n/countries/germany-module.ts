@@ -699,6 +699,18 @@ export const germanyParameterLabels: Record<
       'share',
     ],
   },
+  skilledTitleTerm: {
+    years: [
+      '技术人员与蓝卡许可的签发与延期期限',
+      'Term of skilled worker and Blue Card titles and their extensions',
+      'years',
+    ],
+    extraMonths: [
+      '劳动关系期限更短时，在其上加',
+      'Added to a shorter employment term',
+      'months',
+    ],
+  },
   citizenshipFullTime: {
     required: ['所需全职月数', 'Required months of full-time work', 'months'],
     window: ['最近核算期间', 'Within the most recent', 'months'],

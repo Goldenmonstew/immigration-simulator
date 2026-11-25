@@ -25,6 +25,7 @@ const values: Record<string, { value: unknown }> = v;
 const amounts: Record<string, 'eur' | 'eurYear'> = {
   pensionCeiling2026: 'eurYear',
   expressFee: 'eur',
+  extensionFee: 'eur',
   testFee: 'eur',
   externalOrientationFee: 'eur',
 };

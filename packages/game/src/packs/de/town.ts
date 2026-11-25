@@ -514,6 +514,21 @@ export const deActions: Activity<DeEffect, DeFestival>[] = [
     effects: [{ type: 'stat', key: 'mood', delta: b.boardMood }],
   },
   {
+    id: 'extend',
+    place: 'visa',
+    label: t('申请延长蓝卡', 'Apply to extend your Blue Card'),
+    note: t(
+      `到期前递交延期申请，原卡在决定前继续有效（SRC-100 第 81 条第 4 款）。延期适用签发的规定（第 8 条第 1 款）：期限 ${values.skilledTitleTerm.value.years} 年，劳动合同更短时为合同剩余期限加 ${values.skilledTitleTerm.value.extraMonths} 个月（第 18 条第 4 款）；手续费 ${eur(values.extensionFee.value)}（SRC-410 第 45 条第 2 项 b 目）。游戏把申请当作获批，新卡从旧卡到期次日起算；到期前 ${b.renewalWindowMonths} 个月内受理是游戏设定。`,
+      `Apply before the card ends and it stays valid until the decision (SRC-100 § 81 Abs. 4). An extension follows the rules for issue (§ 8 Abs. 1): ${values.skilledTitleTerm.value.years} years, or the contract's remaining term plus ${values.skilledTitleTerm.value.extraMonths} months if shorter (§ 18 Abs. 4); fee ${eur(values.extensionFee.value)} (SRC-410 § 45 Nr. 2 Buchst. b). The game treats the application as granted, with the new card starting the day after the old one ends; taking applications in the last ${b.renewalWindowMonths} months is a game setting.`,
+    ),
+    minutes: b.minutes.paperwork,
+    oncePerDay: true,
+    effects: [
+      { type: 'money', delta: -values.extensionFee.value },
+      { type: 'extension' },
+    ],
+  },
+  {
     id: 'settle',
     place: 'visa',
     label: t('申请定居许可', 'Apply for a settlement permit'),

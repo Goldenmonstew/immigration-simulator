@@ -7,7 +7,7 @@ import {
   type DeFullRoute,
 } from '@uk-immigration/engine';
 import { germanyFull2026_11 } from '@uk-immigration/policy-data';
-import { addMonths, dayMs } from '../../calendar';
+import { addDays, addMonths, dayMs } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
 import type { GameState, IsoDate, Progress } from '../../model';
 import { deBalance as b } from './balance';
@@ -41,6 +41,8 @@ export type DeEffect =
   | { type: 'german' }
   /** The Leben in Deutschland test with this many correct answers. */
   | { type: 'orientationTest'; correct: number }
+  /** A Blue Card extension applied for before the card ends (SRC-100 § 81 Abs. 4). */
+  | { type: 'extension' }
   /** A quarter of Blue Card employment with contributions, less months abroad. */
   | { type: 'payroll' }
   | { type: 'salary'; annualEur: number };
@@ -73,18 +75,57 @@ export const currentPermit = (state: {
     .filter((permit) => permit.from <= state.date)
     .sort((a, c) => c.from.localeCompare(a.from))[0];
 
-/** The document review for the current permit (SRC-100 § 51). */
-export const currentTitle = (state: {
-  timeline: DeTimeline;
-  date: IsoDate;
-}): TitleReview =>
-  state.timeline.mobility.titles.find(
-    (title) => title.from === currentPermit(state).from,
+/** The document review for the permit held on a date (SRC-100 § 51). */
+export const currentTitle = (
+  state: { timeline: DeTimeline; date: IsoDate },
+  date = state.date,
+): TitleReview => {
+  const permit = currentPermit({ ...state, date });
+  return state.timeline.mobility.titles.find(
+    (title) => title.from === permit.from,
   )!;
+};
 
-/** Months to the end of the current permit, rounded down. */
+/** The last day covered by the current permit and any permit that follows on. */
+export function permitEnd(state: { timeline: DeTimeline; date: IsoDate }) {
+  let end = currentPermit(state).to;
+  for (const permit of [...state.timeline.permits].sort((a, c) =>
+    a.from.localeCompare(c.from),
+  ))
+    if (end && permit.to && permit.from === addDays(end, 1)) end = permit.to;
+  return end;
+}
+
+const term = values.skilledTitleTerm.value;
+/**
+ * The next Blue Card, as an extension follows the rules for issue (SRC-100
+ * § 8 Abs. 1): four years, or the employment's remaining term plus six months
+ * if shorter (§ 18 Abs. 4). None once the contract ends before it would start.
+ */
+export function blueCardExtension(state: DeState) {
+  const card = state.timeline.mobility.blueCard;
+  const current = currentPermit(state);
+  if (
+    current.kind !== 'blue-card' ||
+    !current.to ||
+    !card?.employmentStartedOn ||
+    !card.contractMonths
+  )
+    return;
+  const from = addDays(current.to, 1);
+  const contractEnd = addDays(
+    addMonths(card.employmentStartedOn, card.contractMonths),
+    -1,
+  );
+  if (contractEnd < from) return;
+  const full = addDays(addMonths(from, term.years * 12), -1);
+  const shorter = addMonths(contractEnd, term.extraMonths);
+  return { from, to: shorter < full ? shorter : full };
+}
+
+/** Months to the end of the current permit and any that follows, rounded down. */
 function visaMonthsLeft(state: DeState): number {
-  const to = currentPermit(state).to;
+  const to = permitEnd(state);
   if (!to || to < state.date) return 0;
   let months = 0;
   while (addMonths(state.date, months + 1) <= to) months++;
@@ -171,14 +212,14 @@ export const deRules: EvaluationAdapter<
   route: (state) => state.timeline.routes[0],
   visaMonthsLeft,
   canTravel: (state, through) => {
-    const to = currentPermit(state).to;
+    const to = permitEnd(state);
     return !!to && through <= to;
   },
   // A home visit is an ordinary, temporary absence: no other ground for the
   // permit to lapse, and back within the ordinary period (SRC-100 § 51 Abs. 1 Nr. 6–7).
   recordAbsence(state, trip) {
     state.timeline.trips.push({ departed: trip.from, returned: trip.to });
-    currentTitle(state).trips!.push({
+    currentTitle(state, trip.from).trips!.push({
       departed: trip.from,
       returned: trip.to,
       nonTemporary: false,
@@ -225,6 +266,19 @@ export const deRules: EvaluationAdapter<
         common.orientationScore = best;
         citizenship.knowledge = { kind: 'lid', correct: best };
         setFlags(state, ['orientation-test']);
+        return true;
+      }
+      case 'extension': {
+        const next = blueCardExtension(state)!;
+        state.timeline.permits.push({ kind: 'blue-card', ...next });
+        state.timeline.mobility.titles.push({
+          kind: 'blue-card',
+          from: next.from,
+          validTo: next.to,
+          noOtherLossEvent: true,
+          trips: [],
+        });
+        setFlags(state, ['visa-renewed', 'quarter-visa-renewed']);
         return true;
       }
       case 'payroll': {

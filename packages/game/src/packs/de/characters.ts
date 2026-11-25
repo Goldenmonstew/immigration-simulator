@@ -68,17 +68,14 @@ export const spouseProfile: CharacterProfile = {
   sprite: 'urban/jamie.png',
 };
 
-const permitReminder = (id: string): DeEvent => ({
+const permitReminder = (id: string, text: Text): DeEvent => ({
   id: `${id}-permit-date`,
   channel: 'place:home',
   title: t('居留卡上的日期', 'The date on the residence card'),
-  text: t(
-    '居留卡背面的有效期越来越近。这局游戏不办理延期：到期前要么递交定居或入籍申请，要么收拾行李。',
-    'The date on the back of your residence card is getting closer. This game does not extend permits: apply for settlement or naturalisation before it ends, or pack your bags.',
-  ),
+  text,
   weight: 3,
   once: true,
-  when: [{ visaMonthsLeftMax: b.reminderMonths }],
+  when: [{ visaMonthsLeftMax: b.renewalWindowMonths }],
   choices: [
     {
       id: 'plan',
@@ -89,7 +86,13 @@ const permitReminder = (id: string): DeEvent => ({
 });
 
 const bluecardEvents: DeEvent[] = [
-  permitReminder('bc'),
+  permitReminder(
+    'bc',
+    t(
+      '蓝卡背面的有效期越来越近。到期前可以去外管局申请延期，新卡期限按劳动合同计算；条件满足时也可以递交定居申请。',
+      'The date on the back of your Blue Card is getting closer. Before it ends you can ask the Ausländerbehörde for an extension, with a term set by your employment contract, or apply for settlement once you qualify.',
+    ),
+  ),
   {
     id: 'bc-review',
     channel: 'letter',
@@ -256,7 +259,13 @@ const bluecardEvents: DeEvent[] = [
 ];
 
 const spouseEvents: DeEvent[] = [
-  permitReminder('sp'),
+  permitReminder(
+    'sp',
+    t(
+      '居留卡背面的有效期越来越近。这局游戏不办理家属许可延期：到期前要么递交定居或入籍申请，要么收拾行李。',
+      'The date on the back of your residence card is getting closer. This game does not extend family permits: apply for settlement or naturalisation before it ends, or pack your bags.',
+    ),
+  ),
   {
     id: 'sp-roastery-early',
     channel: 'morning',
@@ -431,7 +440,9 @@ const bluecard: DeCharacter = {
       blueCard: {
         cardHeldAtDecision: true,
         countableAnnualGross: 64_000,
-        contractMonths: 48,
+        // A five-year contract from the first day of work (fictional).
+        employmentStartedOn: '2025-01-15',
+        contractMonths: 60,
         jobInGermanyMatchesQualification: true,
         requiredLicencesHeld: true,
         genuineEmployment: true,

@@ -111,8 +111,10 @@ export const festivals = deFestivals;
 export const achievements = hooks.deAchievements;
 export { deCharacters, deFurnishingNames, deRules };
 export {
+  blueCardExtension,
   currentPermit,
   pathwayOf,
+  permitEnd,
   officePending,
   timeDate,
   type DeColumn,

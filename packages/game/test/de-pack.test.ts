@@ -300,6 +300,64 @@ test('applying for naturalisation ends with the naturalisation text', () => {
   expect(ended.log.find(({ kind }) => kind === 'ending')?.text).toEqual(text);
 });
 
+/** The Blue Card at the office in March 2028, ten months before it ends. */
+function beforeExpiry(dayDate = '2028-03-14') {
+  const state = settle(de.newGame('bluecard', 5, 'en'));
+  state.date = `${dayDate.slice(0, 7)}-01`;
+  state.day.date = dayDate;
+  state.result = de.deRules.evaluate(state);
+  return visit(state, 'visa', 600);
+}
+
+test('the office extends the Blue Card before it ends, by the contract and § 18 Abs. 4', () => {
+  const fee = values.extensionFee.value;
+  // More than the game's window (12 months) before the card ends.
+  expect(ids(beforeExpiry('2027-12-14'), 'visa')).not.toContain('extend');
+  const office = beforeExpiry();
+  expect(de.visaMonthsLeft(office)).toBe(10);
+  const extend = de
+    .activities(office, 'visa')
+    .find(({ id }) => id === 'extend')!;
+  // The five-year contract ends 2030-01-14: six months on is shorter than
+  // four years from 2029-01-15 (SRC-100 § 18 Abs. 4).
+  expect(extend.label.en).toContain(`€${fee}`);
+  expect(extend.label.en).toContain('2030-07-14');
+  const renewed = de.doActivity(office, 'extend');
+  expect(renewed.stats.money).toBe(office.stats.money - fee);
+  expect(renewed.timeline.permits.at(-1)).toEqual({
+    kind: 'blue-card',
+    from: '2029-01-15',
+    to: '2030-07-14',
+  });
+  expect(renewed.timeline.mobility.titles.at(-1)).toEqual({
+    kind: 'blue-card',
+    from: '2029-01-15',
+    validTo: '2030-07-14',
+    noOtherLossEvent: true,
+    trips: [],
+  });
+  expect(renewed.log.at(-1)?.renewalValidTo).toBe('2030-07-14');
+  expect(de.visaMonthsLeft(renewed)).toBe(28);
+  expect(ids(renewed, 'visa')).not.toContain('extend');
+  // With too little money for the fee there is no extension.
+  const poor = structuredClone(office);
+  poor.stats.money = fee - 1;
+  expect(ids(poor, 'visa')).not.toContain('extend');
+});
+
+test('after the extension, naturalisation opens from the 2030-03-01 quarter', () => {
+  const renewed = certified(de.doActivity(beforeExpiry(), 'extend'));
+  renewed.date = '2030-03-01';
+  renewed.day.date = '2030-03-12';
+  renewed.result = de.deRules.evaluate(renewed);
+  expect(pathway(renewed, 'nat').status).toBe('MET');
+  // The contract has ended, so the office offers no further extension.
+  expect(ids(visit(renewed, 'visa', 600), 'visa')).not.toContain('extend');
+  const ended = de.doActivity(visit(renewed, 'bureau', 600), 'naturalise');
+  expect(ended.ending).toBe('settled');
+  expect(de.narrative(ended).at(-1)!.en).toContain('naturalisation');
+});
+
 test('the diary casts a line on the Lindenkanal, not at a pond', () => {
   const bank = visit(de.newGame('bluecard', 5, 'en'), 'pond', 600);
   const cast = de.fish(bank, false);

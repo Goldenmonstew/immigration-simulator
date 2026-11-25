@@ -116,8 +116,8 @@ export const deCountry: GameCountry<DeKinds> = {
   },
   visaStatus: (state) => ({
     months: deGame.visaMonthsLeft(state),
-    renewed: false,
-    validTo: deGame.currentPermit(state).to,
+    renewed: deGame.permitEnd(state) !== deGame.currentPermit(state).to,
+    validTo: deGame.permitEnd(state),
   }),
   absences: (state) =>
     state.timeline.trips.map((trip) => ({

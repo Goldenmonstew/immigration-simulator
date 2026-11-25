@@ -155,6 +155,33 @@ test.each(['bluecard', 'spouse'])(
   },
 );
 
+test('the ending link opens after the Blue Card is extended and naturalisation is filed', () => {
+  vi.stubGlobal('localStorage', {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  });
+  const state = settle(de.newGame('bluecard', 7, 'zh-CN'));
+  state.date = '2028-03-01';
+  state.day.date = '2028-03-14';
+  state.result = de.deRules.evaluate(state);
+  const renewed = de.doActivity(visit(state, 'visa', 600), 'extend');
+  expect(renewed.timeline.permits).toHaveLength(2);
+  const later = certified(structuredClone(renewed));
+  later.date = '2030-03-01';
+  later.day.date = '2030-03-12';
+  later.result = de.deRules.evaluate(later);
+  const naturalised = de.doActivity(visit(later, 'bureau', 600), 'naturalise');
+  expect(naturalised.ending).toBe('settled');
+  for (const ending of [renewed, naturalised]) reopen(ending);
+  // The status bar runs to the extended card.
+  expect(deCountry.visaStatus(renewed)).toEqual({
+    months: 28,
+    renewed: true,
+    validTo: '2030-07-14',
+  });
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak German residence in %s',
   (locale) => {

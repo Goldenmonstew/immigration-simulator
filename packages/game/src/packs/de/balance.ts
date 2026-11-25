@@ -89,7 +89,11 @@ export const deBalance = {
   fishingJunkChance: 0.15,
   routineMoodTarget: 72,
   routineHealthTarget: 68,
-  /** Months before expiry when the game reminds you of the permit date. */
-  reminderMonths: 12,
+  /**
+   * Months before expiry when the game reminds you of the permit date and
+   * the office takes a Blue Card extension (game setting; the law only asks
+   * for the application before the card ends, SRC-100 § 81 Abs. 4).
+   */
+  renewalWindowMonths: 12,
   routineEventMoneyLimit: 600,
 };

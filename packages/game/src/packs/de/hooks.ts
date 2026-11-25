@@ -15,8 +15,11 @@ import type {
 import { deBalance as b } from './balance';
 import { deCharacters } from './characters';
 import {
+  blueCardExtension,
+  currentPermit,
   pathwayOf,
   officePending,
+  permitEnd,
   type DeEffect,
   type DeFestival,
   type DeState,
@@ -133,6 +136,18 @@ export function actionAvailable(
       pathwayOf(state.result, state.timeline, 'nat')?.status === 'MET' &&
       affordable(state, [{ type: 'money', delta: -naturalisationFee }])
     );
+  // An extension goes in before the card ends, once per card, while the
+  // contract runs on (see blueCardExtension); the window is a game setting.
+  if (action.id === 'extend') {
+    const to = currentPermit(state).to;
+    return (
+      !!blueCardExtension(state) &&
+      permitEnd(state) === to &&
+      state.day.date <= to! &&
+      state.day.date >= addMonths(to!, -b.renewalWindowMonths) &&
+      affordable(state, action.effects)
+    );
+  }
   if (action.id === 'exam') return !state.flags.includes('german-b1');
   if (
     action.id === 'class' &&
@@ -162,6 +177,14 @@ export function actionDetails(state: DeState, action: DeActivity): void {
       );
     }
     action.effects = [{ type: 'money', delta: -amount }, ...action.effects];
+  }
+  if (action.id === 'extend') {
+    const next = blueCardExtension(state);
+    if (next)
+      action.label = t(
+        `申请延长蓝卡至 ${next.to}（手续费 ${eur(values.extensionFee.value)}，SRC-410 第 45 条）`,
+        `Apply to extend your Blue Card to ${next.to} (fee ${eur(values.extensionFee.value)}, SRC-410 § 45)`,
+      );
   }
   if (action.id === 'naturalise') {
     const amount = naturalisationFee;
@@ -203,6 +226,7 @@ export function afterAction(
   log: LogEntry,
   { applyEffects, setFlags }: DeTools,
 ): void {
+  if (action.id === 'extend') log.renewalValidTo = permitEnd(next);
   if (action.id === 'board') {
     const posted = deNotices.filter((notice) =>
       next.flags.includes(`quarter-board-${notice.id}`),

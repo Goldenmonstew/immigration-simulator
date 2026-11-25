@@ -372,6 +372,19 @@ export const germanyFull2026_11 = {
         { srcId: 'SRC-433', locator: 'BGBl. 2026 I Nr. 31 Art. 4, 10 Abs. 1' },
       ],
     },
+    // AufenthV § 45 Nr. 2 Buchst. b: extending a residence permit or Blue
+    // Card for a further stay of more than three months.
+    extensionFee: {
+      value: 93,
+      sources: [{ srcId: 'SRC-410', locator: 'AufenthV § 45 Nr. 2 Buchst. b' }],
+    },
+    // § 18 Abs. 4, applied to extensions by § 8 Abs. 1: titles under §§ 18a,
+    // 18b, 18g and 19c run four years, or a shorter employment term plus six
+    // months, never more than four years.
+    skilledTitleTerm: {
+      value: { years: 4, extraMonths: 6 },
+      sources: [aufenthG('§ 18 Abs. 4', '18'), aufenthG('§ 8 Abs. 1', '8')],
+    },
     expressFee: {
       value: 35,
       sources: [{ srcId: 'SRC-410', locator: '§ 45a' }],
