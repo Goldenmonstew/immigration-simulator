@@ -1,12 +1,13 @@
-// The US town game: its recipes, plus `us.game.*` wording that replaces the
-// shared game strings (see gameKey in app/game-shell/game-ui.tsx).
+// The US town game: `us.game.*` wording that replaces the shared game strings
+// or adds its own, recipe steps included (see gameKey in
+// app/game-shell/game-ui.tsx).
 export const usGameZh = {
-  'game.prepare-mashed-potatoes': '煮软土豆，加黄油压成泥',
-  'game.prepare-corn-chowder': '玉米和土豆丁一起炖到浓稠',
-  'game.prepare-fish-fry': '鱼裹上面糊，下锅炸到金黄',
-  'game.prepare-strawberry-shortcake': '草莓切片，铺在饼干和奶油上',
-  'game.prepare-garden-salad': '切块，淋上农场沙拉酱',
-  'game.prepare-potstickers': '芜菁剁碎拌馅，包好煎到底部焦脆',
+  'us.game.prepare-mashed-potatoes': '煮软土豆，加黄油压成泥',
+  'us.game.prepare-corn-chowder': '玉米和土豆丁一起炖到浓稠',
+  'us.game.prepare-fish-fry': '鱼裹上面糊，下锅炸到金黄',
+  'us.game.prepare-strawberry-shortcake': '草莓切片，铺在饼干和奶油上',
+  'us.game.prepare-garden-salad': '切块，淋上农场沙拉酱',
+  'us.game.prepare-potstickers': '芜菁剁碎拌馅，包好煎到底部焦脆',
   'us.game.english': '英语·公民',
   'us.game.gcColumn': '绿卡',
   'us.game.citColumn': '入籍',
@@ -45,13 +46,15 @@ export const usGameZh = {
 } as const;
 
 export const usGameEn: Record<keyof typeof usGameZh, string> = {
-  'game.prepare-mashed-potatoes': 'Boil the potatoes and mash them with butter',
-  'game.prepare-corn-chowder': 'Simmer corn and diced potato until thick',
-  'game.prepare-fish-fry': 'Batter the fish and fry it golden',
-  'game.prepare-strawberry-shortcake':
+  'us.game.prepare-mashed-potatoes':
+    'Boil the potatoes and mash them with butter',
+  'us.game.prepare-corn-chowder': 'Simmer corn and diced potato until thick',
+  'us.game.prepare-fish-fry': 'Batter the fish and fry it golden',
+  'us.game.prepare-strawberry-shortcake':
     'Slice the berries over biscuits and cream',
-  'game.prepare-garden-salad': 'Chop and toss with ranch',
-  'game.prepare-potstickers': 'Mince the turnip, fold and pan-fry until crisp',
+  'us.game.prepare-garden-salad': 'Chop and toss with ranch',
+  'us.game.prepare-potstickers':
+    'Mince the turnip, fold and pan-fry until crisp',
   'us.game.english': 'English · civics',
   'us.game.gcColumn': 'Green card',
   'us.game.citColumn': 'Citizenship',

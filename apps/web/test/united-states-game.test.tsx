@@ -7,7 +7,7 @@ import * as us from '@uk-immigration/game/us';
 import { usGameArt } from '@uk-immigration/game/us/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
-import { t, withCount } from '../i18n';
+import { t, withCount, type TranslationKey } from '../i18n';
 import { decodeDraft } from '../lib/share';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
 import { unitedStatesModule } from '../lib/united-states-module';
@@ -17,6 +17,7 @@ import {
   usCountry,
   usShell,
 } from '../app/united-states/game/shell';
+import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/united-states/town.json';
 
 type State = ReturnType<typeof us.newGame>;
@@ -166,11 +167,28 @@ test('every item, character and townsperson has existing art', () => {
   expect(art(usShell.townBanner)).toBe(true);
   for (const sign of usGameArt.shopSigns)
     expect(art(usShell.signPath(sign))).toBe(true);
-  for (const recipe of us.recipes)
-    expect(t(`game.prepare-${recipe.id}` as never, 'en')).not.toMatch(
-      /^game\./,
-    );
 });
+
+test.each(['zh-CN', 'en'] as const)(
+  'US recipes keep their own cooking steps in %s',
+  (locale) => {
+    for (const recipe of us.recipes) {
+      const shared = `game.prepare-${recipe.id}` as TranslationKey;
+      const own = gameKey('us', shared);
+      expect(own, recipe.id).toBe(`us.${shared}`);
+      expect(t(own, locale), recipe.id).not.toBe(t(shared, locale));
+    }
+    // The UK salad keeps its own step, and the US one is not a shared key.
+    expect(t('game.prepare-salad', locale)).toBe(
+      locale === 'en' ? 'Toss gently' : '轻轻拌匀',
+    );
+    expect(
+      t(gameKey('us', 'game.prepare-garden-salad' as TranslationKey), locale),
+    ).toBe(
+      locale === 'en' ? 'Chop and toss with ranch' : '切块，淋上农场沙拉酱',
+    );
+  },
+);
 
 test('the town map has every place, schedule stop and garden plot', () => {
   const layer = (name: string) =>
