@@ -8,10 +8,13 @@ import {
   type EsResidenceFacts,
   type EsTrip,
 } from '@uk-immigration/engine';
+import { spainFull2026_11 } from '@uk-immigration/policy-data';
 import { addMonths } from '../../calendar';
 import type { EvaluationAdapter } from '../../content-pack';
 import type { GameState, IsoDate, Progress } from '../../model';
 import { esBalance as b } from './balance';
+
+const values = spainFull2026_11.values;
 
 /** The assessed answers, as the Spanish questionnaire stores them. */
 export interface EsTimeline {
@@ -142,10 +145,16 @@ export const esRules: EvaluationAdapter<
     ];
   },
   // A lapsed card ends the story, unless long-term residence can still be
-  // filed in the late window the engine allows (SRC-083 art. 184.2).
-  expired: (state) =>
-    currentPermit(state).to! < state.date &&
-    pathwayOf(evaluate(state), 'lt')?.status !== 'MET',
+  // filed in the late window the engine allows (SRC-083 art. 184.2). Once
+  // that window has passed, the ending records it as closed.
+  expired(state) {
+    const to = currentPermit(state).to!;
+    if (to >= state.date || pathwayOf(evaluate(state), 'lt')?.status === 'MET')
+      return false;
+    if (state.date > addMonths(to, values.longTermLateMonths.value))
+      state.timeline.residence.filingWindowAccepted = false;
+    return true;
+  },
   applyEffect(state, effect, { setFlags }) {
     const n = state.timeline.nationality;
     switch (effect.type) {

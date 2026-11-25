@@ -309,4 +309,22 @@ test('a lapsed card ends the story unless long-term residence can still be filed
   es.currentPermit(cook).to = '2026-04-30';
   for (let i = 0; i < 6 && !es.isOver(cook); i++) cook = nextDay(cook);
   expect(cook.ending).toBe('overstayed');
+  // review111-3: the ending's assessment reflects the lapse. Within the late
+  // window long-term residence already fails on Joel's short residence.
+  for (const pathway of cook.result.columns[0].pathways)
+    expect(pathway.status).toBe('NOT_MET');
+  expect(cook.timeline.residence.filingWindowAccepted).toBeUndefined();
+
+  // Past the late window nothing can be filed any more.
+  let lapsed = at(exporter, '2027-06-01');
+  for (let i = 0; i < 6 && !es.isOver(lapsed); i++) lapsed = nextDay(lapsed);
+  expect([lapsed.ending, lapsed.date]).toEqual(['overstayed', '2027-09-01']);
+  expect(lapsed.timeline.residence.filingWindowAccepted).toBe(false);
+  const lt = es.pathwayOf(lapsed.result, 'lt')!;
+  for (const id of ['ES-L11', 'ES-L01-PERMIT'])
+    expect(lt.checks.find((check) => check.id === id)?.status, id).toBe(
+      'NOT_MET',
+    );
+  for (const pathway of lapsed.result.columns[0].pathways)
+    expect(pathway.status).toBe('NOT_MET');
 });
