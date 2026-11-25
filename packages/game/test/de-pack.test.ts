@@ -358,6 +358,19 @@ test('after the extension, naturalisation opens from the 2030-03-01 quarter', ()
   expect(de.narrative(ended).at(-1)!.en).toContain('naturalisation');
 });
 
+test('the annual review never lowers the Blue Card salary', () => {
+  const review = (gross: number) => {
+    const state = settle(de.newGame('bluecard', 5, 'en'));
+    state.timeline.mobility.blueCard!.countableAnnualGross = gross;
+    state.pendingEvent = 'bc-review';
+    return de.resolve(state, 'thanks').timeline.mobility.blueCard!
+      .countableAnnualGross;
+  };
+  // After two promotions (×1.04 each) the letter's raise must not cut pay.
+  expect(review(69_222)).toBe(69_222);
+  expect(review(64_000)).toBe(68_000);
+});
+
 test('the diary casts a line on the Lindenkanal, not at a pond', () => {
   const bank = visit(de.newGame('bluecard', 5, 'en'), 'pond', 600);
   const cast = de.fish(bank, false);

@@ -291,9 +291,14 @@ export const deRules: EvaluationAdapter<
           Math.max(0, b.monthsPerQuarter - away);
         return true;
       }
+      // A raise: the letter's figure, unless promotions already pay more.
       case 'salary': {
         const card = state.timeline.mobility.blueCard;
-        if (card) card.countableAnnualGross = effect.annualEur;
+        if (card)
+          card.countableAnnualGross = Math.max(
+            card.countableAnnualGross ?? 0,
+            effect.annualEur,
+          );
         return true;
       }
     }
