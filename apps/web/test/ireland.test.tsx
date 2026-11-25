@@ -744,6 +744,150 @@ test('first registration and renewal are chosen on each pathway’s own step', (
   }
 });
 
+test('renewal hints name only the answers the engine reads as yes when blank', () => {
+  // The pathway status and the checks that decide it.
+  const statuses = (draft: IrelandDraft, id: string) => {
+    const route = pathway(draft, id);
+    return [
+      route.status,
+      ...route.checks
+        .filter((c) => c.kind === 'requirement')
+        .map((c) => `${c.id} ${c.status}`),
+    ];
+  };
+  const bare = {
+    basis: 'required',
+    irpExpiresOn: '2027-01-31',
+    registrationDate: day,
+    feeExemption: 'none',
+    feePrepared: true,
+  } as const;
+  const said = (key: TranslationKey) =>
+    [t(key, 'zh-CN').includes('按「是」'), t(key, 'en').includes('“yes”')];
+
+  // Stamp 5 renewal: valid permission, grant, passport and IRP evidence,
+  // compliance, work efforts and time abroad.
+  const stamp5 = (yes: boolean): IrelandDraft => ({
+    ...workDraft,
+    pathways: ['IE-STAMP5'],
+    stamp5Stage: 'renewal',
+    permissions: [{ kind: 'stamp5', from: '2024-01-01' }],
+    registration: {
+      ...bare,
+      checklistComplete: true,
+      ...(yes ? { validPermission: true } : {}),
+    },
+    stamp5: yes
+      ? {
+          grantReceived: true,
+          passportAndIrpEvidence: true,
+          termsComplied: true,
+          employmentEfforts: true,
+          longestAnnualAbsenceMonths: 0,
+        }
+      : {},
+  });
+  expect(statuses(stamp5(false), 'IE-STAMP5')).toContain('IE-B28 MET');
+  expect(statuses(stamp5(false), 'IE-STAMP5')).toEqual(
+    statuses(stamp5(true), 'IE-STAMP5'),
+  );
+  expect(topFields.stamp5Stage.hint).toBe('stamp5Stage');
+  expect(said('ie.hint.stamp5Stage')).toEqual([true, true]);
+
+  // LTR renewal: the IRP answers, compliance, travel and work or residence.
+  const ltr = (yes: boolean): IrelandDraft => ({
+    ...workDraft,
+    pathways: ['IE-LTR-PRINCIPAL'],
+    ltrStage: 'renewal',
+    permissions: [{ kind: 'stamp4', from: '2020-01-01' }],
+    registration: yes
+      ? {
+          ...bare,
+          validPermission: true,
+          passportValid: true,
+          addressCurrent: true,
+          checklistComplete: true,
+        }
+      : bare,
+    ltr: {
+      validPermission: true,
+      ...(yes ? { termsComplied: true } : {}),
+      maintenance: {
+        previousGrantYearsEvidence: true,
+        ...(yes
+          ? {
+              largestCalendarYearAbsenceDays: 0,
+              tripsPermittedOrExceptionConfirmed: true,
+              workEffortsAndResidence: true,
+            }
+          : {}),
+      },
+    },
+  });
+  expect(statuses(ltr(false), 'IE-LTR-PRINCIPAL')).toEqual(
+    expect.arrayContaining(['IE-C04 MET', 'IE-C08 MET']),
+  );
+  expect(statuses(ltr(false), 'IE-LTR-PRINCIPAL')).toEqual(
+    statuses(ltr(true), 'IE-LTR-PRINCIPAL'),
+  );
+  expect(topFields.ltrStage.hint).toBe('ltrStage');
+  expect(said('ie.hint.ltrStage')).toEqual([true, true]);
+
+  // EU and WA card renewal: valid permission, notices and public review.
+  for (const [id, key, stageKey] of [
+    ['IE-EU-PERMANENT', 'eu', 'euStage'],
+    ['IE-WA-PERMANENT', 'wa', 'waStage'],
+  ] as const) {
+    const treaty = (yes: boolean): IrelandDraft => ({
+      ...workDraft,
+      pathways: [id],
+      [stageKey]: 'renewal',
+      registration: yes ? { ...bare, validPermission: true } : bare,
+      [key]: {
+        role: 'family',
+        nonEuFamily: true,
+        document: {
+          inState: true,
+          currentCardCategory: 'permanent',
+          identityAndResidenceEvidence: true,
+          ...(yes
+            ? {
+                addressAndStatusNotified: true,
+                prolongedAbsenceNotified: true,
+                publicInterest: 'clear',
+              }
+            : {}),
+        },
+      },
+    });
+    expect(statuses(treaty(false), id)).toEqual(statuses(treaty(true), id));
+    expect(topFields[stageKey].hint).toBe('treatyStage');
+  }
+  expect(said('ie.hint.treatyStage')).toEqual([true, true]);
+
+  // A work permission renewal reads nothing as yes, so its hint says nothing.
+  const work = (yes: boolean): IrelandDraft => ({
+    ...workDraft,
+    workStage: 'renewal',
+    registration: yes
+      ? {
+          ...bare,
+          validPermission: true,
+          passportValid: true,
+          addressCurrent: true,
+          checklistComplete: true,
+        }
+      : bare,
+  });
+  expect(statuses(work(false), 'IE-STAMP4-21')).toEqual(
+    expect.arrayContaining(['IE-IRP-CHECKLIST UNKNOWN', 'IE-B01 UNKNOWN']),
+  );
+  expect(statuses(work(true), 'IE-STAMP4-21')).toEqual(
+    expect.arrayContaining(['IE-IRP-CHECKLIST MET', 'IE-B01 MET']),
+  );
+  expect(said('ie.hint.workStage')).toEqual([false, false]);
+});
+
 test('the legacy Stamp 1G clock and other checks that do not decide a pathway stay out of the gaps', () => {
   const draft: IrelandDraft = {
     ...workDraft,

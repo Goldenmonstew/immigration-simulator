@@ -904,7 +904,8 @@ export interface IrelandStages {
 const stage = (
   options: readonly string[],
   paths: readonly IrelandFullPathwayId[],
-  hint = 'renewalStage',
+  // Each hint names the answers that a renewal reads as yes when left blank.
+  hint: string,
 ) => choice(options, { hint, blank: 'new', paths });
 
 type TopQuestions = Omit<IrelandFullRequest, 'locale' | 'pathways'> &
@@ -938,12 +939,12 @@ export const topFields = {
   }),
   work: group<IrelandWorkUpgrade>(workFields, { paths: WORK_PATHS }),
   family: group<FamilyQuestions>(familyFields, { paths: FAMILY_PATHS }),
-  stamp5Stage: stage(['renewal'], ['IE-STAMP5']),
+  stamp5Stage: stage(['renewal'], ['IE-STAMP5'], 'stamp5Stage'),
   stamp5: group<IrelandWcatt>(stamp5Fields, { paths: ['IE-STAMP5'] }),
-  ltrStage: stage(['renewal'], LTR_PATHS),
+  ltrStage: stage(['renewal'], LTR_PATHS, 'ltrStage'),
   ltr: group<IrelandLtr>(ltrFields, { paths: LTR_PATHS }),
-  euStage: stage(['renewal'], ['IE-EU-PERMANENT']),
+  euStage: stage(['renewal'], ['IE-EU-PERMANENT'], 'treatyStage'),
   eu: group<Treaty>(treatyFields, { paths: ['IE-EU-PERMANENT'] }),
-  waStage: stage(['renewal'], ['IE-WA-PERMANENT']),
+  waStage: stage(['renewal'], ['IE-WA-PERMANENT'], 'treatyStage'),
   wa: group<Treaty>(treatyFields, { paths: ['IE-WA-PERMANENT'] }),
 } satisfies Fields<TopQuestions>;

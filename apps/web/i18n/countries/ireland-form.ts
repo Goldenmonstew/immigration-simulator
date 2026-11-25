@@ -207,12 +207,20 @@ const messages = {
   ],
   'ie.hint.to': ['仍在持续可留空。', 'Leave blank if ongoing.'],
   'ie.hint.workStage': [
-    '一般保持「升级为 Stamp 4 的申请」。只有已获批要办首次登记，或要续期现有许可时才改选；改选后核对登记或续期清单，不再计算升级日期。选续期时，未填写的有效许可、护照、住址、清单材料等项目按「是」核对，请如实填写。',
-    'Usually keep “An application to upgrade to Stamp 4”. Change it only to check the first registration after a grant or the renewal of current permission; the result then checks that registration or renewal instead of the upgrade date. For a renewal, blank answers on valid permission, passport, address and checklist documents count as “yes”, so answer them as they are.',
+    '一般保持「升级为 Stamp 4 的申请」。只有已获批要办首次登记，或要续期现有许可时才改选；改选后核对登记或续期清单，不再计算升级日期。',
+    'Usually keep “An application to upgrade to Stamp 4”. Change it only to check the first registration after a grant or the renewal of current permission; the result then checks that registration or renewal instead of the upgrade date.',
   ],
-  'ie.hint.renewalStage': [
-    '选「续期」时改为核对续期清单与线上续期窗口；未填写的守规、有效许可、护照、住址、清单材料等项目按「是」核对，请如实填写。',
-    'Choosing renewal checks the renewal checklist and online renewal window instead. Blank answers on compliance, valid permission, passport, address and checklist documents then count as “yes”, so answer them as they are.',
+  'ie.hint.stamp5Stage': [
+    '选「续办」时改为核对续期清单与线上续期窗口，不再计算合格许可时间。此时 IRP 登记里的有效许可，以及本步的已获批、护照与 IRP 材料、遵守许可条件、就业或求职、最长出境月数未填写时都按「是」核对，请如实填写。',
+    'Choosing renewal checks the renewal checklist and online renewal window instead of the qualifying period. Blank answers on valid permission in the IRP section, and on the grant, passport and IRP evidence, compliance, work or job seeking and longest time abroad on this step, then count as “yes”, so answer them as they are.',
+  ],
+  'ie.hint.ltrStage': [
+    '选「续期」时改为核对续期清单与线上续期窗口。此时 IRP 登记里的有效许可、护照、住址与清单材料，以及本步的遵守许可条件、出境情况、就业或求职并在境内居住未填写时都按「是」核对，请如实填写。',
+    'Choosing renewal checks the renewal checklist and online renewal window instead. Blank answers on valid permission, passport, address and checklist documents in the IRP section, and on compliance, travel and working or seeking work while living in the State on this step, then count as “yes”, so answer them as they are.',
+  ],
+  'ie.hint.treatyStage': [
+    '选「续期」时改为核对现有永久居留卡与线上续期窗口。此时 IRP 登记里的有效许可，以及本步的住址与身份变化通知、长期出境通知、公共政策与安全审查未填写时都按「是」核对，请如实填写。',
+    'Choosing renewal checks the current permanent residence card and the online renewal window instead. Blank answers on valid permission in the IRP section, and on address and status notices, prolonged absence notices and the public policy and security review on this step, then count as “yes”, so answer them as they are.',
   ],
   'ie.hint.minor': [
     '申请人未满 18 岁时填写。Irish associations 与境外公共服务路径只问是否由获授权者代为申请。',
