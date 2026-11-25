@@ -1,6 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { evaluateGreeceFull } from '@uk-immigration/engine';
 import { greece2026_11, greeceFull2026_11 } from '@uk-immigration/policy-data';
+import { addMonths } from '../src/calendar';
 import * as gr from '../src/packs/gr';
 import { grBalance } from '../src/packs/gr/balance';
 
@@ -216,6 +217,33 @@ test('a lapsed Blue Card ends the story with both routes unmet', () => {
     ['LT-TIME-RESIDENCE', 'NOT_MET'],
     ['NAT-TIME-RESIDENCE', 'NOT_MET'],
   ]);
+});
+
+test('the passports outlast the game, so long play never stalls on C-01', () => {
+  const blue = settle(gr.newGame('bluecard', 5, 'en'));
+  const spouse = settle(gr.newGame('spouse', 5, 'en'));
+  const end = addMonths(blue.date, grBalance.years * 12);
+  expect(end).toBe('2036-03-01');
+  blue.timeline.integration = { basis: 'a2', a2Certificate: true };
+  // The last renewal the game offers, in 2035, moves the expected departure.
+  blue.timeline.currentCardExpiresOn = '2038-09-14';
+  blue.timeline.passport.expectedDeparture = '2038-09-14';
+  for (const state of [blue, spouse]) {
+    for (let date = state.date; date <= end; date = addMonths(date, 3)) {
+      const result = gr.grRules.evaluate({ ...state, date, locale: 'en' });
+      const passport = result.columns[0].pathways.flatMap(({ checks }) =>
+        checks.filter(({ id }) => id === 'C-01').map(({ status }) => status),
+      );
+      expect(passport, `${state.characterId} ${date}`).toEqual(['MET', 'MET']);
+    }
+    // Still free to settle in the last quarter.
+    const last = gr.grRules.evaluate({
+      ...state,
+      date: addMonths(end, -3),
+      locale: 'en',
+    });
+    expect(gr.pathwayOf(last, 'pr')?.status, state.characterId).toBe('MET');
+  }
 });
 
 test('the spouse keeps the Μ.3 right after her Ο.3 card lapses', () => {

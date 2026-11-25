@@ -440,10 +440,13 @@ const blueCard: GrCharacter = {
   timeline: {
     ...goodStanding,
     birthDate: '1993-04-18',
+    // A fictional passport for the whole game, which has no passport renewal:
+    // issued on the first day, so every assessment falls within the issue
+    // years, and valid past a renewal in 2035 plus the remaining months.
     passport: {
       kind: 'recognised',
-      issuedOn: '2023-02-01',
-      expiresOn: '2033-01-31',
+      issuedOn: '2026-03-01',
+      expiresOn: '2039-02-28',
       blankPages: 6,
       expectedDeparture: blueCardExpiry,
     },
@@ -514,10 +517,12 @@ const spouse: GrCharacter = {
   timeline: {
     ...goodStanding,
     birthDate: '1994-10-03',
+    // A fictional passport valid past the end of the game, which has no
+    // passport renewal.
     passport: {
       kind: 'recognised',
       issuedOn: '2022-05-01',
-      expiresOn: '2032-04-30',
+      expiresOn: '2036-04-30',
       blankPages: 8,
     },
     permits: [
