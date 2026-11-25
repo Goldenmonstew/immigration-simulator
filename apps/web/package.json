@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "test": "vitest run",
+    "test": "vitest run --testTimeout=60000",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit"
   },

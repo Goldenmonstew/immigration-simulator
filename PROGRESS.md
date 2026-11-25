@@ -877,7 +877,7 @@
 | 921 | 任务 95 审核修正（review95-2）报告：逐条对应问题 1、风险 1–3、建议 1–3，风险 4 与签署日对比跳转列入发现与建议／未做；同步报告中已过时的共用组件、结果说明与缓存版本（建议 1）。 | docs/tasks/reports/95-ca-pages.md |
 | 1220 | 任务 116 共用游戏修正：进度条详情弹窗标题改为该路径名（原为"进入新一年前 → 进入新一年后"，与内容不符；美国、澳大利亚游戏报告提出），日本 e2e 核对弹窗名 | `apps/web/app/game-shell/game-client.tsx`、`apps/e2e/tests/japan-game.spec.ts` |
 | 1221 | 任务 116 共用游戏修正：日记申请分组加入 `naturalise`（日本递交帰化后出现"文件夹越装越厚"；德国游戏审核提出）；季末自动退租日志与日记菜地收成英文不再写英国的"明亮住处""allotment"，各国通用（澳大利亚游戏审核提出）；单测核对 | `packages/game/src/game.ts`、`packages/game/test/jp-pack.test.ts`、`packages/game/test/time-and-economy.test.ts` |
-| 1222 | 任务 116 测试稳定性：日本英文 e2e 的存款断言改为只匹配金额格式（开局卡片会花钱，种子取当前时间，约 3.75% 偶发失败）；`game.test.ts` 内容契约测试在负载下超过默认 5 秒，单独设 30 秒超时，断言不变 | `apps/e2e/tests/japan-game.spec.ts`、`packages/game/test/game.test.ts` |
+| 1222 | 任务 116 测试稳定性：日本英文 e2e 的存款断言改为只匹配金额格式（开局卡片会花钱，种子取当前时间，约 3.75% 偶发失败）；`apps/web` 与 `packages/engine` 的 `test` 脚本照 `packages/game` 设 `--testTimeout=60000`（CI runner 慢，西班牙游戏、葡萄牙政策页等重测试超过默认 5 秒） | `apps/e2e/tests/japan-game.spec.ts`、`apps/web/package.json`、`packages/engine/package.json` |
 | 1223 | 任务 116 共用游戏修正：结局页"在模拟器里打开这条时间线"链接按钮被 `.theme.theme a` 覆盖成深绿字配绿底（对比度约 1.3:1），链接按钮恢复白字；英国 e2e 核对颜色 | `apps/web/app/uk/game/game.module.css`、`apps/e2e/tests/game.spec.ts` |
 | 1224 | AGENTS.md 记录用户 2026-11-25 决定：Gemini 周额度用完后由未参与实现的 Claude 子 agent 终审、通过即合并，Gemini 恢复后补复查 | `AGENTS.md` |
 | 1225 | 任务 116 报告 | `docs/tasks/reports/116-shared-fixes.md` |

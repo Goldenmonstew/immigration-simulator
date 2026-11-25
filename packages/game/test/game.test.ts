@@ -231,7 +231,7 @@ describe('v3 content contract', () => {
     expect(characters[0].sprite).toBe('characters/3.png');
     expect(achievements).toHaveLength(23);
   });
-  test('every authored choice runs against the engine without corrupting state', { timeout: 30_000 }, () => {
+  test('every authored choice runs against the engine without corrupting state', () => {
     for (const character of characters)
       for (const event of [
         ...commonEvents,
