@@ -9,7 +9,9 @@ import SpainPolicyPage from '../app/spain/policy/page';
 import SpainSimulatePage from '../app/spain/simulate/page';
 import { ResultView } from '../components/result-view';
 import { WhatIfView } from '../components/whatif-lab';
+import { t } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
+import { gapRules } from '../lib/gap-summary';
 import { readPageResult } from '../lib/page-result';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { sourceUrls } from '../lib/sources';
@@ -407,7 +409,9 @@ test.each(['zh-CN', 'en'] as const)(
         person: 'eu-eea-swiss',
         residenceFrom: '2017-01-01',
         noExecutedExpulsion: true,
-        history: [{ from: '2017-01-01', basis: 'employment', documented: true }],
+        history: [
+          { from: '2017-01-01', basis: 'employment', documented: true },
+        ],
         noOfficialRestriction: true,
       },
     };
@@ -434,5 +438,143 @@ test.each(['zh-CN', 'en'] as const)(
     expect(html).not.toContain(
       locale === 'en' ? 'Other pathways (shows why' : '其他路径的条件',
     );
+  },
+);
+
+// Direct national grounds stay listed until the applicant rules them out.
+function openGroundsDraft(): SpainDraft {
+  const draft = longTermMetDraft();
+  return {
+    ...draft,
+    residence: { ...draft.residence, nationalAlternatives: undefined },
+  };
+}
+
+test('checks are grouped as time, requirements, fees, post-grant steps and alternative grounds', () => {
+  const draft = { ...openGroundsDraft(), targets: [...ES_FULL_TARGETS] };
+  const pathways = es.run(draft, 'zh-CN').columns[0].pathways;
+  const kinds = new Map<string, string | undefined>();
+  for (const pathway of pathways) {
+    for (const check of pathway.checks) {
+      expect(check.kind, check.id).toBeDefined();
+      kinds.set(check.id, check.kind);
+    }
+    // Only requirements and time requirements can be gaps.
+    for (const rule of gapRules(pathway))
+      expect(['requirement', 'time']).toContain(rule.kind);
+  }
+  expect(
+    Object.fromEntries(
+      [
+        'ES-N01',
+        'ES-N15',
+        'ES-N16',
+        'ES-N17',
+        'ES-N18',
+        'ES-L-BASIS',
+        'ES-L01',
+        'ES-L01-TOTAL',
+        'ES-L03',
+        'ES-L09',
+        'ES-L14',
+        'ES-E-TIME',
+        'ES-E01',
+        'ES-E05',
+        'ES-E09',
+        'ES-M01',
+        'ES-M09',
+        'ES-M09-card',
+        'ES-M10',
+        'ES-M11',
+        'ES-F01-grant',
+        'ES-F05',
+        'ES-F05-effective',
+        'ES-F05-card-fee',
+        'ES-R01',
+        'ES-R08',
+        'ES-R09',
+        'ES-T01',
+        'ES-T02',
+        'ES-U04',
+        'ES-U13',
+      ].map((id) => [id, kinds.get(id)]),
+    ),
+  ).toEqual({
+    'ES-N01': 'time',
+    // The application fee is paid before filing and decides the pathway.
+    'ES-N15': 'requirement',
+    'ES-N16': 'budget',
+    'ES-N17': 'afterApproval',
+    'ES-N18': 'afterApproval',
+    'ES-L-BASIS': 'requirement',
+    'ES-L01': 'time',
+    'ES-L01-TOTAL': 'time',
+    'ES-L03': 'alternative',
+    'ES-L09': 'alternative',
+    'ES-L14': 'budget',
+    'ES-E-TIME': 'time',
+    'ES-E01': 'time',
+    'ES-E05': 'requirement',
+    'ES-E09': 'budget',
+    'ES-M01': 'requirement',
+    'ES-M09': 'afterApproval',
+    'ES-M09-card': 'afterApproval',
+    'ES-M10': 'budget',
+    'ES-M11': 'information',
+    'ES-F01-grant': 'information',
+    'ES-F05': 'budget',
+    'ES-F05-effective': 'afterApproval',
+    'ES-F05-card-fee': 'budget',
+    'ES-R01': 'requirement',
+    'ES-R08': 'budget',
+    'ES-R09': 'afterApproval',
+    'ES-T01': 'afterApproval',
+    'ES-T02': 'afterApproval',
+    'ES-U04': 'time',
+    'ES-U13': 'afterApproval',
+  });
+});
+
+test.each(['zh-CN', 'en'] as const)(
+  'result checks show their group, and an acquired permanent right lists the ordinary period as an alternative ground (%s)',
+  (locale) => {
+    const draft: SpainDraft = {
+      ...es.createDraft(),
+      completed: true,
+      simulationDate: '2026-11-24',
+      targets: ['U'],
+      timeRecordsComplete: true,
+      trips: [],
+      freeMovement: {
+        person: 'eu-eea-swiss',
+        residenceFrom: '2017-01-01',
+        noExecutedExpulsion: true,
+        history: [
+          { from: '2017-01-01', basis: 'employment', documented: true },
+        ],
+        noOfficialRestriction: true,
+        acquiredOn: '2022-01-01',
+      },
+    };
+    const [pathway] = es.run(draft, locale).columns[0].pathways;
+    const kind = (id: string) =>
+      pathway.checks.find((check) => check.id === id)?.kind;
+    expect(pathway.decidedBy).toContain('ES-U04-basis');
+    expect(pathway.decidedBy).not.toContain('ES-U04');
+    expect([kind('ES-U04-basis'), kind('ES-U04'), kind('ES-U13')]).toEqual([
+      'requirement',
+      'alternative',
+      'afterApproval',
+    ]);
+    const html = render(
+      <ResultView
+        country={es}
+        result={es.run({ ...openGroundsDraft(), targets: ['L'] }, locale)}
+        draft={draft}
+      />,
+      locale,
+    );
+    for (const group of ['budget', 'afterApproval', 'alternative'] as const)
+      expect(html).toContain(`· ${t(`country.check.${group}`, locale)}`);
   },
 );
