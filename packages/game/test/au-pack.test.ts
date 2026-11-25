@@ -6,6 +6,8 @@ import {
   australiaFull2026_11,
 } from '@uk-immigration/policy-data';
 import * as au from '../src/packs/au';
+import { auSystemEvents } from '../src/packs/au/events';
+import { auActions } from '../src/packs/au/town';
 
 type State = ReturnType<typeof au.newGame>;
 
@@ -441,3 +443,18 @@ test('the summer call from Hong Kong and the Christmas invitation come at their 
     expect(date.slice(8) < '25').toBe(true);
   }
 }, 60_000);
+
+test('every change of address says the game files the 491 notice', () => {
+  const cheap = auSystemEvents
+    .find(({ id }) => id === 'system-debt')!
+    .choices.find(({ id }) => id === 'cheap')!;
+  const leave = auActions.find(({ id }) => id === 'leave-brighter-home')!;
+  const rent = auActions.find(({ id }) => id === 'rent-brighter-home')!;
+  for (const note of [cheap.note, leave.note, rent.note]) {
+    expect(note?.zhCN).toContain('condition 8578');
+    expect(note?.en).toContain('condition 8578');
+  }
+  // A low balance ends the sea-view lease on its own at the quarter's end.
+  expect(rent.note?.zhCN).toContain('自动退租');
+  expect(rent.note?.en).toContain('low balance');
+});

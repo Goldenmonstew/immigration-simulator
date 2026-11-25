@@ -1,5 +1,6 @@
 import type { GameEvent, Text } from '../../model';
 import type { AuEffect, AuFestival } from './rules';
+import { addressNotice } from './town';
 
 type AuEvent = GameEvent<AuEffect, AuFestival>;
 const t = (zhCN: string, en: string): Text => ({ zhCN, en });
@@ -512,6 +513,7 @@ export const auSystemEvents: AuEvent[] = [
       {
         id: 'cheap',
         label: t('搬到更便宜的合租房', 'Move to a cheaper share house'),
+        note: addressNotice,
         effects: [
           { type: 'money', delta: -300 },
           { type: 'stat', key: 'mood', delta: -4 },

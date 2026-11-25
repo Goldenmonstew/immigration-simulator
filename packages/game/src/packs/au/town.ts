@@ -352,6 +352,12 @@ export const auNotices: { id: string; text: Text; season?: Quarter }[] = [
   },
 ];
 
+/** Condition 8578 on a 491 for any move, which the game counts as filed. */
+export const addressNotice = t(
+  `491 持有人搬家后须在 ${auRegionalParameters.changeNoticeDays.value} 天内通知内政部（SRC-200 Sch 8 condition 8578）。游戏把在线通知算进搬家手续里，新住处仍在金合欢湾。`,
+  `491 holders must tell Home Affairs about a new address within ${auRegionalParameters.changeNoticeDays.value} days (SRC-200 Sch 8 condition 8578). The game includes that online notice in the move, and the new place is still in Wattle Bay.`,
+);
+
 /** The shared furniture, as the milk bar sells it. */
 export const auFurnishingNames: Record<string, Text> = {
   'reading-chair': t('藤编扶手椅', 'Cane armchair'),
@@ -411,8 +417,8 @@ export const auActions: Activity<AuEffect, AuFestival>[] = [
       `Move to a weatherboard with a sea view (${aud(b.housingDeposit)} bond, ${aud(b.housingMoveCost)} moving, +${aud(b.housingRent)}/quarter; ongoing mood and health; a low balance ends the lease and returns the bond)`,
     ),
     note: t(
-      `491 持有人搬家后须在 ${auRegionalParameters.changeNoticeDays.value} 天内通知内政部（SRC-200 Sch 8 condition 8578）。游戏把在线通知算进搬家手续里，新住处仍在金合欢湾。`,
-      `491 holders must tell Home Affairs about a new address within ${auRegionalParameters.changeNoticeDays.value} days (SRC-200 Sch 8 condition 8578). The game includes that online notice in the move, and the new place is still in Wattle Bay.`,
+      `${addressNotice.zhCN}季末余额低时自动退租，也一样。`,
+      `${addressNotice.en} The same goes when a low balance ends the lease at the end of a quarter.`,
     ),
     minutes: b.minutes.paperwork,
     effects: [{ type: 'money', delta: -b.housingDeposit - b.housingMoveCost }],
@@ -425,6 +431,7 @@ export const auActions: Activity<AuEffect, AuFestival>[] = [
       'Leave the sea-view weatherboard and recover the bond',
     ),
     minutes: b.minutes.paperwork,
+    note: addressNotice,
     when: [{ flag: 'brighter-home' }],
     effects: [{ type: 'money', delta: b.housingDeposit }],
   },

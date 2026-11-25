@@ -315,6 +315,13 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test('the details button names the migration agent as the map does', () => {
+  const agent = au.places.find(({ id }) => id === 'council')!.name;
+  expect(t('au.game.councilDetails', 'zh-CN')).toContain(agent.zhCN);
+  expect(t('au.game.councilDetails', 'zh-CN')).not.toContain('事务所');
+  expect(t('au.game.councilDetails', 'en')).toContain(agent.en.toLowerCase());
+});
+
 test('every item, character and townsperson has existing art', () => {
   const art = (path: string) =>
     existsSync(new URL(`../public${path}`, import.meta.url));

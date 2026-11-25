@@ -33,7 +33,7 @@ export const auGameZh = {
     '当前没有有效的签证记录。快进会直接过完这一季，先去政府服务中心看看吧。',
   'au.game.visaVisit': '去政府服务中心',
   'au.game.noVisaActions': '眼下这里没有可办的签证手续。',
-  'au.game.councilDetails': '去移民代理事务所看详情',
+  'au.game.councilDetails': '去移民代理那里看详情',
   'au.game.collectionMemory.pond': '那天{weather}，你在码头钓到了它。',
   'au.game.fishJunk': '海湾的小意外，也一起带上岸吧。',
   'au.game.openTimeline': '在澳大利亚模拟器里打开这条时间线',
