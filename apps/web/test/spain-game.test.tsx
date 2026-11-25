@@ -8,7 +8,7 @@ import { esGameArt } from '@uk-immigration/game/es/presentation';
 import SpainPage from '../app/spain/page';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
-import { t, withCount } from '../i18n';
+import { t, withCount, type TranslationKey } from '../i18n';
 import { decodeDraft } from '../lib/share';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
 import { spainModule } from '../lib/spain-module';
@@ -18,6 +18,7 @@ import {
   gameDraft,
   itemIcon,
 } from '../app/spain/game/shell';
+import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/spain/town.json';
 
 type State = ReturnType<typeof es.newGame>;
@@ -119,6 +120,24 @@ test.each(['zh-CN', 'en'] as const)(
     expect(columns).toBeDefined();
     if (locale === 'en') expect(hud + bars).not.toMatch(/[㐀-鿿]/);
     expect(html).toContain('town-es.current-law-heading');
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'Spanish recipes keep their own cooking steps in %s',
+  (locale) => {
+    for (const recipe of es.recipes) {
+      const shared = `game.prepare-${recipe.id}` as TranslationKey;
+      const own = gameKey('es', shared);
+      expect(own, recipe.id).toBe(`es.${shared}`);
+      expect(t(own, locale), recipe.id).toBeTruthy();
+    }
+    const gazpacho = 'game.prepare-gazpacho' as TranslationKey;
+    expect(t(gameKey('es', gazpacho), locale)).toBe(
+      locale === 'en'
+        ? 'Blend tomato and cucumber, add olive oil and chill'
+        : '番茄黄瓜打碎，淋橄榄油冰镇',
+    );
   },
 );
 

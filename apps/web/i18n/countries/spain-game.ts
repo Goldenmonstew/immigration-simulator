@@ -2,11 +2,11 @@
 // replaces the shared game strings (see gameKey in app/game-shell/game-ui.tsx).
 export const esGameZh = {
   'game.spanish': '西语',
-  'game.prepare-all-i-pebre': '鳗鱼和土豆加蒜、辣椒粉慢炖',
-  'game.prepare-tortilla-de-patatas': '土豆煎软，倒进蛋液翻个面',
-  'game.prepare-gazpacho': '番茄黄瓜打碎，淋橄榄油冰镇',
-  'game.prepare-arros-a-banda': '用鱼汤煮米，锅底留一层焦',
-  'game.prepare-maduixes-amb-nata': '草莓对半切，挤一圈奶油',
+  'es.game.prepare-all-i-pebre': '鳗鱼和土豆加蒜、辣椒粉慢炖',
+  'es.game.prepare-tortilla-de-patatas': '土豆煎软，倒进蛋液翻个面',
+  'es.game.prepare-gazpacho': '番茄黄瓜打碎，淋橄榄油冰镇',
+  'es.game.prepare-arros-a-banda': '用鱼汤煮米，锅底留一层焦',
+  'es.game.prepare-maduixes-amb-nata': '草莓对半切，挤一圈奶油',
   'es.game.ltColumn': '长期居留',
   'es.game.natColumn': '入籍',
   'es.game.timeDate': '居住年限最早满足',
@@ -42,12 +42,15 @@ export const esGameZh = {
 
 export const esGameEn: Record<keyof typeof esGameZh, string> = {
   'game.spanish': 'Spanish',
-  'game.prepare-all-i-pebre': 'Simmer eel and potato with garlic and paprika',
-  'game.prepare-tortilla-de-patatas':
+  'es.game.prepare-all-i-pebre':
+    'Simmer eel and potato with garlic and paprika',
+  'es.game.prepare-tortilla-de-patatas':
     'Soften the potatoes, pour in the egg and flip',
-  'game.prepare-gazpacho': 'Blend tomato and cucumber, add olive oil and chill',
-  'game.prepare-arros-a-banda': 'Cook the rice in fish stock and leave a crust',
-  'game.prepare-maduixes-amb-nata': 'Halve the strawberries and add cream',
+  'es.game.prepare-gazpacho':
+    'Blend tomato and cucumber, add olive oil and chill',
+  'es.game.prepare-arros-a-banda':
+    'Cook the rice in fish stock and leave a crust',
+  'es.game.prepare-maduixes-amb-nata': 'Halve the strawberries and add cream',
   'es.game.ltColumn': 'Long-term residence',
   'es.game.natColumn': 'Nationality',
   'es.game.timeDate': 'Residence period met from',
