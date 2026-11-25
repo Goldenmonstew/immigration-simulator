@@ -190,7 +190,10 @@ const afterFiling: Record<string, string> = {
  * The character's route if filed (or signed) today, assessed on the day, so
  * day counts and document validity are checked for that day.
  */
-export function filingToday(state: CaState, locale: Locale = state.locale) {
+export function filingToday(
+  state: CaState,
+  locale: Locale = state.locale,
+): CaPathway | undefined {
   return pathwayOf(
     evaluate(filedToday(state), state.day.date, locale),
     filing(state.timeline) === 'aip' ? 'CA-AIP' : 'CA-CITIZENSHIP',
