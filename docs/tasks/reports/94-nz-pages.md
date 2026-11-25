@@ -138,3 +138,81 @@
 3. 改动答案即清掉被隐藏的子问题，切回原选项（如投资路径 active ↔ business、运输 ↔ 护理）后需要重填；这是问题 2 要求的取舍。
 4. `NZ-P5-3`、`NZ-P6-WORK` 的月数在少数旧签证例外里也读当前时薪（`qualifyingPeriod` 的 `currentPay`），但主要按各段经历的最低时薪判断，未关联时薪旋钮。
 5. 主申英语去掉「已预付 ESOL」后，若本机草稿里曾选过该项，读取时整份草稿按格式不符被丢弃；本分支尚未发布，未做迁移。
+
+## 合入 main 与共用选项接入
+
+澳大利亚完整版页面（任务 93，#81）已合入 main。本节合入 main，并按 93 号报告“其他国家怎么接入这次的共用改动”一表接入共用选项。每项先写回归测试，确认在改动前失败，再修改。
+
+### 1. 做了什么
+
+| PROGRESS | commit | 内容 | 文件（网页文件相对 `apps/web/`） |
+|---|---|---|---|
+| — | `9eb0e7d5 Merge: 合入 main（澳大利亚完整版页面 #81）` | 冲突处理：`components/policy-page.tsx` 取 main 的版本（与本分支 `a22f2879` 的标题改动目的相同，main 另有标题回退、按语义的千分位与 `displayParameter`）；`lib/site-countries.ts` 同时登记 `au` 与 `nz`；`i18n/{zh-CN,en}.ts` 两边都把本国集合入口文案移进了本国字典，冲突块两边都删；`public/sw.js` 与 `test/about-page.test.tsx` 的缓存版本改为 `2026-11-25-nz`；`PROGRESS.md` 自动合并，两边的行都在 | 同左 |
+| 548 | `d7a20c11 Fix: 新西兰分享链接带场景且不覆盖本机草稿，跳链保留场景片段` | 国家模块设 `scenarioLinks: true`；`components/site-shell.tsx` 的场景路径判断加入新西兰的问卷、结果、对比页 | `lib/new-zealand-module.ts`，`components/site-shell.tsx`，`test/new-zealand.test.tsx` |
+| 549 | `1d381c37 Fix: 新西兰结果日期标为预计满足条件的日期` | 设 `earliestLabel: 'nz.result.earliest'`（预计满足条件的日期 / Projected date the conditions are met）；e2e 对比页改读该文案 | `lib/new-zealand-module.ts`，`i18n/countries/new-zealand.ts`，`test/new-zealand.test.tsx`，`apps/e2e/tests/new-zealand.spec.ts` |
+| 550 | `40052895 Fix: 新西兰检查项按申请条件、时间、费用、批准后事项、可选依据与办理提示分组` | 为每个检查项设 `kind`，结果去掉 `decidedBy` | `lib/new-zealand-module.ts`，`test/new-zealand-questionnaire.test.tsx` |
+| 551 | `cf727c85 Fix: 新西兰政策页按含义展示费率表、工作月数窗口与 OET 等级顺序` | 设 `displayParameter` | `lib/new-zealand-policy.ts`，`i18n/countries/new-zealand.ts`，`test/new-zealand.test.tsx` |
+| 552 | `Docs: 任务 94 合入 main 与共用选项接入报告` | 本节 | 本报告、`PROGRESS.md` |
+
+各项说明：
+
+- **分享与跳链（548）**：打开 `/new-zealand/result#s=…` 时，本机已有草稿就不再写入；结果页的编辑、对比链接带 `#draft=` 场景片段。在新西兰的问卷、结果、对比页上，“跳到主要内容”改为按钮，只移动焦点，不把 `#s=` 改成 `#main`。
+- **日期标签（549）**：旅行条件路径的日期是首次以居民身份入境的日期（`NZ-P1-1` 的 `plannedEntry`），不是可递交日；永居、入籍、技术、家庭等路径的日期才是可递交日。main 的 `earliestLabel` 只能按国家设一个键，所以全部路径统一用“预计满足条件的日期”，对两类日期都成立。按 brief 没有改共用组件；美国分支（任务 96）把 `earliestLabel` 放宽为按路径 id 的键表后，可只给 `NZ-TRAVEL` 设这个标签，其余路径恢复“最早可申请日期（推算）”。
+- **检查项分组（550）**：
+  - `budget`（费用预算）：`NZ-P1-FEE`、`NZ-P2-7`、`NZ-P3-7-FEE`、`NZ-P4-FEE`、`NZ-P5-4`、`NZ-P6-3`、`NZ-P7-FEE`、`NZ-P8-5`、`NZ-P9-4`、`NZ-P10-2`、`NZ-C6-LEVY`。递交时必须已缴费的 `NZ-FILING-FEE` 参与判定，仍是申请条件。
+  - `afterApproval`（批准后事项）：入籍宣誓 `NZ-P3-7-OATH`；AIP 的投资期、在境与检查点 `NZ-P9-2`（选“投资条件”目标时参与判定，此时为申请条件）；Business Investor 工签阶段的居民条件 `NZ-P9-3`、`NZ-P9-3-OPERATIONS`、`NZ-P9-3-ENGLISH`（居民阶段参与判定，此时为申请条件）。
+  - `alternative`（可选依据）：`NZ-P1-3` 较长及特别旅行期限。`NZ-P1-2` 要求“在新西兰境内”或“符合较长期限”之一，`NZ-P1-3` 是后一项依据。
+  - `information`（办理提示）：其余不参与判定的项，即投资者购房提示 `NZ-P9-HOME`，目标不是直接获永居时的 `NZ-P7-4`，以及居民阶段作参考的 BI 工签条件 `NZ-P9-3-WORK`。
+  - `time`（时间条件）：引擎据以推算路径日期的期间和日期，包括 `NZ-P1-1`、`NZ-P1-1-TRAVEL`、`NZ-P2-1`、`NZ-P2-2`、`NZ-P2-3`、`NZ-P2-JOINT-DATE` 和 `NZ-P3-1-PRESENCE`。
+  - 其余参与判定的项为 `requirement`。“参与判定”沿用引擎各路径的 `decidedBy`，路径状态仍由引擎决定。
+  - 设好 kind 后，模块结果去掉 `decidedBy`。共用 `ResultView` 因此不再把费用、征费、宣誓等收进默认折叠的“其他路径的条件（可看这些路径为何未被采用）”，而是在本路径下逐项标出分组。“还差什么”只列申请条件与时间条件。待定项按共用规则显示“待定细节”。
+- **政策页（551）**：
+  - 本国参数都只有一层，没有 AU 那种嵌套的行数组。逐个核对 89 个参数后，按含义改了三类。
+  - 按起始日的时薪门槛（SMC 六档、绿名单五档、护理 `careRates`）显示为“起始日—时薪（NZD）”表；父母担保的 `parentMedianIncome` 显示为“起始日—年化中位工资（NZD）”表，数值等于各期中位时薪乘 2080；Tier 1 特定时薪 `tierOneEmployeeRates`、`tierOneContractRates` 显示为“ANZSCO 职业代码—时薪（NZD）”表。
+  - `workResidenceMonths`（`{required: 24, window: 30}`）原先被共用组件当作英国的“最好年份”格式，显示成“30 年中满足 24 年”。现改为“30 个月中满足 24 个月”（SRC-237 SR5.15(a)）。
+  - `englishOetGrades` 标明“由低到高”。
+  - 年份千分位按 main 的规则自动生效。本国参数里没有公历年份数值（≥ 1000 的数值都是金额、天数或名额），金额与计数照常分组，例如 `significantCostNzd 81,000`。
+  - 字段名式的扁平对象键（如 `travelYears` 的 `general`、`parent`）与 AU、日本、英国一样原样显示，未逐个本地化。
+
+逐条对应原先标为“待任务 93 的共用修正合入后解决”的条目：
+
+| 原条目 | 处理 |
+|---|---|
+| 问题 5：`PolicyPage` 缺 `country.id` 时输出空 `<h1>` | 合入 main 后解决。main 的 `policy-page.tsx` 在没有 `id`、或未登记 `<国家>.policy.pageTitle` 时回退到“政策依据”，由 main 的 `country-views.test.tsx` 覆盖；新西兰政策页仍显示“新西兰政策依据 / Policy basis for New Zealand”，由 e2e 断言 |
+| 风险 1 的共用部分：费用与获批后事项被收进“其他路径的规则”折叠区 | 已解决（550）。main 的共用结果页没有改这个折叠逻辑，它只对带 `decidedBy` 的路径生效；新西兰在模块里设 kind 并去掉 `decidedBy`，不改共用组件 |
+| 风险 3：分享链接覆盖本机草稿、跳链把 `#s=` 改为 `#main` | 已解决（548）。用 main 的 `scenarioLinks`，并在 `site-shell.tsx` 加入新西兰路径 |
+| 首轮报告第 3 节：政策页 h1 需合并 main 后 e2e 才会通过 | 已解决。合入 main 后 e2e 的 `Policy basis for New Zealand` 断言通过 |
+
+### 2. 怎么验证的
+
+- **回归测试先失败**：
+  - 548：新增测试在改动前失败于“本机草稿被分享链接覆盖”；只设 `scenarioLinks` 后，改为失败于三页的跳链仍是 `href="#main"`；改 `site-shell.tsx` 后通过。
+  - 549：两项双语测试在改动前失败（`earliestLabel` 为 `undefined`）。
+  - 550：一项测试在改动前失败（`NZ-P1-1` 的 kind 为 `undefined`）。
+  - 551：两项双语测试在改动前失败。先登记文案、再改展示时，测试读到的实际单元格是“30 年中满足 24 年”和“24 of 30 years”。
+  - 每个 commit 前单跑 `test/new-zealand{,-questionnaire}.test.tsx` 及相关的 `game-theme`、`share`、`japan`、`australia`、`policy-page`、`country-views` 测试，并对改动文件跑 `eslint`、`prettier --check` 和 `tsc --noEmit`，均通过。
+- **完整验收**：`(export VITEST_MAX_WORKERS=2; pnpm lint && pnpm typecheck && pnpm test && pnpm build)`，退出码 0。
+  - 测试：error-report 2 项、policy-data 23 项、engine 6,006 项通过（1 项既有文案导出测试按开关跳过）、game 1,348 项、web 886 项（47 个文件）。
+  - 构建：预渲染 40 个页面和路由；`apps/web/out/new-zealand{,/simulate,/result,/whatif,/policy}.html` 都已生成；`out/offline-pages.json` 与 `out/sitemap.xml` 含这五个路径；`out/sw.js` 含 `2026-11-25-nz`。
+- **浏览器 e2e**：先用 `lsof -i :4456` 确认端口空闲，再运行 `cd apps/e2e && E2E_PORT=4456 npx playwright test tests/new-zealand.spec.ts tests/australia.spec.ts tests/japan.spec.ts tests/site.spec.ts --project=desktop --reporter=line`，21 项全部通过，跑完已删除 `apps/e2e/test-results`。新西兰用例覆盖的内容：
+  - 分享链接在新浏览器上下文中还原，Axe 没有 serious 或 critical 问题。
+  - 对比页按 `nz.result.earliest` 读到 `2027-06-12→2027-05-29`。
+  - 政策页 h1 为 `Policy basis for New Zealand`。
+- **视觉验收**：用 `apps/e2e/serve.ts` 在 4457 端口起静态服务，在内置浏览器里打开构建产物，用后已关闭。
+  - 结果页：用分享链接打开旅行变更、永居、入籍、AIP 四条路径。日期标签为“预计满足条件的日期”；每项条件标题后带分组，如“较长及特别旅行期限 · 可选依据（满足其一即可）”“获批后的宣誓 · 批准后事项”“投资者购房提示 · 办理提示”；页面上没有“其他路径的条件”。点“跳到主要内容”后焦点到 `#main`，地址仍是 `#s=…`，“已载入分享链接”的提示仍在。
+  - 政策页：桌面宽度下时薪表按“起始日—时薪（NZD）”显示。375 px 中英文下 `workResidenceMonths`、OET 等级、Tier 1 时薪表显示正确，参数区与整页的 `scrollWidth` 都等于可视宽度。英文结果页在 375 px 下也没有横向滚动。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR。
+- 日期标签只能按国家设一个，暂用“预计满足条件的日期”。永居、入籍、技术与家庭路径本来可以显示“最早可申请日期（推算）”，需等美国分支（任务 96）的按路径键表合并后，再只给 `NZ-TRAVEL` 单独设标签。
+- 政策页里字段名式的扁平对象键（如 `travelYears`、`health`、`businessInvestor` 的子键）沿用各国现有做法原样显示，没有逐个本地化。
+- e2e 只跑了 brief 指定的四个文件、`desktop` 项目；`mobile` 项目和截图基线没有跑。
+- 共用组件只按 brief 在 `site-shell.tsx` 加了新西兰路径，没有改结果页、政策页、`earliestLabel` 的共用写法，也没有改引擎和参数。
+
+### 4. 发现与建议（范围外，未实现）
+
+1. `site-shell.tsx` 的 `isJapanScenario` 现在按路径列出日本、澳大利亚和新西兰。每加一个设了 `scenarioLinks` 的国家都要再改这里，建议改为按国家模块的 `scenarioLinks` 判断，并改名。
+2. 引擎 `packages/engine/src/new-zealand-checks.ts` 把 OET 门槛写死在代码里：主申 `C+`、家属 `C`、ESOL 中档费用 `D`。这些门槛没有放进 `packages/policy-data` 参数，不符合“不硬编码门槛”的约定，建议另开规则任务迁移并附 SRC-241 定位。
+3. 共用 `ResultView` 按 `decidedBy` 拆出“其他路径的条件（可看这些路径为何未被采用）”折叠区，这套写法是给英国用的。西班牙引擎（`spain-full*.ts`）也输出 `decidedBy`，接入页面时会遇到同样的问题，可参照本节的做法：设 kind，再去掉 `decidedBy`。
+4. 首页文案 `nz.intro` 仍说“查看最早可以申请的日期”。按路径设日期标签后，可以一并统一措辞。全站 `hub.intro`、`hub.privacy` 仍待十国完成后统一修改。
