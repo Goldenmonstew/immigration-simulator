@@ -42,6 +42,8 @@ export const usGameZh = {
   'us.game.settlementSource.brighterHome': '湖景顶层公寓',
   'us.game.settlementSource.walkingClub': '湖滨步道跑团',
   'us.game.noSeeds': '背包里没有当季种子，去街角杂货店看看吧。',
+  'us.game.kitchenNoIngredients':
+    '现在凑不齐任何一道菜的食材：蔬菜来自社区菜园的收成，黄鲈要去湖边防波堤钓。',
   'us.game.rentFirst': '先在社区菜园租一块地。',
 } as const;
 
@@ -92,5 +94,7 @@ export const usGameEn: Record<keyof typeof usGameZh, string> = {
   'us.game.settlementSource.brighterHome': 'A top-floor lake-view flat',
   'us.game.settlementSource.walkingClub': 'Lakefront Trail running club',
   'us.game.noSeeds': 'No seeds for this season. Try the corner store.',
+  'us.game.kitchenNoIngredients':
+    'You do not have the ingredients for any dish yet: vegetables come from community garden harvests, and perch from the lakefront pier.',
   'us.game.rentFirst': 'Rent a plot at the community garden first.',
 };

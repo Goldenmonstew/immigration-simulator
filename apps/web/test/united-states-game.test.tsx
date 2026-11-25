@@ -364,6 +364,37 @@ test('the Federal Building says when the next filing opens', () => {
   });
 });
 
+test.each(['zh-CN', 'en'] as const)(
+  'the kitchen hint and ending furniture use US wording in %s',
+  (locale) => {
+    const hint = t(gameKey('us', 'game.kitchenNoIngredients'), locale);
+    expect(hint).not.toBe(t('game.kitchenNoIngredients', locale));
+    expect(hint).not.toMatch(/池塘|河鲈|pond|allotment/);
+    const state = settle(us.newGame('engineer', 4, locale));
+    const shop = us
+      .activities({ ...state, day: { ...state.day, minute: 600 } }, 'shop')
+      .filter(({ id }) => id.startsWith('furnish-'))
+      .map(({ label }) => (locale === 'en' ? label.en : label.zhCN));
+    state.flags.push(
+      'furnished-reading-chair',
+      'furnished-warm-curtains',
+      'furnished-desk-lamp',
+    );
+    const names = usShell
+      .endingMemories(state)
+      .furnishings.map(({ name }) => (locale === 'en' ? name.en : name.zhCN));
+    expect(names).toEqual(
+      locale === 'en'
+        ? ['Thrift-store armchair', 'Thermal curtains', 'Desk lamp']
+        : ['旧货店的扶手椅', '保暖窗帘', '台灯'],
+    );
+    expect(shop).toHaveLength(names.length);
+    names.forEach((name, i) =>
+      expect(shop[i].toLowerCase()).toContain(name.toLowerCase()),
+    );
+  },
+);
+
 test('every item, character and townsperson has existing art', () => {
   const art = (path: string) =>
     existsSync(new URL(`../public${path}`, import.meta.url));

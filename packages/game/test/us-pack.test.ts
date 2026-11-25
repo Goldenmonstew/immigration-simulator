@@ -137,6 +137,20 @@ test('the spring festival is Cinco de Mayo in the park, with elote and a diary f
   expect(us.shop(danced, 'green').map(({ id }) => id)).toEqual(['elote']);
 });
 
+test('the diary casts a line off the lakefront pier, not at a pond', () => {
+  const pier = visit(us.newGame('engineer', 5, 'en'), 'pond', 600);
+  const cast = us.fish(pier, false);
+  expect(cast.log.at(-1)).toMatchObject({
+    id: 'fishing',
+    text: { zhCN: '在湖边防波堤抛竿', en: 'Cast at the lakefront pier' },
+  });
+  const diary = us.narrative(cast);
+  expect(diary.map(({ zhCN }) => zhCN).join('\n')).toContain(
+    '湖边防波堤抛竿 1 次',
+  );
+  expect(JSON.stringify(diary)).not.toMatch(/池塘|the pond/);
+});
+
 test('a JSON save round trip continues the same game after a trip home', () => {
   const station = visit(us.newGame('spouse', 21, 'en'), 'station', 600);
   // The month abroad runs to the end of the quarter, then returns home.

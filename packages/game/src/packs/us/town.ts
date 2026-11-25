@@ -384,6 +384,13 @@ const travelNote = t(
 );
 
 type UsActivity = Activity<UsEffect, UsFestival>;
+/** The shared furniture as the corner store sells it and the ending names it. */
+export const usFurnishingNames: Record<string, Text> = {
+  'reading-chair': t('旧货店的扶手椅', 'Thrift-store armchair'),
+  'warm-curtains': t('保暖窗帘', 'Thermal curtains'),
+  'desk-lamp': t('台灯', 'Desk lamp'),
+};
+
 export const usActions: UsActivity[] = [
   {
     id: 'rest',
@@ -537,24 +544,16 @@ export const usActions: UsActivity[] = [
     ],
   },
   ...[
-    [
-      'reading-chair',
-      '旧货店的扶手椅（每季心情、健康各加一点）',
-      'thrift-store armchair (+1 mood and health/quarter)',
-    ],
-    [
-      'warm-curtains',
-      '保暖窗帘（每季心情加一点）',
-      'set of thermal curtains (+1 mood/quarter)',
-    ],
-    ['desk-lamp', '台灯（每季健康加一点）', 'desk lamp (+1 health/quarter)'],
+    ['reading-chair', '每季心情、健康各加一点', '+1 mood and health/quarter'],
+    ['warm-curtains', '每季心情加一点', '+1 mood/quarter'],
+    ['desk-lamp', '每季健康加一点', '+1 health/quarter'],
   ].map(([id, zhCN, en]): UsActivity => ({
     id: `furnish-${id}`,
     place: 'shop',
     minutes: b.minutes.buy,
     label: t(
-      `添置${zhCN} · ${usd(b.furnishings[id].price)}，限一件`,
-      `Buy a ${en} · ${usd(b.furnishings[id].price)}, one per home`,
+      `添置${usFurnishingNames[id].zhCN}（${zhCN}） · ${usd(b.furnishings[id].price)}，限一件`,
+      `Furnish: ${usFurnishingNames[id].en} (${en}) · ${usd(b.furnishings[id].price)}, one per home`,
     ),
     effects: [{ type: 'money', delta: -b.furnishings[id].price }],
   })),

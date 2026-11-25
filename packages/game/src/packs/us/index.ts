@@ -17,6 +17,7 @@ import {
 import {
   usActions,
   usFestivals,
+  usFurnishingNames,
   usItems,
   usNotices,
   usPlaces,
@@ -34,6 +35,7 @@ export const usGameContent: GameContentPack<
   characters: usProfiles,
   loadCharacter: async (id) => hooks.characterOf(id),
   characterOf: hooks.characterOf,
+  fishingSpot: { zhCN: '湖边防波堤', en: 'the lakefront pier' },
   places: usPlaces,
   actions: usActions,
   informationAction: { id: 'assessment', place: 'council' },
@@ -111,7 +113,7 @@ export const items = usItems;
 export const recipes = usRecipes;
 export const festivals = usFestivals;
 export const achievements = hooks.usAchievements;
-export { usCharacters, usRules };
+export { usCharacters, usFurnishingNames, usRules };
 export {
   citizenshipPathway,
   filingDay,

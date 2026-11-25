@@ -240,6 +240,7 @@ export const usCountry: GameCountry<UsKinds> = {
   },
   placeNote: (state, place) =>
     place === 'visa' ? federalBuildingNote(state) : undefined,
+  furnishingNames: usGame.usFurnishingNames,
   endingActionText: (_state, actionId) =>
     actionId === 'oath'
       ? { label: 'us.game.oath', confirm: 'us.game.oathConfirm' }
