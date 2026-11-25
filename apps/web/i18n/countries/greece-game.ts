@@ -39,6 +39,8 @@ export const grGameZh = {
   'gr.game.settlementSource.brighterHome': '海景公寓',
   'gr.game.settlementSource.walkingClub': '海滨健走会',
   'gr.game.noSeeds': '背包里没有当季种子，去阿尔迪特超市看看吧。',
+  'gr.game.kitchenNoIngredients':
+    '现在凑不齐任何一道菜的食材：蔬菜来自市立菜园的收成或周六菜市，沙丁鱼和金头鲷要去港口防波堤钓。',
   'gr.game.rentFirst': '先在市立菜园租一块地。',
 } as const;
 
@@ -88,5 +90,7 @@ export const grGameEn: Record<keyof typeof grGameZh, string> = {
   'gr.game.settlementSource.brighterHome': 'A sea-view flat',
   'gr.game.settlementSource.walkingClub': 'Seafront walking club',
   'gr.game.noSeeds': 'No seeds for this season. Try Ardit’s mini market.',
+  'gr.game.kitchenNoIngredients':
+    'You do not have the ingredients for any dish yet: vegetables come from municipal garden harvests or the Saturday market, and sardines and bream from the harbour breakwater.',
   'gr.game.rentFirst': 'Rent a municipal garden plot first.',
 };

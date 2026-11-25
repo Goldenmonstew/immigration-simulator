@@ -196,6 +196,7 @@ export const grCountry: GameCountry<GrKinds> = {
       en: `Ο.3 card valid to ${expiry}. Apply here for the Μ.3 permanent card once you qualify${date ? ` (from ${date})` : ''}.`,
     };
   },
+  furnishingNames: grGame.grFurnishingNames,
   loadTownCanvas: () => import('./town-canvas'),
 };
 

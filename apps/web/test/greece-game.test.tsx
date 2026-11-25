@@ -274,6 +274,35 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test.each(['zh-CN', 'en'] as const)(
+  'the kitchen hint and ending furniture use Greek wording in %s',
+  (locale) => {
+    const hint = t(gameKey('gr', 'game.kitchenNoIngredients'), locale);
+    expect(hint).not.toBe(t('game.kitchenNoIngredients', locale));
+    expect(hint).not.toMatch(/池塘|河鲈|pond|perch/);
+    const state = settle(gr.newGame('bluecard', 4, locale));
+    const shop = gr
+      .activities({ ...state, day: { ...state.day, minute: 600 } }, 'shop')
+      .filter(({ id }) => id.startsWith('furnish-'))
+      .map(({ label }) => (locale === 'en' ? label.en : label.zhCN));
+    state.flags.push(
+      'furnished-reading-chair',
+      'furnished-warm-curtains',
+      'furnished-desk-lamp',
+    );
+    const names = grShell
+      .endingMemories(state)
+      .furnishings.map(({ name }) => (locale === 'en' ? name.en : name.zhCN));
+    expect(names).toEqual(
+      locale === 'en'
+        ? ['Balcony wicker chair', 'Wooden shutters', 'Desk lamp']
+        : ['阳台藤椅', '木百叶窗', '台灯'],
+    );
+    expect(shop).toHaveLength(names.length);
+    names.forEach((name, i) => expect(shop[i]).toContain(name));
+  },
+);
+
 test('the Blue Card holder sees the missing integration requirement', () => {
   // A route with only a waiting date lists nothing else.
   expect(

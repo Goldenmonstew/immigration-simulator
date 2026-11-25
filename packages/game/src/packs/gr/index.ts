@@ -17,6 +17,7 @@ import {
 import {
   grActions,
   grFestivals,
+  grFurnishingNames,
   grItems,
   grNotices,
   grPlaces,
@@ -34,6 +35,7 @@ export const grGameContent: GameContentPack<
   characters: grProfiles,
   loadCharacter: async (id) => hooks.characterOf(id),
   characterOf: hooks.characterOf,
+  fishingSpot: { zhCN: '港口防波堤', en: 'the harbour breakwater' },
   places: grPlaces,
   actions: grActions,
   informationAction: { id: 'assessment', place: 'council' },
@@ -107,7 +109,7 @@ export const items = grItems;
 export const recipes = grRecipes;
 export const festivals = grFestivals;
 export const achievements = hooks.grAchievements;
-export { grCharacters, grRules };
+export { grCharacters, grFurnishingNames, grRules };
 export {
   grossSalary,
   isBlueCard,

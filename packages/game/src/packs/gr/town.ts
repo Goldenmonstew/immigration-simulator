@@ -367,6 +367,13 @@ const fees = {
   pegp: values.naturalisationExam.value.fee,
   naturalisation: values.naturalisationFees.value.initial,
 };
+/** The shared furniture, as Ardit's mini market sells it. */
+export const grFurnishingNames: Record<string, Text> = {
+  'reading-chair': t('阳台藤椅', 'Balcony wicker chair'),
+  'warm-curtains': t('木百叶窗', 'Wooden shutters'),
+  'desk-lamp': t('台灯', 'Desk lamp'),
+};
+
 const reporting = values.changeReporting.value;
 const moveNote = t(
   `搬家后 ${reporting.months} 个月内向移民局申报新住址，逾期申报罚款 ${euro(reporting.firstFine)}，再次逾期 ${euro(reporting.repeatFine)}（${src(values.changeReporting)}）。游戏里的日子之间会跳过一段时间，所以只在移民局当天还能受理时提供搬家和退租，搬完当天就去申报。`,
@@ -537,24 +544,16 @@ export const grActions: GrActivity[] = [
     ],
   },
   ...[
-    [
-      'reading-chair',
-      '阳台藤椅（每季心情、健康各加一点）',
-      'Balcony wicker chair (+1 mood and health/quarter)',
-    ],
-    [
-      'warm-curtains',
-      '木百叶窗（每季心情加一点）',
-      'Wooden shutters (+1 mood/quarter)',
-    ],
-    ['desk-lamp', '台灯（每季健康加一点）', 'Desk lamp (+1 health/quarter)'],
+    ['reading-chair', '每季心情、健康各加一点', '+1 mood and health/quarter'],
+    ['warm-curtains', '每季心情加一点', '+1 mood/quarter'],
+    ['desk-lamp', '每季健康加一点', '+1 health/quarter'],
   ].map(([id, zhCN, en]): GrActivity => ({
     id: `furnish-${id}`,
     place: 'shop',
     minutes: b.minutes.buy,
     label: t(
-      `添置${zhCN} · ${euro(b.furnishings[id].price)}，限一件`,
-      `Buy ${en} · ${euro(b.furnishings[id].price)}, one per home`,
+      `添置${grFurnishingNames[id].zhCN}（${zhCN}） · ${euro(b.furnishings[id].price)}，限一件`,
+      `Buy ${grFurnishingNames[id].en} (${en}) · ${euro(b.furnishings[id].price)}, one per home`,
     ),
     effects: [{ type: 'money', delta: -b.furnishings[id].price }],
   })),

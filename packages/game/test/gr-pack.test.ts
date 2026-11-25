@@ -463,6 +463,23 @@ test('a lease that ends on a low balance is a move to report', () => {
   expect(c06(nextQuarter(ended))).toBe('NOT_MET');
 });
 
+test('the diary casts a line off the harbour breakwater, not at a pond', () => {
+  const breakwater = visit(gr.newGame('bluecard', 5, 'en'), 'pond', 600);
+  const cast = gr.fish(breakwater, false);
+  expect(cast.log.at(-1)).toMatchObject({
+    id: 'fishing',
+    text: { zhCN: '在港口防波堤抛竿', en: 'Cast at the harbour breakwater' },
+  });
+  const diary = gr.narrative(cast);
+  expect(diary.map(({ zhCN }) => zhCN).join('\n')).toContain(
+    '港口防波堤抛竿 1 次。',
+  );
+  expect(diary.map(({ en }) => en).join('\n')).toContain(
+    '1 cast at the harbour breakwater',
+  );
+  expect(JSON.stringify(diary)).not.toMatch(/池塘|pond/);
+});
+
 test('a JSON save round trip continues the same quarter after a trip', () => {
   const station = visit(gr.newGame('spouse', 21, 'en'), 'station', 600);
   const state = settle(gr.doActivity(station, 'travel-1'));
