@@ -1,6 +1,5 @@
 import * as Phaser from 'phaser';
 import {
-  items,
   mapSurprises,
   type AnchorId,
   type GameState,
@@ -8,8 +7,8 @@ import {
   type SurpriseId,
   type Text,
 } from '@uk-immigration/game';
-import type { Cell } from './pathfinding';
-import type { SceneView } from './scene';
+import type { Cell } from '../../game-shell/pathfinding';
+import type { SceneView } from '../../game-shell/scene';
 import {
   drawFestivalStalls,
   drawFlowerbed,
@@ -18,9 +17,13 @@ import {
   drawSurprise,
 } from './scene-art';
 import { flowerbedStage, lunchVisible, mayDayScene } from './scene-life';
-import { tileSize, type OwnWorldObject, type Spot } from './scene-map';
-import { SceneText } from './scene-text';
-import { cropIds } from './session';
+import {
+  tileSize,
+  type OwnWorldObject,
+  type Spot,
+} from '../../game-shell/scene-map';
+import { SceneText } from '../../game-shell/scene-text';
+import type { UkKinds } from './shell';
 
 export type LunchProp = {
   object: Phaser.GameObjects.Sprite | Phaser.GameObjects.Graphics;
@@ -105,7 +108,7 @@ export function createLifeScenery(
 }
 
 export function syncLunch(
-  { state, interior }: SceneView,
+  { state, interior }: SceneView<UkKinds>,
   lunch: LunchProp[],
   lunchCells: Set<string>,
 ) {
@@ -135,7 +138,7 @@ export function syncLunch(
 
 export function syncLifeScenery(
   scene: Phaser.Scene,
-  { state, locale }: SceneView,
+  { state, locale }: SceneView<UkKinds>,
   scenery: LifeScenery,
   anchors: Map<string, Cell>,
   lifeCells: Set<string>,
@@ -240,24 +243,4 @@ export function syncLifeScenery(
       ? approachedSurprise
       : undefined,
   };
-}
-
-export function syncCrops(
-  state: GameState,
-  cropSprites: Phaser.GameObjects.Sprite[],
-) {
-  cropSprites.forEach((sprite, i) => {
-    const p = state.plots[i],
-      crop = items.find((it) => it.id === p?.seed)?.grows?.crop;
-    sprite.setVisible(!!crop);
-    if (crop) {
-      const grows = items.find((it) => it.id === p.seed)!.grows!;
-      sprite.setTexture(
-        cropIds.includes(crop) ? `crop-${crop}` : 'item-fallback',
-        cropIds.includes(crop)
-          ? Math.min(4, Math.floor((p.growth / grows.days) * 4))
-          : 0,
-      );
-    }
-  });
 }

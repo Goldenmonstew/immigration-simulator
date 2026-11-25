@@ -1,13 +1,12 @@
 import type * as Phaser from 'phaser';
 import type { Cell } from './pathfinding';
 import type { SceneView } from './scene';
-import { drawBonfire, drawPrecipitation } from './scene-art';
 
 type Graphics = Phaser.GameObjects.Graphics;
 
 export function paintLight(
   scene: Phaser.Scene,
-  view: SceneView,
+  view: Pick<SceneView, 'state' | 'interior'>,
   sky: Graphics | undefined,
   rain: Graphics | undefined,
   lampLights: Graphics[],
@@ -50,7 +49,7 @@ export function paintLight(
 
 export function paintWeather(
   scene: Phaser.Scene,
-  view: SceneView,
+  view: Pick<SceneView, 'state' | 'interior'>,
   rain: Graphics | undefined,
   time: number,
 ) {
@@ -69,18 +68,6 @@ export function paintWeather(
     h,
     scene.scale.width < 600 ? 36 : 70,
   );
-}
-
-export function festivalEffects(
-  g: Graphics | undefined,
-  minute: number,
-  time: number,
-) {
-  if (!g) return;
-  g.clear();
-  if (minute < 1080) return;
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  drawBonfire(g, time, reduced);
 }
 
 export function updateWater(
@@ -104,4 +91,27 @@ export function updateWater(
     water.fillRect(x + 3 + step, y + 7, 2, 1);
   });
   return phase;
+}
+
+/** Rain streaks or snowflakes across a w × h screen-space overlay. */
+export function drawPrecipitation(
+  g: Graphics,
+  weather: 'rain' | 'snow',
+  time: number,
+  w: number,
+  h: number,
+  count: number,
+) {
+  for (let i = 0; i < count; i++) {
+    const x =
+        (i * 47 +
+          Math.sin(i) * 18 +
+          (weather === 'snow' ? time / 180 : time / 45)) %
+        w,
+      y = (i * 31 + time / (weather === 'snow' ? 45 : 6)) % h;
+    if (weather === 'rain') {
+      g.lineStyle(0.6, 0xbad5e6, 0.6);
+      g.lineBetween(x, y, x - 2, y + 5);
+    } else g.fillStyle(0xffffff, 0.8).fillCircle(x, y, 1);
+  }
 }
