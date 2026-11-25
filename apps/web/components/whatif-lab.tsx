@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import type { CountryPathway, CountryResult } from '@uk-immigration/engine';
-import type { TranslationKey } from '../i18n';
 import { useTranslation } from '../i18n/locale';
 import { punct } from '../i18n/punctuation';
 import {
   type CountryDraft,
   type CountryModule,
+  type EarliestLabel,
   checkLabelStatus,
   isDecisionOutcome,
   pathwayDate,
@@ -48,7 +48,7 @@ function Comparison({
 }: {
   before?: CountryPathway;
   after?: CountryPathway;
-  earliestLabel?: TranslationKey;
+  earliestLabel?: EarliestLabel;
 }) {
   const { t, locale } = useTranslation();
   const p = punct(locale);
