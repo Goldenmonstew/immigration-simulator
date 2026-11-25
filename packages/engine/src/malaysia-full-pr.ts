@@ -237,8 +237,10 @@ function longRun(
         : false;
   let earliest: IsoDate | null | undefined = !run ? undefined : null;
   if (run?.valid) {
+    // No day before the current run: a pass must be valid on it.
     const unbroken = addYears(run.start, years);
     earliest = addYears(run.tolerantStart, years);
+    if (earliest < run.start) earliest = run.start;
     while (earliest < unbroken && !bothReadings(earliest))
       earliest = addDays(earliest, 1);
   }

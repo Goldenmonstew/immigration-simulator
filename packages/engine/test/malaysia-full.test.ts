@@ -1551,6 +1551,69 @@ describe('boundary pending details only on the boundary (review113-2 suggestion 
   });
 });
 
+describe('no earliest date while no pass is held (review113-3 #1, risk 4)', () => {
+  // Break 2026-01-01..2026-05-31 (151 days, within six months) before a pass
+  // entered from 2026-06-01. From 2020-10-01 to 2026-06-01 is 2069 days;
+  // less the break, 1918 exceed the 1826 days from 2021-06-01, so five years
+  // are held on 2026-06-01 and on no day of the break (SRC-505 §5.2(d) p19,
+  // §5.4(b) p21: a valid pass on the application date).
+  const passes = (kind: 'employment' | 'ltsvp-spouse', from = '2020-10-01') => [
+    { kind, from, to: '2025-12-31' },
+    { kind, from: '2026-06-01', to: '2028-12-31' },
+  ];
+  const was = (simulationDate: string, from?: string) =>
+    ({
+      simulationDate,
+      family: { tie: 'none' },
+      passes: passes('employment', from),
+    }) satisfies MyFullRequest;
+  const husband = (simulationDate: string, from?: string) =>
+    ({
+      simulationDate,
+      family: {
+        tie: 'husband-of-citizen',
+        marriedOn: '2015-01-01',
+        marriageRegistration: 'malaysia',
+        separatedOrDivorced: false,
+      },
+      passes: passes('ltsvp-spouse', from),
+    }) satisfies MyFullRequest;
+  const at = (id: MyPathwayId, key: string, req: MyFullRequest) => {
+    const p = path(id, req);
+    return [
+      p.checks.find((c) => c.id === key)?.status,
+      p.timeStatus,
+      p.timeEarliestDate,
+    ];
+  };
+
+  test('inside the break the date is the next pass, not a day of the break', () => {
+    for (const [date, from] of [
+      ['2026-02-01', undefined],
+      ['2026-03-01', undefined],
+      ['2026-02-01', '2020-01-01'],
+    ] as const) {
+      expect(
+        at('my.pr.was', 'my.pr.qualifying-pass', was(date, from)),
+        date,
+      ).toEqual(['NOT_MET', 'FUTURE', '2026-06-01']);
+      expect(
+        at('my.pr.husband', 'my.pr.spouse-pass', husband(date, from)),
+        date,
+      ).toEqual(['NOT_MET', 'FUTURE', '2026-06-01']);
+    }
+  });
+
+  test('back on a pass after the break, the date is when holding resumed', () => {
+    expect(
+      at('my.pr.was', 'my.pr.qualifying-pass', was('2026-06-15')),
+    ).toEqual(['MET', 'MET', '2026-06-01']);
+    expect(
+      at('my.pr.husband', 'my.pr.spouse-pass', husband('2026-06-15')),
+    ).toEqual(['MET', 'MET', '2026-06-01']);
+  });
+});
+
 describe('29 February birthdays (review113-1 #10)', () => {
   test('earliest dates and deadlines follow the age in full years', () => {
     // Born 2004-02-29: 20 on 2025-02-28, 21 on 2025-03-01.
