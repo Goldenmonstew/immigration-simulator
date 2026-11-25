@@ -262,6 +262,40 @@ test('long-term residence needs a cita previa and ends with its own text', () =>
   );
 });
 
+test('a filing outside the character’s own route ends with that route’s text', () => {
+  // Yutong files for nationality after ten years on a longer card.
+  let exporter = settle(es.newGame('exporter', 5, 'en'));
+  es.currentPermit(exporter).to = '2033-04-30';
+  Object.assign(exporter.timeline.nationality, {
+    deleEvidence: 'dele',
+    deleLevel: 'A2',
+    ccse: { verifiedPass: true, issued: '2031-06-01' },
+  });
+  exporter = at(exporter, '2031-12-01');
+  expect(es.pathwayOf(exporter.result, 'nat')?.status).toBe('MET');
+  const nat = es.doActivity(visit(exporter, 'bureau', 600), 'naturalise');
+  expect(nat.ending).toBe('settled');
+  const natText = es.narrative(nat).at(-1)!;
+  expect(natText.en).toContain('The nationality application is in.');
+  expect(natText).not.toEqual(es.characterOf('exporter').settlement);
+  expect(nat.log.find(({ kind }) => kind === 'ending')?.text).toEqual(natText);
+
+  // Joel files for long-term residence after five years on a longer card.
+  let cook = settle(es.newGame('cook', 5, 'en'));
+  es.currentPermit(cook).to = '2030-08-31';
+  cook = at(cook, '2029-12-01');
+  cook.flags.push('cita-booked');
+  expect(es.pathwayOf(cook.result, 'lt')?.status).toBe('MET');
+  const lt = es.doActivity(visit(cook, 'visa', 600), 'settle');
+  expect(lt.ending).toBe('settled');
+  const ltText = es.narrative(lt).at(-1)!;
+  expect(ltText.en).toContain(
+    'The long-term residence application is accepted.',
+  );
+  expect(ltText).not.toEqual(es.characterOf('cook').settlement);
+  expect(lt.log.find(({ kind }) => kind === 'ending')?.text).toEqual(ltText);
+});
+
 test('a lapsed card ends the story unless long-term residence can still be filed', () => {
   const exporter = settle(es.newGame('exporter', 5, 'en'));
   // Within three months of the 2027-04-30 expiry (SRC-083 art. 184.2).

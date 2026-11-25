@@ -831,3 +831,4 @@
 | 1042 | 任务 107：新增西班牙游戏 e2e。静态页横幅与标题、两位角色、西班牙首页入口；选角色进入小镇走到海滨长椅完成活动；快进首个春季看到小结并进入第 1 年第 3 季；英文界面显示居留卡与西语属性；375 宽度用地点抽屉走到橙树广场且无横向滚动。 | apps/e2e/tests/spain-game.spec.ts |
 | 1043 | 任务 107：报告，含角色、地点、镇民、节日、活动清单、地图草图、对共用外壳的改动与验证结果。 | docs/tasks/reports/107-es-game.md |
 | 1044 | 任务 107 跟进试点（review111-1 问题 3）：西班牙 5 道菜的做法文案键由 `game.prepare-<菜谱 ID>` 改为 `es.game.prepare-<菜谱 ID>`，外壳 `gameKey` 优先取用，不会被英国或别国同名键覆盖；补中英文网页单测。 | apps/web/i18n/countries/spain-game.ts、apps/web/test/spain-game.test.tsx |
+| 1045 | 任务 107 跟进试点（review111-1 问题 2，核对）：西班牙的 `beforeAction` 已在效果与结局之前记下 `applied-nat`/`applied-lt`，无需改代码；补内容包单测：雨桐在更长居留卡下满十年递交入籍、乔尔满五年递交长期居留，结局叙述与结局日志都是所递交路径的通用文案而不是角色自己路径的文案（去掉 `beforeAction` 时该用例失败）。 | packages/game/test/es-pack.test.ts |
