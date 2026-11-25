@@ -17,6 +17,7 @@ import {
   grRules,
   isBlueCard,
   pathwayOf,
+  renewalClosed,
   renewalWindow,
   src,
   timing,
@@ -194,14 +195,14 @@ export function actionAvailable(
   }
   if (action.id === 'tax-return') return unfiledTaxYear(state) !== undefined;
   if (action.id === 'extend') {
-    const { early, late } = renewalWindow(state.timeline.currentCardExpiresOn);
+    const { early } = renewalWindow(state.timeline.currentCardExpiresOn);
     // Any quarter that reaches the window may file early; the late period
     // ends on its own day.
     return (
       isBlueCard(state) &&
       !state.flags.includes('quarter-visa-renewed') &&
       addMonths(state.date, b.monthsPerQuarter) > early &&
-      state.day.date <= late &&
+      !renewalClosed(state) &&
       state.stats.money >= renewalFees(state).fee + renewalFees(state).fine
     );
   }

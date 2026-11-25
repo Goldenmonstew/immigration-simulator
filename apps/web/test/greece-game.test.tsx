@@ -325,6 +325,31 @@ test.each(['zh-CN', 'en'] as const)(
   },
 );
 
+test.each(['zh-CN', 'en'] as const)(
+  'past the late renewal period the office and reminders say the card has lapsed, in %s',
+  (locale) => {
+    const state = settle(gr.newGame('bluecard', 7, locale));
+    state.date = '2026-12-01';
+    state.day = { ...state.day, date: '2026-12-15' };
+    state.result = gr.grRules.evaluate({ ...state, locale });
+    const text = (value?: { zhCN: string; en: string }) =>
+      locale === 'en' ? value?.en : value?.zhCN;
+    const ends =
+      locale === 'en' ? /ended on 2026-12-14/ : /已于 2026-12-14 截止/;
+    expect(text(grCountry.placeNote!(state, 'visa'))).toMatch(ends);
+    expect(text(grCountry.visaNotice!(state))).toMatch(ends);
+    const reminder = render(<grShell.VisaReminder state={state} />, locale);
+    expect(reminder).toMatch(ends);
+    expect(reminder).not.toContain(
+      t(gameKey('gr', 'game.visaReminder'), locale).slice(0, 12),
+    );
+    // On the last day of the late period the card can still be renewed.
+    state.day = { ...state.day, date: '2026-12-14' };
+    expect(grCountry.visaNotice!(state)).toBeUndefined();
+    expect(text(grCountry.placeNote!(state, 'visa'))).not.toMatch(ends);
+  },
+);
+
 test('the Blue Card holder sees the missing integration requirement', () => {
   // A route with only a waiting date lists nothing else.
   expect(

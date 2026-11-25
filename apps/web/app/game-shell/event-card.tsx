@@ -40,16 +40,19 @@ export function createEventCards<K extends GameKinds>(
     state: State<K>;
     onVisit?: () => void;
   }) {
-    const { t } = useGameText(c.id);
+    const { t, locale } = useGameText(c.id);
+    const notice = c.visaNotice?.(state);
     return (
       <section>
         <h3>{t('game.visaReminderTitle')}</h3>
         <p>
-          {withCount(
-            t('game.visaReminder'),
-            'count',
-            c.visaStatus(state).months,
-          )}
+          {notice
+            ? localText(notice, locale)
+            : withCount(
+                t('game.visaReminder'),
+                'count',
+                c.visaStatus(state).months,
+              )}
         </p>
         <button className={styles.secondary} onClick={onVisit}>
           {t('game.visaVisit')}

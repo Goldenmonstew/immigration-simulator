@@ -114,6 +114,7 @@ export {
   grossSalary,
   isBlueCard,
   pathwayOf,
+  renewalClosed,
   renewalWindow,
   timelineOn,
   unfiledTaxYear,

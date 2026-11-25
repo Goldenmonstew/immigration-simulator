@@ -140,6 +140,11 @@ export interface GameCountry<K extends GameKinds> {
   assessment(state: State<K>, idPrefix: string): ReactNode;
   endingAssessment(state: State<K>, t: Translate, locale: Locale): ReactNode;
   progressDetail(state: State<K>, id: K['rule'], t: Translate): ReactNode;
+  /**
+   * Replaces the residence card reminder and fast-forward warning, such as
+   * once a card can no longer be renewed.
+   */
+  visaNotice?(state: State<K>): Text | undefined;
   /** A status line for a place, such as a route's next step. */
   placeNote?(state: State<K>, place: string): Text | undefined;
   /** A different label and confirmation for an ending action. */

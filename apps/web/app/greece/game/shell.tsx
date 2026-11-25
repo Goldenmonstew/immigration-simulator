@@ -92,6 +92,15 @@ export function gameDraft(state: GrState): GreeceDraft {
   });
 }
 
+/** Past the late renewal period: no renewal is left, so say how it ends. */
+function lapsed(state: GrState) {
+  const { late } = grGame.renewalWindow(state.timeline.currentCardExpiresOn);
+  return {
+    zhCN: `蓝卡的逾期补交期已于 ${late} 截止，移民局不能再续期。这一季若没有递交其他申请或离开希腊，季末故事会以居留卡过期收场。`,
+    en: `The Blue Card’s late renewal period ended on ${late}, so the migration office can no longer renew it. Unless you file another application or leave Greece this quarter, the story ends with the lapsed card at the end of the quarter.`,
+  };
+}
+
 export const grCountry: GameCountry<GrKinds> = {
   id: 'gr',
   game: grGame,
@@ -187,9 +196,16 @@ export const grCountry: GameCountry<GrKinds> = {
       </>
     );
   },
+  visaNotice: (state) =>
+    grGame.renewalClosed(state) ? lapsed(state) : undefined,
   placeNote(state, place) {
     if (place !== 'visa') return undefined;
     const expiry = state.timeline.currentCardExpiresOn;
+    if (grGame.renewalClosed(state))
+      return {
+        zhCN: `蓝卡到 ${expiry}。${lapsed(state).zhCN}`,
+        en: `Blue Card valid to ${expiry}. ${lapsed(state).en}`,
+      };
     if (grGame.isBlueCard(state)) {
       const { early, late } = grGame.renewalWindow(expiry);
       return {

@@ -101,6 +101,11 @@ function returnWorkday(state: GrState, through: IsoDate) {
   return firstWeekday(addDays(quarter, 7), 2);
 }
 
+/** Whether today is past the Blue Card's late renewal period. */
+export const renewalClosed = (state: GrState) =>
+  isBlueCard(state) &&
+  state.day.date > renewalWindow(state.timeline.currentCardExpiresOn).late;
+
 /** Months to the end of the current card, rounded down. */
 function visaMonthsLeft(state: GrState): number {
   const to = state.timeline.currentCardExpiresOn;
