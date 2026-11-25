@@ -290,7 +290,12 @@ export function assessMm2h(ctx: MyContext): MyPathway {
         `每年须累计在马 ${stay.days} 天，${stay.exemptAge} 岁以下由主申请人或受养人满足即可。官网写 ${stay.exemptAge} 岁及以上不设要求，资格条件原文未写这一豁免，${stay.exemptAge} 岁及以上未达 ${stay.days} 天时待确认。`,
         `${stay.days} days a year in total, which the main applicant or dependants may meet when under ${stay.exemptAge}. The website exempts those aged ${stay.exemptAge} or over but the conditions document does not, so below ${stay.days} days from ${stay.exemptAge} needs confirmation.`,
       ),
-      years !== undefined && years >= stay.exemptAge ? ['PD-420'] : [],
+      // Only too few days entered from the exempt age turn on the sources.
+      m.daysPerYear !== undefined &&
+        years !== undefined &&
+        years >= stay.exemptAge
+        ? ['PD-420']
+        : [],
     ),
     check(
       'my.pass.good-conduct',

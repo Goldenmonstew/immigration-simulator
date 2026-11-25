@@ -2327,6 +2327,23 @@ describe('review113-4', () => {
     expect([pr.status, pr.pendingDetails]).toEqual(['UNKNOWN', undefined]);
     expect(pr.explanation).toContain('未填出境记录');
   });
+
+  test('MM2H cites PD-420 only when fewer days are entered (suggestion 2)', () => {
+    const stay = (daysPerYear?: number) =>
+      cond('my.pass.mm2h', 'my.pass.minimum-stay', {
+        simulationDate: day,
+        dateOfBirth: '1960-01-01',
+        mm2h: { category: 'silver', daysPerYear },
+      });
+    expect([stay().status, stay().pendingDetails]).toEqual([
+      'UNKNOWN',
+      undefined,
+    ]);
+    expect([stay(30).status, stay(30).pendingDetails]).toEqual([
+      'UNKNOWN',
+      ['PD-420'],
+    ]);
+  });
 });
 
 describe('29 February birthdays (review113-1 #10)', () => {
