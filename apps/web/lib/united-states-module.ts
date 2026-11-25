@@ -22,10 +22,11 @@ import {
 function run(draft: UsDraft, locale: Locale): UsFullResult {
   const result = evaluateUnitedStatesFull(unitedStatesRequest(draft, locale));
   const separator = locale === 'zh-CN' ? '' : ' ';
+  const formatter = new Intl.NumberFormat(locale);
   for (const pathway of result.columns[0].pathways) {
-    // Fees and procedural reminders do not decide the pathway, so only time
-    // and other requirements are gaps.
-    for (const check of pathway.checks)
+    for (const check of pathway.checks) {
+      // Fees and procedural reminders do not decide the pathway, so only
+      // time and other requirements are gaps.
       check.kind = check.id.startsWith('US-TIME-')
         ? 'time'
         : /^US-C4[45]-/.test(check.id)
@@ -33,6 +34,11 @@ function run(draft: UsDraft, locale: Locale): UsFullResult {
           : check.informational
             ? 'information'
             : 'requirement';
+      check.explanation = check.explanation.replace(
+        /\bUSD (\d+(?:\.\d+)?)/g,
+        (_, amount: string) => `USD ${formatter.format(Number(amount))}`,
+      );
+    }
     // The travel pathway's date is the planned return (earliestLabel). A
     // completed return has none to show.
     if (pathway.id === 'US-TRAVEL' && pathway.status !== 'FUTURE')

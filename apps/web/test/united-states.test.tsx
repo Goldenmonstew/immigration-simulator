@@ -1217,3 +1217,24 @@ test('the policy page shows nested parameters by meaning and keeps years ungroup
     expect(html).not.toContain('undefined');
   }
 });
+
+test('amounts in result explanations are grouped (review96-1 suggestion 3)', () => {
+  const draft = immigrantDraft(
+    'US-FAMILY',
+    { process: 'adjustment' },
+    {
+      dateOfBirth: '1990-05-01',
+      family: { petitioner: 'citizen', relationship: 'spouse' },
+      support: { household: { region: 'contiguous', size: 2 } },
+      fees: { channel: 'paper', relief: 'none' },
+    },
+  );
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const checks = pathwayOf(draft, locale).checks;
+    const explanation = (id: string) =>
+      checks.find((check) => check.id === id)?.explanation;
+    expect(explanation('US-C44-I485')).toContain('USD 1,440');
+    for (const check of checks)
+      expect(check.explanation, check.id).not.toMatch(/USD \d{4}/);
+  }
+});
