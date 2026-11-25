@@ -125,11 +125,16 @@ export const esCountry: GameCountry<EsKinds> = {
       .map((check) => check.title);
     return titles?.length ? [...new Set(titles)] : undefined;
   },
-  visaStatus: (state) => ({
-    months: esGame.visaMonthsLeft(state),
-    renewed: false,
-    validTo: esGame.currentPermit(state).to,
-  }),
+  // Once the card has expired, the date that matters is the end of the late
+  // filing period for long-term residence (the fast-forward warning's date).
+  visaStatus: (state) => {
+    const to = esGame.currentPermit(state).to!;
+    return {
+      months: esGame.visaMonthsLeft(state),
+      renewed: false,
+      validTo: to < state.day.date ? esGame.lateFilingDeadline(to) : to,
+    };
+  },
   absences: (state) =>
     state.timeline.trips.map((trip) => ({
       from: trip.departed,
@@ -195,8 +200,8 @@ export const esCountry: GameCountry<EsKinds> = {
     const card =
       to < state.day.date
         ? {
-            zhCN: `居留卡已于 ${to} 到期。到期后 ${lateMonths.value} 个月内仍可递交长期居留（SRC-083 art. 184.2）。`,
-            en: `Your residence card expired on ${to}. Long-term residence can still be filed within ${lateMonths.value} months of expiry (SRC-083 art. 184.2).`,
+            zhCN: `居留卡已于 ${to} 到期，入籍已不能递交。长期居留的递交期到 ${esGame.lateFilingDeadline(to)}（到期后 ${lateMonths.value} 个月，遇周末顺延；SRC-083 art. 184.2，SRC-090 art. 30.2）。`,
+            en: `Your residence card expired on ${to}, so nationality can no longer be filed. Long-term residence can be filed until ${esGame.lateFilingDeadline(to)} (${lateMonths.value} months after expiry, moved past a weekend; SRC-083 art. 184.2, SRC-090 art. 30.2).`,
           }
         : {
             zhCN: `居留卡有效期至 ${to}。游戏不办理临时居留续期，到期前请递交长期居留或入籍申请。`,

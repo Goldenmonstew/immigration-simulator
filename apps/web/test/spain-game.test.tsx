@@ -257,6 +257,39 @@ test.each(['cook', 'exporter'])(
   60_000,
 );
 
+test('a lapsed card’s warnings name the late filing deadline and close nationality', () => {
+  // Yutong's card ended on 2027-04-30; long-term residence may still be filed
+  // until 2027-07-30 (SRC-083 art. 184.2).
+  const exporter = structuredClone(settle(es.newGame('exporter', 4, 'zh-CN')));
+  exporter.date = '2027-06-01';
+  exporter.day.date = '2027-06-08';
+  exporter.result = es.esRules.evaluate(exporter);
+  expect(esCountry.visaStatus(exporter)).toEqual({
+    months: 0,
+    renewed: false,
+    validTo: '2027-07-30',
+  });
+  for (const locale of ['zh-CN', 'en'] as const) {
+    const warning = t(gameKey('es', 'game.fastVisaWarning'), locale).replace(
+      '{date}',
+      '2027-07-30',
+    );
+    const reminder = t(gameKey('es', 'game.visaReminder'), locale);
+    const closed =
+      locale === 'en' ? 'nationality can no longer' : '入籍已不能递交';
+    expect(warning).toContain('2027-07-30');
+    expect(warning).toContain(closed);
+    expect(reminder).toContain(closed);
+  }
+  const note = esCountry.placeNote!(exporter, 'visa')!;
+  expect(note.zhCN).toContain('入籍已不能递交');
+  expect(note.zhCN).toContain('长期居留的递交期到 2027-07-30');
+  expect(note.en).toContain('until 2027-07-30');
+  // While the card is valid, the warning names its end.
+  const valid = settle(es.newGame('exporter', 4, 'zh-CN'));
+  expect(esCountry.visaStatus(valid).validTo).toBe('2027-04-30');
+});
+
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak Spanish residence in %s',
   (locale) => {

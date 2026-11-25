@@ -21,9 +21,9 @@ export const esGameZh = {
   'es.game.visaUrgent': '居留卡即将到期',
   'es.game.visaReminderTitle': '新一季，看看居留卡',
   'es.game.visaReminder':
-    '居留卡还剩 {count} 个月。游戏不办理临时居留续期，到期前请递交长期居留或入籍申请。',
+    '居留卡还剩 {count} 个月。游戏不办理临时居留续期：有效期内可以递交长期居留或入籍；过期后入籍已不能递交，长期居留只能在到期后的递交期内递交，截止日见外国人办公室。',
   'es.game.fastVisaWarning':
-    '居留卡到 {date} 为止。快进会直接过完这一季、跨过这一天，先去外国人办公室看看吧。',
+    '{date} 前要把申请递出去：居留卡有效期内可以递交入籍或长期居留；过期后入籍已不能递交，只能在到期后的递交期内递交长期居留。快进会直接过完这一季、跨过这一天，先去外国人办公室看看吧。',
   'es.game.fastVisaWarningNone':
     '居留卡已经过期。快进会直接过完这一季，先去外国人办公室看看吧。',
   'es.game.visaVisit': '去外国人办公室',
@@ -67,9 +67,9 @@ export const esGameEn: Record<keyof typeof esGameZh, string> = {
   'es.game.visaUrgent': 'Residence card ending soon',
   'es.game.visaReminderTitle': 'A new quarter: check your residence card',
   'es.game.visaReminder':
-    'Your residence card has {count} month{count:s} left. The game does not renew temporary permits, so apply for long-term residence or nationality before it ends.',
+    'Your residence card has {count} month{count:s} left. The game does not renew temporary permits: while the card is valid you can apply for long-term residence or nationality; once it has expired, nationality can no longer be filed and long-term residence only within the late filing period (see the immigration office for the deadline).',
   'es.game.fastVisaWarning':
-    'Your residence card runs until {date}. Fast-forwarding runs past that date to the end of the quarter, so visit the immigration office first.',
+    'Apply by {date}: while your residence card is valid you can apply for nationality or long-term residence; once it has expired, nationality can no longer be filed and only long-term residence, within the late filing period. Fast-forwarding runs past that date to the end of the quarter, so visit the immigration office first.',
   'es.game.fastVisaWarningNone':
     'Your residence card has expired. Fast-forwarding runs to the end of the quarter, so visit the immigration office first.',
   'es.game.visaVisit': 'Visit the immigration office',
