@@ -284,7 +284,9 @@ function Question({
           }}
         >
           <option value="">
-            {t(field.required ? 'ie.form.choose' : 'ie.form.unknown')}
+            {field.blank
+              ? t(key('option', `${labelName}.${field.blank}`))
+              : t(field.required ? 'ie.form.choose' : 'ie.form.unknown')}
           </option>
           {field.type === 'boolean' ? (
             <>

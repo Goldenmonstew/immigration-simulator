@@ -152,6 +152,7 @@ test('every question, hint and option has Chinese and English wording', () => {
       if (field.type === 'choice' || field.type === 'multi')
         for (const option of field.options)
           need(`ie.option.${label}.${option}`);
+      if (field.blank) need(`ie.option.${label}.${field.blank}`);
       if (field.type === 'group' || field.type === 'list') walk(field.fields);
     }
   };
@@ -162,6 +163,7 @@ test('every question, hint and option has Chinese and English wording', () => {
     need(`ie.form.step${step}`);
     need(`ie.form.intro${step}`);
   }
+  need('ie.form.intro1Treaty');
   expect(missing).toEqual([]);
 });
 
@@ -493,7 +495,13 @@ test('the Ireland policy page lists pathways, conditions and only Irish sources'
 // A filled-in draft with every question answered (or, when sparse, about two
 // thirds of the optional ones), varied by seed so that different engine
 // branches run.
-const sample = ['2015-03-01', '2020-06-15', '2025-01-10', '2026-11-23', '2027-03-01'];
+const sample = [
+  '2015-03-01',
+  '2020-06-15',
+  '2025-01-10',
+  '2026-11-23',
+  '2027-03-01',
+];
 function filled(seed: number, sparse: boolean): IrelandDraft {
   let n = seed;
   const next = () => (n = (n * 1103515245 + 12345) % 2147483648);
@@ -624,7 +632,9 @@ test('minors on the Irish associations and public service routes can be represen
         update: () => {},
       }),
     );
-    expect(html).toContain('id="ie-citizenship-minor-authorisedRepresentative"');
+    expect(html).toContain(
+      'id="ie-citizenship-minor-authorisedRepresentative"',
+    );
     // Questions and sections only other routes use stay hidden.
     expect(html).not.toContain('id="ie-citizenship-minor-characterWaived"');
     expect(html).not.toContain(t('ie.form.section.natSpouse'));
@@ -658,4 +668,75 @@ test('a recognised refugee on ordinary naturalisation can confirm the fee exempt
       'IE-NATURALISATION',
     ),
   ).toEqual(pathway(draft, 'IE-NATURALISATION'));
+});
+
+test('first registration and renewal are chosen on each pathway’s own step', () => {
+  const stage1 = render(
+    IrelandSimulatePage().props.children({
+      draft: { ...workDraft, step: 1 },
+      errors: {},
+      update: () => {},
+    }),
+  );
+  expect(stage1).not.toContain('id="ie-registration-stage"');
+  // An IRP renewal answer kept from elsewhere does not replace the upgrade.
+  const stale = {
+    ...workDraft,
+    registration: { ...registration, stage: 'renewal' },
+  } satisfies IrelandDraft;
+  expect(pathway(stale, 'IE-STAMP4-21')).toEqual(
+    pathway(workDraft, 'IE-STAMP4-21'),
+  );
+  expect(pathway(workDraft, 'IE-STAMP4-21').title).toBe(
+    '就业类 Stamp 4（CSEP、研究员、多地点 GEP 医师）',
+  );
+  const renewal = pathway(
+    { ...workDraft, workStage: 'renewal' },
+    'IE-STAMP4-21',
+  );
+  expect(renewal.title).toBe('现有许可续期');
+  expect(renewal.checks.map((c) => c.id)).toContain('IE-IRP-CHECKLIST');
+  expect(
+    pathway({ ...workDraft, workStage: 'first' }, 'IE-STAMP4-21').title,
+  ).toBe('首次登记');
+
+  // Stamp 5 and LTR stay applications unless their own step says renewal.
+  const residence: IrelandDraft = {
+    ...workDraft,
+    pathways: ['IE-STAMP5', 'IE-LTR-PRINCIPAL', 'IE-EU-PERMANENT'],
+    permissions: [{ kind: 'stamp1-csep', from: '2016-01-01' }],
+    stamp5: { renewWithPassport: true },
+    ltr: { maintenance: { renewal: true } as never },
+    eu: { role: 'citizen' },
+  };
+  const ids = (id: string, draft = residence) =>
+    pathway(draft, id).checks.map((c) => c.id);
+  expect(ids('IE-STAMP5')).toContain('IE-WCATT-TIME');
+  expect(ids('IE-LTR-PRINCIPAL')).toContain('IE-C01');
+  expect(ids('IE-LTR-PRINCIPAL')).not.toContain('IE-IRP-RENEWAL-WINDOW');
+  expect(ids('IE-EU-PERMANENT')).not.toContain('IE-IRP-RENEWAL-WINDOW');
+  const renewing: IrelandDraft = {
+    ...residence,
+    stamp5Stage: 'renewal',
+    ltrStage: 'renewal',
+    euStage: 'renewal',
+  };
+  expect(ids('IE-STAMP5', renewing)).not.toContain('IE-WCATT-TIME');
+  expect(ids('IE-STAMP5', renewing)).toContain('IE-IRP-RENEWAL-WINDOW');
+  expect(ids('IE-LTR-PRINCIPAL', renewing)).toContain('IE-IRP-RENEWAL-WINDOW');
+  expect(ids('IE-EU-PERMANENT', renewing)).toContain('IE-IRP-RENEWAL-WINDOW');
+  for (const [step, names] of [
+    [3, ['workStage']],
+    [5, ['stamp5Stage', 'ltrStage']],
+    [6, ['euStage']],
+  ] as const) {
+    const html = render(
+      IrelandSimulatePage().props.children({
+        draft: { ...renewing, pathways: [...IRELAND_PATHWAYS], step },
+        errors: {},
+        update: () => {},
+      }),
+    );
+    for (const name of names) expect(html).toContain(`id="ie-${name}"`);
+  }
 });

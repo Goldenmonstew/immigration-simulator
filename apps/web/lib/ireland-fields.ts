@@ -26,6 +26,8 @@ export type IrelandField = {
   label?: string;
   hint?: string;
   required?: boolean;
+  /** Option label (ie.option.<label>.<blank>) for an unanswered choice. */
+  blank?: string;
   /** Shown only when one of these pathways is selected. */
   paths?: readonly IrelandFullPathwayId[];
 } & (
@@ -45,7 +47,10 @@ export type IrelandField = {
 export type IrelandFields = Record<string, IrelandField>;
 // Compile-time coverage: every property of the engine type has a question.
 type Fields<T> = { [K in keyof T]-?: IrelandField };
-type Extra = Pick<IrelandField, 'label' | 'hint' | 'required' | 'paths'>;
+type Extra = Pick<
+  IrelandField,
+  'label' | 'hint' | 'required' | 'blank' | 'paths'
+>;
 
 const bool = (extra?: Extra): IrelandField => ({ type: 'boolean', ...extra });
 const date = (extra?: Extra): IrelandField => ({ type: 'date', ...extra });
@@ -94,10 +99,13 @@ export const FAMILY_PATHS = [
   'IE-STAMP4-INDEPENDENT-FAMILY',
   'IE-STAMP4-IRISH-FAMILY',
 ] as const satisfies readonly IrelandFullPathwayId[];
-export const RESIDENCE_PATHS = [
-  'IE-STAMP5',
+const LTR_PATHS = [
   'IE-LTR-PRINCIPAL',
   'IE-LTR-FAMILY',
+] as const satisfies readonly IrelandFullPathwayId[];
+export const RESIDENCE_PATHS = [
+  'IE-STAMP5',
+  ...LTR_PATHS,
 ] as const satisfies readonly IrelandFullPathwayId[];
 export const TREATY_PATHS = [
   'IE-EU-PERMANENT',
@@ -139,11 +147,11 @@ const periods = (extra?: Extra) =>
     extra,
   );
 
+// The stage is asked on each pathway's own step (IrelandStages).
 export const registrationFields = {
   basis: choice(['required', 'exempt', 'minister-directed'], {
     label: 'registrationBasis',
   }),
-  stage: choice(['first', 'renewal'], { label: 'registrationStage' }),
   checklistComplete: bool(),
   irpExpiresOn: date({ hint: 'irpExpiresOn' }),
   validPermission: bool(),
@@ -153,7 +161,7 @@ export const registrationFields = {
   registrationDate: date(),
   feeExemption: choice(['confirmed', 'none', 'protection-mapping-uncertain']),
   feePrepared: bool(),
-} satisfies Fields<IrelandRegistration>;
+} satisfies Fields<Omit<IrelandRegistration, 'stage'>>;
 
 type Spouse = NonNullable<IrelandCitizenship['spouse']>;
 type Minor = NonNullable<IrelandCitizenship['minor']>;
@@ -694,13 +702,13 @@ export const ltrFields = {
     },
     { label: 'ltrFamily', paths: ['IE-LTR-FAMILY'] },
   ),
-  maintenance: group<NonNullable<IrelandLtr['maintenance']>>(
+  // Renewal is asked as ltrStage.
+  maintenance: group<Omit<NonNullable<IrelandLtr['maintenance']>, 'renewal'>>(
     {
       largestCalendarYearAbsenceDays: integer(),
       tripsPermittedOrExceptionConfirmed: bool(),
       workEffortsAndResidence: bool(),
       previousGrantYearsEvidence: bool(),
-      renewal: bool({ label: 'ltrRenewal' }),
     },
     { hint: 'maintenance' },
   ),
@@ -880,7 +888,25 @@ export const treatyFields: Fields<Treaty> = {
   ...treatySections.treatyDocument,
 };
 
-type TopQuestions = Omit<IrelandFullRequest, 'locale' | 'pathways'>;
+/**
+ * What each pathway group assesses, asked on its own step. Unanswered is a new
+ * application or upgrade; the engine reads it as the registration stage.
+ */
+export interface IrelandStages {
+  workStage?: 'first' | 'renewal';
+  stamp5Stage?: 'renewal';
+  ltrStage?: 'renewal';
+  euStage?: 'renewal';
+  waStage?: 'renewal';
+}
+const stage = (
+  options: readonly string[],
+  paths: readonly IrelandFullPathwayId[],
+  hint = 'renewalStage',
+) => choice(options, { hint, blank: 'new', paths });
+
+type TopQuestions = Omit<IrelandFullRequest, 'locale' | 'pathways'> &
+  IrelandStages;
 export const topFields = {
   simulationDate: date({ hint: 'simulationDate', ...required }),
   dateOfBirth: date(),
@@ -902,17 +928,20 @@ export const topFields = {
     { hint: 'trips', paths: STAMP_RECORD_PATHS, ...required },
   ),
   marriedOn: date({ hint: 'marriedOn', paths: ['IE-SPOUSE'] }),
+  workStage: stage(['first', 'renewal'], WORK_PATHS, 'workStage'),
   employmentStart: date({ hint: 'employmentStart', paths: WORK_PATHS }),
-  registration: group<IrelandRegistration>(registrationFields),
+  registration: group<Omit<IrelandRegistration, 'stage'>>(registrationFields),
   citizenship: group<IrelandCitizenship>(citizenshipFields, {
     paths: NATURALISATION_PATHS,
   }),
   work: group<IrelandWorkUpgrade>(workFields, { paths: WORK_PATHS }),
   family: group<FamilyQuestions>(familyFields, { paths: FAMILY_PATHS }),
+  stamp5Stage: stage(['renewal'], ['IE-STAMP5']),
   stamp5: group<IrelandWcatt>(stamp5Fields, { paths: ['IE-STAMP5'] }),
-  ltr: group<IrelandLtr>(ltrFields, {
-    paths: ['IE-LTR-PRINCIPAL', 'IE-LTR-FAMILY'],
-  }),
+  ltrStage: stage(['renewal'], LTR_PATHS),
+  ltr: group<IrelandLtr>(ltrFields, { paths: LTR_PATHS }),
+  euStage: stage(['renewal'], ['IE-EU-PERMANENT']),
   eu: group<Treaty>(treatyFields, { paths: ['IE-EU-PERMANENT'] }),
+  waStage: stage(['renewal'], ['IE-WA-PERMANENT']),
   wa: group<Treaty>(treatyFields, { paths: ['IE-WA-PERMANENT'] }),
 } satisfies Fields<TopQuestions>;

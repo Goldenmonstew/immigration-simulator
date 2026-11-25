@@ -4,6 +4,7 @@ import {
   type IeTrip,
   type IrelandFullPathwayId,
   type IrelandFullRequest,
+  type IrelandRegistration,
 } from '@uk-immigration/engine';
 import type { TranslationKey } from '../i18n';
 import type { CountryDraft, DraftReadMode } from './country-module';
@@ -16,12 +17,14 @@ import {
   topFields,
   type IrelandField,
   type IrelandFields,
+  type IrelandStages,
 } from './ireland-fields';
 import { today, validDate } from './questionnaire';
 
 export interface IrelandDraft
   extends
     CountryDraft,
+    IrelandStages,
     Omit<
       IrelandFullRequest,
       'locale' | 'pathways' | 'permissions' | 'trips' | 'simulationDate'
@@ -67,12 +70,20 @@ const steps: {
   },
   {
     title: 'ie.form.step3',
-    fields: ['employmentStart', 'work'],
+    fields: ['workStage', 'employmentStart', 'work'],
     paths: WORK_PATHS,
   },
   { title: 'ie.form.step4', fields: ['family'], paths: FAMILY_PATHS },
-  { title: 'ie.form.step5', fields: ['stamp5', 'ltr'], paths: RESIDENCE_PATHS },
-  { title: 'ie.form.step6', fields: ['eu', 'wa'], paths: TREATY_PATHS },
+  {
+    title: 'ie.form.step5',
+    fields: ['stamp5Stage', 'stamp5', 'ltrStage', 'ltr'],
+    paths: RESIDENCE_PATHS,
+  },
+  {
+    title: 'ie.form.step6',
+    fields: ['euStage', 'eu', 'waStage', 'wa'],
+    paths: TREATY_PATHS,
+  },
 ];
 
 const selected = (
@@ -155,16 +166,51 @@ export function irelandRequest(
 ): IrelandFullRequest {
   const active = activeIrelandAnswers({ ...draft, pathways: [pathway] });
   const request: Partial<IrelandDraft> = { ...active };
-  delete request.version;
-  delete request.step;
-  delete request.completed;
+  for (const key of [
+    'version',
+    'step',
+    'completed',
+    'workStage',
+    'stamp5Stage',
+    'ltrStage',
+    'euStage',
+    'waStage',
+  ] as const)
+    delete request[key];
+  const stage = registrationStage(active, pathway);
   return {
     ...(request as Omit<IrelandDraft, keyof CountryDraft>),
     simulationDate: active.simulationDate,
     pathways: [pathway],
     permissions: active.permissions ?? [],
     trips: active.trips ?? [],
+    registration: stage
+      ? { ...active.registration, stage }
+      : active.registration,
   };
+}
+
+// The engine's registration stage comes from the question on the pathway's
+// own step. A Stamp 5 or LTR application is marked 'first' so that other
+// answers (renewWithPassport, maintenance.renewal) do not turn it into a renewal.
+function registrationStage(
+  draft: IrelandDraft,
+  pathway: IrelandFullPathwayId,
+): IrelandRegistration['stage'] {
+  switch (pathway) {
+    case 'IE-STAMP4-21':
+    case 'IE-STAMP4-57':
+      return draft.workStage;
+    case 'IE-STAMP5':
+      return draft.stamp5Stage ?? 'first';
+    case 'IE-LTR-PRINCIPAL':
+    case 'IE-LTR-FAMILY':
+      return draft.ltrStage ?? 'first';
+    case 'IE-EU-PERMANENT':
+      return draft.euStage;
+    case 'IE-WA-PERMANENT':
+      return draft.waStage;
+  }
 }
 
 type Errors = Record<string, TranslationKey>;

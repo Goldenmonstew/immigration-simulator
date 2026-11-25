@@ -18,12 +18,16 @@ const messages = {
     'EU Treaty Rights and the Withdrawal Agreement',
   ],
   'ie.form.intro0': [
-    '模拟日期按递交日理解。选择要一起核对的路径，可多选。标星号的项目必填，其余不清楚可留空，结果里会显示为待确认。',
-    'The simulation date is treated as the filing date. Select every pathway to check together. Fields marked with an asterisk are required; leave others blank if unsure and they will show as to be confirmed.',
+    '模拟日期按递交日理解。选择要一起核对的路径，可多选。标星号的项目必填，其余不清楚可留空，结果里一般显示为待确认；个别题目留空另有含义，以该题提示为准。',
+    'The simulation date is treated as the filing date. Select every pathway to check together. Fields marked with an asterisk are required. Leave others blank if unsure: they usually show as to be confirmed, but a few have a set meaning when blank, explained in their hint.',
   ],
   'ie.form.intro1': [
-    '许可与出境记录用于入籍、Stamp 4／5、LTR 与家庭路径的计时。没有记录时请点「确认没有」，不要直接留空。IRP 登记的问题适用于所有路径。',
-    'Permissions and trips drive the clocks for naturalisation, Stamp 4 or 5, LTR and family pathways. If there are none, choose “Confirm there are none” rather than leaving the list blank. The IRP registration questions apply to every pathway.',
+    '许可与出境记录用于入籍、Stamp 4／5、LTR 与家庭路径的计时。没有记录时请点「确认没有」，不要直接留空。IRP 登记的问题用于核对现有许可与登记；要评估首次登记或续期，请在对应路径的步骤里选择。',
+    'Permissions and trips drive the clocks for naturalisation, Stamp 4 or 5, LTR and family pathways. If there are none, choose “Confirm there are none” rather than leaving the list blank. The IRP registration questions check your current permission and registration; to assess a first registration or renewal, choose it on that pathway’s step.',
+  ],
+  'ie.form.intro1Treaty': [
+    'EU Treaty Rights 与 Withdrawal Agreement 路径不使用许可与出境记录。IRP 登记的问题用于核对现有许可与登记；要评估永久居留卡续期，请在 EU／WA 步骤里选择。',
+    'The EU Treaty Rights and Withdrawal Agreement pathways do not use permission or trip records. The IRP registration questions check your current permission and registration; to assess the renewal of a permanent residence card, choose it on the EU or WA step.',
   ],
   'ie.form.intro2': [
     '按所选入籍路径作答。品格、身份与居住证明等共用资料只填一次。',
@@ -199,6 +203,14 @@ const messages = {
     'Verified start and end dates of reckonable lawful residence without an IRP (for example as an EEA, Swiss or UK citizen). They must cover the departure, time abroad and return for any trip relied on.',
   ],
   'ie.hint.to': ['仍在持续可留空。', 'Leave blank if ongoing.'],
+  'ie.hint.workStage': [
+    '一般保持「升级为 Stamp 4 的申请」。只有已获批要办首次登记，或要续期现有许可时才改选；改选后核对登记或续期清单，不再计算升级日期。选续期时，未填写的有效许可、护照、住址、清单材料等项目按「是」核对，请如实填写。',
+    'Usually keep “An application to upgrade to Stamp 4”. Change it only to check the first registration after a grant or the renewal of current permission; the result then checks that registration or renewal instead of the upgrade date. For a renewal, blank answers on valid permission, passport, address and checklist documents count as “yes”, so answer them as they are.',
+  ],
+  'ie.hint.renewalStage': [
+    '选「续期」时改为核对续期清单与线上续期窗口；未填写的守规、有效许可、护照、住址、清单材料等项目按「是」核对，请如实填写。',
+    'Choosing renewal checks the renewal checklist and online renewal window instead. Blank answers on compliance, valid permission, passport, address and checklist documents then count as “yes”, so answer them as they are.',
+  ],
   'ie.hint.minor': [
     '申请人未满 18 岁时填写。Irish associations 与境外公共服务路径只问是否由获授权者代为申请。',
     'Complete if the applicant is under 18. The Irish associations and public service routes only ask whether an authorised person applies on their behalf.',
@@ -274,16 +286,29 @@ const messages = {
     '与爱尔兰公民结婚或登记民事伴侣的日期',
     'Date of marriage or civil partnership with an Irish citizen',
   ],
+  'ie.field.workStage': [
+    '就业类 Stamp 4：本次评估的是',
+    'Work Stamp 4: what to assess',
+  ],
+  'ie.field.stamp5Stage': ['Stamp 5：本次评估的是', 'Stamp 5: what to assess'],
+  'ie.field.ltrStage': [
+    'Long Term Residency：本次评估的是',
+    'Long Term Residency: what to assess',
+  ],
+  'ie.field.euStage': [
+    'EU Treaty Rights 永久居留：本次评估的是',
+    'EU Treaty Rights permanent residence: what to assess',
+  ],
+  'ie.field.waStage': [
+    'Withdrawal Agreement 永久居留：本次评估的是',
+    'Withdrawal Agreement permanent residence: what to assess',
+  ],
   'ie.field.employmentStart': [
     '在爱尔兰凭该许可开始工作的日期',
     'Date you started work in Ireland on the permit',
   ],
   'ie.field.registration': ['IRP 登记', 'IRP registration'],
   'ie.field.registrationBasis': ['登记义务', 'Registration requirement'],
-  'ie.field.registrationStage': [
-    '本次是首次登记还是续期',
-    'First registration or renewal',
-  ],
   'ie.field.checklistComplete': [
     '本次登记或续期的清单材料已齐备',
     'The checklist documents for this registration or renewal are complete',
@@ -1059,7 +1084,6 @@ const messages = {
     '上一期 LTR 各年的居住与就业证明',
     'Residence and work evidence for the previous LTR grant',
   ],
-  'ie.field.ltrRenewal': ['这是 LTR 续期', 'This is an LTR renewal'],
   'ie.field.approvalLetterOn': ['批准信日期', 'Date of the approval letter'],
   'ie.field.feePaidOn': ['缴费日期', 'Date the fee was paid'],
   'ie.field.familyOrRenewalFeeConfirmed': [
@@ -1403,10 +1427,43 @@ const messages = {
     '部长指示须登记',
     'Registration directed by the Minister',
   ],
-  'ie.option.registrationStage.first': ['首次登记', 'First registration'],
-  'ie.option.registrationStage.renewal': ['续期', 'Renewal'],
   'ie.option.familyRegistrationStage.first': ['首次登记', 'First registration'],
   'ie.option.familyRegistrationStage.renewal': ['续期', 'Renewal'],
+  'ie.option.workStage.new': [
+    '升级为 Stamp 4 的申请',
+    'An application to upgrade to Stamp 4',
+  ],
+  'ie.option.workStage.first': [
+    '已获批，评估首次登记',
+    'Granted: first registration',
+  ],
+  'ie.option.workStage.renewal': [
+    '现有就业许可（Stamp 1、1G 或 4）续期',
+    'Renewal of current employment permission (Stamp 1, 1G or 4)',
+  ],
+  'ie.option.stamp5Stage.new': ['申请 Stamp 5', 'An application for Stamp 5'],
+  'ie.option.stamp5Stage.renewal': [
+    '已持 Stamp 5，换护照后续办',
+    'Holding Stamp 5: renewal on a new passport',
+  ],
+  'ie.option.ltrStage.new': ['申请 LTR', 'An application for LTR'],
+  'ie.option.ltrStage.renewal': ['已持 LTR，续期', 'Holding LTR: renewal'],
+  'ie.option.euStage.new': [
+    '申请永久居留',
+    'An application for permanent residence',
+  ],
+  'ie.option.euStage.renewal': [
+    '已持永久居留卡，续期',
+    'Holding a permanent residence card: renewal',
+  ],
+  'ie.option.waStage.new': [
+    '申请永久居留',
+    'An application for permanent residence',
+  ],
+  'ie.option.waStage.renewal': [
+    '已持永久居留卡，续期',
+    'Holding a permanent residence card: renewal',
+  ],
   'ie.option.feeExemption.confirmed': ['已确认免费', 'Exemption confirmed'],
   'ie.option.feeExemption.none': ['不免费', 'No exemption'],
   'ie.option.feeExemption.protection-mapping-uncertain': [

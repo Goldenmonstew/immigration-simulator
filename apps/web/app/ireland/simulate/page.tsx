@@ -84,7 +84,9 @@ const directFields: Record<number, string[]> = {
   0: ['simulationDate', 'dateOfBirth', 'birthplace', 'currentLocation'],
   1: ['permissions', 'trips'],
   2: ['marriedOn'],
-  3: ['employmentStart'],
+  3: ['workStage', 'employmentStart'],
+  5: ['stamp5Stage', 'ltrStage'],
+  6: ['euStage', 'waStage'],
 };
 
 function IrelandStep({ draft, errors, update }: StepProps) {
@@ -110,7 +112,13 @@ function IrelandStep({ draft, errors, update }: StepProps) {
   const pathwayError = errors['ie-pathways'];
   return (
     <>
-      <p className={form.hint}>{t(`ie.form.intro${step}` as TranslationKey)}</p>
+      <p className={form.hint}>
+        {t(
+          step === 1 && !shownField(topFields.permissions, draft)
+            ? 'ie.form.intro1Treaty'
+            : (`ie.form.intro${step}` as TranslationKey),
+        )}
+      </p>
       <IrelandFieldsView
         fields={direct}
         values={answers}
