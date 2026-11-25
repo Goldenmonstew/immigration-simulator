@@ -12,6 +12,7 @@ import { GET as offlinePages } from '../app/offline-pages.json/route';
 import Home from '../app/page';
 import sitemap from '../app/sitemap';
 import { ResultView } from '../components/result-view';
+import { gapRules } from '../lib/gap-summary';
 import { t, type TranslationKey } from '../i18n';
 import { LocaleContext } from '../i18n/locale';
 import {
@@ -389,7 +390,6 @@ test('comparison knobs change a copy of the answers and point to their condition
     noTrips: false,
     employmentStart: '2025-05-20',
     irpExpiresOn: '2027-01-31',
-    vetting: undefined,
     income: undefined,
   });
   expect(ie.whatif.apply(workDraft, knobs)).toEqual(
@@ -421,11 +421,6 @@ test('comparison knobs change a copy of the answers and point to their condition
     ie.whatif.apply(trips, { ...ie.whatif.initial(trips), noTrips: true })
       .trips,
   ).toEqual([]);
-  const vetting = ie.whatif.apply(naturalisationDraft, {
-    ...ie.whatif.initial(naturalisationDraft),
-    vetting: 'outstanding',
-  });
-  expect(vetting.citizenship?.vetting).toBe('outstanding');
   const family: IrelandDraft = {
     ...workDraft,
     pathways: ['IE-STAMP4-IRISH-FAMILY'],
@@ -739,4 +734,59 @@ test('first registration and renewal are chosen on each pathway’s own step', (
     );
     for (const name of names) expect(html).toContain(`id="ie-${name}"`);
   }
+});
+
+test('the legacy Stamp 1G clock and other checks that do not decide a pathway stay out of the gaps', () => {
+  const draft: IrelandDraft = {
+    ...workDraft,
+    pathways: ['IE-STAMP4-INDEPENDENT-FAMILY'],
+    permissions: [{ kind: 'stamp4', from: '2019-01-01' }],
+    family: {
+      relationship: 'spouse',
+      establishedFamilyPermission: true,
+      sponsorLawfulAndResident: true,
+      dependentPeriods: [{ from: '2019-01-01' }],
+      nextRenewalOn: '2026-12-20',
+    },
+  };
+  const route = pathway(draft, 'IE-STAMP4-INDEPENDENT-FAMILY');
+  expect(route).toMatchObject({ status: 'FUTURE', earliestDate: '2026-12-20' });
+  const legacy = route.checks.find((c) => c.id === 'IE-FAMILY-LEGACY-TIME')!;
+  expect(legacy).toMatchObject({ kind: 'information', status: 'NOT_MET' });
+  expect(legacy.title).toBe(t('ie.policy.rule.familyLegacyTime'));
+  expect(legacy.title).toContain('旧计时参考');
+  expect(legacy.explanation.startsWith(t('ie.result.legacyReference'))).toBe(
+    true,
+  );
+  expect(gapRules(route).map((c) => c.id)).not.toContain(
+    'IE-FAMILY-LEGACY-TIME',
+  );
+  expect(ie.whatif.focusForRule('IE-FAMILY-LEGACY-TIME', route.id)).toBe(
+    undefined,
+  );
+  const html = render(
+    <ResultView country={ie} result={ie.run(draft, 'zh-CN')} draft={draft} />,
+  );
+  const gap = html.slice(html.indexOf(t('gap.title')));
+  expect(gap.slice(0, gap.indexOf('</section>'))).not.toContain(legacy.title);
+
+  // e-vetting never decides naturalisation, so it has no comparison control.
+  const vetting = pathway(
+    {
+      ...naturalisationDraft,
+      citizenship: {
+        ...naturalisationDraft.citizenship,
+        vetting: 'outstanding',
+      },
+    },
+    'IE-NATURALISATION',
+  );
+  expect(vetting.status).toBe('MET');
+  expect(vetting.checks.find((c) => c.id === 'IE-A03')?.kind).toBe(
+    'information',
+  );
+  expect(ie.whatif.focusForRule('IE-A03', vetting.id)).toBeUndefined();
+  expect(Object.keys(ie.whatif.focusControls)).not.toContain('vetting');
+  for (const check of [...route.checks, ...vetting.checks])
+    expect(check.kind, check.id).toBeDefined();
 });

@@ -3606,3 +3606,54 @@ test('both locales expose the same stable path and check IDs, with explanations 
     }
   }
 });
+
+describe('Ireland check kinds', () => {
+  test('checks that do not decide the pathway are procedural information', () => {
+    const naturalisation = result('IE-NATURALISATION', {
+      citizenship: { ...citizen, vetting: 'outstanding' },
+    });
+    expect(naturalisation.status).toBe('MET');
+    expect(checkOf(naturalisation.checks, 'A03')).toMatchObject({
+      status: 'NOT_MET',
+      kind: 'information',
+    });
+    for (const id of ['A09', 'A10', 'A11', 'A12'])
+      expect(checkOf(naturalisation.checks, id)?.kind, id).toBe('information');
+    for (const id of ['A01', 'A04', 'NAT-CONTINUOUS', 'NAT-PRIOR'])
+      expect(checkOf(naturalisation.checks, id)?.kind, id).toBe('requirement');
+
+    // The legacy Stamp 1G clock is shown for reference only (task 89, review89-2).
+    const independent = result('IE-STAMP4-INDEPENDENT-FAMILY', {
+      permissions: [{ kind: 'stamp4', from: '2019-01-01' }],
+      family: {
+        relationship: 'spouse',
+        establishedFamilyPermission: true,
+        sponsorLawfulAndResident: true,
+        dependentPeriods: [{ from: '2019-01-01' }],
+        nextRenewalOn: '2026-12-20',
+      },
+    });
+    expect(independent).toMatchObject({
+      status: 'FUTURE',
+      earliestDate: '2026-12-20',
+    });
+    expect(checkOf(independent.checks, 'FAMILY-LEGACY-TIME')).toMatchObject({
+      status: 'NOT_MET',
+      kind: 'information',
+    });
+    expect(checkOf(independent.checks, 'B12')?.kind).toBe('requirement');
+
+    // C08 decides an LTR renewal but is only information on a first application.
+    const request = { permissions: [{ kind: 'stamp4', from: '2021-12-01' }], ltr } satisfies Partial<IrelandFullRequest>;
+    expect(checkOf(result('IE-LTR-PRINCIPAL', request).checks, 'C08')?.kind).toBe('information');
+    expect(
+      checkOf(
+        result('IE-LTR-PRINCIPAL', {
+          ...request,
+          registration: { ...registration, stage: 'renewal' },
+        }).checks,
+        'C08',
+      )?.kind,
+    ).toBe('requirement');
+  });
+});

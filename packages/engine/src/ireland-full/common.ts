@@ -103,6 +103,8 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
             )
           : title),
       sources: meta.sources,
+      // Display metadata only: a check outside the pathway status is information.
+      kind: requirement ? 'requirement' : 'information',
       ...(met === undefined && pendingDetails?.length
         ? { pendingDetails }
         : {}),
@@ -151,6 +153,7 @@ export function assessment(day: IsoDate, locale: Locale | undefined) {
               : 'Stamp 4 upgrades: Eligibility criteria',
           },
         ],
+        kind: affectsEligibility ? 'requirement' : 'information',
         ...(previous?.met === undefined && unknownPds[index]?.length
           ? { pendingDetails: unknownPds[index] }
           : {}),

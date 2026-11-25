@@ -3,24 +3,13 @@
 import type { TranslationKey } from '../../../i18n';
 import { useTranslation } from '../../../i18n/locale';
 import type { IrelandDraft } from '../../../lib/ireland-draft';
-import {
-  FAMILY_PATHS,
-  NATURALISATION_PATHS,
-  WORK_PATHS,
-} from '../../../lib/ireland-fields';
+import { FAMILY_PATHS, WORK_PATHS } from '../../../lib/ireland-fields';
 import {
   irelandFocusControls as ids,
   type IrelandWhatIf,
 } from '../../../lib/ireland-whatif';
 import type { WhatIfControlsProps } from '../../../lib/whatif';
 import styles from '../../uk/whatif/whatif.module.css';
-
-const vettingOptions = [
-  'completed',
-  'authorised',
-  'outstanding',
-  'pending-review',
-] as const;
 
 export function IrelandWhatIfControls({
   afterDraft,
@@ -89,28 +78,6 @@ export function IrelandWhatIfControls({
       {has(WORK_PATHS) &&
         date('employment', 'employmentStart', 'ie.whatif.employmentStart')}
       {date('irp', 'irpExpiresOn', 'ie.whatif.irpExpiresOn')}
-      {has(NATURALISATION_PATHS) && (
-        <div className={styles.field}>
-          <label htmlFor={ids.vetting}>{t('ie.whatif.vetting')}</label>
-          <select
-            id={ids.vetting}
-            value={knobs.vetting ?? ''}
-            onChange={(e) =>
-              update({
-                vetting: (e.target.value ||
-                  undefined) as IrelandWhatIf['vetting'],
-              })
-            }
-          >
-            <option value="">{t('ie.form.unknown')}</option>
-            {vettingOptions.map((option) => (
-              <option key={option} value={option}>
-                {t(`ie.option.vetting.${option}`)}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
       {has(FAMILY_PATHS) && (
         <div className={styles.field}>
           <label htmlFor={ids.income}>{t('ie.whatif.income')}</label>

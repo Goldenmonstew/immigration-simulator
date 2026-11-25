@@ -269,7 +269,7 @@ test('English mobile questionnaire, results and policy sources for naturalisatio
     .first()
     .click();
   await expect(page.locator('#ie-whatif-date')).toHaveValue('2026-11-23');
-  await expect(page.locator('#ie-whatif-vetting')).toBeVisible();
+  await expect(page.locator('#ie-whatif-irp')).toBeVisible();
   await noHorizontalScroll(page);
 
   await page.goto(path('policy'));

@@ -39,18 +39,22 @@ function run(draft: IrelandDraft, locale: Locale) {
     // Checks without their own explanation repeat the condition title. Time
     // checks keep their sentence as the explanation under a short title.
     for (const check of pathway.checks) {
-      if (check.explanation !== check.title) continue;
       const short = irelandTimeRuleTitles[check.id];
-      if (short) check.title = t(short, locale);
-      else
-        check.explanation = t(
-          check.status === 'MET'
-            ? 'ie.result.checkMet'
-            : check.status === 'NOT_MET'
-              ? 'ie.result.checkNotMet'
-              : 'ie.result.checkUnknown',
-          locale,
-        );
+      if (check.explanation === check.title) {
+        if (short) check.title = t(short, locale);
+        else
+          check.explanation = t(
+            check.status === 'MET'
+              ? 'ie.result.checkMet'
+              : check.status === 'NOT_MET'
+                ? 'ie.result.checkNotMet'
+                : 'ie.result.checkUnknown',
+            locale,
+          );
+      }
+      // The earlier Stamp 1G clock is shown for reference only (task 89).
+      if (check.id === 'IE-FAMILY-LEGACY-TIME')
+        check.explanation = `${t('ie.result.legacyReference', locale)} ${check.explanation}`;
     }
   }
   return result;

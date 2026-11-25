@@ -1,4 +1,3 @@
-import type { IrelandCitizenship } from '@uk-immigration/engine';
 import { IrelandWhatIfControls } from '../app/ireland/whatif/controls';
 import type { TranslationKey } from '../i18n';
 import {
@@ -15,7 +14,6 @@ export interface IrelandWhatIf {
   noTrips: boolean;
   employmentStart?: string;
   irpExpiresOn?: string;
-  vetting?: NonNullable<IrelandCitizenship['vetting']>;
   /** Gross income for the latest tax year; blank keeps the questionnaire figures. */
   income?: number;
 }
@@ -25,7 +23,6 @@ export const irelandFocusControls = {
   trips: 'ie-whatif-trips',
   employment: 'ie-whatif-employment',
   irp: 'ie-whatif-irp',
-  vetting: 'ie-whatif-vetting',
   income: 'ie-whatif-income',
 };
 
@@ -34,7 +31,6 @@ const focusByCondition: Record<string, keyof typeof irelandFocusControls> = {
   'IE-NAT-PRIOR': 'date',
   'IE-SPOUSE-MARRIAGE': 'date',
   'IE-WCATT-TIME': 'date',
-  'IE-FAMILY-LEGACY-TIME': 'date',
   'IE-B12': 'date',
   'IE-C01': 'date',
   'IE-D03': 'date',
@@ -42,7 +38,6 @@ const focusByCondition: Record<string, keyof typeof irelandFocusControls> = {
   'IE-NAT-ABSENCES': 'trips',
   'IE-STAMP4-WORK-TIME': 'employment',
   'IE-IRP-RENEWAL-WINDOW': 'irp',
-  'IE-A03': 'vetting',
   'IE-B17': 'income',
 };
 
@@ -68,7 +63,6 @@ export const irelandWhatIf: CountryWhatIf<IrelandDraft, IrelandWhatIf> = {
       noTrips: false,
       employmentStart: draft.employmentStart,
       irpExpiresOn: draft.registration?.irpExpiresOn,
-      vetting: draft.citizenship?.vetting,
       income: draft.family?.application?.grossTaxYears?.at(-1),
     };
   },
@@ -86,12 +80,6 @@ export const irelandWhatIf: CountryWhatIf<IrelandDraft, IrelandWhatIf> = {
     };
     if (draft.employmentStart !== knobs.employmentStart)
       next.employmentStart = knobs.employmentStart || undefined;
-    if (draft.citizenship?.vetting !== knobs.vetting)
-      next.citizenship = withAnswer(
-        draft.citizenship,
-        'vetting',
-        knobs.vetting,
-      );
     const application = draft.family?.application;
     const years = application?.grossTaxYears;
     if (knobs.income !== undefined && knobs.income !== years?.at(-1))

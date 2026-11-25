@@ -23,7 +23,8 @@ export const zhCN = {
   'ie.policy.rule.natPrior': '此前回溯期内累计居住',
   'ie.policy.rule.spouseMarriage': '婚姻或民事伴侣满年限',
   'ie.policy.rule.stamp4WorkTime': '就业 Stamp 4 升级所需受雇时间',
-  'ie.policy.rule.familyLegacyTime': '原 Stamp 1G／Stamp 3 家庭团聚时间',
+  'ie.policy.rule.familyLegacyTime':
+    '原 Stamp 1G／Stamp 3 家庭团聚时间（旧计时参考）',
   'ie.policy.rule.wcattTime': 'Stamp 5 合格许可时间',
   'ie.policy.change.family2026': '家庭团聚政策 2026 年 6 月版',
   'ie.policy.change.family2026Summary':
@@ -41,6 +42,7 @@ export const zhCN = {
     '请返回问卷，完成所选路径的必填项目后再查看结果。',
   'ie.result.projected':
     '这是按所填资料推算的日期：届时请确认雇主信、IRP 卡等材料仍在有效期内，并用实际递交日和更新后的材料重新计算。',
+  'ie.result.legacyReference': '旧计时参考，不影响本路径结论。',
   'ie.result.checkMet': '按所填资料满足。',
   'ie.result.checkNotMet': '按所填资料不满足。',
   'ie.result.checkUnknown': '还缺少可以确认这一项的资料。',
@@ -56,7 +58,6 @@ export const zhCN = {
   'ie.whatif.noTrips': '假设没有出境记录',
   'ie.whatif.employmentStart': '在爱尔兰凭就业许可开始工作的日期',
   'ie.whatif.irpExpiresOn': '现有 IRP 卡到期日',
-  'ie.whatif.vetting': 'Garda e-vetting 状态',
   'ie.whatif.income': '担保人最近一个税年税前收入（€）',
   'ie.whatif.incomeHint': '替换问卷中最近一个税年的数字；留空则沿用问卷资料。',
   'ie.whatif.invalid': '对比后的资料有未通过问卷校验的项目，请先核对问卷。',
@@ -88,7 +89,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.policy.rule.spouseMarriage': 'Length of marriage or civil partnership',
   'ie.policy.rule.stamp4WorkTime': 'Employment period for a work Stamp 4',
   'ie.policy.rule.familyLegacyTime':
-    'Time on Stamp 1G or Stamp 3 under family reunification',
+    'Time on Stamp 1G or Stamp 3 under family reunification (legacy reference)',
   'ie.policy.rule.wcattTime': 'Qualifying permission period for Stamp 5',
   'ie.policy.change.family2026': 'Family reunification policy, June 2026',
   'ie.policy.change.family2026Summary':
@@ -107,6 +108,8 @@ export const en: Record<keyof typeof zhCN, string> = {
     'Return to the questionnaire and complete the required fields for your pathways before viewing results.',
   'ie.result.projected':
     'This date is projected from your answers. Check that documents such as the employer’s letter and IRP card will still be valid then, and work it out again with the actual filing date and updated documents.',
+  'ie.result.legacyReference':
+    'Legacy timing for reference only; it does not affect this pathway.',
   'ie.result.checkMet': 'Met on your answers.',
   'ie.result.checkNotMet': 'Not met on your answers.',
   'ie.result.checkUnknown': 'More information is needed to confirm this.',
@@ -123,7 +126,6 @@ export const en: Record<keyof typeof zhCN, string> = {
   'ie.whatif.employmentStart':
     'Date you started work in Ireland on the employment permit',
   'ie.whatif.irpExpiresOn': 'Expiry on your current IRP',
-  'ie.whatif.vetting': 'Garda e-vetting status',
   'ie.whatif.income': 'Sponsor’s gross income in the latest tax year (€)',
   'ie.whatif.incomeHint':
     'Replaces the latest tax year in the questionnaire. Leave blank to keep your answers.',
