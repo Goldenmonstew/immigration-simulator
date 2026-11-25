@@ -41,6 +41,7 @@ const pagesByCountry: Partial<Record<CountryId, string[]>> = {
   uk: [...calculatorPages, 'about', 'game'],
   au: calculatorPages,
   ca: calculatorPages,
+  pt: calculatorPages,
   nz: calculatorPages,
   jp: [...calculatorPages, 'game'],
   gr: calculatorPages,
