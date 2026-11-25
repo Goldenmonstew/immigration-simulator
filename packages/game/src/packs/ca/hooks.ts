@@ -15,7 +15,7 @@ import { caBalance as b } from './balance';
 import { caCharacters } from './characters';
 import {
   caRules,
-  pathwayOf,
+  filingToday,
   readyToFile,
   type CaEffect,
   type CaFestival,
@@ -117,17 +117,17 @@ export function actionAvailable(
       // A new request once an endorsement has lapsed unused.
       return (
         !flags.includes('endorsement-requested') &&
-        (!atlantic?.endorsement || atlantic.endorsement.expires < state.date)
+        (!atlantic?.endorsement ||
+          atlantic.endorsement.expires < state.day.date)
       );
     case 'police-request':
       return !flags.includes('police-requested');
     case 'exam':
-      // Retake once a result is no longer valid for filing (SRC-270).
+      // Retake once a result is no longer valid for filing today (SRC-270).
       return (
         (!flags.includes('language-tested') ||
-          pathwayOf(state.result, 'CA-AIP')?.checks.find(
-            (check) => check.id === 'CA-R58',
-          )?.status === 'NOT_MET') &&
+          filingToday(state)?.checks.find((check) => check.id === 'CA-R58')
+            ?.status === 'NOT_MET') &&
         affordable(state, action.effects)
       );
     case 'tax-return':
@@ -168,6 +168,13 @@ export function actionDetails(state: CaState, action: CaActivity): void {
       `In-game civics ${state.stats.civics} / ${b.civicsTestScore}.`,
     );
   }
+}
+
+/** A story that ends in town is assessed on its last day. */
+export function beforeAction(state: CaState, action: CaActivity): void {
+  if (!action.effects.some((effect) => effect.type === 'ending')) return;
+  state.timeline.endedOn = state.day.date;
+  state.result = caRules.evaluate(state);
 }
 
 export function actionFlags(action: CaActivity): string[] | undefined {
@@ -332,7 +339,10 @@ export function nextStep(state: CaState): Text | undefined {
     );
   else if (flags.includes('endorsement-requested'))
     steps.push(t('等省担保信寄到', 'wait for the endorsement letter'));
-  else if (!atlantic.endorsement || atlantic.endorsement.expires < state.date)
+  else if (
+    !atlantic.endorsement ||
+    atlantic.endorsement.expires < state.day.date
+  )
     steps.push(
       t(
         '请医院人事部申请省担保',

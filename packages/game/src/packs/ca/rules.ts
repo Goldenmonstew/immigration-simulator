@@ -30,6 +30,14 @@ export type CaTimeline = Answers & {
   annualIncome: number;
   /** The current job, recorded as work experience up to the day before. */
   job?: Omit<WorkPeriod, 'to'>;
+  /**
+   * The day the player signed for citizenship, took the oath or filed the
+   * Atlantic application. Each joins the answers from that day (caRequest), so
+   * the quarter's assessment, made on its first day, takes it next quarter.
+   */
+  filed?: { citizenship?: IsoDate; oath?: IsoDate; aip?: IsoDate };
+  /** The day the story ended in town; the last assessment is made then. */
+  endedOn?: IsoDate;
 };
 export type CaFestival =
   'heritage-day' | 'victoria-day' | 'canada-day' | 'thanksgiving';
@@ -65,9 +73,22 @@ export const aipFee = fees.economicAdult + fees.right + fees.biometric;
 export const citizenshipFee =
   values.citAdultProcessingFee.value + values.citRightFee.value;
 
-const gameFields = ['goals', 'arrived', 'document', 'annualIncome', 'job'];
+const gameFields = [
+  'goals',
+  'arrived',
+  'document',
+  'annualIncome',
+  'job',
+  'filed',
+  'endedOn',
+];
 
-/** The engine request for this timeline on a date, without the locale. */
+/**
+ * The engine request for this timeline on a date, without the locale. What
+ * the player did on a later day (a CELPIP result, a signing, an oath or a
+ * filing) is left out, so the game and its result page link read the same
+ * answers.
+ */
 export function caRequest(
   timeline: CaTimeline,
   date: IsoDate,
@@ -75,22 +96,65 @@ export function caRequest(
   const answers = Object.fromEntries(
     Object.entries(timeline).filter(([key]) => !gameFields.includes(key)),
   ) as Answers;
-  const { job } = timeline;
-  return {
+  const { job, filed = {} } = timeline;
+  const by = (day?: IsoDate): day is IsoDate => !!day && day <= date;
+  const request: Omit<CaFullRequest, 'locale'> = {
     ...answers,
-    ...(job &&
-      answers.atlantic && {
-        atlantic: {
-          ...answers.atlantic,
-          workHistory: [{ ...job, to: addDays(date, -1) }],
-        },
-      }),
     simulationDate: date,
   };
+  if (answers.atlantic) {
+    const { language, ...atlantic } = answers.atlantic;
+    request.atlantic = {
+      ...atlantic,
+      ...(by(language?.resultDate) && { language }),
+      ...(job && { workHistory: [{ ...job, to: addDays(date, -1) }] }),
+      ...(by(filed.aip) && { applicationDate: filed.aip }),
+    };
+  }
+  if (by(filed.citizenship))
+    request.residence = {
+      ...request.residence,
+      signingDate: filed.citizenship,
+      citizenshipFeesPaid: true,
+    };
+  if (by(filed.oath))
+    request.residence = {
+      ...request.residence,
+      oath: 'taken',
+      grantDate: filed.oath,
+      stillEligibleAtGrant: true,
+    };
+  if (by(filed.aip))
+    request.federal = {
+      ...request.federal,
+      // The game gives biometrics at the service centre with the filing.
+      principal: {
+        ...request.federal?.principal,
+        biometrics: 'provided-for-pr',
+      },
+      applications: {
+        'CA-AIP': {
+          filedOn: filed.aip,
+          signed: true,
+          allFamilyDeclared: true,
+          changesReported: true,
+          validIdentityAndTravelDocuments: true,
+          applicationEvidenceComplete: true,
+          processingFeesPaid: true,
+          paymentOn: filed.aip,
+          biometricPayers: 1,
+          amountPaidIncludingBiometrics: aipFee,
+        },
+      },
+    };
+  return request;
 }
 
 const evaluate = (timeline: CaTimeline, date: IsoDate, locale: Locale) =>
   evaluateCanadaFull({ ...caRequest(timeline, date), locale });
+/** The quarter's first day, or the day a story ended in town. */
+export const assessedOn = (state: { date: IsoDate; timeline: CaTimeline }) =>
+  state.timeline.endedOn ?? state.date;
 
 export const pathwayOf = (
   result: CaFullResult,
@@ -100,41 +164,18 @@ export const pathwayOf = (
 export const columnPathway = (timeline: CaTimeline, column: CaColumn) =>
   column === 'pr' ? timeline.goals[0] : timeline.goals[1];
 
+const filing = (timeline: CaTimeline) =>
+  timeline.goals[0] === 'CA-AIP' ? 'aip' : 'citizenship';
+
 /** The timeline as if the application were filed (or signed) today. */
 export function filedToday(state: CaState): CaTimeline {
-  const timeline = structuredClone(state.timeline);
-  const date = state.date;
-  if (timeline.goals[0] === 'CA-AIP') {
-    timeline.atlantic = { ...timeline.atlantic, applicationDate: date };
-    timeline.federal = {
-      ...timeline.federal,
-      // The game gives biometrics at the service centre with the filing.
-      principal: {
-        ...timeline.federal?.principal,
-        biometrics: 'provided-for-pr',
-      },
-      applications: {
-        'CA-AIP': {
-          filedOn: date,
-          signed: true,
-          allFamilyDeclared: true,
-          changesReported: true,
-          validIdentityAndTravelDocuments: true,
-          applicationEvidenceComplete: true,
-          processingFeesPaid: true,
-          paymentOn: date,
-          biometricPayers: 1,
-          amountPaidIncludingBiometrics: aipFee,
-        },
-      },
-    };
-  } else
-    timeline.residence = {
-      ...timeline.residence,
-      signingDate: date,
-      citizenshipFeesPaid: true,
-    };
-  return timeline;
+  return {
+    ...state.timeline,
+    filed: {
+      ...state.timeline.filed,
+      [filing(state.timeline)]: state.day.date,
+    },
+  };
 }
 
 /**
@@ -145,16 +186,24 @@ const afterFiling: Record<string, string> = {
   'CA-CITIZENSHIP': 'CA-R11',
   'CA-AIP': 'CA-R24',
 };
+/**
+ * The character's route if filed (or signed) today, assessed on the day, so
+ * day counts and document validity are checked for that day.
+ */
+export function filingToday(state: CaState, locale: Locale = state.locale) {
+  return pathwayOf(
+    evaluate(filedToday(state), state.day.date, locale),
+    filing(state.timeline) === 'aip' ? 'CA-AIP' : 'CA-CITIZENSHIP',
+  );
+}
 /** Whether every requirement except the post-filing step is met if filed today. */
 export function readyToFile(state: CaState, locale: Locale = state.locale) {
-  const id = state.timeline.goals[0] === 'CA-AIP' ? 'CA-AIP' : 'CA-CITIZENSHIP';
-  const pathway = pathwayOf(
-    evaluate(filedToday(state), state.date, locale),
-    id,
-  );
+  const pathway = filingToday(state, locale);
   return !!pathway?.checks.every(
     (check) =>
-      check.advisory || check.status === 'MET' || check.id === afterFiling[id],
+      check.advisory ||
+      check.status === 'MET' ||
+      check.id === afterFiling[pathway.id],
   );
 }
 
@@ -225,7 +274,8 @@ export const caRules: EvaluationAdapter<
   CaOutcome,
   CaFestival
 > = {
-  evaluate: ({ date, timeline, locale }) => evaluate(timeline, date, locale),
+  evaluate: (state) =>
+    evaluate(state.timeline, assessedOn(state), state.locale),
   progress,
   route: (state) => state.timeline.goals[0],
   visaMonthsLeft,
@@ -267,7 +317,7 @@ export const caRules: EvaluationAdapter<
         );
         atlantic.language = {
           test: 'CELPIP-General',
-          resultDate: date,
+          resultDate: state.day.date,
           levels: {
             listening: level,
             speaking: level,
@@ -315,7 +365,7 @@ export const caRules: EvaluationAdapter<
         setFlags(state, ['police-certificate']);
         return true;
       case 'signCitizenship':
-        Object.assign(residence, filedToday(state).residence);
+        state.timeline.filed = filedToday(state).filed;
         setFlags(state, ['cit-applied', 'quarter-cit-applied']);
         return true;
       case 'citizenshipTest':
@@ -324,18 +374,14 @@ export const caRules: EvaluationAdapter<
           setFlags(state, ['cit-test-passed', 'quarter-cit-test-passed']);
         return true;
       case 'oath':
-        Object.assign(residence, {
-          oath: 'taken',
-          grantDate: date,
-          stillEligibleAtGrant: true,
-        });
+        state.timeline.filed = {
+          ...state.timeline.filed,
+          oath: state.day.date,
+        };
         return true;
-      case 'fileAip': {
-        const filed = filedToday(state);
-        state.timeline.atlantic = filed.atlantic;
-        state.timeline.federal = filed.federal;
+      case 'fileAip':
+        state.timeline.filed = filedToday(state).filed;
         return true;
-      }
     }
   },
 };

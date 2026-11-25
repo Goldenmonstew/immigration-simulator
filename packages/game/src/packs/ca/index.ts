@@ -52,6 +52,7 @@ export const caGameContent: GameContentPack<
   actionAvailable: hooks.actionAvailable,
   actionDetails: hooks.actionDetails,
   actionFlags: hooks.actionFlags,
+  beforeAction: hooks.beforeAction,
   afterAction: hooks.afterAction,
   afterActionAwards: hooks.afterActionAwards,
   afterQuarter: hooks.afterQuarter,
@@ -115,10 +116,12 @@ export const { nextStep } = hooks;
 export { caCharacters, caRules };
 export {
   aipFee,
+  assessedOn,
   caRequest,
   citizenshipFee,
   columnPathway,
   filedToday,
+  filingToday,
   pathwayOf,
   readyToFile,
   type CaColumn,

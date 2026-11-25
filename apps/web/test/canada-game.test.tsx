@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
-import type { Locale } from '@uk-immigration/engine';
+import type { CountryPathway, Locale } from '@uk-immigration/engine';
 import * as ca from '@uk-immigration/game/ca';
 import { caGameArt } from '@uk-immigration/game/ca/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
@@ -76,6 +76,25 @@ test.each(['citizen', 'graduate'])(
     );
   },
 );
+
+test('a story that ends in town opens on the result page as of its last day', () => {
+  const opening = settle(ca.newGame('graduate', 4, 'en'));
+  opening.stats.english = 65;
+  const at = (state: State, place: string) =>
+    settle(ca.enter({ ...state, day: { ...state.day, minute: 600 } }, place));
+  // CELPIP on the first workday, then leave Canada the same day.
+  const tested = ca.doActivity(at(opening, 'college'), 'exam');
+  const left = ca.doActivity(at(settle(tested), 'station'), 'leave');
+  expect(left.ending).toBe('left');
+  const draft = gameDraft(left);
+  expect(draft.simulationDate).toBe('2026-03-10');
+  expect(draft.answers.atlantic?.language?.resultDate).toBe('2026-03-10');
+  const checks = (result: { columns: { pathways: CountryPathway[] }[] }) =>
+    result.columns[0].pathways
+      .find(({ id }) => id === 'CA-AIP')!
+      .checks.map(({ id, status }) => [id, status]);
+  expect(checks(canadaModule.run(draft, 'en'))).toEqual(checks(left.result));
+});
 
 test.each(['zh-CN', 'en'] as const)(
   'the status bar, progress bars and assessment speak Canadian residence in %s',

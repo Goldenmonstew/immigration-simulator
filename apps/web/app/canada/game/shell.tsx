@@ -66,7 +66,7 @@ export function itemIcon(id: string) {
 export function gameDraft(state: CaState): CanadaDraft {
   const { simulationDate, ...answers } = caGame.caRequest(
     state.timeline,
-    state.date,
+    caGame.assessedOn(state),
   );
   const draft: CanadaDraft = {
     ...createCanadaDraft(),
@@ -84,7 +84,7 @@ const assessment = (state: CaState, idPrefix: string) => (
   <CountryAssessmentColumns
     country={canadaModule}
     result={canadaModule.run(gameDraft(state), state.locale)}
-    simulationDate={state.date}
+    simulationDate={caGame.assessedOn(state)}
     idPrefix={idPrefix}
   />
 );

@@ -40,6 +40,14 @@ function visit(state: State, place: string, minute: number) {
     state = settle(ca.tick(state, minute - state.day.minute));
   return settle(ca.enter(state, place));
 }
+/** Jump to a later quarter, its assessment and its playable workday. */
+function jump(from: State, date: string, day: string) {
+  const state = structuredClone(from);
+  state.date = date;
+  state.day = { ...state.day, date: day, minute: 540, done: [] };
+  state.result = ca.caRules.evaluate(state);
+  return state;
+}
 const ids = (state: State, place: string) =>
   ca.activities(state, place).map(({ id }) => id);
 const unmet = (state: State, id: Parameters<typeof ca.pathwayOf>[1]) =>
@@ -144,11 +152,11 @@ test('a trip home delays citizenship, and a JSON save continues the same quarter
   expect(nextQuarter(restored)).toEqual(played);
 });
 
-test('the Atlantic route: offer, settlement plan, endorsement, test, certificate, then filing', () => {
+/** The graduate's Atlantic papers, all asked for on the first workday. */
+function atlanticPapers() {
   let state = settle(ca.newGame('graduate', 5, 'en'));
   Object.assign(state.stats, { career: 45, english: 65, money: 9_000 });
   state = settle(ca.doActivity(visit(state, 'work', 600), 'permanent-post'));
-  expect(state.timeline.atlantic?.offer).toMatchObject({ teer: 3 });
   state = settle(
     ca.doActivity(visit(state, 'newcomer', 620), 'settlement-plan'),
   );
@@ -156,7 +164,12 @@ test('the Atlantic route: offer, settlement plan, endorsement, test, certificate
     ca.doActivity(visit(state, 'work', 700), 'endorsement-request'),
   );
   state = settle(ca.doActivity(visit(state, 'library', 800), 'police-request'));
-  state = settle(ca.doActivity(visit(state, 'college', 900), 'exam'));
+  return settle(ca.doActivity(visit(state, 'college', 900), 'exam'));
+}
+
+test('the Atlantic route: offer, settlement plan, endorsement, test, certificate, then filing', () => {
+  const state = atlanticPapers();
+  expect(state.timeline.atlantic?.offer).toMatchObject({ teer: 3 });
   expect(state.timeline.atlantic?.language?.levels).toEqual({
     listening: values.atlanticWork.value.higherLanguage,
     speaking: values.atlanticWork.value.higherLanguage,
@@ -186,6 +199,9 @@ test('the Atlantic route: offer, settlement plan, endorsement, test, certificate
   const ended = ca.doActivity(office, 'settle');
   expect(ended.ending).toBe('settled');
   expect(ended.stats.money).toBe(office.stats.money - fee);
+  // Filed on the workday; the story's last assessment is as of that day.
+  expect(ended.timeline.filed).toEqual({ aip: '2026-06-09' });
+  expect(ended.timeline.endedOn).toBe('2026-06-09');
   // IRCC instructs the medical exam after receipt (SRC-266).
   expect(unmet(ended, 'CA-AIP')).toEqual(['CA-R24']);
   expect(ca.narrative(ended).at(-1)).toEqual(
@@ -194,25 +210,23 @@ test('the Atlantic route: offer, settlement plan, endorsement, test, certificate
 });
 
 test('citizenship: sign when the days are in, pass the test, then take the oath', () => {
-  const state = settle(ca.newGame('citizen', 5, 'en'));
-  state.date = '2027-06-01';
-  state.result = ca.caRules.evaluate(state);
-  expect(ca.readyToFile(state)).toBe(false);
-  state.date = '2027-09-01';
-  state.result = ca.caRules.evaluate(state);
+  const opening = settle(ca.newGame('citizen', 5, 'en'));
+  expect(ca.readyToFile(jump(opening, '2027-06-01', '2027-06-15'))).toBe(false);
+  const state = jump(opening, '2027-09-01', '2027-09-14');
   expect(ca.readyToFile(state)).toBe(true);
   const office = visit(state, 'visa', 600);
   expect(ids(office, 'visa')).toEqual(['apply-citizenship']);
   const signed = settle(ca.doActivity(office, 'apply-citizenship'));
   const fee = values.citAdultProcessingFee.value + values.citRightFee.value;
   expect(signed.stats.money).toBe(office.stats.money - fee);
-  expect(signed.timeline.residence).toMatchObject({
-    signingDate: '2027-09-01',
-    citizenshipFeesPaid: true,
-  });
-  expect(unmet(signed, 'CA-CITIZENSHIP')).toEqual(['CA-R11']);
+  expect(signed.timeline.filed).toEqual({ citizenship: '2027-09-14' });
 
   const invited = nextQuarter(signed);
+  expect(ca.caRequest(invited.timeline, invited.date).residence).toMatchObject({
+    signingDate: '2027-09-14',
+    citizenshipFeesPaid: true,
+  });
+  expect(unmet(invited, 'CA-CITIZENSHIP')).toEqual(['CA-R11']);
   invited.stats.civics = 40;
   const failed = settle(ca.doActivity(visit(invited, 'visa', 600), 'cit-test'));
   expect(failed.timeline.residence?.test).toEqual({ outcome: 'retry' });
@@ -225,18 +239,67 @@ test('citizenship: sign when the days are in, pass the test, then take the oath'
   expect(ids(ceremony, 'visa')).toEqual(['oath']);
   const ended = ca.doActivity(ceremony, 'oath');
   expect(ended.ending).toBe('settled');
-  expect(ended.timeline.residence).toMatchObject({
+  expect(ended.timeline.endedOn).toBe('2028-03-14');
+  const request = ca.caRequest(ended.timeline, '2028-03-14');
+  expect(request.residence).toMatchObject({
     oath: 'taken',
-    grantDate: '2028-03-01',
+    grantDate: '2028-03-14',
   });
-  const engine = evaluateCanadaFull({
-    ...ca.caRequest(ended.timeline, ended.date),
-    locale: 'en',
-  });
+  expect(ca.pathwayOf(ended.result, 'CA-CITIZENSHIP')?.status).toBe('MET');
+  const engine = evaluateCanadaFull({ ...request, locale: 'en' });
   expect(ca.pathwayOf(engine, 'CA-CITIZENSHIP')?.status).toBe('MET');
   expect(ca.narrative(ended).at(-1)).toEqual(
     ca.characterOf('citizen').settlement,
   );
+});
+
+test('what the player does on a day carries that day and joins the next quarter', () => {
+  // CELPIP on the first workday, 2026-03-10.
+  const graduate = atlanticPapers();
+  expect(graduate.timeline.atlantic?.language?.resultDate).toBe('2026-03-10');
+  expect(
+    ca.caRequest(graduate.timeline, graduate.date).atlantic?.language,
+  ).toBeUndefined();
+  expect(
+    ca.caRequest(graduate.timeline, '2026-06-01').atlantic?.language
+      ?.resultDate,
+  ).toBe('2026-03-10');
+
+  const citizen = jump(
+    settle(ca.newGame('citizen', 5, 'en')),
+    '2027-09-01',
+    '2027-09-14',
+  );
+  const signed = settle(
+    ca.doActivity(visit(citizen, 'visa', 600), 'apply-citizenship'),
+  );
+  // The quarter's assessment, as of 2027-09-01, is still before the signing.
+  expect(
+    ca.caRequest(signed.timeline, signed.date).residence?.signingDate,
+  ).toBeUndefined();
+  expect(unmet(signed, 'CA-CITIZENSHIP')).toEqual(['CA-R11', 'CA-R17']);
+});
+
+test('day-count limits are checked on the day itself', () => {
+  // The 1,095 days are met from 2027-06-22 (SRC-074 s.5(1)(c)(i)).
+  const citizen = settle(ca.newGame('citizen', 5, 'en'));
+  expect(ca.readyToFile(jump(citizen, '2027-06-01', '2027-06-21'))).toBe(false);
+  expect(ca.readyToFile(jump(citizen, '2027-06-01', '2027-06-22'))).toBe(true);
+
+  // The CELPIP result of 2026-03-10 is too old to file with two years on
+  // (SRC-270), so it can be retaken.
+  const papers = atlanticPapers();
+  const college = (date: string, day: string) =>
+    ids(visit(jump(papers, date, day), 'college', 600), 'college');
+  expect(college('2028-03-01', '2028-03-09')).not.toContain('exam');
+  expect(college('2028-03-01', '2028-03-14')).toContain('exam');
+
+  // The endorsement runs to 2026-12-01; HR can ask again once it lapses.
+  const next = nextQuarter(papers);
+  const work = (day: string) =>
+    ids(visit(jump(next, '2026-12-01', day), 'work', 600), 'work');
+  expect(work('2026-12-01')).not.toContain('endorsement-request');
+  expect(work('2026-12-08')).toContain('endorsement-request');
 });
 
 test('a lapsed work permit ends the story', () => {
