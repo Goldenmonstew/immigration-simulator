@@ -2,7 +2,7 @@ import type { TranslationKey } from '../i18n';
 
 export const siteCountries = [
   { id: 'uk', slug: 'uk', nameKey: 'uk.name', hasGame: true },
-  { id: 'au', slug: 'australia', nameKey: 'au.name', hasGame: false },
+  { id: 'au', slug: 'australia', nameKey: 'au.name', hasGame: true },
   { id: 'nz', slug: 'new-zealand', nameKey: 'nz.name', hasGame: false },
   { id: 'ca', slug: 'canada', nameKey: 'ca.name', hasGame: false },
   { id: 'us', slug: 'united-states', nameKey: 'us.name', hasGame: false },
@@ -40,7 +40,7 @@ const calculatorPages = ['', 'simulate', 'result', 'whatif', 'policy'];
 const pagesByCountry: Partial<Record<CountryId, string[]>> = {
   uk: [...calculatorPages, 'about', 'game'],
   es: calculatorPages,
-  au: calculatorPages,
+  au: [...calculatorPages, 'game'],
   ie: calculatorPages,
   ca: calculatorPages,
   pt: calculatorPages,

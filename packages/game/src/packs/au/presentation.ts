@@ -1,0 +1,35 @@
+// Keep the asset manifest separate from the engine and stories for the initial HTML.
+// Australia reuses the shared CC0 art; its own cast borrows existing residents.
+export const auGameArt = {
+  root: '/game',
+  town: '/assets/meadow-town',
+  banner: '/australia/town-banner.png',
+  townMap: '/australia/town.json',
+  homeMap: '/home.json',
+  defaultResident: 'skilled-worker',
+  residents: [] as string[],
+  cast: {
+    nurse: 'priya',
+    graduate: 'hong-kong-bno',
+    bev: 'margaret',
+    gazza: 'dave',
+    leilani: 'maeve',
+    rosa: 'helen',
+    sam: 'ade',
+    kai: 'ka-ning-child',
+    doug: 'gareth',
+    grace: 'lina',
+  } as Record<string, string>,
+  shopSigns: [
+    'cafe',
+    'shop',
+    'pub',
+    'gp',
+    'library',
+    'college',
+    'council',
+    'visa',
+    'station',
+  ],
+  crops: ['tomato', 'cucumber', 'corn', 'strawberry', 'potato', 'turnip'],
+};

@@ -1,9 +1,11 @@
 import { auFormZh, auFormEn } from './australia-form';
 import { auModuleZh, auModuleEn } from './australia-module';
+import { auGameZh, auGameEn } from './australia-game';
 
 export const zhCN = {
   ...auFormZh,
   ...auModuleZh,
+  ...auGameZh,
   'hub.au.code': 'AU',
   'hub.au.paths':
     '雇主担保 186 · 技术与创新 189 / 190 / 191 / 858 · 香港通道 · 配偶 · 返程 RRV · 入籍',
@@ -32,6 +34,7 @@ export const zhCN = {
 export const en: Record<keyof typeof zhCN, string> = {
   ...auFormEn,
   ...auModuleEn,
+  ...auGameEn,
   'hub.au.code': 'AU',
   'hub.au.paths':
     'ENS 186 · Skilled and Innovation 189 / 190 / 191 / 858 · HK streams · Partner · RRV · Citizenship',
