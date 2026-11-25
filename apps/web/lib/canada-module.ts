@@ -96,7 +96,10 @@ export const canadaModule: CountryModule<CanadaDraft, CanadaWhatIf> = {
   validateStep: validateCanadaStep,
   decodeDraft: decodeCanadaDraft,
   run,
-  earliestLabel: 'ca.result.earliest',
+  // The residency obligation's date is when it is met, not an application
+  // date. Citizenship checks every requirement on that signing day, so it
+  // keeps the shared earliest application date.
+  earliestLabel: { 'CA-RESIDENCY': 'ca.result.earliest' },
   whatif: canadaWhatIf,
   policy: canadaPolicy,
 };

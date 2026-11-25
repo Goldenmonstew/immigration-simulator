@@ -22,6 +22,7 @@ import {
   type CanadaField,
 } from '../lib/canada-fields';
 import { canadaModule as ca } from '../lib/canada-module';
+import { earliestLabelFor } from '../lib/country-module';
 import { gapRules } from '../lib/gap-summary';
 import { readPageResult } from '../lib/page-result';
 import { decodeDraft, encodeDraft } from '../lib/share';
@@ -1082,13 +1083,30 @@ test('skipping to the main content keeps the scenario fragment on Canadian scena
   navigation.pathname = null;
 });
 
-// The residency obligation's date is when it is met, not a filing date, so
-// both dated routes use a label that fits each of them.
+// The residency obligation's date is when it is met, not a filing date.
+// Citizenship checks every requirement on that signing day, so its date is
+// the shared earliest application date (review95-2).
 test.each(['zh-CN', 'en'] as const)(
   'the projected date is labelled as the date the requirements are met in %s',
   (locale) => {
-    expect(ca.earliestLabel).toBe('ca.result.earliest');
     expect(t('ca.result.earliest', locale)).toMatch(/\S/);
+    const citizenship = citizenshipDraft();
+    expect(
+      earliestLabelFor(
+        pathway(citizenship, 'CA-CITIZENSHIP'),
+        ca.earliestLabel,
+      ),
+    ).toBe('result.earliest');
+    const filing = render(
+      <ResultView
+        country={ca}
+        result={ca.run(citizenship, locale)}
+        draft={citizenship}
+      />,
+      locale,
+    );
+    expect(filing).toContain(`<dt>${t('result.earliest', locale)}</dt>`);
+    expect(filing).not.toContain(t('ca.result.earliest', locale));
     const draft = residencyDraft();
     const html = render(
       <ResultView country={ca} result={ca.run(draft, locale)} draft={draft} />,
