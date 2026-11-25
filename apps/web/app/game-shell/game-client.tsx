@@ -474,7 +474,8 @@ export function createGameClient<K extends GameKinds>(
         );
       if (overlay.kind === 'plot')
         return t('game.plot').replace('{count}', String(overlay.id + 1));
-      if (overlay.kind === 'detail') return t('game.progressChanges');
+      if (overlay.kind === 'detail')
+        return t(c.ruleColumns.find((r) => r.id === overlay.id)!.label);
       if (overlay.kind === 'destinations') return t('game.destinations');
       if (overlay.kind === 'collection') return t('game.collection');
       if (overlay.kind === 'dialogue')

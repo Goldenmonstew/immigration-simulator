@@ -6,7 +6,7 @@
   "exports": "./src/index.ts",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "test": "vitest run",
+    "test": "vitest run --testTimeout=60000",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "export:wording": "EXPORT_WORDING=1 vitest run test/export-wording.test.ts"

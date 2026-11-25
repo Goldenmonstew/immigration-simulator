@@ -4,7 +4,7 @@
 
 2026-11-23 起（用户决定，第 20 阶段）：Codex 与 agy 的模型负责实现；Fable（Claude Code）只做分工统筹、写 brief、跑门禁与 e2e、做视觉验收、开 PR 与合并。代码审核仍由 Codex（gpt-6.2-sol）只读进行，页面设计评审由 agy 的 Gemini 模型进行。（2026-11-16 至 11-23 曾由 Fable 实现、Codex 只审核。）
 
-2026-11-24 起（用户决定）：Codex 额度用完暂停，agy Gemini 额度不够实现用；改由 Fable（Claude Code，可开 Claude 子 agent 在各自 worktree 并行）实现，agy 的 Gemini 模型只读审核代码与页面设计。Gemini 额度用完期间，由未参与实现的 Claude 子 agent 先做只读审核与复审，合并前最后一轮仍由 Gemini 审核（用户 2026-11-25 决定）。
+2026-11-24 起（用户决定）：Codex 额度用完暂停，agy Gemini 额度不够实现用；改由 Fable（Claude Code，可开 Claude 子 agent 在各自 worktree 并行）实现，agy 的 Gemini 模型只读审核代码与页面设计。Gemini 额度用完期间，由未参与实现的 Claude 子 agent 先做只读审核与复审，合并前最后一轮仍由 Gemini 审核（用户 2026-11-25 决定）。Gemini 按周额度用完后（2026-11-25 起，用户决定），改由未参与实现的 Claude 子 agent 终审，通过即合并；Gemini 恢复后对已合并内容补做复查，查出的问题另开 PR 修正。
 
 main 受分支保护：所有改动走 PR。CI 的 `check` 与 `e2e` 通过、Codex 审核意见处理完后才合并；合并后自动走预发、冒烟、正式发布。
 
