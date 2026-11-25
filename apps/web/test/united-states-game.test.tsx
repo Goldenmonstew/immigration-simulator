@@ -352,6 +352,14 @@ test('a mailed I-751 shows as pending, without reminders or warnings', () => {
   }
 });
 
+test('pending wording fits both the I-751 petition and the I-90 application', () => {
+  for (const key of [
+    'us.game.visaPending',
+    'us.game.renewedThisSeason',
+  ] as const)
+    expect(t(key, 'en')).not.toMatch(/petition/);
+});
+
 test('the US English game text says apartment, not flat', () => {
   expect(t('us.game.settlementSource.brighterHome', 'en')).not.toMatch(
     /\bflat\b/,

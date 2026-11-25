@@ -34,7 +34,7 @@ export const usGameZh = {
     '当前没有有效的绿卡记录。快进会直接过完这一季，先去联邦大楼看看吧。',
   'us.game.visaVisit': '去联邦大楼',
   'us.game.noVisaActions': '眼下这里没有可办的移民手续。',
-  'us.game.renewedThisSeason': '本季已寄出申请，等待 USCIS 裁定。',
+  'us.game.renewedThisSeason': '本季已寄出绿卡申请，等待 USCIS 裁定。',
   'us.game.councilDetails': '去法律援助中心看详情',
   'us.game.collectionMemory.pond': '那天{weather}，你在湖边防波堤钓到了它。',
   'us.game.fishJunk': '湖里的小意外，也一起带上岸吧。',
@@ -73,7 +73,7 @@ export const usGameEn: Record<keyof typeof usGameZh, string> = {
   'us.game.chooseCharacter': 'Who is moving to Lakebend?',
   'us.game.visa': 'Green card: {count} month{count:s} left',
   'us.game.visaUrgent': 'Green card expiring soon',
-  'us.game.visaPending': 'Green card: petition pending',
+  'us.game.visaPending': 'Green card: application pending',
   'us.game.visaReminderTitle': 'A new quarter: check your green card',
   'us.game.visaReminder':
     'Your green card has {count} month{count:s} left. A conditional card needs an I-751 before it expires, and a regular card can be renewed; both go through the post office counter at the Federal Building.',
@@ -85,7 +85,7 @@ export const usGameEn: Record<keyof typeof usGameZh, string> = {
   'us.game.noVisaActions':
     'No immigration paperwork is available here right now.',
   'us.game.renewedThisSeason':
-    'You mailed your petition this season; USCIS has yet to decide.',
+    'You mailed your green card paperwork this season; USCIS has yet to decide.',
   'us.game.councilDetails': 'Visit the legal aid clinic for details',
   'us.game.collectionMemory.pond':
     'You caught it off the lakefront pier on a {weather} day.',

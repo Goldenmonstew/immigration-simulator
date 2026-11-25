@@ -6,6 +6,7 @@ import {
 } from '@uk-immigration/policy-data';
 import * as us from '../src/packs/us';
 import { usBalance } from '../src/packs/us/balance';
+import { renewalNote } from '../src/packs/us/town';
 
 type State = ReturnType<typeof us.newGame>;
 const fees = unitedStatesFull2026_11.values.fees.value;
@@ -99,6 +100,11 @@ test('policy periods in the story come from policy-data, and class waits for eve
     ids({ ...workday, day: { ...workday.day, minute } }, 'college');
   expect(at(usBalance.classFromMinute - 1)).not.toContain('class');
   expect(at(usBalance.classFromMinute)).toContain('class');
+});
+
+test('the I-90 note reads as whole sentences', () => {
+  expect(renewalNote.en).not.toMatch(/\.\s+[a-z]/);
+  expect(renewalNote.zhCN).not.toMatch(/。按寄出那天算。/);
 });
 
 test('the English text uses American words', () => {
