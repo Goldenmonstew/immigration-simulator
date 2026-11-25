@@ -148,3 +148,71 @@
 - `work.interruptionMonths`（蓝卡失业累计月数）同样是截至问卷日期的累计值。失业仍在持续时，它会随日期增长；中断已经结束时则不变。问卷没有区分这两种情况，这次没有把它当作年数快照处理。
 - `nationality.diplomaticSpouse.periods` 在引擎中既算离境，满足条件时又计入居留。“假设没有离境”没有动它，因为这些期间按法律另行计算。
 - 同意原报告的建议：引擎在没有专门说明时，返回不含标题的通用说明，`greece-module.ts` 就不用再按文字格式去重。
+
+## 合入 main 与共用选项接入
+
+实现者：Claude Opus 5.5。澳大利亚完整版页面（任务 93，#81）合入 main 后，本分支合入 main，并接入任务 93 的共用选项。PROGRESS 行号用 795–798，提交前已确认各分支没有占用。每项改动先写回归测试，确认失败后再改。只核对、不改源码的项，在合入前的组件上确认测试失败。
+
+### 1. 做了什么（按 commit 列）
+
+| PROGRESS | Commit | 内容 |
+|---|---|---|
+| — | `Merge: 合入 main（澳大利亚完整版页面 #81）` | 由上一个 agent 完成。共用组件（`policy-page.tsx` 等）取 main 的版本，与 main 逐字相同。`site-countries.ts` 同时登记澳大利亚与希腊的五个子页，两边的 i18n 登记都保留。`sw.js` 与 `about-page.test.tsx` 的缓存版本统一为 `2026-11-25-gr`。PROGRESS 两边的行都保留。 |
+| 795 | `Fix: 希腊分享链接带场景且不覆盖本机草稿，跳到主要内容保留场景` | 希腊模块设 `scenarioLinks: true`。`site-shell.tsx` 判断场景路径时加入希腊的 `result`、`simulate`、`whatif`。 |
+| 796 | `Fix: 希腊检查项按时间、可选依据、费用、批准后事项与办理提示分组` | `greece-module.ts` 的 `run` 为每项检查设 `kind`。 |
+| 797 | `Test: 核对希腊政策页年份不分组、参数无需改写，结果日期沿用默认标签` | 只加测试，源码不改。 |
+| 798 | `Docs: 任务 98 合入 main 与共用选项接入报告` | 本节。 |
+
+原报告标为“待任务 93 的共用修正合入后解决”的条目，逐条处理如下：
+
+- **年份千分位**：main 的通用规则已经生效。键名以 `year`、`from` 结尾的整数年份不分组，例如 `workBlueSalary.lastPublishedYear` 显示为 2024，入籍收入表的 `firstYear`、`reducedFrom`、`restoredFrom`、`lastYear` 显示为 2009、2012、2019、2022。金额照常分组，例如 `standard 7,500`、`lastPublishedEur 31,918.83`，看起来像年份的金额 `gvFees.main` 也显示为 2,000。希腊参数里 1900–2100 之间的整数只有这五个年份和这一项金额。新测试在合入前的 `policy-page.tsx` 上失败（中英文各 1 项），在 main 的版本上通过。
+- **分享链接覆盖本机草稿**：设 `scenarioLinks` 后，`page-result.ts` 在本机已有希腊草稿时不再用分享内容覆盖它。测试先存一份未完成的入籍草稿，再打开长期居留的分享链接：页面显示分享的结果，本机草稿不变。
+- **`linkedResultDraft`／`scenarioLinks` 只对 `jp`**：main 已改为读 `scenarioLinks` 标记，希腊设标记后即生效。结果页的“编辑”“对比”链接带 `#draft=`，分享链接带 `#s=`，两者都能还原评估时的答案。“跳到主要内容”在希腊结果、问卷和对比页改为按钮，不再跳到 `#main`，所以不会洗掉场景片段；希腊首页和政策页仍是 `href="#main"` 链接。
+- **日期标签键**：没有设 `earliestLabel`。按 88 号报告，希腊引擎的 `earliestDate` 有三种取值：`FUTURE` 时是候选递交日，引擎在这一天重新核对时间与申请资格；当前已满足时是模拟日；Β.5 续期是续期窗口的开始日。三种都是“最早可以递交的日期”，与默认的“最早可申请日期（推算）”一致。例外见第 4 段。
+- **检查项 `kind` 分组**：
+
+  | kind | 希腊检查项 | 进“还差什么” |
+  |---|---|---|
+  | `time` | 所有带 `-TIME` 的项（`GR-*-TIME`、`LT-TIME-*`、`NAT-TIME-RESIDENCE`），续期递交窗口 `C-07-window`，驳回后等待期 `NAT-11` | 是 |
+  | `alternative` | `GV-TIME-RENEWAL`、`GV-TIME-LATE`（正常续期与逾期续期，由 `GR-GOLDEN-VISA-TIME` 汇总判断） | 否 |
+  | `information` | `C-06` 住址和身份变更申报。引擎在 `evaluateFilingOnDate` 中把它排除在递交门槛之外，漏报只罚款。 | 否 |
+  | `budget` | `FT-06`、`GF-06`、`GV-07`、`NAT-10`、`TY-06`、`WK-09`，项目已满足时 | 否 |
+  | `afterApproval` | `NAT-12` 公报决定与宣誓，项目已满足时 | 否 |
+  | `requirement` | 其余各项，以及未满足的费用项和宣誓项 | 是 |
+
+  费用项和宣誓项未满足时，不归入费用预算或批准后事项。原因是希腊引擎把除 `C-06` 外的所有检查都当作递交门槛：`NAT-10` 读的是缴费凭证是否备妥，`GV-07`、`FT-06` 缺少家属出生日期时算不出费用、为 `UNKNOWN`，宣誓阶段除申请人国籍类别外只核对 `NAT-12`。这些项若不进“还差什么”，路径会显示待确认或未满足，却列不出原因。
+  - 例 1：Β.5 逾期续期时，`GV-TIME-RENEWAL` 为 `NOT_MET`，`GV-TIME-LATE` 为 `MET`，汇总为 `MET`，前者不再列为缺口。
+  - 例 2：未填变更申报的 Μ.1 草稿，缺口只剩 `LT-TIME-RESIDENCE` 与 `GR-LONG-TERM-TIME`。
+  - 设了 kind 后，个案待定项（如 `GV-03` 的 PD-307）显示“待定细节”，不再显示“政府未定细节”。
+- **政策页嵌套参数**：希腊 78 个参数都是单值，或一层具名的标量（如 `passport` 的 `remainingMonths 3、blankPages 2、issueYears 10`），没有裸数组、元组或多层嵌套，所以不需要 `displayParameter`。测试会在参数出现数组或多层嵌套时失败。
+- **`PolicyPage` 标题回退**：不影响希腊。`gr.policy.pageTitle` 已登记，已有测试断言标题为“希腊政策依据”与“Policy basis for Greece”。
+- **原报告第 4 段**：
+  - 结果页场景片段已改由 `scenarioLinks` 控制，见上。
+  - 跨日刷新仍只对日本生效（`storage.ts` 的 `resultDeviceDay`）。日本结果里有按设备当天计算的出境提示；希腊结果只取决于草稿里的模拟日，不需要接入。
+  - 缓存版本号与 `hub.gr.*` 迁移的合并冲突已在合并提交中处理。
+
+### 2. 怎么验证的
+
+- **先失败后通过**：`apps/web/test/greece.test.tsx` 新增 11 项，在 `apps/web` 下运行 `VITEST_MAX_WORKERS=2 npx vitest run test/greece.test.tsx`。
+  - 场景链接与跳转控件共 4 项（分享不覆盖本机草稿；`result`、`simulate`、`whatif` 三个路径的跳转控件），改动前失败，改动后通过。希腊首页与政策页的 2 项在改动前后都通过，用来确认这两页仍是普通链接。
+  - kind 分组与“待定细节”2 项，改动前失败，改动后通过。
+  - 年份不分组的中英文 2 项：把 `policy-page.tsx` 临时换成合入前（8801eb4c）的版本时失败，用 main 的版本通过，测试后已还原；日期标签 1 项不涉及源码改动。
+  - 该文件改动后共 34 项全部通过。
+- **相关单测**：`japan`、`australia`、`game-theme`、`page`、`gap-summary`、`country-views` 等共用组件的测试文件均通过。改动文件都通过了 `tsc --noEmit`、ESLint 和 Prettier。
+- **完整验收**：在最终工作树设置 `VITEST_MAX_WORKERS=2`，串行运行 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，日志中为 `GATE EXIT 0`。
+  - 测试：error-report 2 项、policy-data 23 项、engine 6,006 项（另有 1 项既有用例跳过）、game 1,348 项、web 892 项（46 个文件），全部通过。
+  - 构建：Next.js 生成 40/40 个静态页面。回读导出文件，`out/greece/policy.html` 含 `lastPublishedYear 2024、lastPublishedEur 31,918.83`，`out/sw.js` 的缓存版本为 `2026-11-25-gr`。
+- **浏览器 e2e**：确认 4455 端口空闲后，在上述构建产物上运行 `cd apps/e2e && E2E_PORT=4455 npx playwright test tests/greece.spec.ts tests/australia.spec.ts tests/japan.spec.ts tests/site.spec.ts --project=desktop --reporter=line`，退出码 0，21 项全部通过（20.9 s）：希腊 2 项、澳大利亚 2 项、日本 12 项、site 5 项。希腊用例覆盖：问卷到结果，保存情景，复制分享链接后在新上下文打开，从“还差什么”跳到对比页的日期旋钮，以及英文窄屏与政策来源。跑完已删除 `apps/e2e/test-results`。
+
+### 3. 没做或没验证的
+
+- 未 push，未开 PR，按 brief 留给 Fable。
+- 没有在浏览器里目视检查新的分组标注和“跳到主要内容”按钮，也没有截图或做 Axe 检查；只有单测、静态渲染和 e2e 的覆盖。
+- e2e 只跑了 brief 指定的四个文件、desktop 项目；mobile 项目和其他国家的 e2e 没有跑。
+- `site-shell.tsx` 的变量名 `isJapanScenario` 沿用原名，没有改共用命名。
+
+### 4. 发现与建议
+
+- 入籍已递交、待决的申请（`nationality.pendingApplicationFiledOn`）满足条件时，`earliestDate` 是实际递交日。页面仍显示为“最早可申请日期（推算）”，不过路径说明会写明“以实际递交日 … 核对居留年限”。`earliestLabel` 按国家设置，为这一种情况改标签会让其他路径的标签不准确。如需区分，可以在共用接口里支持按路径设置日期标签，或让引擎对已递交的申请返回单独的日期字段。
+- 希腊的费用项同时是递交门槛（缴费凭证、按年龄计费），所以 kind 要按状态决定。如果引擎把“费用金额说明”和“缴费凭证”拆成两项，就可以固定分组，不必按状态切换。
+- `site-shell.tsx` 仍按路径逐国列出需要保留场景片段的页面。现在共有三国，且条件与 `scenarioLinks` 相同，建议十国统一时改为读取各国模块的 `scenarioLinks`。
