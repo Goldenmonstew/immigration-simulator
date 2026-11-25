@@ -32,6 +32,7 @@ export type AustraliaField = {
         | 'integer'
         | 'null-date'
         | 'year-list'
+        | 'scores'
         | 'pathway';
     }
   | {
@@ -62,10 +63,12 @@ const date = (
 const nullDate = (
   name: AuFieldName,
   hint?: Suffix<'form'>,
+  required = false,
 ): AustraliaField => ({
   name,
   label: name,
   hint,
+  required,
   type: 'null-date',
 });
 const statusDate = (
@@ -80,17 +83,21 @@ const statusDate = (
 const number = (
   name: AuFieldName,
   label: AuFieldName = name,
+  required = false,
 ): AustraliaField => ({
   name,
   label,
+  required,
   type: 'number',
 });
 const integer = (
   name: AuFieldName,
   label: AuFieldName = name,
+  required = false,
 ): AustraliaField => ({
   name,
   label,
+  required,
   type: 'integer',
 });
 const choice = (
@@ -210,10 +217,7 @@ export const englishFields: AustraliaField[] = [
       ),
       date('date'),
       choice('format', ['approved', 'unapproved', 'single-skill-retake']),
-      number('listening'),
-      number('reading'),
-      number('writing'),
-      number('speaking'),
+      { name: 'components', label: 'components', type: 'scores' },
       number('overall'),
       choice('legacyOetLowestGrade', ['A', 'B', 'C', 'D', 'E']),
     ],
@@ -309,11 +313,15 @@ const invitationUnion = (
 });
 
 export const skillsFields: AustraliaField[] = [
-  invitationUnion('invitation189', 'invitation189'),
-  invitationUnion('invitation190', 'invitation190'),
+  group('invitations', [
+    invitationUnion('AU-189-PT', 'invitation189'),
+    invitationUnion('AU-190', 'invitation190'),
+  ]),
   choice('occupationList', ['MLTSSL', 'STSOL', 'other']),
-  bool('occupationInInvitation189'),
-  bool('occupationInInvitation190'),
+  group('occupationInInvitation', [
+    { ...bool('occupationInInvitation189'), name: 'AU-189-PT' },
+    { ...bool('occupationInInvitation190'), name: 'AU-190' },
+  ]),
   assessmentGroup,
   choice('nomination', ['active', 'withdrawn', 'awaiting']),
   group('points', [
@@ -365,10 +373,15 @@ export const regionalFields: AustraliaField[] = [
   choice('hongKongRegionalException', ['confirmed', 'claimed', 'none']),
 ];
 
-export const partnerFields: AustraliaField[] = [
-  date('partnerLodged'),
-  choice('stream', ['onshore', 'offshore']),
+// A combined 820/801 or 309/100 application that has already been lodged.
+export const partnerApplicationField = group('partnerApplication', [
+  date('lodged', true, 'partnerLodged'),
+  choice('stream', ['onshore', 'offshore'], 'stream', true),
   bool('longTermRelationship'),
+]);
+
+export const partnerFields: AustraliaField[] = [
+  choice('stream', ['onshore', 'offshore'], 'proposedStream'),
   choice('relationship', ['married', 'de-facto', 'intended-marriage', 'none']),
   bool('marriedByDecision'),
   date('relationshipFrom'),
@@ -457,7 +470,10 @@ export const citizenshipFields: AustraliaField[] = [
     label: 'citizenshipTest',
     type: 'union-group',
     literals: ['awaiting', 'retest-pending'],
-    fields: [integer('correct'), integer('valuesCorrect')],
+    fields: [
+      integer('correct', 'correct', true),
+      integer('valuesCorrect', 'valuesCorrect', true),
+    ],
   },
   choice(
     'character',
@@ -474,7 +490,7 @@ export const citizenshipFields: AustraliaField[] = [
     type: 'union-group',
     literals: ['none'],
     fields: [
-      number('months'),
+      number('months', 'months', true),
       date('firstFreeDay', true),
       bool('seriousRepeatOffender'),
     ],
@@ -534,8 +550,8 @@ export const publicInterestFields: AustraliaField[] = [
   group('integrity', [
     bool('identityEstablished', true),
     bool('accurateDocuments', true),
-    nullDate('lastIdentityRefusal', 'refusalNullDateHint'),
-    nullDate('lastDocumentRefusal', 'refusalNullDateHint'),
+    nullDate('lastIdentityRefusal', 'refusalNullDateHint', true),
+    nullDate('lastDocumentRefusal', 'refusalNullDateHint', true),
     choice('documentWaiver', ['pending', 'granted']),
   ]),
   bool('returnBan5001'),

@@ -86,6 +86,9 @@ function Question({
     return (
       <fieldset className={form.entry}>
         <legend>{label}</legend>
+        {field.fields.some((child) => child.required) && (
+          <p className={form.hint}>{t('au.form.optionalGroup')}</p>
+        )}
         <EvidenceFields
           fields={field.fields}
           values={record}
@@ -102,22 +105,10 @@ function Question({
 
   if (field.type === 'union-group') {
     const isLiteral =
-      typeof value === 'string' &&
-      field.literals.some((lit) => lit === value);
+      typeof value === 'string' && field.literals.some((lit) => lit === value);
     const isObj = isRecord(value);
     const mode = isLiteral ? (value as string) : isObj ? 'details' : '';
     const record = (isObj ? value : {}) as Record<string, unknown>;
-    if (
-      field.name === 'test' &&
-      Array.isArray(record.components) &&
-      record.components.length === 4
-    ) {
-      const [l, r, w, s] = record.components as number[];
-      record.listening ??= l;
-      record.reading ??= r;
-      record.writing ??= w;
-      record.speaking ??= s;
-    }
     return (
       <fieldset className={form.entry}>
         <legend>{label}</legend>
@@ -147,27 +138,7 @@ function Question({
             values={record}
             prefix={id}
             errors={errors}
-            change={(name, answer) => {
-              const updated = updateAnswer(record, name, answer);
-              if (field.name === 'test') {
-                const parts = [
-                  updated.listening,
-                  updated.reading,
-                  updated.writing,
-                  updated.speaking,
-                ];
-                if (
-                  parts.every(
-                    (n) => typeof n === 'number' && Number.isFinite(n),
-                  )
-                ) {
-                  updated.components = parts;
-                } else {
-                  delete updated.components;
-                }
-              }
-              set(updated);
-            }}
+            change={(name, answer) => set(updateAnswer(record, name, answer))}
           />
         )}
       </fieldset>
@@ -212,10 +183,7 @@ function Question({
             type="button"
             className={site.secondary}
             onClick={() =>
-              set([
-                ...rows,
-                field.name === 'visas' ? { subclass: '482' } : {},
-              ])
+              set([...rows, field.name === 'visas' ? { subclass: '482' } : {}])
             }
           >
             {t('au.form.add')} · {label}
@@ -238,41 +206,96 @@ function Question({
     );
   }
 
+  if (field.type === 'scores') {
+    // Engine order: listening, reading, writing, speaking.
+    const scores = (
+      Array.isArray(value) ? value : [null, null, null, null]
+    ) as (number | null)[];
+    const parts = ['listening', 'reading', 'writing', 'speaking'] as const;
+    return (
+      // The fieldset takes focus when the shell jumps to this error.
+      <fieldset
+        id={id}
+        tabIndex={-1}
+        className={form.entry}
+        aria-describedby={errors[id] ? `${id}-error` : undefined}
+      >
+        <legend>{label}</legend>
+        {errors[id] && (
+          <p id={`${id}-error`} className={form.error}>
+            {t(errors[id])}
+          </p>
+        )}
+        {parts.map((part, i) => (
+          <Field key={part} id={`${id}-${i}`} label={t(`au.field.${part}`)}>
+            <input
+              id={`${id}-${i}`}
+              type="number"
+              min={0}
+              step="any"
+              aria-invalid={errors[id] ? true : undefined}
+              aria-describedby={errors[id] ? `${id}-error` : undefined}
+              value={scores[i] === null ? '' : String(scores[i])}
+              onChange={(e) => {
+                const next = scores.map((old, idx) =>
+                  idx === i
+                    ? e.target.value === ''
+                      ? null
+                      : Number(e.target.value)
+                    : old,
+                );
+                set(next.every((n) => n === null) ? undefined : next);
+              }}
+            />
+          </Field>
+        ))}
+      </fieldset>
+    );
+  }
+
   if (field.type === 'year-list') {
-    const years = Array.isArray(value) ? (value as number[]) : [];
+    // A cleared row stays blank (null) until the user types a year or removes it.
+    const years = (Array.isArray(value) ? value : []) as (number | null)[];
     return (
       <fieldset className={form.fieldset}>
         <legend className={form.legend}>{label}</legend>
-        {years.map((year, i) => (
-          <div key={i} className={form.entry}>
-            <Field
-              id={i === 0 ? id : `${id}-${i}`}
-              label={`${label} ${i + 1}`}
-              error={i === 0 ? errors[id] : undefined}
-            >
-              <input
-                id={i === 0 ? id : `${id}-${i}`}
-                type="number"
-                min={1900}
-                max={2100}
-                step={1}
-                value={Number.isFinite(year) ? String(year) : ''}
-                onChange={(e) => {
-                  const num =
-                    e.target.value === '' ? 0 : Number(e.target.value);
-                  set(years.map((old, idx) => (idx === i ? num : old)));
-                }}
-              />
-            </Field>
-            <button
-              type="button"
-              className={form.remove}
-              onClick={() => set(years.filter((_, idx) => idx !== i))}
-            >
-              {t('au.form.remove')}
-            </button>
-          </div>
-        ))}
+        {years.map((year, i) => {
+          const rowId = `${id}-${i}`;
+          return (
+            <div key={i} className={form.entry}>
+              <Field
+                id={rowId}
+                label={`${label} ${i + 1}`}
+                error={errors[rowId]}
+              >
+                <input
+                  id={rowId}
+                  type="number"
+                  min={1900}
+                  max={2100}
+                  step={1}
+                  aria-invalid={errors[rowId] ? true : undefined}
+                  aria-describedby={
+                    errors[rowId] ? `${rowId}-error` : undefined
+                  }
+                  value={year === null ? '' : String(year)}
+                  onChange={(e) => {
+                    const entered =
+                      e.target.value === '' ? null : Number(e.target.value);
+                    set(years.map((old, idx) => (idx === i ? entered : old)));
+                  }}
+                />
+              </Field>
+              <button
+                type="button"
+                className={form.remove}
+                onClick={() => set(years.filter((_, idx) => idx !== i))}
+              >
+                {t('au.form.remove')}
+              </button>
+            </div>
+          );
+        })}
         {Array.isArray(value) && !years.length && (
           <p>{t('au.form.emptyConfirmed')}</p>
         )}
@@ -280,12 +303,7 @@ function Question({
           <button
             type="button"
             className={site.secondary}
-            onClick={() =>
-              set([
-                ...years,
-                years.length ? (years.at(-1) ?? 2025) + 1 : 2024,
-              ])
-            }
+            onClick={() => set([...years, null])}
           >
             {t('au.form.add')} · {label}
           </button>
@@ -345,8 +363,14 @@ function Question({
   if (field.type === 'null-date') {
     const isNull = value === null;
     return (
-      <>
-        <Field id={id} label={marked} hint={hint} error={errors[id]}>
+      <fieldset className={form.entry}>
+        <legend>{marked}</legend>
+        <Field
+          id={id}
+          label={t('au.form.dateInput')}
+          hint={hint}
+          error={errors[id]}
+        >
           <input
             {...props}
             type="date"
@@ -365,7 +389,7 @@ function Question({
             {t('au.form.nullDateConfirmed')}
           </label>
         </div>
-      </>
+      </fieldset>
     );
   }
 
@@ -378,8 +402,14 @@ function Question({
           ? 'au.form.ongoingOption'
           : 'au.form.noneOption';
     return (
-      <>
-        <Field id={id} label={marked} hint={hint} error={errors[id]}>
+      <fieldset className={form.entry}>
+        <legend>{marked}</legend>
+        <Field
+          id={id}
+          label={t('au.form.dateInput')}
+          hint={hint}
+          error={errors[id]}
+        >
           <input
             {...props}
             type="date"
@@ -400,7 +430,7 @@ function Question({
             </label>
           ))}
         </div>
-      </>
+      </fieldset>
     );
   }
 

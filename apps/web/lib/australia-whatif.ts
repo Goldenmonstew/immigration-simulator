@@ -2,12 +2,21 @@ import {
   auFamilyParameters,
   auRegionalParameters,
   australiaFull2026_11,
+  australiaSkilledParameters,
 } from '@uk-immigration/policy-data';
-import type { AuFullRequest } from '@uk-immigration/engine';
+import {
+  addDays,
+  addMonths,
+  addYears,
+  type AuFullPathId,
+  type AuFullRequest,
+} from '@uk-immigration/engine';
 import { AustraliaWhatIfControls } from '../app/australia/whatif/controls';
 import type { TranslationKey } from '../i18n';
 import {
   activeAustraliaAnswers,
+  australiaSteps,
+  validateAustraliaStep,
   type AustraliaDraft,
 } from './australia-draft';
 import { validDate } from './questionnaire';
@@ -81,10 +90,48 @@ const focusByCondition: Record<string, keyof typeof australiaFocusControls> = {
   'AU-PIC-HEALTH': 'health',
 };
 
-function dayBefore(isoDate: string): string {
-  const ms = Date.parse(`${isoDate}T00:00:00Z`);
-  if (!Number.isFinite(ms)) return isoDate;
-  return new Date(ms - 86_400_000).toISOString().slice(0, 10);
+// One test serves every assessed pathway. Competent English counts at the
+// 189/190 invitation or the 186 lodgement, within the skilled validity period
+// before it; Functional English within its period before lodgement. Try the
+// day before each reference date and keep the latest valid for most pathways.
+function englishTestDate(draft: AustraliaDraft, simulationDate: string) {
+  const { skilledYears, functionalMonths, newTestsFrom } =
+    australiaSkilledParameters.english.value;
+  // An older-format test must also fall within that period before lodgement.
+  const current = (date: string) =>
+    date >= newTestsFrom || date >= addYears(simulationDate, -skilledYears);
+  const assessed = (...ids: AuFullPathId[]) =>
+    !draft.pathway || ids.includes(draft.pathway);
+  const invited = (id: 'AU-189-PT' | 'AU-190') => {
+    const invitation = draft.skills?.invitations?.[id];
+    return assessed(id) && typeof invitation === 'object'
+      ? [invitation.issued]
+      : [];
+  };
+  const skilled = [
+    ...invited('AU-189-PT'),
+    ...invited('AU-190'),
+    ...(assessed('AU-186-TRT', 'AU-186-DE') ? [simulationDate] : []),
+  ];
+  const functionalFrom = assessed('AU-189-HK', 'AU-191-HK', 'AU-858')
+    ? addMonths(
+        draft.english?.functionalApplicationDate ?? simulationDate,
+        -functionalMonths,
+      )
+    : undefined;
+  const valid = (date: string) =>
+    skilled.filter(
+      (ref) =>
+        addYears(ref, -skilledYears) <= date && date < ref && current(date),
+    ).length +
+    (functionalFrom && functionalFrom <= date && date <= simulationDate
+      ? 1
+      : 0);
+  return [...skilled, simulationDate]
+    .map((date) => addDays(date, -1))
+    .sort()
+    .reverse()
+    .reduce((best, date) => (valid(date) > valid(best) ? date : best));
 }
 
 function initialSalary(draft: AustraliaDraft): number | undefined {
@@ -101,18 +148,36 @@ function initialCitizenshipTest(draft: AustraliaDraft): boolean | undefined {
   return test.correct >= rule.pass && test.valuesCorrect === rule.values;
 }
 
-function qualifyingYearsForCount(
+// The latest completed income years in which a 491 or 494 was held, as the
+// engine counts them: a later substantive grant ends an earlier open-ended visa.
+function regionalIncomeYears(
   draft: AustraliaDraft,
   simulationDate: string,
   count: number,
 ): number[] {
-  const endMonthDay = auRegionalParameters.incomeYearEnd.value;
-  const endYear = Number(simulationDate.slice(0, 4));
-  const lastCompletedYear =
-    `${endYear}-${endMonthDay}` < simulationDate ? endYear : endYear - 1;
+  const yearEnd = auRegionalParameters.incomeYearEnd.value;
+  const visas = (draft.visas ?? [])
+    .filter((v) => v.subclass !== 'bridging' && v.subclass !== 'bridging-trt')
+    .sort((a, b) => a.from.localeCompare(b.from));
+  const first = Number(visas[0]?.from.slice(0, 4));
   const years: number[] = [];
-  for (let i = count - 1; i >= 0; i--) {
-    years.push(lastCompletedYear - i);
+  for (
+    let year = Number(simulationDate.slice(0, 4));
+    years.length < count && year >= first;
+    year--
+  ) {
+    const end = `${year}-${yearEnd}`;
+    const start = addDays(addYears(end, -1), 1);
+    const held = visas.some((visa, i) => {
+      const next = visas[i + 1];
+      return (
+        (visa.subclass === '491' || visa.subclass === '494') &&
+        visa.from <= end &&
+        (!visa.to || visa.to >= start) &&
+        (!next || (next.from > start && next.from > visa.from))
+      );
+    });
+    if (end < simulationDate && held) years.unshift(year);
   }
   return years;
 }
@@ -144,20 +209,12 @@ export const australiaWhatIf: CountryWhatIf<AustraliaDraft, AustraliaWhatIf> = {
     };
 
     if (knobs.ieltsBand !== undefined) {
-      const inv189 = draft.skills?.invitations?.['AU-189-PT'];
-      const inv190 = draft.skills?.invitations?.['AU-190'];
-      const dates = [
-        simulationDate,
-        typeof inv189 === 'object' ? inv189.issued : undefined,
-        typeof inv190 === 'object' ? inv190.issued : undefined,
-      ].filter((d): d is string => !!d && validDate(d));
-      const earliest = dates.sort()[0] ?? simulationDate;
       const band = knobs.ieltsBand;
       next.english = {
         ...draft.english,
         test: {
           name: 'ielts',
-          date: dayBefore(earliest),
+          date: englishTestDate(draft, simulationDate),
           format: 'approved',
           components: [band, band, band, band],
           overall: band,
@@ -165,7 +222,11 @@ export const australiaWhatIf: CountryWhatIf<AustraliaDraft, AustraliaWhatIf> = {
       };
     }
 
-    if (knobs.annualSalary !== undefined) {
+    // An untouched knob keeps each nomination's own salary and market rate.
+    if (
+      knobs.annualSalary !== undefined &&
+      knobs.annualSalary !== initialSalary(draft)
+    ) {
       const existing = draft.employer?.nominations;
       const patchNom = (
         nom?: NonNullable<
@@ -176,7 +237,9 @@ export const australiaWhatIf: CountryWhatIf<AustraliaDraft, AustraliaWhatIf> = {
           ? {
               ...nom,
               annualSalary: knobs.annualSalary,
-              acceptedMarketRate: knobs.annualSalary,
+              // The accepted market rate is the department's finding, not a
+              // variable: keep it when the questionnaire has one.
+              acceptedMarketRate: nom.acceptedMarketRate ?? knobs.annualSalary,
             }
           : undefined;
       if (existing?.['AU-186-TRT'] || existing?.['AU-186-DE']) {
@@ -197,7 +260,7 @@ export const australiaWhatIf: CountryWhatIf<AustraliaDraft, AustraliaWhatIf> = {
     if (knobs.taxNoticeCount !== undefined) {
       next.regional = {
         ...draft.regional,
-        assessmentYears: qualifyingYearsForCount(
+        assessmentYears: regionalIncomeYears(
           draft,
           simulationDate,
           knobs.taxNoticeCount,
@@ -227,7 +290,7 @@ export const australiaWhatIf: CountryWhatIf<AustraliaDraft, AustraliaWhatIf> = {
 
     return activeAustraliaAnswers(next);
   },
-  validate(_afterDraft, knobs) {
+  validate(afterDraft, knobs) {
     const errors: Record<string, TranslationKey> = {};
     if (!validDate(knobs.simulationDate)) {
       errors.date = 'au.whatif.invalidDates';
@@ -238,6 +301,16 @@ export const australiaWhatIf: CountryWhatIf<AustraliaDraft, AustraliaWhatIf> = {
     ) {
       errors.salary = 'au.whatif.invalidSalary';
     }
+    // The comparison is shared like a submitted questionnaire, so it must pass
+    // the same checks, such as a date of birth before the simulation date.
+    if (
+      !Object.keys(errors).length &&
+      australiaSteps(afterDraft).some(
+        ({ step }) =>
+          Object.keys(validateAustraliaStep({ ...afterDraft, step })).length,
+      )
+    )
+      errors.date = 'au.whatif.invalidDates';
     return errors;
   },
   Controls: AustraliaWhatIfControls,

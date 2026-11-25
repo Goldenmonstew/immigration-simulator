@@ -256,7 +256,7 @@ function PathwayAssessment<D extends CountryDraft, K>({
   const { t, locale } = useTranslation();
   const p = punct(locale);
   const basis = basisRule(assessment);
-  const primaryDate = pathwayDate(assessment);
+  const primaryDate = pathwayDate(assessment, country.earliestLabel);
   const shorter = shorterPathwaysNotUsed(assessment);
   const eligible =
     assessment.status === 'LIKELY_ELIGIBLE' || assessment.status === 'MET';
@@ -410,7 +410,13 @@ function PathwayAssessment<D extends CountryDraft, K>({
             (rule) => !assessment.decidedBy!.includes(rule.id),
           ) && (
             <details className={styles.otherPathways}>
-              <summary>{t('result.otherPathways')}</summary>
+              <summary>
+                {t(
+                  country.id === 'es'
+                    ? 'es.result.otherChecks'
+                    : 'result.otherPathways',
+                )}
+              </summary>
               <RuleGroups
                 rules={assessment.checks.filter(
                   (rule) => !assessment.decidedBy!.includes(rule.id),

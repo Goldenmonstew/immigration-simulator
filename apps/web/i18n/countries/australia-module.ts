@@ -16,6 +16,26 @@ export const auModuleZh = {
   'au.policy.feeChange': '年度签证与入籍费率及雇主担保 CSIT 更新',
   'au.policy.feeSummary':
     '按递交日期适用最新财年的签证申请费、太平洋地区护照优惠费率、入籍申请费及 186 雇主提名核心技能收入门槛（CSIT）。',
+  'au.policy.minAge': '年龄下限（周岁）',
+  'au.policy.minMonths': '月数下限',
+  'au.policy.points': '分数',
+  'au.policy.level': '等级',
+  'au.policy.listening': '听力',
+  'au.policy.reading': '阅读',
+  'au.policy.writing': '写作',
+  'au.policy.speaking': '口语',
+  'au.policy.lowestGrade': '各科最低等级',
+  'au.policy.category': '费率',
+  'au.policy.standardRate': '标准',
+  'au.policy.pacificRate': '太平洋地区护照',
+  'au.policy.primary': '主申请人',
+  'au.policy.additionalAdult': '成年副申请人（每人）',
+  'au.policy.additionalMinor': '未成年副申请人（每人）',
+  'au.policy.firstInstalment': '第一期',
+  'au.policy.secondInstalment': '第二期（每名须缴的申请人，186 另见分项）',
+  'au.policy.paperSurcharge': '获准纸质递交附加费',
+  'au.policy.healthRule': '移民体检（PIC 4005 / 4007）',
+  'au.policy.feesRule': '申请费用预算（签证、居民返程签证或入籍）',
   'au.whatif.date': '模拟 / 拟递交日期',
   'au.whatif.dateHint':
     '调整模拟与拟递交日，即时比较各路径的时间满期、提名或邀请有效期及年龄条件。',
@@ -26,15 +46,22 @@ export const auModuleZh = {
   'au.whatif.english6': 'IELTS 6.0（Competent English）',
   'au.whatif.english7': 'IELTS 7.0（Proficient English，+10 分）',
   'au.whatif.english8': 'IELTS 8.0（Superior English，+20 分）',
-  'au.whatif.salary': '186 提名保证年薪与市场薪资（AUD）',
+  'au.whatif.salary':
+    '186 提名保证年薪（AUD；问卷未填市场薪资时同时作为市场薪资）',
   'au.whatif.taxYears': '191 已备齐 ATO 评税通知的已结束合资格财年数',
   'au.whatif.taxYearsBaseline': '保持问卷所填财年',
   'au.whatif.citizenshipTest': '入籍考试通过情况（达标且价值观题全对）',
   'au.whatif.health': '移民体检结论（PIC 4005 / 4007）',
   'au.whatif.invalidSalary': '请输入零或正数金额（AUD）。',
-  'au.whatif.invalidDates': '调整后的模拟日期格式无效。',
+  'au.whatif.invalidDates':
+    '调整后的模拟日期无效，或早于问卷中的出生日期等其他日期。',
+  'au.whatif.noNomination':
+    '问卷中没有 186 雇主提名记录，调整薪资不会改变结果。请先在问卷的雇主担保一步填写提名。',
   'au.result.finishQuestionnaire':
     '请返回问卷，完成必填项目并修正有误日期后再查看结果。',
+  'au.result.earliest': '预计满足评估条件的日期',
+  'au.result.timing':
+    '“预计满足评估条件的日期”按所填记录同时核对递交时和决定时的条件，不是允许递交的日期，也不是批准日期。191 的合资格财年须在递交前结束，ATO 评税通知在决定前提供；适用的第二期签证费在批签前缴纳。费用预算和入籍获批后的宣誓分开列出，不影响这个日期。',
 } as const;
 
 export const auModuleEn: Record<keyof typeof auModuleZh, string> = {
@@ -59,6 +86,28 @@ export const auModuleEn: Record<keyof typeof auModuleZh, string> = {
     'Annual visa and citizenship fee indexation and ENS CSIT update',
   'au.policy.feeSummary':
     'Applications use the indexed visa application charges, Pacific-regional passport concessions, citizenship fees and Core Skills Income Threshold (CSIT) for the financial year.',
+  'au.policy.minAge': 'From age',
+  'au.policy.minMonths': 'From months',
+  'au.policy.points': 'Points',
+  'au.policy.level': 'Level',
+  'au.policy.listening': 'Listening',
+  'au.policy.reading': 'Reading',
+  'au.policy.writing': 'Writing',
+  'au.policy.speaking': 'Speaking',
+  'au.policy.lowestGrade': 'Lowest component grade',
+  'au.policy.category': 'Rate',
+  'au.policy.standardRate': 'Standard',
+  'au.policy.pacificRate': 'Pacific-regional passport',
+  'au.policy.primary': 'Primary applicant',
+  'au.policy.additionalAdult': 'Each additional adult',
+  'au.policy.additionalMinor': 'Each additional child',
+  'au.policy.firstInstalment': 'First instalment',
+  'au.policy.secondInstalment':
+    'Second instalment (each chargeable applicant; 186 itemised)',
+  'au.policy.paperSurcharge': 'Authorised paper application surcharge',
+  'au.policy.healthRule': 'Immigration health assessment (PIC 4005 / 4007)',
+  'au.policy.feesRule':
+    'Application charges budget (visa, Resident Return visa or citizenship)',
   'au.whatif.date': 'Simulation / proposed application date',
   'au.whatif.dateHint':
     'Adjust the simulation and proposed lodgement date to compare residence milestones, invitation or nomination validity and age limits.',
@@ -70,7 +119,7 @@ export const auModuleEn: Record<keyof typeof auModuleZh, string> = {
   'au.whatif.english7': 'IELTS 7.0 (Proficient English, +10 points)',
   'au.whatif.english8': 'IELTS 8.0 (Superior English, +20 points)',
   'au.whatif.salary':
-    '186 nomination guaranteed annual earnings and market rate (AUD)',
+    '186 nomination guaranteed annual earnings (AUD; also used as the market rate when the questionnaire has none)',
   'au.whatif.taxYears':
     '191 completed qualifying income years with ATO notices',
   'au.whatif.taxYearsBaseline': 'Keep questionnaire income years',
@@ -78,7 +127,13 @@ export const auModuleEn: Record<keyof typeof auModuleZh, string> = {
     'Citizenship test passed (overall and values questions)',
   'au.whatif.health': 'Immigration health assessment (PIC 4005 / 4007)',
   'au.whatif.invalidSalary': 'Enter an amount in AUD of zero or above.',
-  'au.whatif.invalidDates': 'Enter a valid simulation date.',
+  'au.whatif.invalidDates':
+    'Enter a valid simulation date that is not before your date of birth or other dates in the questionnaire.',
+  'au.whatif.noNomination':
+    'There is no 186 employer nomination in the questionnaire, so changing the salary has no effect. Add the nomination in the employer step first.',
   'au.result.finishQuestionnaire':
     'Return to the questionnaire and complete the required fields to view your results.',
+  'au.result.earliest': 'Projected date the assessed requirements are met',
+  'au.result.timing':
+    'The projected date checks requirements at both application and decision on your records. It is not a date from which you may apply, nor a grant date. For 191, the qualifying income years must end before you apply and the ATO notices are provided before the decision; any second instalment is paid before grant. The fee budget and the citizenship pledge after approval are listed separately and do not change this date.',
 };

@@ -1,16 +1,18 @@
-// Japan's town game: its own stat and recipes, plus `jp.game.*` wording that
-// replaces the shared game strings (see gameKey in app/game-shell/game-ui.tsx).
+// Japan's town game: its own stat, plus `jp.game.*` wording that replaces the
+// shared game strings or adds its own, recipe steps included (see gameKey in
+// app/game-shell/game-ui.tsx).
 export const jpGameZh = {
   'game.japanese': '日语',
-  'game.prepare-miso-soup': '把芜菁放进味噌汤里煮软',
-  'game.prepare-jaga-butter': '蒸好土豆，放一块黄油',
-  'game.prepare-yaki-corn': '刷上酱油，烤出焦香',
-  'game.prepare-shioyaki': '撒盐，把鱼烤到皮脆',
-  'game.prepare-ichigo-jam': '加糖，慢慢熬',
-  'game.prepare-salad': '切块，拌上芝麻酱',
+  'jp.game.prepare-miso-soup': '把芜菁放进味噌汤里煮软',
+  'jp.game.prepare-jaga-butter': '蒸好土豆，放一块黄油',
+  'jp.game.prepare-yaki-corn': '刷上酱油，烤出焦香',
+  'jp.game.prepare-shioyaki': '撒盐，把鱼烤到皮脆',
+  'jp.game.prepare-ichigo-jam': '加糖，慢慢熬',
+  'jp.game.prepare-salad': '切块，拌上芝麻酱',
   'jp.game.prColumn': '永住許可',
   'jp.game.natColumn': '帰化',
   'jp.game.timeDate': '时间条件最早满足',
+  'jp.game.timeFuture': '时间条件最早 {date} 满足',
   'jp.game.entry': '玩一局 · 港坂生活',
   'jp.game.entryDesc':
     '在横滨的像素小镇上班、钓鱼、逛祭典，看看日常选择怎样影响永住与帰化的时间线。',
@@ -38,20 +40,23 @@ export const jpGameZh = {
   'jp.game.settlementSource.brighterHome': '朝南的公寓',
   'jp.game.settlementSource.walkingClub': '河边健走会',
   'jp.game.noSeeds': '背包里没有当季种子，去商店街杂货铺看看吧。',
+  'jp.game.kitchenNoIngredients':
+    '现在凑不齐任何一道菜的食材：蔬菜来自市民农园的收成，鲈鱼要去大冈川钓。',
   'jp.game.rentFirst': '先在市民农园租一块地。',
 } as const;
 
 export const jpGameEn: Record<keyof typeof jpGameZh, string> = {
   'game.japanese': 'Japanese',
-  'game.prepare-miso-soup': 'Simmer the turnip in miso',
-  'game.prepare-jaga-butter': 'Steam the potato and add butter',
-  'game.prepare-yaki-corn': 'Brush with soy and grill',
-  'game.prepare-shioyaki': 'Salt the fish and grill it crisp',
-  'game.prepare-ichigo-jam': 'Add sugar and simmer slowly',
-  'game.prepare-salad': 'Chop and toss with sesame dressing',
+  'jp.game.prepare-miso-soup': 'Simmer the turnip in miso',
+  'jp.game.prepare-jaga-butter': 'Steam the potato and add butter',
+  'jp.game.prepare-yaki-corn': 'Brush with soy and grill',
+  'jp.game.prepare-shioyaki': 'Salt the fish and grill it crisp',
+  'jp.game.prepare-ichigo-jam': 'Add sugar and simmer slowly',
+  'jp.game.prepare-salad': 'Chop and toss with sesame dressing',
   'jp.game.prColumn': 'Permanent residence',
   'jp.game.natColumn': 'Naturalisation',
   'jp.game.timeDate': 'Time requirement met from',
+  'jp.game.timeFuture': 'Time requirement met from {date}',
   'jp.game.entry': 'Play a round · Life in Minatozaka',
   'jp.game.entryDesc':
     'Work, fish and join the festivals in a pixel-art corner of Yokohama, and see how everyday choices shape your permanent residence and naturalisation timeline.',
@@ -82,5 +87,7 @@ export const jpGameEn: Record<keyof typeof jpGameZh, string> = {
   'jp.game.settlementSource.brighterHome': 'A south-facing flat',
   'jp.game.settlementSource.walkingClub': 'Riverside walking club',
   'jp.game.noSeeds': 'No seeds for this season. Try the shopping-street store.',
+  'jp.game.kitchenNoIngredients':
+    'You do not have the ingredients for any dish yet: vegetables come from community garden harvests, and sea bass from the Ōoka River.',
   'jp.game.rentFirst': 'Rent a plot at the community garden first.',
 };

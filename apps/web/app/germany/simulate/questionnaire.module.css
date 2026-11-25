@@ -1,0 +1,31 @@
+.steps {
+  min-width: 0;
+}
+
+.section {
+  margin-block: 32px;
+  min-width: 0;
+}
+
+.evidence {
+  margin-block: 16px;
+  border-bottom: 1px solid #b1b4b6;
+}
+
+.evidence summary {
+  padding-block: 12px;
+  color: #185888;
+  cursor: pointer;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.evidence[open] summary {
+  margin-bottom: 12px;
+}
+
+/* Nested records narrow the column; fixed-width inputs must not overflow it. */
+.steps input,
+.steps select {
+  max-width: 100%;
+}

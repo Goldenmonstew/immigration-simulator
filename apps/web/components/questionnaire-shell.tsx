@@ -82,8 +82,7 @@ export function QuestionnaireShell<D extends CountryDraft, K>({
       setErrors({});
     };
     open(window.location.hash);
-    if (country.id === 'jp' || country.id === 'au')
-      return watchScenarioHash(open);
+    if (country.scenarioLinks) return watchScenarioHash(open);
   }, [country, steps]);
 
   useEffect(() => {

@@ -35,7 +35,7 @@ export function ResultPage<D extends CountryDraft, K>({
     undefined,
   );
   useEffect(() => {
-    const hashTracked = country.id === 'jp' || country.id === 'au';
+    const hashTracked = !!country.scenarioLinks;
     const read = (linkHash?: string) => {
       const hash = linkHash ?? window.location.hash;
       const current = displayedScenario.current;
@@ -100,7 +100,7 @@ export function ResultPage<D extends CountryDraft, K>({
   const { draft, result, shared, mock, correction } = page ?? {};
   const principalResult = draft && country.principal?.(draft, locale);
   const scenarioHash =
-    (country.id === 'jp' || country.id === 'au') && draft
+    country.scenarioLinks && draft
       ? `#${shared ? 's' : 'draft'}=${encodeDraft(country, draft)}`
       : '';
   const compareHref = countryPath(country.id, 'whatif') + scenarioHash;
@@ -203,7 +203,7 @@ export function ResultPage<D extends CountryDraft, K>({
           country={country}
           draft={result ? draft : undefined}
           onLoad={(next) => {
-            if (country.id === 'jp' || country.id === 'au')
+            if (country.scenarioLinks)
               displayedScenario.current = { hash: '', source: next };
             setPage(readPageResult(country, locale, next));
           }}
