@@ -464,6 +464,68 @@ test('answers for routes or branches the user left are not assessed or shared', 
   expect(activeMalaysiaAnswers(wife).family).toEqual({ tie: 'none' });
 });
 
+// review114-1 problem 1 and risk 3: the REP route reads the marriage and the
+// child relationship by its own relation, whatever the tie answer is.
+test('the REP relation shows the marriage and child questions it needs', () => {
+  const rep = (
+    relation: 'wife' | 'husband' | 'child',
+    family: MalaysiaDraft['family'],
+  ): MalaysiaDraft => ({
+    ...my.createDraft(),
+    simulationDate: '2026-11-25',
+    completed: true,
+    targets: ['pr-rep'],
+    dateOfBirth: '2015-01-01',
+    family,
+    rep: {
+      relation,
+      participantHasSatk: true,
+      approvalLetterValidUntil: '2027-06-01',
+      marriedBeforeRepApplication: true,
+      participantSponsor: true,
+      referees: 2,
+    },
+  });
+  const married = {
+    marriedOn: '2015-01-01',
+    separated: false,
+    divorced: false,
+  } as const;
+  const category = (draft: MalaysiaDraft) =>
+    check(pathway(draft, 'pr-rep'), 'my.pr.category');
+  // The tie is left blank, set to none, or names another relationship.
+  for (const tie of [undefined, 'none', 'child-of-citizen'] as const) {
+    const wife = rep('wife', { tie, ...married });
+    expect(activeMalaysiaAnswers(wife).family).toMatchObject(married);
+    const html = step({ ...wife, step: 2 });
+    for (const name of ['marriedOn', 'separated', 'divorced'])
+      expect(html, `${tie} ${name}`).toContain(`id="my-family-${name}"`);
+    expect(category(wife).status, String(tie)).toBe('MET');
+    expect(
+      check(pathway(wife, 'pr-rep'), 'my.pr.marriage-duration').status,
+    ).toBe('MET');
+    // Changing the tie does not clear what the REP route still reads.
+    expect(clearHiddenMalaysiaAnswers(wife).family).toEqual(wife.family);
+  }
+  for (const tie of [undefined, 'none', 'wife-of-citizen'] as const) {
+    const child = rep('child', { tie, childRelation: 'biological' });
+    expect(activeMalaysiaAnswers(child).family.childRelation).toBe(
+      'biological',
+    );
+    const html = step({ ...child, step: 2 });
+    expect(html, String(tie)).toContain('id="my-family-childRelation"');
+    // A child does not need the marriage questions.
+    expect(html).not.toContain('id="my-family-marriedOn"');
+    expect(category(child).status, String(tie)).toBe('MET');
+  }
+  // Without the REP route, the tie alone decides.
+  const wife = {
+    ...rep('wife', { tie: 'none', ...married }),
+    targets: ['rp-family'] as MyTarget[],
+  };
+  expect(activeMalaysiaAnswers(wife).family).toEqual({ tie: 'none' });
+});
+
 test('a changed answer clears the sub-answers it hides, but not those of other routes', () => {
   const draft: MalaysiaDraft = {
     ...wifeDraft(['pr-wife', 'pass-de-rantau']),

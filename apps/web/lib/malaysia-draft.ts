@@ -8,10 +8,12 @@ import {
   fieldShown,
   malaysiaSteps,
   myPathwayByTarget,
+  scopeOf,
   sectionShown,
   type MalaysiaField,
   type MalaysiaSection,
   type MyPath,
+  type MyScope,
   type MyTarget,
 } from './malaysia-fields';
 
@@ -146,16 +148,16 @@ export function writePath<T extends object>(
 function shownAnswers(
   fields: MalaysiaField[],
   record: Record<string, unknown>,
-  targets: readonly MyTarget[],
+  scope: MyScope,
 ): Record<string, unknown> {
   const answers: Record<string, unknown> = {};
   for (const field of fields) {
     const value = record[field.name];
-    if (value === undefined || !fieldShown(field, record, targets)) continue;
+    if (value === undefined || !fieldShown(field, record, scope)) continue;
     answers[field.name] =
       field.type === 'list' && Array.isArray(value)
         ? value.map((row) =>
-            isRecord(row) ? shownAnswers(field.fields, row, targets) : row,
+            isRecord(row) ? shownAnswers(field.fields, row, scope) : row,
           )
         : value;
   }
@@ -165,17 +167,17 @@ function shownAnswers(
 function withoutHidden(
   fields: MalaysiaField[],
   record: Record<string, unknown>,
-  targets: readonly MyTarget[],
+  scope: MyScope,
 ): Record<string, unknown> {
   let next = record;
   for (const field of fields) {
     const value = record[field.name];
     if (value === undefined) continue;
     let kept: unknown = value;
-    if (!fieldShown(field, record, targets)) kept = undefined;
+    if (!fieldShown(field, record, scope)) kept = undefined;
     else if (field.type === 'list' && Array.isArray(value)) {
       const rows = value.map((row) =>
-        isRecord(row) ? withoutHidden(field.fields, row, targets) : row,
+        isRecord(row) ? withoutHidden(field.fields, row, scope) : row,
       );
       if (rows.some((row, i) => row !== value[i])) kept = rows;
     }
@@ -186,16 +188,17 @@ function withoutHidden(
   return next;
 }
 
-// Changing an answer clears the questions it hides in the same record (a
-// sibling answer's `when`). Answers for routes no longer chosen are kept for
-// when they return.
+// Changing an answer clears the questions it hides (a sibling answer's
+// `when`, or the REP relation). Answers for routes no longer chosen are kept
+// for when they return.
 export function clearHiddenMalaysiaAnswers(draft: MalaysiaDraft) {
   let next = draft;
   for (const { step } of malaysiaStepList(draft))
     for (const section of visibleSections(draft, step)) {
       const record = readPath(next, section.path);
-      // Fields of other routes stay; only `when` decides here.
-      const kept = record && withoutHidden(section.fields, record, MY_TARGETS);
+      // Fields of other routes stay; only the answers decide here.
+      const scope = { ...scopeOf(next), targets: MY_TARGETS };
+      const kept = record && withoutHidden(section.fields, record, scope);
       if (kept !== record) next = writePath(next, section.path, kept!);
     }
   return next;
@@ -209,7 +212,7 @@ export function activeMalaysiaAnswers(draft: MalaysiaDraft): MalaysiaDraft {
     for (const section of visibleSections(draft, step)) {
       const source = readPath(draft, section.path);
       const answers =
-        source && shownAnswers(section.fields, source, draft.targets);
+        source && shownAnswers(section.fields, source, scopeOf(draft));
       if (!answers || !Object.keys(answers).length) continue;
       active = writePath(active, section.path, {
         ...readPath(active, section.path),
@@ -276,13 +279,13 @@ function checkFields(
   fields: MalaysiaField[],
   record: Record<string, unknown>,
   prefix: string,
-  targets: readonly MyTarget[],
+  scope: MyScope,
   submitting: boolean,
   errors: Errors,
   asOf?: string,
 ) {
   for (const field of fields) {
-    if (!fieldShown(field, record, targets)) continue;
+    if (!fieldShown(field, record, scope)) continue;
     const id = `${prefix}-${field.name}`;
     const value = record[field.name];
     if (value === undefined || value === '') {
@@ -306,7 +309,7 @@ function checkFields(
             field.fields,
             row,
             `${id}-${i}`,
-            targets,
+            scope,
             submitting,
             errors,
             asOf,
@@ -361,7 +364,7 @@ function checkStep(draft: MalaysiaDraft, step: number, submitting: boolean) {
       section.fields,
       readPath(draft, section.path) ?? {},
       sectionPrefix(section),
-      draft.targets,
+      scopeOf(draft),
       submitting,
       errors,
       asOf,

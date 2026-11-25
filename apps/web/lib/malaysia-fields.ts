@@ -91,6 +91,10 @@ export type MalaysiaField = {
   when?: When;
   // Shown only when one of these routes is assessed, as only they read it.
   for?: readonly MyTarget[];
+  // Also shown, whatever the answers above, while the REP route is assessed
+  // and its relation is one of these: that route reads the answer by its own
+  // relation, not by the tie.
+  rep?: readonly string[];
   // A date that has passed: on or before the simulation date.
   past?: boolean;
 } & (
@@ -105,7 +109,10 @@ export type MalaysiaField = {
 );
 
 type Extra = Partial<
-  Pick<MalaysiaField, 'name' | 'hint' | 'required' | 'when' | 'for' | 'past'>
+  Pick<
+    MalaysiaField,
+    'name' | 'hint' | 'required' | 'when' | 'for' | 'rep' | 'past'
+  >
 >;
 
 const base = (label: MyFieldLabel, extra: Extra = {}) => ({
@@ -280,22 +287,27 @@ export const malaysiaSteps: MalaysiaStep[] = [
     title: 'my.form.step2',
     sections: [
       {
+        id: 'repRelation',
+        path: ['rep'],
+        fields: [
+          choice('repRelation', ['wife', 'husband', 'child', 'none'], {
+            name: 'relation',
+            for: ['pr-rep'],
+          }),
+        ],
+      },
+      {
         id: 'family',
         path: ['family'],
         fields: [
           choice('tie', ties, {
             hint: 'tie',
-            for: [
-              ...ALL_PR,
-              'rp-family',
-              'cit-wife',
-              'cit-child',
-              'pass-spouse',
-            ],
+            for: [...PR, 'rp-family', 'cit-wife', 'cit-child', 'pass-spouse'],
           }),
           date('marriedOn', {
             when: on('tie', ...SPOUSE_TIES),
-            for: ['pr-wife', 'pr-husband', 'pr-rep'],
+            for: ['pr-wife', 'pr-husband'],
+            rep: ['wife', 'husband'],
           }),
           choice('marriageRegistration', ['malaysia', 'foreign-only'], {
             when: on('tie', ...SPOUSE_TIES),
@@ -307,16 +319,17 @@ export const malaysiaSteps: MalaysiaStep[] = [
               for: [
                 'pr-wife',
                 'pr-husband',
-                'pr-rep',
                 'rp-family',
                 'cit-wife',
                 'pass-spouse',
               ],
+              rep: ['wife', 'husband'],
             }),
           ),
           choice('childRelation', ['biological', 'step', 'adopted'], {
             when: on('tie', ...CHILD_TIES),
-            for: ['pr-child', 'pr-rep', 'rp-family'],
+            for: ['pr-child', 'rp-family'],
+            rep: ['child'],
           }),
         ],
       },
@@ -412,10 +425,6 @@ export const malaysiaSteps: MalaysiaStep[] = [
         id: 'rep',
         path: ['rep'],
         fields: [
-          choice('repRelation', ['wife', 'husband', 'child', 'none'], {
-            name: 'relation',
-            for: ['pr-rep'],
-          }),
           bool('participantHasSatk', { for: ['pr-rep'] }),
           date('approvalLetterValidUntil', { for: ['pr-rep'] }),
           bool('marriedBeforeRepApplication', {
@@ -523,21 +532,37 @@ export const malaysiaSteps: MalaysiaStep[] = [
   },
 ];
 
+/** The routes assessed and the REP relation, which decide what is shown. */
+export interface MyScope {
+  targets: readonly MyTarget[];
+  repRelation?: unknown;
+}
+export const scopeOf = (draft: {
+  targets: readonly MyTarget[];
+  rep?: { relation?: unknown };
+}): MyScope => ({ targets: draft.targets, repRelation: draft.rep?.relation });
+
 const assessed = (field: MalaysiaField, targets: readonly MyTarget[]) =>
-  !field.for || field.for.some((target) => targets.includes(target));
+  !field.for ||
+  field.for.some((target) => targets.includes(target)) ||
+  (!!field.rep && targets.includes('pr-rep'));
 
 export function fieldShown(
   field: MalaysiaField,
   record: object,
-  targets: readonly MyTarget[],
+  { targets, repRelation }: MyScope,
 ) {
-  return (
-    assessed(field, targets) &&
+  const byRep =
+    !!field.rep &&
+    targets.includes('pr-rep') &&
+    field.rep.includes(repRelation as string);
+  const byTie =
+    (!field.for || field.for.some((target) => targets.includes(target))) &&
     (!field.when ||
       field.when.values.includes(
         (record as Record<string, unknown>)[field.when.name],
-      ))
-  );
+      ));
+  return byRep || byTie;
 }
 
 export const sectionShown = (

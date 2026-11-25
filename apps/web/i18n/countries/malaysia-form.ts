@@ -42,6 +42,7 @@ export const myFormZh = {
   'my.target.pass-de-rantau': '数字游民准证（DE Rantau）',
   'my.target.pass-employment': '就业准证（Employment Pass）',
 
+  'my.section.repRelation': '回国专家计划（REP）参与者',
   'my.section.family': '家庭关系',
   'my.section.sponsors': '担保人',
   'my.section.records': '移民与刑事记录、推荐人',
@@ -261,6 +262,7 @@ export const myFormEn: Record<keyof typeof myFormZh, string> = {
   'my.target.pass-de-rantau': 'DE Rantau Nomad Pass',
   'my.target.pass-employment': 'Employment Pass',
 
+  'my.section.repRelation': 'Returning Expert Programme (REP) participant',
   'my.section.family': 'Family',
   'my.section.sponsors': 'Sponsors',
   'my.section.records': 'Immigration and criminal records, referees',

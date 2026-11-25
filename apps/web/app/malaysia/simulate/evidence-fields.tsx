@@ -6,7 +6,7 @@ import {
   MY_NATIONALITIES,
   fieldShown,
   type MalaysiaField,
-  type MyTarget,
+  type MyScope,
 } from '../../../lib/malaysia-fields';
 import { Field } from '../../simulate/field';
 import form from '../../simulate/form.module.css';
@@ -44,7 +44,7 @@ interface FieldsProps {
   fields: MalaysiaField[];
   values: object;
   prefix: string;
-  targets: readonly MyTarget[];
+  scope: MyScope;
   errors: Record<string, TranslationKey>;
   change: (name: string, value: unknown) => void;
 }
@@ -59,12 +59,12 @@ function Question({
   field,
   values,
   prefix,
-  targets,
+  scope,
   errors,
   change,
 }: FieldsProps & { field: MalaysiaField }) {
   const { t, locale } = useTranslation();
-  if (!fieldShown(field, values, targets)) return null;
+  if (!fieldShown(field, values, scope)) return null;
   const id = `${prefix}-${field.name}`;
   const value = (values as Record<string, unknown>)[field.name];
   const set = (next: unknown) => change(field.name, next);
@@ -107,7 +107,7 @@ function Question({
               fields={field.fields}
               values={row}
               prefix={`${id}-${i}`}
-              targets={targets}
+              scope={scope}
               errors={errors}
               change={(name, answer) =>
                 set(

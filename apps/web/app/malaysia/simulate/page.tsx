@@ -15,6 +15,7 @@ import {
 import {
   MY_TARGETS,
   myTargetGroups,
+  scopeOf,
   type MyTarget,
 } from '../../../lib/malaysia-fields';
 import { malaysiaModule } from '../../../lib/malaysia-module';
@@ -87,7 +88,7 @@ function MalaysiaStep(props: StepProps) {
             fields={section.fields}
             values={values}
             prefix={sectionPrefix(section)}
-            targets={draft.targets}
+            scope={scopeOf(draft)}
             errors={errors}
             change={(name, value) => {
               const next = updateAnswer(values, name, value);
