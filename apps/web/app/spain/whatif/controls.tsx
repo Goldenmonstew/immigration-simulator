@@ -8,6 +8,7 @@ import { useTranslation } from '../../../i18n/locale';
 import type { TranslationKey } from '../../../i18n';
 import type { SpainDraft } from '../../../lib/spain-draft';
 import {
+  spainAnswers,
   spainFocusControls as ids,
   spainMobilityPurpose,
   type SpainWhatIf,
@@ -35,23 +36,24 @@ export function SpainWhatIfControls({
   const hasInsurance =
     has('E', 'R-E') || afterDraft.mobility.purpose === 'non-working';
   const hasConduct = has('N', 'L', 'E', 'M', 'R-N', 'R-E', 'U');
+  // An answer not picked here shows its status in the comparison.
+  const shown = Object.keys(errors).length ? {} : spainAnswers(afterDraft);
 
   function choice(
     field: 'delePassed' | 'ccsePassed' | 'healthCover' | 'conductCleared',
     id: string,
     label: TranslationKey,
   ) {
-    const value = knobs[field];
+    const value = knobs[field] === undefined ? shown[field] : knobs[field];
     return (
       <div className={styles.field}>
         <label htmlFor={id}>{t(label)}</label>
         <select
           id={id}
-          value={value === undefined ? '' : String(value)}
+          value={value == null ? '' : String(value)}
           onChange={(e) =>
             update({
-              [field]:
-                e.target.value === '' ? undefined : e.target.value === 'true',
+              [field]: e.target.value === '' ? null : e.target.value === 'true',
             })
           }
         >
@@ -83,8 +85,15 @@ export function SpainWhatIfControls({
           value={knobs.simulationDate}
           onChange={(e) => update({ simulationDate: e.target.value })}
           aria-invalid={!!errors.date}
-          aria-describedby={errors.date ? 'date-error' : undefined}
+          aria-describedby={
+            errors.date
+              ? 'es-whatif-date-hint date-error'
+              : 'es-whatif-date-hint'
+          }
         />
+        <p id="es-whatif-date-hint" className={styles.hint}>
+          {t('es.whatif.dateHint')}
+        </p>
         {error('date')}
       </div>
       {hasTrips && (

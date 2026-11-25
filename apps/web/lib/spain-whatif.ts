@@ -23,14 +23,19 @@ export interface SpainWhatIf {
   simulationDate: string;
   noTrips: boolean;
   natRoute?: EsNationalityRoute;
-  delePassed?: boolean;
-  ccsePassed?: boolean;
   familySize?: number;
   monthlyIncome?: number;
   annualSalary?: number;
-  healthCover?: boolean;
-  conductCleared?: boolean;
+  // Yes/no answers picked on the page. null is unconfirmed; an omitted answer
+  // keeps the questionnaire facts and shows their status on the comparison date.
+  delePassed?: boolean | null;
+  ccsePassed?: boolean | null;
+  healthCover?: boolean | null;
+  conductCleared?: boolean | null;
 }
+
+type SpainAnswer =
+  'delePassed' | 'ccsePassed' | 'healthCover' | 'conductCleared';
 
 export const spainFocusControls = {
   date: 'es-whatif-date',
@@ -112,7 +117,7 @@ const focusByCondition: Record<string, keyof typeof spainFocusControls> = {
 
 const v = spainFull2026_11.values;
 
-// Each yes/no control starts from the baseline status of the conditions it sets.
+// The conditions each yes/no control sets.
 const conditionsFor = {
   delePassed: ['ES-N11'],
   ccsePassed: ['ES-N12'],
@@ -153,12 +158,24 @@ function agreed(values: (number | undefined)[]) {
 export const spainMobilityPurpose = (draft: SpainDraft) =>
   draft.targets.includes('M') ? draft.mobility.purpose : undefined;
 
-function initialKnobs(stored: SpainDraft): SpainWhatIf {
-  const draft = activeSpainAnswers(stored);
+/** The status of each yes/no control's conditions in the draft's own result. */
+export function spainAnswers(
+  draft: SpainDraft,
+): Pick<SpainWhatIf, SpainAnswer> {
   const result = evaluateSpainFull({
-    ...spainEngineInput(stored),
+    ...spainEngineInput(draft),
     locale: 'en',
   });
+  return {
+    delePassed: baselineAnswer(result, conditionsFor.delePassed),
+    ccsePassed: baselineAnswer(result, conditionsFor.ccsePassed),
+    healthCover: baselineAnswer(result, conditionsFor.healthCover),
+    conductCleared: baselineAnswer(result, conditionsFor.conductCleared),
+  };
+}
+
+function initialKnobs(stored: SpainDraft): SpainWhatIf {
+  const draft = activeSpainAnswers(stored);
   const has = (target: SpainDraft['targets'][number]) =>
     draft.targets.includes(target);
   const purpose = spainMobilityPurpose(draft);
@@ -170,8 +187,6 @@ function initialKnobs(stored: SpainDraft): SpainWhatIf {
     simulationDate: draft.simulationDate,
     noTrips: false,
     natRoute: draft.route,
-    delePassed: baselineAnswer(result, conditionsFor.delePassed),
-    ccsePassed: baselineAnswer(result, conditionsFor.ccsePassed),
     familySize: agreed([
       own?.familySize,
       family?.familySize,
@@ -188,8 +203,6 @@ function initialKnobs(stored: SpainDraft): SpainWhatIf {
       purpose === 'employment'
         ? draft.mobility.holder?.employment?.annualGrossSalary
         : undefined,
-    healthCover: baselineAnswer(result, conditionsFor.healthCover),
-    conductCleared: baselineAnswer(result, conditionsFor.conductCleared),
   };
 }
 
@@ -276,7 +289,7 @@ export const spainWhatIf: CountryWhatIf<SpainDraft, SpainWhatIf> = {
   focusControls: spainFocusControls,
   focusForRule: (id) => focusByCondition[id],
   initial: initialKnobs,
-  // Only the controls moved away from the baseline change the copy.
+  // Only the controls moved away from the questionnaire change the copy.
   apply(stored, knobs) {
     const draft = activeSpainAnswers(stored);
     const baseline = initialKnobs(stored);
@@ -324,9 +337,13 @@ export const spainWhatIf: CountryWhatIf<SpainDraft, SpainWhatIf> = {
     }
     if (changed('natRoute')) route = knobs.natRoute;
     if (changed('delePassed'))
-      nationality = withLanguage(nationality, knobs.delePassed);
+      nationality = withLanguage(nationality, knobs.delePassed ?? undefined);
     if (changed('ccsePassed'))
-      nationality = withCivicTest(nationality, knobs.ccsePassed, date);
+      nationality = withCivicTest(
+        nationality,
+        knobs.ccsePassed ?? undefined,
+        date,
+      );
     if (changed('familySize')) {
       const size = knobs.familySize;
       if (has('E'))
@@ -376,7 +393,7 @@ export const spainWhatIf: CountryWhatIf<SpainDraft, SpainWhatIf> = {
         },
       });
     if (changed('healthCover')) {
-      const answer = knobs.healthCover;
+      const answer = knobs.healthCover ?? undefined;
       if (has('E'))
         residence = { ...residence, insurance: cover(answer, date) };
       if (has('R-E'))
@@ -395,7 +412,7 @@ export const spainWhatIf: CountryWhatIf<SpainDraft, SpainWhatIf> = {
       }
     }
     if (changed('conductCleared')) {
-      const answer = knobs.conductCleared;
+      const answer = knobs.conductCleared ?? undefined;
       if (has('N'))
         nationality = {
           ...nationality,

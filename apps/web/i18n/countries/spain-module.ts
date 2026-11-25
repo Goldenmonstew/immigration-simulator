@@ -19,6 +19,8 @@ export const zhCN = {
   'es.target.R-E': '恢复欧盟长期居留',
   'es.target.U': '欧盟自由流动制度下的永久居留',
   'es.whatif.date': '模拟／拟递交日期',
+  'es.whatif.dateHint':
+    '下方的是／否选项显示对比日期下的状态。CCSE 证书和医疗保险按问卷所填日期计算有效期；改日期后选“是”，表示假设在新日期有有效的证明。',
   'es.whatif.noTrips': '假设居留期间没有出境记录',
   'es.whatif.natRoute': '入籍居住年限类别',
   'es.whatif.dele': 'DELE A2 或以上西班牙语证书／法定免试已核实',
@@ -59,6 +61,8 @@ export const en: Record<keyof typeof zhCN, string> = {
   'es.target.R-E': 'Recovery of EU long-term residence',
   'es.target.U': 'Permanent residence under EU free movement',
   'es.whatif.date': 'Simulation / proposed filing date',
+  'es.whatif.dateHint':
+    'The yes/no answers below show their status on the comparison date. CCSE certificates and health cover keep the dates from the questionnaire. Choosing Yes after changing the date assumes valid evidence on the new date.',
   'es.whatif.noTrips': 'Assume no trips abroad during residence',
   'es.whatif.natRoute': 'Citizenship residence period category',
   'es.whatif.dele':

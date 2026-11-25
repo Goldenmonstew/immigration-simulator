@@ -7,7 +7,8 @@ import { readPageResult } from '../lib/page-result';
 import { decodeDraft, encodeDraft } from '../lib/share';
 import { activeSpainAnswers, type SpainDraft } from '../lib/spain-draft';
 import { spainModule as es } from '../lib/spain-module';
-import type { SpainWhatIf } from '../lib/spain-whatif';
+import { SpainWhatIfControls } from '../app/spain/whatif/controls';
+import { spainAnswers, type SpainWhatIf } from '../lib/spain-whatif';
 
 const v = spainFull2026_11.values;
 const render = (node: React.ReactNode) =>
@@ -46,6 +47,23 @@ function expectUnchanged(draft: SpainDraft) {
   expect(html.match(/Same as the current scenario/g)).toHaveLength(
     es.run(draft, 'en').columns[0].pathways.length,
   );
+}
+
+// The option a yes/no control shows, as rendered on the comparison page.
+function selected(draft: SpainDraft, knobs: Partial<SpainWhatIf>, id: string) {
+  const all = { ...es.whatif.initial(draft), ...knobs };
+  const html = render(
+    <SpainWhatIfControls
+      afterDraft={es.whatif.apply(draft, all)}
+      knobs={all}
+      errors={{}}
+      update={() => {}}
+    />,
+  );
+  const select = html.match(
+    new RegExp(`<select id="${id}"[^>]*>(.*?)</select>`),
+  );
+  return select?.[1].match(/<option value="([^"]*)" selected="">/)?.[1];
 }
 
 const insured = {
@@ -106,10 +124,44 @@ test('a later comparison date tests the recorded insurance end date', () => {
     residence: { insurance: { ...insured, validTo: '2027-06-01' } },
   };
   expect(status(draft, 'ES-E06')).toBe('MET');
-  expect(es.whatif.initial(draft).healthCover).toBe(true);
+  expect(spainAnswers(draft).healthCover).toBe(true);
   expect(
     status(compare(draft, { simulationDate: '2028-01-01' }), 'ES-E06'),
   ).toBe('NOT_MET');
+});
+
+test('after a date change, yes/no controls show the new status and Yes assumes valid evidence then', () => {
+  const later = '2027-06-01';
+  const civic: SpainDraft = {
+    ...base(['N']),
+    nationality: {
+      birthDate: '1990-01-01',
+      ccse: { verifiedPass: true, issued: '2023-01-01' },
+    },
+  };
+  const cover: SpainDraft = {
+    ...base(['E']),
+    residence: { insurance: { ...insured, validTo: '2027-01-01' } },
+  };
+  for (const [draft, field, id, condition, expired] of [
+    [civic, 'ccsePassed', 'es-whatif-ccse', 'ES-N12', ''],
+    [cover, 'healthCover', 'es-whatif-insurance', 'ES-E06', 'false'],
+  ] as const) {
+    expect(status(draft, condition)).toBe('MET');
+    expect(selected(draft, {}, id)).toBe('true');
+    // Moving the date alone keeps the recorded dates, and the control follows.
+    expect(
+      status(compare(draft, { simulationDate: later }), condition),
+    ).not.toBe('MET');
+    expect(selected(draft, { simulationDate: later }, id)).toBe(expired);
+    // Yes then assumes evidence valid on the new date.
+    const renewed = { simulationDate: later, [field]: true };
+    expect(status(compare(draft, renewed), condition)).toBe('MET');
+    expect(selected(draft, renewed, id)).toBe('true');
+  }
+  const html = render(<WhatIfView country={es} draft={civic} />);
+  expect(html).toContain('aria-describedby="es-whatif-date-hint"');
+  expect(html).toContain('id="es-whatif-date-hint"');
 });
 
 test('yes and no knobs start from the baseline conditions and can return to unconfirmed', () => {
@@ -132,16 +184,17 @@ test('yes and no knobs start from the baseline conditions and can return to unco
       },
     },
   };
-  expect(es.whatif.initial(draft)).toMatchObject({
-    natRoute: 'general',
+  expect(es.whatif.initial(draft).natRoute).toBe('general');
+  expect(spainAnswers(draft)).toMatchObject({
     delePassed: true,
     ccsePassed: undefined,
     conductCleared: true,
   });
+  // null is the "unsure" option.
   const unknown = compare(draft, {
     natRoute: undefined,
-    delePassed: undefined,
-    conductCleared: undefined,
+    delePassed: null,
+    conductCleared: null,
   });
   expect(unknown.route).toBeUndefined();
   for (const id of ['ES-N11', 'ES-N10', 'ES-L12', 'ES-L12-CERT'])

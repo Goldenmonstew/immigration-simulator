@@ -18,6 +18,7 @@ import { decodeDraft, encodeDraft } from '../lib/share';
 import { sourceUrls } from '../lib/sources';
 import type { SpainDraft } from '../lib/spain-draft';
 import { spainModule as es } from '../lib/spain-module';
+import { spainAnswers } from '../lib/spain-whatif';
 import { ukModule } from '../lib/uk-module';
 
 const render = (node: React.ReactNode, locale: 'zh-CN' | 'en' = 'zh-CN') =>
@@ -252,10 +253,13 @@ test('what-if controls adjust simulation date, household size, income, absences 
     simulationDate: '2026-11-23',
     noTrips: false,
     natRoute: 'general',
-    delePassed: true,
-    ccsePassed: true,
     familySize: 2,
     monthlyIncome: 950,
+  });
+  // Yes/no controls start unpicked and show the baseline status.
+  expect(spainAnswers(draft)).toEqual({
+    delePassed: true,
+    ccsePassed: true,
     healthCover: true,
     conductCleared: true,
   });
