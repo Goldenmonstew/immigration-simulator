@@ -72,10 +72,11 @@ export function itemIcon(id: string) {
  * only the answers the chosen routes' questions ask for, as a share link keeps.
  */
 export function gameDraft(state: EsState): SpainDraft {
+  const date = esGame.assessmentDate(state);
   const draft: SpainDraft = {
     ...createSpainDraft(),
-    ...structuredClone(esGame.filingAnswers(state.timeline, state.date)),
-    simulationDate: state.date,
+    ...structuredClone(esGame.filingAnswers(state.timeline, date)),
+    simulationDate: date,
     completed: true,
   };
   return activeSpainAnswers({ ...draft, step: spainSteps(draft).at(-1)!.step });
@@ -143,7 +144,7 @@ export const esCountry: GameCountry<EsKinds> = {
     <CountryAssessmentColumns
       country={spainModule}
       result={shownResult(state)}
-      simulationDate={state.date}
+      simulationDate={esGame.assessmentDate(state)}
       idPrefix={idPrefix}
     />
   ),
@@ -151,7 +152,7 @@ export const esCountry: GameCountry<EsKinds> = {
     <CountryAssessmentColumns
       country={spainModule}
       result={shownResult(state)}
-      simulationDate={state.date}
+      simulationDate={esGame.assessmentDate(state)}
       idPrefix="ending-"
     />
   ),

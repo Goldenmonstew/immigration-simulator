@@ -114,6 +114,7 @@ export const festivals = esFestivals;
 export const achievements = hooks.esAchievements;
 export { esCharacters, esFurnishingNames, esRules };
 export {
+  assessmentDate,
   currentPermit,
   filingAnswers,
   pathwayOf,

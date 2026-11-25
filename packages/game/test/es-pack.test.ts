@@ -30,10 +30,14 @@ function visit(state: State, place: string, minute: number) {
     state = settle(es.tick(state, minute - state.day.minute));
   return settle(es.enter(state, place));
 }
-/** Move a saved game to a later quarter start and re-run the assessment. */
+/**
+ * Move a saved game to a later quarter start, with the playable day on that
+ * date, and re-run the assessment.
+ */
 function at(state: State, date: string) {
   const next = structuredClone(state);
   next.date = date;
+  next.day.date = date;
   next.result = es.esRules.evaluate(next);
   return next;
 }
@@ -245,6 +249,8 @@ test('applying for nationality uses the engine’s assessment and the 790-026 fe
       locale: 'en',
     }),
   ).toEqual(state.result);
+  // Joel files on the quarter's playable day, nine days later.
+  state.day.date = '2026-12-10';
   const registry = visit(state, 'bureau', 600);
   expect(ids(registry, 'bureau')).toEqual(['naturalise']);
   const ended = es.doActivity(registry, 'naturalise');
@@ -254,6 +260,53 @@ test('applying for nationality uses the engine’s assessment and the 790-026 fe
     registry.stats.money - values.nationalityApplicationFee.value,
   );
   expect(es.narrative(ended).at(-1)).toEqual(es.characterOf('cook').settlement);
+  // The filing carries its day: the ending assesses that day, fee paid then.
+  expect(ended.timeline.steps.filed).toBe('2026-12-10');
+  expect(es.assessmentDate(ended)).toBe('2026-12-10');
+  expect(
+    es.filingAnswers(ended.timeline, es.assessmentDate(ended)).nationality
+      .feePaidOn,
+  ).toBe('2026-12-10');
+  expect(ended.result).toEqual(
+    evaluateSpainFull({
+      ...es.filingAnswers(ended.timeline, '2026-12-10'),
+      simulationDate: '2026-12-10',
+      locale: 'en',
+    }),
+  );
+});
+
+test('a filing is offered only if it can still be made on the day', () => {
+  // Joel's card lapses between the assessment date and the playable day.
+  let cook = settle(es.newGame('cook', 5, 'en'));
+  Object.assign(cook.timeline.nationality, {
+    deleEvidence: 'dele',
+    deleLevel: 'A2',
+    ccse: { verifiedPass: true, issued: '2026-06-01' },
+  });
+  cook.timeline.nationality.criminalRecords!.originRecordOrLawfulAlternative = true;
+  Object.assign(cook.timeline.nationality.documents!, {
+    birthRecord: true,
+    foreignDocumentFormalities: true,
+  });
+  es.currentPermit(cook).to = '2026-12-05';
+  cook = at(cook, '2026-12-01');
+  expect(es.pathwayOf(cook.result, 'nat')?.status).toBe('MET');
+  expect(ids(visit(cook, 'bureau', 600), 'bureau')).toEqual(['naturalise']);
+  cook.day.date = '2026-12-10';
+  expect(ids(visit(cook, 'bureau', 600), 'bureau')).toEqual([]);
+
+  // Yutong's late filing window closes on 2027-06-05 (Saturday), so the
+  // following Monday (SRC-083 art. 184.2).
+  let exporter = settle(es.newGame('exporter', 5, 'en'));
+  es.currentPermit(exporter).to = '2027-03-05';
+  exporter = at(exporter, '2027-06-01');
+  exporter.flags.push('cita-booked');
+  expect(es.pathwayOf(exporter.result, 'lt')?.status).toBe('MET');
+  exporter.day.date = '2027-06-07';
+  expect(ids(visit(exporter, 'visa', 600), 'visa')).toEqual(['settle']);
+  exporter.day.date = '2027-06-10';
+  expect(ids(visit(exporter, 'visa', 600), 'visa')).toEqual([]);
 });
 
 test('long-term residence needs a cita previa and ends with its own text', () => {

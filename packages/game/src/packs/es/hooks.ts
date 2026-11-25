@@ -13,6 +13,7 @@ import type {
 import { esBalance as b } from './balance';
 import { esCharacters } from './characters';
 import {
+  esRules,
   pathwayOf,
   type EsColumn,
   type EsEffect,
@@ -82,11 +83,24 @@ export function actionAvailable(
 ): boolean | undefined {
   const { nationality: n, steps } = state.timeline;
   const affords = affordable(state, action.effects);
+  // The application goes in on the day: it must still be possible then, as
+  // well as on the quarter's assessment date (a card or late filing window
+  // can run out in between).
+  const met = (column: EsColumn) =>
+    pathwayOf(state.result, column)?.status === 'MET' &&
+    pathwayOf(
+      esRules.evaluate({
+        date: state.day.date,
+        timeline: state.timeline,
+        locale: state.locale,
+      }),
+      column,
+    )?.status === 'MET';
   switch (action.id) {
     case 'naturalise':
-      return pathwayOf(state.result, 'nat')?.status === 'MET' && affords;
+      return affords && met('nat');
     case 'settle':
-      return pathwayOf(state.result, 'lt')?.status === 'MET' && affords;
+      return affords && met('lt');
     case 'cita-previa':
       return (
         !state.flags.includes('cita-booked') &&

@@ -71,10 +71,14 @@ function visit(state: State, place: string, minute: number) {
     state = settle(es.tick(state, minute - state.day.minute));
   return settle(es.enter(state, place));
 }
-/** Move a saved game to a later quarter start and re-run the assessment. */
+/**
+ * Move a saved game to a later quarter start, with the playable day on that
+ * date, and re-run the assessment.
+ */
 function at(state: State, date: string) {
   const next = structuredClone(state);
   next.date = date;
+  next.day.date = date;
   next.result = es.esRules.evaluate(next);
   return next;
 }
@@ -126,6 +130,7 @@ function endings(id: string): [string, State][] {
   });
   // File on a later quarter's working morning, once the conditions are met.
   const later = at(id === 'cook' ? exams : opening, '2026-12-01');
+  later.day.date = '2026-12-10';
   later.day.minute = 540;
   if (id === 'exporter') later.flags.push('cita-booked');
   const filed =
@@ -199,7 +204,9 @@ test.each(['cook', 'exporter'])(
       expect(page.draft, name).toEqual(draft);
       // Only the answers the questionnaire asks for the chosen routes.
       expect(activeSpainAnswers(draft), name).toEqual(draft);
-      expect(draft.simulationDate, name).toBe(state.date);
+      expect(draft.simulationDate, name).toBe(
+        name === 'filed' ? '2026-12-10' : state.date,
+      );
       // Nothing that happened after the assessment date is in the draft.
       for (const date of [
         draft.nationality.ccse?.issued,

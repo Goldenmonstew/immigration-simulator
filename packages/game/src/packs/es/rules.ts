@@ -35,6 +35,8 @@ export interface EsTimeline {
     ccse?: IsoDate;
     papers?: IsoDate;
     moves: { movedOn: IsoDate; registeredOn?: IsoDate }[];
+    /** The day the application went in, which ends the story. */
+    filed?: IsoDate;
   };
 }
 export type EsFestival = 'reis' | 'falles' | 'sant-joan' | 'nou-octubre';
@@ -53,7 +55,9 @@ export type EsEffect =
   | { type: 'papers' }
   /** A change of address, to register again in the padrón. */
   | { type: 'moved' }
-  | { type: 'padron' };
+  | { type: 'padron' }
+  /** The application handed in, on the day. */
+  | { type: 'filed' };
 
 const pathwayIds: Record<EsColumn, string> = {
   lt: 'ES-LONG-TERM',
@@ -112,6 +116,12 @@ export function filingAnswers(timeline: EsTimeline, date: IsoDate) {
   };
 }
 
+/** The quarter's assessment date, or the day the application went in. */
+export const assessmentDate = (state: {
+  date: IsoDate;
+  timeline: EsTimeline;
+}) => state.timeline.steps.filed ?? state.date;
+
 const evaluate: EvaluationAdapter<
   EsTimeline,
   CountryResult,
@@ -119,12 +129,14 @@ const evaluate: EvaluationAdapter<
   EsColumn,
   EsOutcome,
   EsFestival
->['evaluate'] = ({ date, timeline, locale }) =>
-  evaluateSpainFull({
-    ...filingAnswers(timeline, date),
+>['evaluate'] = (input) => {
+  const date = assessmentDate(input);
+  return evaluateSpainFull({
+    ...filingAnswers(input.timeline, date),
     simulationDate: date,
-    locale,
+    locale: input.locale,
   });
+};
 
 /** Months to the end of the current card, rounded down. */
 function visaMonthsLeft(state: EsState): number {
@@ -220,6 +232,9 @@ export const esRules: EvaluationAdapter<
       case 'padron':
         steps.moves.at(-1)!.registeredOn = day;
         state.flags = state.flags.filter((flag) => flag !== 'padron-due');
+        return true;
+      case 'filed':
+        steps.filed = day;
         return true;
     }
   },

@@ -592,6 +592,7 @@ export const esActions: EsActivity[] = [
     when: [{ flag: 'cita-booked' }],
     effects: [
       { type: 'money', delta: -values.applicationFeeEur.value },
+      { type: 'filed' },
       { type: 'ending', ending: 'settled' },
     ],
   },
@@ -619,6 +620,7 @@ export const esActions: EsActivity[] = [
     minutes: b.minutes.paperwork,
     effects: [
       { type: 'money', delta: -values.nationalityApplicationFee.value },
+      { type: 'filed' },
       { type: 'ending', ending: 'settled' },
     ],
   },
