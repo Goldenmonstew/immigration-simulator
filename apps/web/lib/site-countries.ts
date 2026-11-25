@@ -12,6 +12,7 @@ export const siteCountries = [
   { id: 'pt', slug: 'portugal', nameKey: 'pt.name', hasGame: false },
   { id: 'jp', slug: 'japan', nameKey: 'jp.name', hasGame: true },
   { id: 'de', slug: 'germany', nameKey: 'de.name', hasGame: false },
+  { id: 'my', slug: 'malaysia', nameKey: 'my.name', hasGame: false },
 ] as const satisfies readonly {
   id: string;
   slug: string;
@@ -46,6 +47,7 @@ const pagesByCountry: Partial<Record<CountryId, string[]>> = {
   gr: calculatorPages,
   de: calculatorPages,
   us: calculatorPages,
+  my: calculatorPages,
 };
 
 export const sitePagePaths = [

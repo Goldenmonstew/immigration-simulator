@@ -29,7 +29,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const cleanPath = (pathname ?? '/').replace(/\/+$/, '') || '/';
   const isGame = cleanPath === '/game' || cleanPath.endsWith('/game');
   const isJapanScenario = ['result', 'simulate', 'whatif'].some((page) =>
-    (['jp', 'au', 'us', 'gr', 'de', 'nz', 'pt'] as const).some(
+    (['jp', 'au', 'us', 'gr', 'de', 'nz', 'pt', 'my'] as const).some(
       (id) => cleanPath === countryPath(id, page),
     ),
   );
