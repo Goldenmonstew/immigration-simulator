@@ -319,10 +319,6 @@ export const zhCN = {
   'hub.ie.paths': 'Stamp 4 / 5 · 入籍 · 配偶入籍',
   'hub.ie.desc':
     '按各段 Stamp 居留许可与出入境记录，核对 Stamp 4 升级、Stamp 5（满 96 个月）、一般入籍及爱尔兰公民配偶或民事伴侣入籍的时间条件。',
-  'hub.pt.code': 'PT',
-  'hub.pt.paths': '入籍 · 永久居留 · 欧盟长居 · 黄金签证',
-  'hub.pt.desc':
-    '核对 2026 年国籍法下入籍所需的居住年限、永久居留与欧盟长期居民所需的居住时间，以及黄金签证的最低停留时间和续期时段。',
   'site.skip': '跳到主要内容',
   'site.home': '首页',
   'site.language': '语言',
