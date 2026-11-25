@@ -80,10 +80,11 @@ function run(draft: MalaysiaDraft, locale: Locale) {
           `${currency}${amount.format(Number(digits))}`,
       );
     }
-    // On permanent residence, Residence Pass and RP-T routes a met time
-    // requirement is dated from when the current unbroken period of meeting
-    // it began, which can be before the application date. Citizenship routes
-    // give the application date itself, so they get no sentence.
+    // Met time requirements are dated from when the current unbroken period
+    // began on most permanent residence routes, the Residence Pass and RP-T,
+    // which can be before the application date. An REP participant's child
+    // and the citizenship routes give the application date itself, so they
+    // get no sentence.
     if (
       pathway.timeStatus === 'MET' &&
       pathway.timeEarliestDate &&
@@ -102,11 +103,12 @@ function run(draft: MalaysiaDraft, locale: Locale) {
   return result;
 }
 
-// Routes whose met time requirements are dated from the start of the current
-// unbroken period (permanent residence, Residence Pass, RP-T): their result
-// date is the application date checked, which can be later than that start.
-// The citizenship routes date met time requirements on the application date
-// itself and keep the shared label.
+// Routes whose met time requirements can be dated from the start of the
+// current unbroken period (permanent residence, Residence Pass, RP-T): their
+// result date is the application date checked, which can be later than that
+// start. On the REP route only a spouse's date is such a start; a child's is
+// the application date. The citizenship routes date met time requirements on
+// the application date and keep the shared label.
 const metOn = 'my.result.metOn' as const;
 
 export const malaysiaModule: CountryModule<MalaysiaDraft, MalaysiaWhatIf> = {

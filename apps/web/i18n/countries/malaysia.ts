@@ -23,7 +23,7 @@ export const myZh = {
   'my.result.finishQuestionnaire':
     '请返回问卷，完成所选路径的必填项目后再查看结果。',
   'my.result.notice':
-    '所有条件按模拟日期（视为递交日）核对。年限条件已满足时，永久居留各类、Residence Pass 与 RP-T 的“仅按时间条件推算的日期”是当前连续满足的起点；归化、公民之妻登记与公民子女登记显示的是模拟日期本身。尚未满足时，这个日期是最早满足的日期。永久居留与公民身份即使门槛全部满足，仍由主管机关裁量批准。',
+    '所有条件按模拟日期（视为递交日）核对。年限条件已满足时，永久居留之妻、之夫、子女与完全外国人类、REP 配偶、Residence Pass 与 RP-T 的“仅按时间条件推算的日期”是当前连续满足的起点；REP 子女、归化、公民之妻登记与公民子女登记显示的是模拟日期本身。尚未满足时，这个日期是最早满足的日期。永久居留与公民身份即使门槛全部满足，仍由主管机关裁量批准。',
 
   'my.whatif.date': '模拟日期（递交日）',
   'my.whatif.dateHint':
@@ -182,7 +182,7 @@ export const myEn: Record<keyof typeof myZh, string> = {
   'my.result.finishQuestionnaire':
     'Go back to the questionnaire and complete the required answers for the routes you chose.',
   'my.result.notice':
-    'Every requirement is checked on the simulation date, taken as the application date. When the time requirements are met, the “date based on time requirements alone” is when the current unbroken period of meeting them began for permanent residence, the Residence Pass and RP-T, and the simulation date itself for naturalisation and registration as a citizen’s wife or child. When they are not yet met, it is the first date they are. Permanent residence and citizenship remain at the authorities’ discretion even when every threshold is met.',
+    'Every requirement is checked on the simulation date, taken as the application date. When the time requirements are met, the “date based on time requirements alone” is when the current unbroken period of meeting them began for permanent residence as a wife, husband, child or fully foreign national, an REP participant’s spouse, the Residence Pass and RP-T, and the simulation date itself for an REP participant’s child, naturalisation and registration as a citizen’s wife or child. When they are not yet met, it is the first date they are. Permanent residence and citizenship remain at the authorities’ discretion even when every threshold is met.',
 
   'my.whatif.date': 'Simulation date (application date)',
   'my.whatif.dateHint':

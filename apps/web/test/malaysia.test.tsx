@@ -860,6 +860,131 @@ test('date labels say what each route’s date is', () => {
 // review114-1 problem 3: once met, the citizenship routes date their time
 // requirements on the application date, the other routes from when the
 // current unbroken period began; the result note says which is which.
+// review114-2 problem 2: every route with time requirements, met on two
+// application dates. A date that stays put is when the current period began;
+// one that moves is the application date. The note says which is which.
+test('the result note matches the time date of every route', () => {
+  const at = (
+    target: MyTarget,
+    patch: Partial<MalaysiaDraft>,
+    simulationDate: string,
+  ) =>
+    pathway(
+      {
+        ...naturalisationDraft([target]),
+        citizenship: {
+          ...naturalisationDraft().citizenship,
+          permanentResidentSince: '2010-01-01',
+        },
+        ...patch,
+        simulationDate,
+        targets: [target],
+      },
+      target,
+    );
+  const married = {
+    marriedOn: '2010-01-01',
+    separated: false,
+    divorced: false,
+  };
+  const spouse = (tie: 'wife-of-citizen' | 'husband-of-citizen') => ({
+    family: { tie, ...married },
+    passes: [
+      { kind: 'ltsvp-spouse' as const, from: '2015-01-01', to: '2030-12-31' },
+    ],
+  });
+  const rep = (relation: 'wife' | 'child') => ({
+    dateOfBirth: '2015-01-01',
+    family: { ...married, childRelation: 'biological' as const },
+    rep: { relation, approvalLetterValidUntil: '2030-12-31' },
+  });
+  const cases: [
+    string,
+    MyTarget,
+    Partial<MalaysiaDraft>,
+    'since' | 'applied',
+  ][] = [
+    ['wife', 'pr-wife', spouse('wife-of-citizen'), 'since'],
+    ['husband', 'pr-husband', spouse('husband-of-citizen'), 'since'],
+    [
+      'child',
+      'pr-child',
+      {
+        dateOfBirth: '2015-01-01',
+        family: { tie: 'child-of-citizen', childRelation: 'biological' },
+        passes: [{ kind: 'student', from: '2020-01-01', to: '2030-12-31' }],
+      },
+      'since',
+    ],
+    [
+      'was',
+      'pr-was',
+      {
+        family: { tie: 'none' },
+        passes: [{ kind: 'employment', from: '2015-01-01', to: '2030-12-31' }],
+      },
+      'since',
+    ],
+    ['rep spouse', 'pr-rep', rep('wife'), 'since'],
+    ['rep child', 'pr-rep', rep('child'), 'applied'],
+    ['residence pass', 'rp-family', spouse('wife-of-citizen'), 'since'],
+    [
+      'rp-t',
+      'pass-rpt',
+      {
+        passes: [{ kind: 'employment', from: '2015-01-01', to: '2030-12-31' }],
+      },
+      'since',
+    ],
+    ['naturalisation', 'cit-naturalisation', {}, 'applied'],
+    [
+      'wife registration',
+      'cit-wife',
+      { family: { tie: 'wife-of-citizen', ...married } },
+      'applied',
+    ],
+    [
+      'child registration',
+      'cit-child',
+      { dateOfBirth: '2015-01-01', family: { tie: 'child-of-citizen' } },
+      'applied',
+    ],
+  ];
+  const timed = new Set<string>();
+  for (const [name, target, patch, kind] of cases) {
+    const first = at(target, patch, '2026-11-25');
+    const later = at(target, patch, '2027-02-01');
+    expect([first.timeStatus, later.timeStatus], name).toEqual(['MET', 'MET']);
+    if (kind === 'applied')
+      expect([first.timeEarliestDate, later.timeEarliestDate], name).toEqual([
+        '2026-11-25',
+        '2027-02-01',
+      ]);
+    else {
+      expect(later.timeEarliestDate, name).toBe(first.timeEarliestDate);
+      expect(first.timeEarliestDate! < '2026-11-25', name).toBe(true);
+    }
+    timed.add(myPathwayByTarget[target]);
+  }
+  // The other routes give no time date.
+  for (const target of MY_TARGETS)
+    if (!timed.has(myPathwayByTarget[target]))
+      expect(
+        pathway(wifeDraft([target]), target).timeEarliestDate,
+        target,
+      ).toBeUndefined();
+  const [since, applied] = t('my.result.notice').split('；');
+  expect(since).toContain(
+    '永久居留之妻、之夫、子女与完全外国人类、REP 配偶、Residence Pass 与 RP-T',
+  );
+  expect(applied).toContain(
+    'REP 子女、归化、公民之妻登记与公民子女登记显示的是模拟日期本身',
+  );
+  expect(t('my.result.notice', 'en')).toContain(
+    'the simulation date itself for an REP participant’s child, naturalisation and registration as a citizen’s wife or child',
+  );
+});
+
 test('the result note tells the citizenship time date from the met-since date', () => {
   const draft = (simulationDate: string, target: MyTarget): MalaysiaDraft => ({
     ...naturalisationDraft([target]),
