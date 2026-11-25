@@ -427,7 +427,7 @@ test('the policy page lists only the supplied rule sets, parameters, rules, chan
   // Without a registered country title the page keeps the generic heading.
   expect(html).toContain(`<h1>${t('policyPage.title')}</h1>`);
   expect(
-    renderToStaticMarkup(<PolicyPage country={{ id: 'es', policy }} />),
+    renderToStaticMarkup(<PolicyPage country={{ id: 'gr', policy }} />),
   ).toContain(`<h1>${t('policyPage.title')}</h1>`);
   // Calendar years keep their digits; amounts are grouped.
   for (const text of [

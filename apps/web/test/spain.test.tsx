@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, test } from 'vitest';
 import { ES_FULL_TARGETS } from '@uk-immigration/engine';
+import { spain2026_11, spainFull2026_11 } from '@uk-immigration/policy-data';
 import Home from '../app/page';
 import { GET as offlinePages } from '../app/offline-pages.json/route';
 import sitemap from '../app/sitemap';
@@ -576,5 +577,30 @@ test.each(['zh-CN', 'en'] as const)(
     );
     for (const group of ['budget', 'afterApproval', 'alternative'] as const)
       expect(html).toContain(`· ${t(`country.check.${group}`, locale)}`);
+  },
+);
+
+test.each(['zh-CN', 'en'] as const)(
+  'policy parameters label nested values and keep calendar years ungrouped in %s',
+  (locale) => {
+    const html = render(<SpainPolicyPage />, locale);
+    const row = (name: string) =>
+      html.match(new RegExp(`<tr data-parameter="${name}">.*?</tr>`))![0];
+    const values = { ...spain2026_11.values, ...spainFull2026_11.values };
+    for (const [name, { value }] of Object.entries(values))
+      if (typeof value === 'object' && !Array.isArray(value))
+        for (const key of Object.keys(value))
+          expect(row(name), `${name}.${key}`).not.toMatch(
+            new RegExp(`(^|[^\\w-])${key} [\\d.]`),
+          );
+    expect(row('nationalityYears')).toContain(
+      locale === 'en' ? 'General (years) 10' : '一般（年） 10',
+    );
+    expect(row('nationalityDeleExemptCountries')).toContain(
+      locale === 'en' ? 'Argentina (AR)' : '阿根廷 (AR)',
+    );
+    for (const name of ['ipremYear', 'smiYear', 'retirementTable'])
+      expect(row(name)).toMatch(/\b2026\b/);
+    expect(html).not.toContain('2,026');
   },
 );

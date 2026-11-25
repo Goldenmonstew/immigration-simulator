@@ -687,3 +687,4 @@
 | 643 | 任务 97 审核修正（review97-1）报告：逐条对应审核编号，记录待任务 93 共用修正解决的问题 7、风险 1 与建议 2 千分位，以及门禁与 e2e 结果。 | docs/tasks/reports/97-es-pages.md |
 | 644 | 任务 97 合入 main 后接入共用选项：西班牙模块设 `scenarioLinks`，打开分享链接不再覆盖本机草稿，结果、编辑与对比链接带场景片段；结果、问卷、对比三页的“跳到主要内容”改为按钮，不洗掉 `#s=`。 | apps/web/lib/spain-module.ts、apps/web/components/site-shell.tsx、apps/web/test/spain-links.test.tsx |
 | 645 | 任务 97 合入 main 后接入共用选项：西班牙检查项设 `kind`。居留年限类为时间条件；申请费、制卡费与考试预算为费用预算；获批后入境、申卡、宣誓登记与身份维持为批准后事项；获批顺序与后续转换为办理提示；国内长居直接事由、自由流动提前取得途径及已由其他依据决定时的普通年限为可选依据；其余为申请条件。入籍申请费须在递交前缴付并决定路径结论，仍为申请条件。 | apps/web/lib/spain-module.ts、apps/web/test/spain.test.tsx |
+| 646 | 任务 97 合入 main 后接入共用选项：西班牙政策页用 `displayParameter` 展示 20 项嵌套参数，原始字段名换为带单位的中英文名称，DELE 免试国家代码显示国名；年份按 main 的规则不加千分位，ipremYear、smiYear 与 retirementTable 的年度核对为 2026。共用政策页标题回退单测原以西班牙代表“未登记标题的国家”，合入后改用希腊。 | apps/web/lib/spain-policy.ts、apps/web/i18n/countries/spain-module.ts、apps/web/test/{spain,country-views}.test.tsx |
