@@ -29,9 +29,21 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const cleanPath = (pathname ?? '/').replace(/\/+$/, '') || '/';
   const isGame = cleanPath === '/game' || cleanPath.endsWith('/game');
   const isJapanScenario = ['result', 'simulate', 'whatif'].some((page) =>
-    (['jp', 'au', 'us', 'gr', 'de', 'nz', 'pt', 'es', 'ca', 'ie'] as const).some(
-      (id) => cleanPath === countryPath(id, page),
-    ),
+    (
+      [
+        'jp',
+        'au',
+        'us',
+        'gr',
+        'de',
+        'nz',
+        'pt',
+        'es',
+        'ca',
+        'ie',
+        'my',
+      ] as const
+    ).some((id) => cleanPath === countryPath(id, page)),
   );
   const firstSegment = cleanPath.split('/')[1] ?? '';
   const currentCountry = siteCountries.find(

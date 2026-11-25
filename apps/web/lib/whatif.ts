@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import type { CountryPathway } from '@uk-immigration/engine';
+import type { CountryCheck, CountryPathway } from '@uk-immigration/engine';
 import type { TranslationKey } from '../i18n';
 
 export interface WhatIfTarget {
@@ -22,6 +22,8 @@ export interface CountryWhatIf<D, K> {
   apply: (draft: D, knobs: K) => D;
   validate: (afterDraft: D, knobs: K) => Record<string, TranslationKey>;
   Controls: ComponentType<WhatIfControlsProps<D, K>>;
+  // The conditions the comparison groups list; every condition when unset.
+  compared?: (check: CountryCheck) => boolean;
 }
 
 export function parseWhatIfFocus(
@@ -45,7 +47,11 @@ export function takeWhatIfTarget(
   return focus ? (target?.focus === focus ? target : { focus }) : undefined;
 }
 
-export function diffPathways(before?: CountryPathway, after?: CountryPathway) {
+export function diffPathways(
+  before?: CountryPathway,
+  after?: CountryPathway,
+  compared: (check: CountryCheck) => boolean = () => true,
+) {
   const becameMet: CountryPathway['checks'] = [];
   const becameUnmet: CountryPathway['checks'] = [];
   const stillUnmet: CountryPathway['checks'] = [];
@@ -57,6 +63,7 @@ export function diffPathways(before?: CountryPathway, after?: CountryPathway) {
         becameInapplicable.push(check);
       continue;
     }
+    if (!compared(check)) continue;
     if (check.status === 'MET') {
       if (previous?.status !== 'MET' || previous.applicable === false)
         becameMet.push(check);

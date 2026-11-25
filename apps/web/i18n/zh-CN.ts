@@ -8,6 +8,7 @@ import { zhCN as ie } from './countries/ireland';
 import { zhCN as pt } from './countries/portugal';
 import { zhCN as jp } from './countries/japan';
 import { zhCN as de } from './countries/germany';
+import { myZh as my } from './countries/malaysia';
 
 export const zhCN = {
   'game.actionUnavailable': '现在还不能做这件事，请看看时间、地点和背包。',
@@ -353,6 +354,7 @@ export const zhCN = {
   'pilot.disclaimer':
     '结果只是按法规写明的时间条件推算，不是移民或法律建议；申请前请以移民部门的记录和官方页面为准。',
   ...de,
+  ...my,
   ...gr,
   ...ie,
   ...pt,

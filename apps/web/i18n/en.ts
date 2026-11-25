@@ -8,6 +8,7 @@ import { en as ie } from './countries/ireland';
 import { en as pt } from './countries/portugal';
 import { en as jp } from './countries/japan';
 import { en as de } from './countries/germany';
+import { myEn as my } from './countries/malaysia';
 import type { zhCN } from './zh-CN';
 
 export const en: Record<keyof typeof zhCN, string> = {
@@ -540,6 +541,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'pilot.disclaimer':
     'These dates follow the time requirements written in the law only. This is not immigration or legal advice; check the immigration authority’s records and official pages before you apply.',
   ...de,
+  ...my,
   ...gr,
   ...ie,
   ...pt,

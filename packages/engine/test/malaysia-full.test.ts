@@ -22,7 +22,8 @@ const wife = {
     tie: 'wife-of-citizen',
     marriedOn: '2022-01-10',
     marriageRegistration: 'malaysia',
-    separatedOrDivorced: false,
+    separated: false,
+    divorced: false,
   },
   passes: [{ kind: 'ltsvp-spouse', from: '2022-03-01', to: '2027-02-28' }],
   citizenSponsor: true,
@@ -143,15 +144,20 @@ describe('permanent residence: wife of a citizen', () => {
     ]);
   });
 
-  test('separation fails the marriage and the timeline', () => {
-    const req = {
-      ...wife,
-      family: { ...wife.family, separatedOrDivorced: true },
-    };
-    expect(cond('my.pr.wife', 'my.pr.marriage-duration', req).status).toBe(
-      'NOT_MET',
-    );
-    expect(path('my.pr.wife', req).timeStatus).toBe('NOT_MET');
+  test('separation or divorce fails the marriage and the timeline', () => {
+    // SRC-505 §5.1(c) p18: married "tanpa berpisah atau bercerai".
+    for (const apart of [
+      { separated: true, divorced: false },
+      { separated: false, divorced: true },
+    ]) {
+      const req = { ...wife, family: { ...wife.family, ...apart } };
+      const c = cond('my.pr.wife', 'my.pr.marriage-duration', req);
+      expect(c.status).toBe('NOT_MET');
+      expect(c.explanation).toContain(
+        apart.divorced ? '所填已离婚' : '所填已分居',
+      );
+      expect(path('my.pr.wife', req).timeStatus).toBe('NOT_MET');
+    }
   });
 
   test('a marriage registered only abroad needs confirmation', () => {
@@ -705,15 +711,25 @@ describe('permanent residence: REP family', () => {
     // SRC-506 §5.3 p16 sets only the years of marriage.
     const separated = {
       ...rep,
-      family: { ...rep.family, separatedOrDivorced: true },
+      family: { ...rep.family, separated: true, divorced: false },
     };
     const c = cond('my.pr.rep-family', 'my.pr.marriage-duration', separated);
     expect(c.status).toBe('MET');
     expect(c.explanation).not.toContain('未分居');
     expect(path('my.pr.rep-family', separated).timeStatus).toBe('MET');
-    // A divorce would end the spouse relationship; the answer does not say which.
+    // A separation leaves the marriage in place; whether it bars the
+    // category is not stated (PD-405). A divorce ends the spouse relationship
+    // (SRC-506 §4(a) p16).
     const cat = cond('my.pr.rep-family', 'my.pr.category', separated);
     expect([cat.status, cat.pendingDetails]).toEqual(['UNKNOWN', ['PD-405']]);
+    const divorced = cond('my.pr.rep-family', 'my.pr.category', {
+      ...rep,
+      family: { ...rep.family, separated: false, divorced: true },
+    });
+    expect([divorced.status, divorced.pendingDetails]).toEqual([
+      'NOT_MET',
+      undefined,
+    ]);
   });
 
   test('not a REP family', () => {
@@ -740,7 +756,7 @@ describe('permanent residence: REP family', () => {
     // Married 2023-01-01, a husband completes five years on 2028-01-01.
     const husband = path('my.pr.rep-family', {
       simulationDate: day,
-      family: { marriedOn: '2023-01-01', separatedOrDivorced: false },
+      family: { marriedOn: '2023-01-01', separated: false, divorced: false },
       rep: { relation: 'husband', approvalLetterValidUntil: '2030-12-31' },
     });
     expect([husband.timeStatus, husband.timeEarliestDate]).toEqual([
@@ -754,7 +770,7 @@ describe('permanent residence: REP family', () => {
       const c = cond('my.pr.rep-family', 'my.pr.category', {
         simulationDate: day,
         rep: { relation },
-        family: { separatedOrDivorced: true },
+        family: { separated: true, divorced: true },
       });
       expect(c.explanation, relation).not.toContain('分居');
       expect(c.pendingDetails ?? [], relation).not.toContain('PD-405');
@@ -1186,15 +1202,30 @@ describe('citizenship by registration', () => {
     ).toBe(300);
   });
 
-  test('a reported separation or divorce leaves the marriage open (review113-1 #8)', () => {
-    // Art. 15(1) p39: a married woman whose husband is a citizen; SRC-513:
-    // "That the marriage is still subsisting".
+  test('a divorce ends the marriage, a separation leaves it open (review114-1 risk 2)', () => {
+    // Art. 15(1) p39: "jika perkahwinan itu masih wujud" (if the marriage
+    // still subsists); SRC-513: "That the marriage is still subsisting".
     const c = cond('my.cit.wife-registration', 'my.cit.category', {
       ...reg,
-      family: { ...reg.family, separatedOrDivorced: true },
+      family: { ...reg.family, separated: true, divorced: false },
     });
     expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', ['PD-405']]);
-    expect(c.explanation).toContain('所填已分居或离婚');
+    expect(c.explanation).toContain('所填已分居但未离婚');
+    const divorced = cond('my.cit.wife-registration', 'my.cit.category', {
+      ...reg,
+      family: { ...reg.family, separated: false, divorced: true },
+    });
+    expect([divorced.status, divorced.pendingDetails]).toEqual([
+      'NOT_MET',
+      undefined,
+    ]);
+    expect(divorced.explanation).toContain('所填已离婚，婚姻不再存续');
+    expect(
+      path('my.cit.wife-registration', {
+        ...reg,
+        family: { ...reg.family, separated: false, divorced: true },
+      }).status,
+    ).toBe('NOT_APPLICABLE');
     expect(
       cond('my.cit.wife-registration', 'my.cit.category', reg).status,
     ).toBe('MET');
@@ -1370,7 +1401,7 @@ describe('deadlines and missing birth dates in the timeline (review113-2 #4)', (
     const rep = (approvalLetterValidUntil?: string) =>
       ({
         simulationDate: day,
-        family: { marriedOn: '2020-01-01', separatedOrDivorced: false },
+        family: { marriedOn: '2020-01-01', separated: false, divorced: false },
         rep: {
           relation: 'wife',
           participantHasSatk: true,
@@ -1478,9 +1509,9 @@ describe('citizenship timelines and oaths (review113-2 risks 1, 3)', () => {
 });
 
 describe('a subsisting marriage across the spouse pathways (review113-2 risk 4)', () => {
-  const as = (separatedOrDivorced?: boolean) => ({
+  const as = (separated?: boolean, divorced?: boolean) => ({
     ...wife,
-    family: { ...wife.family, separatedOrDivorced },
+    family: { ...wife.family, separated, divorced },
   });
 
   test('registration, the spouse pass, REP and the Residence Pass need the answer', () => {
@@ -1498,18 +1529,37 @@ describe('a subsisting marriage across the spouse pathways (review113-2 risk 4)'
       ['my.rp.family', 'my.rp.category', {}],
     ];
     for (const [id, key, extra] of cases) {
-      const at = (s?: boolean) => cond(id, key, { ...as(s), ...extra });
-      expect(at(false).status, id).toBe('MET');
-      expect([at(true).status, at(true).pendingDetails], id).toEqual([
-        'UNKNOWN',
-        ['PD-405'],
-      ]);
+      const at = (separated?: boolean, divorced?: boolean) =>
+        cond(id, key, { ...as(separated, divorced), ...extra });
+      expect(at(false, false).status, id).toBe('MET');
+      expect(
+        [at(true, false).status, at(true, false).pendingDetails],
+        id,
+      ).toEqual(['UNKNOWN', ['PD-405']]);
       expect([at().status, at().pendingDetails], id).toEqual([
         'UNKNOWN',
         undefined,
       ]);
-      expect(at().explanation, id).toContain('未填是否已分居或离婚');
+      expect(at().explanation, id).toContain('未填是否已离婚或分居');
+      // One answer alone does not confirm the marriage.
+      expect(at(false, undefined).status, id).toBe('UNKNOWN');
+      expect(at(undefined, false).status, id).toBe('UNKNOWN');
+      // A divorce ends the marriage. A citizen's divorcee with a citizen
+      // child is in Residence Pass Category 3 on that basis instead (SRC-508),
+      // which the questions do not ask.
+      const divorced = at(false, true);
+      expect([divorced.status, divorced.pendingDetails], id).toEqual(
+        id === 'my.rp.family' ? ['UNKNOWN', undefined] : ['NOT_MET', undefined],
+      );
+      expect(at(true, true).status, id).toBe(divorced.status);
     }
+    // A permanent resident's former spouse has no Category 4 basis.
+    expect(
+      cond('my.rp.family', 'my.rp.category', {
+        ...as(false, true),
+        family: { tie: 'spouse-of-pr', separated: false, divorced: true },
+      }).status,
+    ).toBe('NOT_MET');
   });
 
   test('permanent residence as a spouse has no date without the answer', () => {
@@ -1519,8 +1569,9 @@ describe('a subsisting marriage across the spouse pathways (review113-2 risk 4)'
       p.checks.find((c) => c.id === 'my.pr.marriage-duration')?.status,
     ).toBe('UNKNOWN');
     expect([p.timeStatus, p.timeEarliestDate]).toEqual(['UNKNOWN', undefined]);
-    expect(path('my.pr.wife', as(false)).timeStatus).toBe('MET');
-    expect(path('my.pr.wife', as(true)).timeStatus).toBe('NOT_MET');
+    expect(path('my.pr.wife', as(false, false)).timeStatus).toBe('MET');
+    expect(path('my.pr.wife', as(true, false)).timeStatus).toBe('NOT_MET');
+    expect(path('my.pr.wife', as(false, true)).timeStatus).toBe('NOT_MET');
   });
 });
 
@@ -1574,7 +1625,8 @@ describe('no earliest date while no pass is held (review113-3 #1, risk 4)', () =
         tie: 'husband-of-citizen',
         marriedOn: '2015-01-01',
         marriageRegistration: 'malaysia',
-        separatedOrDivorced: false,
+        separated: false,
+        divorced: false,
       },
       passes: passes('ltsvp-spouse', from),
     }) satisfies MyFullRequest;
@@ -1719,7 +1771,8 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
             tie: `${s}-of-citizen` as const,
             marriedOn: '2000-01-01',
             marriageRegistration: 'malaysia' as const,
-            separatedOrDivorced: false,
+            separated: false,
+            divorced: false,
           },
         },
         married,
@@ -1730,7 +1783,7 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
         id: 'my.rp.family' as const,
         key: 'my.rp.long-term-pass',
         kind: 'employment' as const,
-        req: { family: { tie, separatedOrDivorced: false } },
+        req: { family: { tie, separated: false, divorced: false } },
         years: tie !== 'former-citizen',
       }),
     ),
@@ -1768,43 +1821,51 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
     };
   };
 
-  test('met only when the pass condition is met, and no date without a pass', { timeout: 30_000 }, () => {
-    histories.forEach((h, i) => {
-      for (const r of routes) {
-        const passes = h.map((s) => ({ kind: r.kind, from: s.from, to: s.to }));
-        const end = h[h.length - 1].to;
-        const held = (d: string) => h.some((s) => s.from <= d && d <= s.to);
-        const on = r.married ? married[i] : undefined;
-        for (const d of datesFor(h)) {
-          const at = run(r, passes, d, on);
-          const label = `${r.id} ${r.req.family?.tie ?? ''} ${on ?? ''} ${d} ${JSON.stringify(h)}`;
-          expect(at.time === 'MET', label).toBe(at.check === 'MET');
-          if (at.date === undefined) continue;
-          if (!held(at.date)) {
-            // Only past the last pass, and then renewal is assumed.
-            expect(
-              [at.time, at.date > end, at.assumptions.length],
-              label,
-            ).toEqual(['FUTURE', true, 1]);
-            continue;
-          }
-          const then = run(r, passes, at.date, on);
-          expect([then.check, then.time, then.date], label).toEqual([
-            'MET',
-            'MET',
-            at.date,
-          ]);
-          if (r.years !== false) {
-            const before = run(r, passes, addDays(at.date, -1), on);
-            expect([before.time, before.date], label).toEqual([
-              'FUTURE',
+  test(
+    'met only when the pass condition is met, and no date without a pass',
+    { timeout: 30_000 },
+    () => {
+      histories.forEach((h, i) => {
+        for (const r of routes) {
+          const passes = h.map((s) => ({
+            kind: r.kind,
+            from: s.from,
+            to: s.to,
+          }));
+          const end = h[h.length - 1].to;
+          const held = (d: string) => h.some((s) => s.from <= d && d <= s.to);
+          const on = r.married ? married[i] : undefined;
+          for (const d of datesFor(h)) {
+            const at = run(r, passes, d, on);
+            const label = `${r.id} ${r.req.family?.tie ?? ''} ${on ?? ''} ${d} ${JSON.stringify(h)}`;
+            expect(at.time === 'MET', label).toBe(at.check === 'MET');
+            if (at.date === undefined) continue;
+            if (!held(at.date)) {
+              // Only past the last pass, and then renewal is assumed.
+              expect(
+                [at.time, at.date > end, at.assumptions.length],
+                label,
+              ).toEqual(['FUTURE', true, 1]);
+              continue;
+            }
+            const then = run(r, passes, at.date, on);
+            expect([then.check, then.time, then.date], label).toEqual([
+              'MET',
+              'MET',
               at.date,
             ]);
+            if (r.years !== false) {
+              const before = run(r, passes, addDays(at.date, -1), on);
+              expect([before.time, before.date], label).toEqual([
+                'FUTURE',
+                at.date,
+              ]);
+            }
           }
         }
-      }
-    });
-  });
+      });
+    },
+  );
 
   test('without the Residence Pass category only "no pass now or later" is certain', () => {
     const r = {
@@ -1879,7 +1940,8 @@ describe('timing agrees with the pass held on every date (review113-3)', () => {
                 family: {
                   tie: 'wife-of-citizen',
                   marriageRegistration: 'malaysia',
-                  separatedOrDivorced: false,
+                  separated: false,
+                  divorced: false,
                 },
                 citizenship: { permanentResidentSince },
                 passes: h.map((s) => ({ kind, from: s.from, to: s.to })),
@@ -1939,7 +2001,8 @@ describe('review113-3 risks and suggestions', () => {
           tie: `${route}-of-citizen`,
           marriedOn,
           marriageRegistration: 'malaysia',
-          separatedOrDivorced: false,
+          separated: false,
+          divorced: false,
         },
         passes,
       });
@@ -2083,7 +2146,8 @@ describe('review113-4', () => {
         tie: 'wife-of-citizen',
         marriedOn: '2025-03-01',
         marriageRegistration: 'malaysia',
-        separatedOrDivorced: false,
+        separated: false,
+        divorced: false,
       },
       citizenship: { permanentResidentSince: null },
       passes: [{ kind: 'ltsvp-spouse', from: '2025-06-01', to: '2030-05-31' }],
@@ -2215,7 +2279,8 @@ describe('review113-4', () => {
         tie: 'wife-of-citizen',
         marriedOn: '2024-01-01',
         marriageRegistration: 'malaysia',
-        separatedOrDivorced: false,
+        separated: false,
+        divorced: false,
       },
       passes: [{ kind: 'ltsvp-spouse', from: '2026-03-01', to: '2029-12-31' }],
     } satisfies MyFullRequest;
@@ -2297,7 +2362,8 @@ describe('review113-4', () => {
       family: {
         tie: 'wife-of-citizen',
         marriageRegistration: 'malaysia',
-        separatedOrDivorced: false,
+        separated: false,
+        divorced: false,
       },
       citizenship: { permanentResidentSince: null },
     } satisfies MyFullRequest;
