@@ -221,17 +221,16 @@ function citizenshipLivelihood(draft: GermanyDraft) {
   return shared(values);
 }
 
-// Assuming no absence, a period outside the EU continues the status held before it.
+// Assuming no absence, a period outside the EU continues the status held
+// before it. An earliest period outside the EU has none and stays as it is.
 function withoutAbsences(periods: { kind: string; from: string }[]) {
   const sorted = [...periods].sort((a, b) => a.from.localeCompare(b.from));
   return sorted.map((period, i) => {
     if (period.kind !== 'outside-eu') return period;
-    const status =
-      sorted
-        .slice(0, i)
-        .reverse()
-        .find((other) => other.kind !== 'outside-eu') ??
-      sorted.slice(i + 1).find((other) => other.kind !== 'outside-eu');
+    const status = sorted
+      .slice(0, i)
+      .reverse()
+      .find((other) => other.kind !== 'outside-eu');
     return status ? { ...period, kind: status.kind } : period;
   });
 }

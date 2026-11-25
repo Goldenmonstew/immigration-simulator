@@ -645,6 +645,7 @@
 | 787 | 任务 100 接入共用选项：德国 e2e 补接收方已有本机草稿时打开分享链接，结果与发送方一致、`de-immigration-draft-v1` 原样不变；按"跳到主要内容"后焦点落到 `main`，地址仍带 `#s=`。 | apps/e2e/tests/germany.spec.ts |
 | 788 | 任务 100 接入共用选项报告：在任务报告末尾补「合入 main 与共用选项接入」四段，逐条对应原先待任务 93 处理的条目（标题回退、多标签页与分享覆盖草稿、年份千分位、片段情景隔离），记录接入前失败的回归、完整验收、e2e 与视觉检查结果。 | docs/tasks/reports/100-de-pages.md |
 | 820 | 任务 100 第二轮审核修正（review100-2 问题 1、建议 3）：R00 填了逐份文书时，引擎只把 DE-C63-time 当作基线说明，页面改标为办理提示，不进"还差什么"；未填逐份文书时仍为时间条件。补已满足、待确认与无逐份文书三种情形的回归。 | apps/web/lib/germany-module.ts、apps/web/test/germany.test.tsx |
+| 821 | 任务 100 第二轮审核修正（review100-2 风险 1、建议 3）：对比页"假设没有出境"只让 R06 的离欧区间沿用前一段居留类别，最早一段离欧区间前面没有类别，保持不变，不再借用后一段的蓝卡身份得出过早的"已满足"；旋钮说明同步。补审核复现的回归（R06 仍为未满足）。 | apps/web/lib/germany-whatif.ts、apps/web/i18n/countries/germany-module.ts、apps/web/test/germany.test.tsx |
 | 740 | 任务 91：登记日本完整版使用的官方法条、指南、手续费及办事材料，校对调研哈希，补 PD-360–379 与网页来源索引。 | docs/{SOURCES,pending-details}.md、policy-sources/、apps/web/lib/sources.ts |
 | 741 | 任务 91：加入永住审查过渡、许可期间、教育与证据窗口、人才分值、帰化特例、再入国和手续费参数。 | packages/policy-data/src/{index.ts,parameters/japan-2026-11.ts} |
 | 742 | 任务 91：新增日本完整版评估入口，复用原时间结果，逐项检查永住、帰化与再入国并补边界测试。 | packages/engine/src/{index.ts,japan-full*.ts}、packages/engine/test/japan-full.test.ts、docs/tasks/reports/91-jp-rules.md |

@@ -23,7 +23,7 @@ export const zhCN = {
   'de.whatif.factAfterDate':
     '这个日期早于问卷中已发生事项的日期（如首次入境日），请改晚，或回到问卷修改。',
   'de.whatif.noTripsHint':
-    '清空出境记录、逐份文书与自由流动的离境记录；在德长大子女的境外上学天数按 0 计；欧盟长期居留的离欧区间按前一段居留类别计入。',
+    '清空出境记录、逐份文书与自由流动的离境记录；在德长大子女的境外上学天数按 0 计；欧盟长期居留的离欧区间按前一段居留类别计入，最早一段离欧区间前面没有居留类别，保持不变。',
   'de.whatif.mixed': '保持问卷中的原答案',
   'de.whatif.provenGerman': '定居：已获认可的德语等级（CEFR）',
   'de.whatif.knowledge': '定居：LiD 考试答对题数（0–33）',
@@ -77,7 +77,7 @@ export const en: Record<keyof typeof zhCN, string> = {
   'de.whatif.factAfterDate':
     'This date is before a fact recorded in the questionnaire (such as the first entry). Choose a later date or edit the questionnaire.',
   'de.whatif.noTripsHint':
-    'Clears trips, per-document departures and free movement absences; counts no school days abroad for a child raised in Germany; periods outside the EU for EU long-term residence count under the preceding status.',
+    'Clears trips, per-document departures and free movement absences; counts no school days abroad for a child raised in Germany; periods outside the EU for EU long-term residence count under the preceding status, and an earliest period outside the EU, with no status before it, stays as it is.',
   'de.whatif.mixed': 'Keep the questionnaire answers',
   'de.whatif.provenGerman': 'Settlement: recognised German level (CEFR)',
   'de.whatif.knowledge': 'Settlement: correct answers in the LiD test (0–33)',

@@ -1468,3 +1468,56 @@ test('with per-document records R00 keeps the generic absence limit as a baselin
   );
   expect(gapRules(baseline).map((c) => c.id)).toContain('DE-C63-time');
 });
+
+test('assuming no trips leaves an earliest period outside the EU as it is, with no earlier status to continue (review100-2 risk 1)', () => {
+  const draft: GermanyDraft = {
+    ...sampleDraft(),
+    routes: ['R06'],
+    firstEntry: '2024-11-23',
+    permits: [{ kind: 'blue-card', from: '2024-11-23' }],
+    mobility: {
+      titles: [
+        {
+          kind: 'blue-card',
+          validTo: '2028-05-22',
+          noOtherLossEvent: true,
+          trips: [],
+        },
+      ],
+    },
+    settlement: {
+      euExcludedStatus: 'none',
+      euRegularIncome: true,
+      euTaxDutiesFulfilled: true,
+      euWorkLicences: 'satisfied',
+      euRetirementProvision: 'adequate-own',
+      euCareCover: 'statutory',
+      euMobility: {
+        personalScope: true,
+        immediatelyPriorOtherStateBlueCard: true,
+        germanBlueSince: '2024-11-23',
+        periods: [
+          { kind: 'outside-eu', from: '2021-07-23', until: '2022-03-23' },
+          { kind: 'other-eu-blue', from: '2022-03-23', until: '2024-11-23' },
+          { kind: 'german-blue', from: '2024-11-23', until: '2026-11-23' },
+        ],
+      },
+    },
+  };
+  const r06 = (next: GermanyDraft) =>
+    de.run(next, 'zh-CN').columns[0].pathways.find((p) => p.id === 'DE-R06')!;
+  expect(r06(draft).status).toBe('NOT_MET');
+  const noTrips = de.whatif.apply(draft, {
+    ...de.whatif.initial(draft),
+    noTrips: true,
+  });
+  expect(noTrips.settlement?.euMobility?.periods?.map((p) => p.kind)).toEqual([
+    'outside-eu',
+    'other-eu-blue',
+    'german-blue',
+  ]);
+  expect(r06(noTrips).status).toBe('NOT_MET');
+  expect(r06(noTrips).checks.find((c) => c.id === 'DE-C28')?.status).toBe(
+    'NOT_MET',
+  );
+});
