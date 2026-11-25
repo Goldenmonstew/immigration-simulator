@@ -14,6 +14,7 @@ import { esBalance as b } from './balance';
 import { esCharacters } from './characters';
 import {
   esRules,
+  freeCcseRetake,
   pathwayOf,
   type EsColumn,
   type EsEffect,
@@ -107,7 +108,11 @@ export function actionAvailable(
         ['MET', 'FUTURE'].includes(pathwayOf(state.result, 'lt')?.status ?? '')
       );
     case 'ccse':
-      return !steps.ccse && !n.ccse?.verifiedPass && affords;
+      return (
+        !steps.ccse &&
+        !n.ccse?.verifiedPass &&
+        (affords || !!freeCcseRetake(state))
+      );
     case 'dele':
       return !steps.dele && n.deleEvidence !== 'dele' && affords;
     case 'nat-papers':
@@ -127,9 +132,19 @@ export function actionAvailable(
 const examScore = (id: string) => (id === 'dele' ? b.deleScore : b.ccseScore);
 
 export function actionDetails(state: EsState, action: EsActivity): void {
+  const retakeUntil = action.id === 'ccse' && freeCcseRetake(state);
+  if (retakeUntil) {
+    action.effects = action.effects.filter(({ type }) => type !== 'money');
+    action.label = t(
+      `参加 CCSE 公民常识考试（首考未过的免费重考，${retakeUntil} 前有效，SRC-335）`,
+      `Sit the CCSE civics exam (free retake after the first sitting, until ${retakeUntil}, SRC-335)`,
+    );
+  }
   if (action.id === 'ccse' || action.id === 'dele') {
     if (state.stats.spanish >= examScore(action.id))
       action.effects = [...action.effects, { type: action.id }];
+    else if (action.id === 'ccse')
+      action.effects = [...action.effects, { type: 'ccse-failed' }];
     action.note =
       action.id === 'ccse'
         ? t(

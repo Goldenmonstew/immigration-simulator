@@ -33,6 +33,8 @@ export interface EsTimeline {
   steps: {
     dele?: IsoDate;
     ccse?: IsoDate;
+    /** A paid CCSE sitting failed on this day: one free retake follows. */
+    ccseRetakeFrom?: IsoDate;
     papers?: IsoDate;
     moves: { movedOn: IsoDate; registeredOn?: IsoDate }[];
     /** The day the application went in, which ends the story. */
@@ -51,6 +53,8 @@ export type EsEffect =
   | { type: 'dele' }
   /** An in-game CCSE pass, certified on the day of the exam. */
   | { type: 'ccse' }
+  /** An in-game CCSE fail. */
+  | { type: 'ccse-failed' }
   /** Foreign criminal record and birth certificate, legalised and translated. */
   | { type: 'papers' }
   /** A change of address, to register again in the padrón. */
@@ -67,6 +71,18 @@ export function pathwayOf(result: CountryResult, column: EsColumn) {
   return result.columns[0]?.pathways.find(
     (pathway) => pathway.id === pathwayIds[column],
   );
+}
+
+/**
+ * The last day of the free CCSE retake, if the day being played falls in it:
+ * a failed or missed first sitting may be retaken within
+ * `nationalityCcseRetakeMonths` without a new registration (SRC-335).
+ */
+export function freeCcseRetake(state: EsState): IsoDate | undefined {
+  const from = state.timeline.steps.ccseRetakeFrom;
+  if (!from) return undefined;
+  const until = addMonths(from, values.nationalityCcseRetakeMonths.value);
+  return state.day.date >= from && state.day.date <= until ? until : undefined;
 }
 
 /** The current residence card: the last permit in the record. */
@@ -219,8 +235,15 @@ export const esRules: EvaluationAdapter<
         return true;
       case 'ccse':
         steps.ccse = day;
+        delete steps.ccseRetakeFrom;
         setFlags(state, ['ccse-passed', 'quarter-exam-passed']);
         return true;
+      // A failed free retake needs a new registration; a failed paid one
+      // leaves a free retake.
+      case 'ccse-failed':
+        if (freeCcseRetake(state)) delete steps.ccseRetakeFrom;
+        else steps.ccseRetakeFrom = day;
+        return false;
       case 'papers':
         steps.papers = day;
         setFlags(state, ['papers-ready']);

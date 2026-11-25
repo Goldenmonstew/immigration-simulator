@@ -1,6 +1,7 @@
 import { beforeAll, expect, test } from 'vitest';
 import { evaluateSpainFull } from '@uk-immigration/engine';
 import { spainFull2026_11 } from '@uk-immigration/policy-data';
+import { addMonths } from '../src/calendar';
 import * as es from '../src/packs/es';
 
 type State = ReturnType<typeof es.newGame>;
@@ -221,10 +222,50 @@ test('steps taken in town carry their day and join the next quarter’s assessme
 test('a failed exam costs the fee and queues the result card', () => {
   const school = visit(settle(es.newGame('cook', 5, 'en')), 'college', 600);
   const failed = es.doActivity(school, 'ccse');
+  expect(failed.stats.money).toBe(
+    school.stats.money - values.nationalityCcseFee.value,
+  );
   expect(failed.timeline.nationality.ccse).toEqual({ verifiedPass: false });
   expect(failed.pendingEvent ?? failed.eventQueue[0]).toBe(
     'system-exam-failed',
   );
+});
+
+test('a failed CCSE comes with a free retake within six months (SRC-335)', () => {
+  const ccse = (state: State) =>
+    es.activities(state, 'college').find(({ id }) => id === 'ccse');
+  const school = visit(settle(es.newGame('cook', 5, 'en')), 'college', 600);
+  const failed = es.doActivity(school, 'ccse');
+  expect(failed.timeline.steps.ccseRetakeFrom).toBe('2026-03-10');
+  // The weekend after: the retake is free, even with nothing in the bank.
+  const weekend = visit(nextDay(failed), 'college', 600);
+  expect(weekend.day.date).toBe('2026-03-14');
+  weekend.stats.money = 0;
+  const retake = ccse(weekend)!;
+  expect(retake.label.zhCN).toContain('免费重考');
+  expect(retake.label.zhCN).toContain(
+    `${addMonths('2026-03-10', values.nationalityCcseRetakeMonths.value)} 前`,
+  );
+  expect(retake.label.en).toContain('free retake');
+  const second = es.doActivity(weekend, 'ccse');
+  expect(second.stats.money).toBe(0);
+  expect(second.timeline.steps.ccseRetakeFrom).toBeUndefined();
+  // A further sitting is a new, paid registration.
+  second.stats.money = 500;
+  const third = visit(nextDay(second), 'college', 600);
+  expect(ccse(third)!.label.en).toContain(
+    `fee €${values.nationalityCcseFee.value}`,
+  );
+  expect(es.doActivity(third, 'ccse').stats.money).toBe(
+    third.stats.money - values.nationalityCcseFee.value,
+  );
+  // Past the window the retake is paid again.
+  const late = structuredClone(weekend);
+  late.day.date = addMonths('2026-03-10', 7);
+  late.stats.money = 500;
+  expect(ccse(late)!.label.en).not.toContain('free retake');
+  late.stats.money = 0;
+  expect(ccse(late)).toBeUndefined();
 });
 
 test('applying for nationality uses the engine’s assessment and the 790-026 fee', () => {
