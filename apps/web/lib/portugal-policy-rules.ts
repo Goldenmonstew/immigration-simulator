@@ -38,23 +38,33 @@ export const portugalRules: RuleMeta[] = [
       'https://files.diariodarepublica.pt/1s/1977/11/27301/00010050.pdf',
     ),
   ]),
-  rule('PT-A02', [
-    src('SRC-120', 'art. 6 n.º 1 b) (p2), n.º 3 (p3)'),
-    src('SRC-120', 'art. 15 n.º 3 (p5)'),
-    src('SRC-120', 'art. 15 n.º 1–2 (p5, p14)'),
-    src('SRC-122', 'fundamentação D.5'),
-    src('SRC-121', 'art. 6 n.º 1 b) (p8)'),
-    src('SRC-121', 'art. 15 n.º 3–4 (p13)'),
-    src('SRC-121', 'art. 15 n.º 1 (p12)'),
-    src('SRC-120', 'LO 1/2026 art. 7 n.º 2, art. 8 (p7)'),
-    src('SRC-127', 'Regulamentação complementar'),
-  ]),
-  rule('PT-A02-CURRENT-ALTERNATIVE', [
-    src('SRC-120', 'art. 6 n.º 1 b) (p2), n.º 3 (p3)'),
-    src('SRC-120', 'art. 15 n.º 3 (p5)'),
-    src('SRC-120', 'art. 15 n.º 1–2 (p5, p14)'),
-    src('SRC-122', 'fundamentação D.5'),
-  ]),
+  rule(
+    'PT-A02',
+    [
+      src('SRC-120', 'art. 6 n.º 1 b) (p2), n.º 3 (p3)'),
+      src('SRC-120', 'art. 15 n.º 3 (p5)'),
+      src('SRC-120', 'art. 15 n.º 1–2 (p5, p14)'),
+      src('SRC-122', 'fundamentação D.5'),
+      src('SRC-121', 'art. 6 n.º 1 b) (p8)'),
+      src('SRC-121', 'art. 15 n.º 3–4 (p13)'),
+      src('SRC-121', 'art. 15 n.º 1 (p12)'),
+      src('SRC-120', 'LO 1/2026 art. 7 n.º 2, art. 8 (p7)'),
+      src('SRC-127', 'Regulamentação complementar'),
+      src('SRC-120', 'arts. 6, 15; LO 1/2026 art. 7'),
+      src('SRC-121', 'arts. 6, 15'),
+    ],
+    ['PD-140', 'PD-141', 'PD-142', 'PD-143', 'PD-144', 'PD-145'],
+  ),
+  rule(
+    'PT-A02-CURRENT-ALTERNATIVE',
+    [
+      src('SRC-120', 'art. 6 n.º 1 b) (p2), n.º 3 (p3)'),
+      src('SRC-120', 'art. 15 n.º 3 (p5)'),
+      src('SRC-120', 'art. 15 n.º 1–2 (p5, p14)'),
+      src('SRC-122', 'fundamentação D.5'),
+    ],
+    ['PD-140', 'PD-141', 'PD-142', 'PD-145'],
+  ),
   rule('PT-A03', [src('SRC-120', 'art. 6(1)(c), (10), pp2–3')], ['PD-380']),
   rule('PT-A04', [src('SRC-120', 'art. 6(1)(c), p2')], ['PD-380']),
   rule('PT-A05', [src('SRC-120', 'art. 6(1)(d), p2')], ['PD-380']),
@@ -93,18 +103,27 @@ export const portugalRules: RuleMeta[] = [
   ),
   rule(
     'PT-A11-FEE',
-    [src('SRC-488', 'arts. 2, 19 (RERN art. 18(2.2.1))')],
+    [
+      src('SRC-488', 'arts. 2, 19 (RERN art. 18(2.2.1))'),
+      src('SRC-120', 'Lei 37/81 art. 6(3), (12), p3'),
+      src('SRC-482', 'Detalhes do Exame, price observed 2026-11-23'),
+      src('SRC-489', 'n.os 1–5'),
+    ],
     ['PD-384'],
   ),
-  rule('PT-A12', [
-    src('SRC-121', 'art. 6(1)(a), p7'),
-    src(
-      'SRC-487',
-      'DL 496/1977 art. 1 (Código Civil art. 130)',
-      'https://files.diariodarepublica.pt/1s/1977/11/27301/00010050.pdf',
-    ),
-    src('SRC-487', 'Lei 39/2025 arts. 6–8'),
-  ]),
+  rule(
+    'PT-A12',
+    [
+      src('SRC-121', 'art. 6(1)(a), p7'),
+      src(
+        'SRC-487',
+        'DL 496/1977 art. 1 (Código Civil art. 130)',
+        'https://files.diariodarepublica.pt/1s/1977/11/27301/00010050.pdf',
+      ),
+      src('SRC-487', 'Lei 39/2025 arts. 6–8'),
+    ],
+    ['PD-143'],
+  ),
   rule(
     'PT-A13',
     [
@@ -129,30 +148,42 @@ export const portugalRules: RuleMeta[] = [
     [src('SRC-121', 'art. 13(2)–(4), p10')],
     ['PD-382'],
   ),
-  rule('PT-B01', [
-    src('SRC-123', 'art. 80 n.º 1 a) (p67)'),
-    src('SRC-123', 'art. 74 n.º 1 (p65)'),
-    src(
-      'SRC-126',
-      'Autorização de Residência Permanente (art. 80.º)',
-      'https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o',
-    ),
-    src(
-      'SRC-126',
-      'Esclarecimento: Direito de Residência',
-      'https://aima.gov.pt/pt/noticias/direito-de-residencia',
-    ),
-    src('SRC-125', 'Decreto Regulamentar 84/2007 art. 63.º n.º 14'),
-  ]),
-  rule('PT-B01-CANCELLATION-RISK', [
-    src('SRC-123', 'art. 85 n.º 2 a) (p69)'),
-    src(
-      'SRC-123',
-      'Lei 62/2026 art. 4 (art. 85, p8)',
-      'https://files.diariodarepublica.pt/1s/2026/09/17600/0006000111.pdf',
-    ),
-  ]),
-  rule('PT-B01-TITLE', [src('SRC-123', 'arts. 80(1)(a), 85(1)–(2)')]),
+  rule(
+    'PT-B01',
+    [
+      src('SRC-123', 'art. 80 n.º 1 a) (p67)'),
+      src('SRC-123', 'art. 74 n.º 1 (p65)'),
+      src(
+        'SRC-126',
+        'Autorização de Residência Permanente (art. 80.º)',
+        'https://aima.gov.pt/pt/viver/autorizacao-de-residencia-permanente-art-80-o',
+      ),
+      src(
+        'SRC-126',
+        'Esclarecimento: Direito de Residência',
+        'https://aima.gov.pt/pt/noticias/direito-de-residencia',
+      ),
+      src('SRC-125', 'Decreto Regulamentar 84/2007 art. 63.º n.º 14'),
+    ],
+    ['PD-142', 'PD-145', 'PD-146'],
+  ),
+  rule(
+    'PT-B01-CANCELLATION-RISK',
+    [
+      src('SRC-123', 'art. 85 n.º 2 a) (p69)'),
+      src(
+        'SRC-123',
+        'Lei 62/2026 art. 4 (art. 85, p8)',
+        'https://files.diariodarepublica.pt/1s/2026/09/17600/0006000111.pdf',
+      ),
+    ],
+    ['PD-142', 'PD-145', 'PD-146'],
+  ),
+  rule(
+    'PT-B01-TITLE',
+    [src('SRC-123', 'arts. 80(1)(a), 85(1)–(2)')],
+    ['PD-146'],
+  ),
   rule(
     'PT-B02',
     [src('SRC-123', 'Lei 23/2007 art. 80(1)(b), p67')],
@@ -173,6 +204,22 @@ export const portugalRules: RuleMeta[] = [
       src('SRC-473', 'Portaria 1563/2007 art. 2'),
       src('SRC-473', 'Portaria 1563/2007 arts. 8, 11'),
       src('SRC-475', 'Montante / Forma de comprovar'),
+      src('SRC-474', 'DL 139/2025 arts. 2–3, 7'),
+      src(
+        'SRC-474',
+        'DLR 1/2026/M arts. 2, 4',
+        'https://files.diariodarepublica.pt/1s/2026/02/02300/0001400015.pdf',
+      ),
+      src(
+        'SRC-474',
+        'Lei 110/2009 annex art. 53, gazette PDF p12',
+        'https://files.diariodarepublica.pt/gratuitos/1s/2009/09/18000.pdf',
+      ),
+      src(
+        'SRC-474',
+        'Resolução 26/2026, regional comparison, p64',
+        'https://files.diariodarepublica.pt/gratuitos/1s/2026/07/14600.pdf',
+      ),
     ],
     ['PD-385'],
   ),
@@ -224,6 +271,16 @@ export const portugalRules: RuleMeta[] = [
   rule('PT-B07-ABSENCE', [
     src('SRC-123', 'art. 85 n.º 2 b) (p69)'),
     src('SRC-123', 'art. 76 n.º 1–2 (p65)'),
+    src(
+      'SRC-123',
+      'Lei 56/2023 art. 42 n.º 4 (p38–p39)',
+      'https://files.diariodarepublica.pt/1s/2023/10/19400/0000200050.pdf',
+    ),
+    src('SRC-125', 'Decreto Regulamentar 84/2007 art. 65.º-K'),
+    src(
+      'SRC-126',
+      'Autorização de Residência para Atividade de Investimento Permanente',
+    ),
   ]),
   rule(
     'PT-B07-FEE',
@@ -265,8 +322,14 @@ export const portugalRules: RuleMeta[] = [
         'SRC-491',
         'Lei 53/2023 arts. 2, 10, gazette p24 (Lei 23/2007 arts. 121-I, 121-J)',
       ),
+      src(
+        'SRC-123',
+        'art. 129 n.º 9 (p102), art. 130 n.º 2 (p102), art. 131 n.º 6 (p103)',
+      ),
+      src('SRC-123', 'art. 131 n.º 1 c) (p103)'),
+      src('SRC-123', 'art. 131 n.º 1 e) (p103)'),
     ],
-    ['PD-145', 'PD-147', 'PD-389'],
+    ['PD-145', 'PD-147', 'PD-389', 'PD-142'],
   ),
   rule(
     'PT-C01-CATEGORY',
@@ -297,6 +360,22 @@ export const portugalRules: RuleMeta[] = [
       src('SRC-473', 'Portaria 1563/2007 art. 2'),
       src('SRC-473', 'Portaria 1563/2007 arts. 8, 11'),
       src('SRC-475', 'Montante / Forma de comprovar'),
+      src('SRC-474', 'DL 139/2025 arts. 2–3, 7'),
+      src(
+        'SRC-474',
+        'DLR 1/2026/M arts. 2, 4',
+        'https://files.diariodarepublica.pt/1s/2026/02/02300/0001400015.pdf',
+      ),
+      src(
+        'SRC-474',
+        'Lei 110/2009 annex art. 53, gazette PDF p12',
+        'https://files.diariodarepublica.pt/gratuitos/1s/2009/09/18000.pdf',
+      ),
+      src(
+        'SRC-474',
+        'Resolução 26/2026, regional comparison, p64',
+        'https://files.diariodarepublica.pt/gratuitos/1s/2026/07/14600.pdf',
+      ),
     ],
     ['PD-385'],
   ),
@@ -371,14 +450,18 @@ export const portugalRules: RuleMeta[] = [
     ],
     ['PD-147', 'PD-389'],
   ),
-  rule('PT-C10-PILOT-ABSENCE', [
-    src('SRC-123', 'art. 131 n.º 1 c) (p103)'),
-    src('SRC-123', 'art. 131 n.º 1 e) (p103)'),
-    src(
-      'SRC-123',
-      'art. 129 n.º 9 (p102), art. 130 n.º 2 (p102), art. 131 n.º 6 (p103)',
-    ),
-  ]),
+  rule(
+    'PT-C10-PILOT-ABSENCE',
+    [
+      src('SRC-123', 'art. 131 n.º 1 c) (p103)'),
+      src('SRC-123', 'art. 131 n.º 1 e) (p103)'),
+      src(
+        'SRC-123',
+        'art. 129 n.º 9 (p102), art. 130 n.º 2 (p102), art. 131 n.º 6 (p103)',
+      ),
+    ],
+    ['PD-146'],
+  ),
   rule(
     'PT-D-FEE',
     [
@@ -416,6 +499,22 @@ export const portugalRules: RuleMeta[] = [
         'Portaria 1563/2007 arts. 5(1)–(6), 7; reductions apply to the specified categories',
       ),
       src('SRC-475', 'Montante / Forma de comprovar'),
+      src('SRC-474', 'DL 139/2025 arts. 2–3, 7'),
+      src(
+        'SRC-474',
+        'DLR 1/2026/M arts. 2, 4',
+        'https://files.diariodarepublica.pt/1s/2026/02/02300/0001400015.pdf',
+      ),
+      src(
+        'SRC-474',
+        'Lei 110/2009 annex art. 53, gazette PDF p12',
+        'https://files.diariodarepublica.pt/gratuitos/1s/2009/09/18000.pdf',
+      ),
+      src(
+        'SRC-474',
+        'Resolução 26/2026, regional comparison, p64',
+        'https://files.diariodarepublica.pt/gratuitos/1s/2026/07/14600.pdf',
+      ),
     ],
     ['PD-385'],
   ),
@@ -565,15 +664,19 @@ export const portugalRules: RuleMeta[] = [
     ],
     ['PD-394'],
   ),
-  rule('PT-D07-STAY', [
-    src('SRC-124', 'art. 65-C a) (p3)'),
-    src('SRC-124', 'art. 65-C b) (p3)'),
-    src(
-      'SRC-126',
-      'Perguntas frequentes ARI, n.º 24',
-      'https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari',
-    ),
-  ]),
+  rule(
+    'PT-D07-STAY',
+    [
+      src('SRC-124', 'art. 65-C a) (p3)'),
+      src('SRC-124', 'art. 65-C b) (p3)'),
+      src(
+        'SRC-126',
+        'Perguntas frequentes ARI, n.º 24',
+        'https://aima.gov.pt/pt/a-aima/perguntas-frequentes-faqs/autorizacao-de-residencia-para-investimento-ari',
+      ),
+    ],
+    ['PD-148', 'PD-392'],
+  ),
   rule('PT-D07-WINDOW', [
     src('SRC-123', 'art. 78 n.º 1 (p66)'),
     src(
@@ -623,16 +726,20 @@ export const portugalRules: RuleMeta[] = [
     ],
     ['PD-394'],
   ),
-  rule('PT-D10', [
-    src('SRC-471', 'DR 84/2007 art. 65-K'),
-    src('SRC-123', 'art. 80, p67'),
-    src(
-      'SRC-123',
-      'Lei 56/2023 arts. 42–44, 55',
-      'https://files.diariodarepublica.pt/1s/2023/10/19400/0000200050.pdf',
-    ),
-    src('SRC-481', 'FAQ 28–29'),
-  ]),
+  rule(
+    'PT-D10',
+    [
+      src('SRC-471', 'DR 84/2007 art. 65-K'),
+      src('SRC-123', 'art. 80, p67'),
+      src(
+        'SRC-123',
+        'Lei 56/2023 arts. 42–44, 55',
+        'https://files.diariodarepublica.pt/1s/2023/10/19400/0000200050.pdf',
+      ),
+      src('SRC-481', 'FAQ 28–29'),
+    ],
+    ['PD-394'],
+  ),
   rule(
     'PT-D10-TERMS',
     [src('SRC-471', 'DR 84/2007 art. 65-K'), src('SRC-481', 'FAQ 26–29')],
@@ -668,6 +775,22 @@ export const portugalRules: RuleMeta[] = [
         'Portaria 1563/2007 arts. 5(1)–(6), 7; reductions apply to the specified categories',
       ),
       src('SRC-475', 'Montante / Forma de comprovar'),
+      src('SRC-474', 'DL 139/2025 arts. 2–3, 7'),
+      src(
+        'SRC-474',
+        'DLR 1/2026/M arts. 2, 4',
+        'https://files.diariodarepublica.pt/1s/2026/02/02300/0001400015.pdf',
+      ),
+      src(
+        'SRC-474',
+        'Lei 110/2009 annex art. 53, gazette PDF p12',
+        'https://files.diariodarepublica.pt/gratuitos/1s/2009/09/18000.pdf',
+      ),
+      src(
+        'SRC-474',
+        'Resolução 26/2026, regional comparison, p64',
+        'https://files.diariodarepublica.pt/gratuitos/1s/2026/07/14600.pdf',
+      ),
     ],
     ['PD-385', 'PD-395'],
   ),
@@ -729,6 +852,7 @@ export const portugalRules: RuleMeta[] = [
         'SRC-477',
         'Portaria 307/2023 art. 3 and SRC-476 effective-date notice',
       ),
+      src('SRC-476', 'III.2(a)–(b), p2'),
     ],
     ['PD-398'],
   ),
@@ -762,14 +886,18 @@ export const portugalRules: RuleMeta[] = [
     ],
     ['PD-396'],
   ),
-  rule('PT-F02-RETENTION', [
-    src('SRC-478', 'Lei 37/2006 art. 10(4)–(5), p5719'),
-    src('SRC-478', 'Lei 37/2006 art. 17(4), p5721'),
-  ]),
+  rule(
+    'PT-F02-RETENTION',
+    [
+      src('SRC-478', 'Lei 37/2006 art. 10(4)–(5), p5719'),
+      src('SRC-478', 'Lei 37/2006 art. 17(4), p5721'),
+    ],
+    ['PD-396'],
+  ),
   rule(
     'PT-F03',
     [src('SRC-478', 'arts. 2(f), 3(2)–(3), 6–9, pp5717–5719')],
-    ['PD-397'],
+    ['PD-397', 'PD-396'],
   ),
   rule(
     'PT-F04',
@@ -834,7 +962,11 @@ export const portugalRules: RuleMeta[] = [
   ),
   rule(
     'PT-G02',
-    [src('SRC-120', 'art. 3(3)'), src('SRC-470', 'art. 14')],
+    [
+      src('SRC-120', 'art. 3(3)'),
+      src('SRC-470', 'art. 14'),
+      src('SRC-121', 'art. 3(3)'),
+    ],
     ['PD-399'],
   ),
   rule(
@@ -874,7 +1006,11 @@ export const portugalRules: RuleMeta[] = [
     [src('SRC-470', 'arts. 14, 44'), src('SRC-483', 'Documentos necessários')],
     ['PD-399'],
   ),
-  rule('PT-G06-FEE', [src('SRC-488', 'arts. 2, 19 (RERN art. 18(2.2.1))')]),
+  rule(
+    'PT-G06-FEE',
+    [src('SRC-488', 'arts. 2, 19 (RERN art. 18(2.2.1))')],
+    ['PD-384'],
+  ),
   rule(
     'PT-G06-PARTNER-STATEMENT',
     [src('SRC-483', 'Documentos necessários · união de facto')],

@@ -684,107 +684,261 @@ test('what-if controls change copies of the draft and point to their conditions'
     expect(controls).toContain(`id="${focus}"`);
 });
 
-// Requests that reach every branch of evaluatePortugalFull.
-const at = '2026-11-23';
-const base: PtFullRequest = {
-  simulationDate: at,
-  route: 'other',
-  birthDate: '1990-01-01',
-  permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
-  trips: [],
-};
+// Requests that together reach every source and pending detail the engine
+// cites. A coverage-guided search over the questionnaire's fields found them
+// (review102-1); each keeps only the answers its citations need, plus a
+// residence card where the card does not change them (requests without one
+// take several times longer).
 const branches: PtFullRequest[] = [
   {
-    ...base,
+    simulationDate: '2027-03-02',
+    route: 'other',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
     residence: { statusCancellation: 'clear' },
-    longTerm: { basis: 'ordinary' },
-    investment: {
-      operation: 'grant',
-      holder: 'investor',
-      investment: { kind: 'jobs' },
-    },
+    investment: { investment: { kind: 'jobs' } },
     renewal: {
-      receiptIssuedOn: at,
       filedOn: '2026-11-01',
+      receiptIssuedOn: '2026-11-23',
       releasedOn: '2026-10-01',
       purpose: 'study',
     },
-    partner: { kind: 'marriage' },
   },
   {
-    ...base,
+    simulationDate: '2028-07-01',
     route: 'stateless',
-    longTerm: { basis: 'international-protection' },
-    investment: { operation: 'grant', holder: 'family' },
-    freeMovement: { basis: 'retained-family' },
-    partner: { kind: 'civil-partnership' },
+    permits: [{ kind: 'golden-visa', from: '2014-10-23', to: '2017-10-23' }],
+    trips: [],
+    freeMovement: {
+      basis: 'early-worker',
+      earlyWorker: { reason: 'permanent-disability' },
+    },
+    birthDate: '2025-12-04',
+    pendingApplication: '2024-05-19',
+    residenceApplied: '2028-09-08',
+    permanentOperation: 'replace',
   },
   {
-    ...base,
-    pendingApplication: '2026-01-15',
-    residenceApplied: '2022-12-01',
+    simulationDate: '2026-11-23',
+    route: 'stateless',
     permits: [
-      { kind: 'temporary', from: '2023-01-01' },
-      { kind: 'permanent', from: '2025-06-01' },
+      { kind: 'eu-long-term', from: '2021-02-01' },
+      { kind: 'ari-permanent', from: '2016-08-19' },
     ],
+    trips: [],
+    residence: {
+      means: { region: 'madeira', otherAdults: 5, dependantChildren: 2 },
+    },
+    partner: { kind: 'civil-partnership' },
+    pendingApplication: '2024-01-09',
+  },
+  {
+    simulationDate: '2026-11-23',
+    route: 'other',
+    permits: [{ kind: 'permanent', from: '2025-06-01' }],
+    trips: [],
+    pendingApplication: '2026-01-15',
     permanentOperation: 'replace',
     longTerm: { basis: 'blue-card' },
-    investment: { operation: 'grant', investment: { kind: 'research' } },
+    investment: { investment: { kind: 'research' } },
     freeMovement: {
       basis: 'early-worker',
       earlyWorker: { reason: 'retirement' },
     },
-    partner: { kind: 'marriage', pendingApplication: '2026-01-15' },
+    partner: { pendingApplication: '2026-01-15' },
   },
   {
-    ...base,
-    pendingApplication: '2026-05-19',
-    permits: [
-      { kind: 'temporary', from: '2015-10-01', to: '2021-01-01' },
-      { kind: 'eu-long-term', from: '2021-01-02' },
-      { kind: 'golden-visa', from: '2025-01-10', to: '2027-01-09' },
-    ],
+    simulationDate: '2026-11-23',
+    route: 'other',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
     investment: { investment: { kind: 'legacy' } },
     freeMovement: { basis: 'early-family' },
     partner: { pendingApplication: '2026-05-19' },
   },
   {
-    ...base,
-    longTerm: { operation: 'recover' },
-    investment: { operation: 'convert' },
-    freeMovement: {
-      operation: 'retain',
-      permanentRightAcquiredOn: '2020-01-01',
-    },
+    simulationDate: '2026-11-23',
+    route: 'stateless',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    longTerm: { basis: 'international-protection' },
+    investment: { holder: 'family' },
+    freeMovement: { basis: 'retained-family' },
+    partner: { kind: 'civil-partnership' },
   },
-  ...(['culture', 'fund', 'company'] as const).map((kind): PtFullRequest => ({
-    ...base,
-    investment: { operation: 'grant', investment: { kind } as never },
-  })),
-  { ...base, investment: { operation: 'grant' } },
-  { ...base, investment: { operation: 'replace-permanent' } },
+  {
+    simulationDate: '2026-11-23',
+    route: 'eu',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    residence: {
+      means: { region: 'madeira', otherAdults: 5, dependantChildren: 2 },
+    },
+    longTerm: { operation: 'recover' },
+    investment: { investment: { kind: 'company' } },
+    freeMovement: { permanentRightAcquiredOn: '2022-07-19' },
+  },
+  {
+    simulationDate: '2026-05-20',
+    route: 'other',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    residence: {
+      means: { region: 'azores', otherAdults: 1, dependantChildren: 12 },
+    },
+    investment: { operation: 'grant' },
+  },
+  {
+    simulationDate: '2025-01-01',
+    route: 'cplp',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    investment: { operation: 'grant', investment: { kind: 'culture' } },
+    partner: { kind: 'civil-partnership' },
+  },
+  {
+    simulationDate: '2026-11-23',
+    route: 'other',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    investment: { investment: { kind: 'fund' } },
+  },
+  {
+    simulationDate: '2026-05-20',
+    route: 'eu',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    nationality: { language: { kind: 'pan' } },
+    pendingApplication: '2026-01-01',
+    residenceApplied: '2014-02-01',
+  },
+  {
+    simulationDate: '2026-10-01',
+    route: 'cplp',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    investment: { operation: 'renew' },
+    freeMovement: { operation: 'retain' },
+  },
+  {
+    simulationDate: '2026-11-23',
+    route: 'other',
+    permits: [{ kind: 'eu-long-term', from: '2011-04-09' }],
+    trips: [],
+    longTerm: { operation: 'grant' },
+  },
+  {
+    simulationDate: '2025-01-01',
+    route: 'other',
+    permits: [{ kind: 'golden-visa', from: '2014-07-17' }],
+    trips: [{ departed: '2014-09-11', returned: '2015-04-28' }],
+  },
+  {
+    simulationDate: '2025-01-01',
+    route: 'stateless',
+    permits: [{ kind: 'eu-long-term', from: '2023-10-07' }],
+    trips: [{ departed: '2017-10-02', returned: '2025-01-21' }],
+    nationality: { language: { kind: 'ciple' } },
+  },
+  {
+    simulationDate: '2026-11-23',
+    route: 'other',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    investment: { investment: { kind: 'company' } },
+  },
+  {
+    simulationDate: '2026-05-20',
+    route: 'eu',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    residence: { statusCancellation: 'pending' },
+  },
+  {
+    simulationDate: '2027-03-02',
+    route: 'cplp',
+    permits: [{ kind: 'temporary', from: '2014-10-23' }],
+    trips: [{ departed: '2014-02-24', returned: '2026-05-19' }],
+  },
+  {
+    simulationDate: '2030-01-01',
+    route: 'eu',
+    permits: [{ kind: 'temporary', from: '2015-10-01' }],
+    trips: [],
+    renewal: { purpose: 'blue-card' },
+  },
+  {
+    simulationDate: '2026-11-23',
+    route: 'eea',
+    permits: [{ kind: 'ari-permanent', from: '2019-10-09' }],
+    trips: [],
+  },
+  {
+    simulationDate: '2028-07-01',
+    route: 'stateless',
+    permits: [{ kind: 'temporary', from: '2015-10-01' }],
+    trips: [],
+    nationality: { statelessRecognized: true },
+  },
+  {
+    simulationDate: '2026-05-20',
+    route: 'eu',
+    permits: [
+      { kind: 'study', from: '2020-05-20', to: '2023-05-20' },
+      { kind: 'permanent', from: '2024-02-21' },
+    ],
+    trips: [],
+    pendingApplication: '2024-04-01',
+    residenceApplied: '2026-05-20',
+  },
+  {
+    simulationDate: '2026-11-23',
+    route: 'eea',
+    permits: [{ kind: 'temporary', from: '2015-10-01', to: '2027-01-22' }],
+    trips: [],
+    freeMovement: { basis: 'retained-family', relationship: 'other-family' },
+  },
 ];
 
-test('the policy page lists every engine condition with its sources and pending details', () => {
+test('the policy page lists exactly the sources and pending details the engine cites', () => {
   const rules = new Map(
     pt.policy.rules['pt.current-law'].map((rule) => [rule.id, rule]),
   );
-  const seen = new Set<string>();
+  const cited = new Map<string, { sources: string[]; pending: string[] }>();
   for (const request of branches)
     for (const locale of ['zh-CN', 'en'] as const)
       for (const path of evaluatePortugalFull({ ...request, locale }).columns[0]
         .pathways)
         for (const check of path.checks) {
-          seen.add(check.id);
-          const rule = rules.get(check.id);
-          expect(rule, check.id).toBeDefined();
+          const entry = cited.get(check.id) ?? { sources: [], pending: [] };
+          cited.set(check.id, entry);
           for (const source of check.sources)
-            expect(rule!.sources, check.id).toContainEqual(source);
-          for (const pd of check.pendingDetails ?? [])
-            expect(rule!.pendingDetails, check.id).toContain(pd);
+            entry.sources.push(JSON.stringify(source));
+          entry.pending.push(...(check.pendingDetails ?? []));
         }
-  expect([...rules.keys()].sort()).toEqual([...seen].sort());
-  expect(seen.size).toBe(108);
+  const listing = (sources: string[], pending: string[]) => ({
+    sources: [...new Set(sources)].sort(),
+    pending: [...new Set(pending)].sort(),
+  });
+  expect(
+    Object.fromEntries(
+      [...rules.values()].map((rule) => [
+        rule.id,
+        listing(
+          rule.sources.map((source) => JSON.stringify(source)),
+          rule.pendingDetails,
+        ),
+      ]),
+    ),
+  ).toEqual(
+    Object.fromEntries(
+      [...cited].map(([id, entry]) => [
+        id,
+        listing(entry.sources, entry.pending),
+      ]),
+    ),
+  );
+  expect(cited.size).toBe(108);
 
   // Only Portuguese sources appear, and each has an archived address.
   const used = new Set(
