@@ -11,7 +11,9 @@ import {
   inapplicable,
   info,
   latest,
+  planned,
   ref,
+  renewal,
   timing,
   v,
   withFee,
@@ -19,6 +21,7 @@ import {
   type MyContext,
   type MyPassKind,
   type MyPathway,
+  type Span,
 } from './malaysia-full-shared';
 import type { IsoDate } from './types';
 
@@ -185,8 +188,10 @@ function earlyRun(
 /**
  * `years` held on `at` with breaks of up to `maxGapMonths` (PD-407). Such
  * breaks do not restart the count; without counting them, `years` are held
- * once the days held since the bridged start reach the days in the `years`
- * before `d` (PD-429). Holding is assumed to continue after `at`.
+ * once the days held since a start reach the days in the `years` before `d`
+ * (PD-429). Whether the limit is per break or in total is not written, so a
+ * start counts for both readings only when its later breaks add up to no
+ * more than `maxGapMonths`. Holding is assumed to continue after `at`.
  */
 function longRun(
   ctx: MyContext,
@@ -196,25 +201,42 @@ function longRun(
   at: IsoDate,
 ) {
   const run = heldRun(ctx.req.passes, kinds, at, maxGapMonths);
-  const heldEnough = (d: IsoDate) =>
+  const gaps = run?.valid ? run.gaps : [];
+  const held = (d: IsoDate, from: IsoDate, breaks: Span[]) =>
+    daysBetween(from, d) -
+      breaks.reduce((n, g) => n + daysBetween(g.start, g.end), 0) >=
+    daysBetween(addYears(d, -years), d);
+  const withinTotal = (breaks: Span[]) => {
+    if (breaks.length < 2) return true;
+    const days = breaks.reduce((n, g) => n + daysBetween(g.start, g.end), 0);
+    return (
+      addDays(breaks[0].start, days) <= addMonths(breaks[0].start, maxGapMonths)
+    );
+  };
+  const perBreak = (d: IsoDate) =>
+    run?.valid === true && held(d, run.tolerantStart, gaps);
+  const bothReadings = (d: IsoDate) =>
     run?.valid === true &&
-    daysBetween(run.tolerantStart, d) - run.gapDays >=
-      daysBetween(addYears(d, -years), d);
+    [...gaps.keys(), gaps.length].some((k) => {
+      const later = gaps.slice(k);
+      const from = k === 0 ? run.tolerantStart : gaps[k - 1].end;
+      return withinTotal(later) && held(d, from, later);
+    });
   const met = !run
     ? undefined
-    : run.valid && (at >= addYears(run.start, years) || heldEnough(at))
+    : run.valid && (at >= addYears(run.start, years) || bothReadings(at))
       ? true
-      : run.valid && at >= addYears(run.tolerantStart, years)
+      : run.valid && (perBreak(at) || at >= addYears(run.tolerantStart, years))
         ? undefined
         : false;
   let earliest: IsoDate | null | undefined = !run ? undefined : null;
   if (run?.valid) {
     const unbroken = addYears(run.start, years);
     earliest = addYears(run.tolerantStart, years);
-    while (earliest < unbroken && !heldEnough(earliest))
+    while (earliest < unbroken && !bothReadings(earliest))
       earliest = addDays(earliest, 1);
   }
-  return { run, met, earliest };
+  return { run, met, earliest, inTotal: met === undefined && perBreak(at) };
 }
 
 type PassVerdict = boolean | undefined;
@@ -251,7 +273,13 @@ function earlyPassCheck(
   spouse = false,
 ) {
   const { date, L } = ctx;
-  const { run, met: strict, earliest } = earlyRun(ctx, kinds, months, date);
+  const { run, met: strict } = earlyRun(ctx, kinds, months, date);
+  const plan = planned(
+    ctx.req.passes,
+    kinds,
+    date,
+    (d) => earlyRun(ctx, kinds, months, d).earliest,
+  );
   const combined = spouse
     ? earlyRun(ctx, [...kinds, 'residence'], months, date)
     : undefined;
@@ -291,7 +319,9 @@ function earlyPassCheck(
   );
   return {
     check: c,
-    earliest: earliest === null && onResidencePass ? undefined : earliest,
+    earliest:
+      plan.earliest === null && onResidencePass ? undefined : plan.earliest,
+    renewed: plan.renewed,
   };
 }
 
@@ -310,8 +340,14 @@ function longPassCheck(
   const {
     run,
     met: strict,
-    earliest,
+    inTotal,
   } = longRun(ctx, kinds, years, maxGapMonths, date);
+  const plan = planned(
+    ctx.req.passes,
+    kinds,
+    date,
+    (d) => longRun(ctx, kinds, years, maxGapMonths, d).earliest,
+  );
   const combined = spouse
     ? longRun(ctx, [...kinds, 'residence'], years, maxGapMonths, date)
     : undefined;
@@ -342,10 +378,15 @@ function longPassCheck(
               : '')
           : '') +
       (strict === undefined && run?.valid
-        ? L(
-            `只有把 ${maxGapMonths} 个月以内的中断也算作持有才满 ${years} 年，中断如何计算待确认。`,
-            ` ${years} years are reached only if breaks of up to ${maxGapMonths} months also count as holding; how breaks count needs confirmation.`,
-          )
+        ? inTotal
+          ? L(
+              `多次中断合计超过 ${maxGapMonths} 个月：按每次中断计已满 ${years} 年，按合计计则未满，"不得中断超过 ${maxGapMonths} 个月"指单次还是累计待确认。`,
+              ` Several breaks add up to more than ${maxGapMonths} months: ${years} years are held if the limit applies to each break but not if it applies in total, which needs confirmation.`,
+            )
+          : L(
+              `只有把 ${maxGapMonths} 个月以内的中断也算作持有才满 ${years} 年，中断如何计算待确认。`,
+              ` ${years} years are reached only if breaks of up to ${maxGapMonths} months also count as holding; how breaks count needs confirmation.`,
+            )
         : '') +
       (helps || onResidencePass ? residencePassText(ctx, helps) : ''),
     [
@@ -357,7 +398,9 @@ function longPassCheck(
   );
   return {
     check: c,
-    earliest: earliest === null && onResidencePass ? undefined : earliest,
+    earliest:
+      plan.earliest === null && onResidencePass ? undefined : plan.earliest,
+    renewed: plan.renewed,
   };
 }
 
@@ -791,6 +834,7 @@ export function assessPrSpouse(
   return assemble(ctx, `my.pr.${route}`, L(zh, en), checks, {
     discretionary: true,
     time: timing(latest(marriage.earliest, pass.earliest), ctx.date),
+    assumptions: renewal(ctx, pass.renewed),
   });
 }
 
@@ -872,6 +916,7 @@ export function assessPrChild(ctx: MyContext): MyPathway {
     {
       discretionary: true,
       time: timing(beforeDeadline(pass.earliest, deadline, date), date),
+      assumptions: renewal(ctx, pass.renewed),
     },
   );
 }
@@ -988,7 +1033,8 @@ export function assessPrWas(ctx: MyContext): MyPathway {
   );
   return assemble(ctx, 'my.pr.was', L(...titles.was), checks, {
     discretionary: true,
-    time: timing(latest(pass.earliest), ctx.date),
+    time: timing(pass.earliest, ctx.date),
+    assumptions: renewal(ctx, pass.renewed),
   });
 }
 
@@ -1223,7 +1269,16 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
   const years =
     cat === 3 ? p.citizenFamilyYears : cat === 4 ? p.prFamilyYears : undefined;
   const run = heldRun(req.passes, LONG_TERM, date);
-  let earliest: IsoDate | null | undefined;
+  const plan = planned(req.passes, LONG_TERM, date, (d) => {
+    const at = heldRun(req.passes, LONG_TERM, d);
+    return !at
+      ? undefined
+      : !at.valid
+        ? null
+        : years === undefined
+          ? d
+          : addYears(at.start, years);
+  });
   if (years === undefined) {
     checks.push(
       check(
@@ -1237,7 +1292,6 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
         ),
       ),
     );
-    earliest = run ? (run.valid ? date : null) : undefined;
   } else {
     const met = !run
       ? undefined
@@ -1278,12 +1332,8 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
         ['PD-429'],
       ),
     );
-    earliest = run
-      ? run.valid
-        ? addYears(run.start, years)
-        : null
-      : undefined;
   }
+  const earliest = plan.earliest;
   checks.push(
     check(
       'my.rp.sponsor',
@@ -1352,6 +1402,7 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
     L('Residence Pass（第 3–5 类）', 'Residence Pass (Categories 3–5)'),
     checks,
     {
+      assumptions: renewal(ctx, plan.renewed),
       // "Aged 18 and below": too late from the next birthday.
       time: timing(
         child

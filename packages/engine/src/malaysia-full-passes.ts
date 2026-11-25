@@ -11,7 +11,9 @@ import {
   heldRun,
   inapplicable,
   info,
+  planned,
   ref,
+  renewal,
   timing,
   v,
   withFee,
@@ -453,6 +455,10 @@ export function assessRpt(ctx: MyContext): MyPathway {
   const p = v.rpt.value;
   const src = v.rpt.sources;
   const run = heldRun(req.passes, ['employment'], date);
+  const plan = planned(req.passes, ['employment'], date, (d) => {
+    const at = heldRun(req.passes, ['employment'], d);
+    return !at ? undefined : at.valid ? addYears(at.start, p.workYears) : null;
+  });
   // The page says "worked in Malaysia" without naming a pass, and work on
   // other passes is not asked (PD-431).
   const anyPass = heldRun(req.passes, ANY_PASS, date);
@@ -580,10 +586,8 @@ export function assessRpt(ctx: MyContext): MyPathway {
     L('人才居留准证（RP-T）', 'Residence Pass-Talent (RP-T)'),
     checks,
     {
-      time: timing(
-        !run ? undefined : run.valid ? addYears(run.start, p.workYears) : null,
-        date,
-      ),
+      time: timing(plan.earliest, date),
+      assumptions: renewal(ctx, plan.renewed),
     },
   );
 }

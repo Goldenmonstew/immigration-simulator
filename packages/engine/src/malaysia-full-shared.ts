@@ -353,7 +353,8 @@ export const fullyCovered = (spans: Span[], from: IsoDate, to: IsoDate) =>
 /**
  * The run of passes of `kinds` that is valid on `date`: `start` of the
  * unbroken run, `tolerantStart` when breaks of up to `maxGapMonths` are
- * bridged, `gapDays` in those breaks, and `total` days held before `date`.
+ * bridged, those `gaps` (oldest first) and their `gapDays`, and `total` days
+ * held before `date`.
  */
 export function heldRun(
   passes: MyPassPeriod[] | undefined,
@@ -371,21 +372,65 @@ export function heldRun(
   const i = spans.findIndex((s) => s.start <= date && date < s.end);
   if (i < 0) return { valid: false as const, total };
   let tolerantStart = spans[i].start;
-  let gapDays = 0;
+  const gaps: Span[] = [];
   for (
     let j = i - 1;
     j >= 0 && tolerantStart <= addMonths(spans[j].end, maxGapMonths);
     j--
   ) {
-    gapDays += daysBetween(spans[j].end, tolerantStart);
+    gaps.unshift({ start: spans[j].end, end: tolerantStart });
     tolerantStart = spans[j].start;
   }
   return {
     valid: true as const,
     start: spans[i].start,
     tolerantStart,
-    gapDays,
+    gaps,
+    gapDays: spanDays(gaps),
     total,
+  };
+}
+
+const spanDays = (spans: Span[]) =>
+  spans.reduce((n, s) => n + daysBetween(s.start, s.end), 0);
+
+/**
+ * The date `earliestAt` gives for the passes held on `date`, which assumes
+ * holding goes on. When a pass of `kinds` is entered for later, after a break
+ * before that date, the date is worked out again from the later pass.
+ * `renewed`: the date falls after the last pass entered.
+ */
+export function planned(
+  passes: MyPassPeriod[] | undefined,
+  kinds: readonly MyPassKind[],
+  date: IsoDate,
+  earliestAt: (d: IsoDate) => IsoDate | null | undefined,
+) {
+  const spans = union(
+    (passes ?? []).filter((p) => kinds.includes(p.kind)).map(passSpan),
+  );
+  let d = date;
+  let earliest = earliestAt(d);
+  for (;;) {
+    const current = spans.find((s) => s.start <= d && d < s.end);
+    const next = spans.find((s) => s.start > d);
+    if (
+      earliest === undefined ||
+      !next ||
+      (earliest !== null && current && earliest < current.end)
+    )
+      break;
+    d = next.start;
+    earliest = earliestAt(d);
+  }
+  const last = spans[spans.length - 1];
+  return {
+    earliest,
+    renewed:
+      typeof earliest === 'string' &&
+      earliest > date &&
+      last !== undefined &&
+      earliest >= last.end,
   };
 }
 
@@ -394,6 +439,16 @@ export function heldRun(
 export interface MyPathway extends CountryPathway {
   checks: MyCheck[];
 }
+
+export const renewal = (ctx: MyContext, renewed: boolean) =>
+  renewed
+    ? [
+        ctx.L(
+          '最早日期假设最后一段准证到期后续签、不中断。',
+          'The earliest date assumes the last pass entered is renewed without a break.',
+        ),
+      ]
+    : [];
 
 export function timing(earliest: IsoDate | null | undefined, date: IsoDate) {
   if (earliest === undefined) return { timeStatus: 'UNKNOWN' as PilotStatus };

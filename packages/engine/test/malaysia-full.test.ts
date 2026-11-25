@@ -322,6 +322,130 @@ describe('permanent residence: husband of a citizen', () => {
     ]);
   });
 
+  test('several short breaks adding up to more than six months are pending (review113-2 risk 2)', () => {
+    // Breaks 2022-01-01..2022-05-31 (151 days) and 2024-01-01..2024-05-31
+    // (152 days): each is within six months, together 303 days are not.
+    const req = {
+      ...husband,
+      passes: [
+        { kind: 'ltsvp-spouse', from: '2020-01-01', to: '2021-12-31' },
+        { kind: 'ltsvp-spouse', from: '2022-06-01', to: '2023-12-31' },
+        { kind: 'ltsvp-spouse', from: '2024-06-01', to: '2029-12-31' },
+      ],
+    } satisfies MyFullRequest;
+    // Per break: 2519 days since 2020-01-01 less 303 exceed 1826. In total:
+    // only the run from 2022-06-01 with its 152-day break is within six
+    // months, and 1978 days less 152 first reach 1826 on 2027-10-31.
+    const c = cond('my.pr.husband', 'my.pr.spouse-pass', req);
+    expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', ['PD-407']]);
+    expect(c.explanation).toContain('单次还是累计');
+    const p = path('my.pr.husband', req);
+    expect([p.timeStatus, p.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2027-10-31',
+    ]);
+    // Breaks of 59 and 60 days add up to under six months: met either way.
+    const short = {
+      ...husband,
+      passes: [
+        { kind: 'ltsvp-spouse', from: '2020-01-01', to: '2021-12-31' },
+        { kind: 'ltsvp-spouse', from: '2022-03-01', to: '2023-12-31' },
+        { kind: 'ltsvp-spouse', from: '2024-03-01', to: '2029-12-31' },
+      ],
+    } satisfies MyFullRequest;
+    expect(cond('my.pr.husband', 'my.pr.spouse-pass', short).status).toBe(
+      'MET',
+    );
+    // The same breaks on employment passes leave the WAS category pending.
+    const was = cond('my.pr.was', 'my.pr.qualifying-pass', {
+      ...req,
+      family: { tie: 'none' },
+      passes: req.passes.map((x) => ({ ...x, kind: 'employment' as const })),
+    });
+    expect([was.status, was.pendingDetails]).toEqual(['UNKNOWN', ['PD-407']]);
+  });
+
+  test('planned breaks in the passes entered move the earliest date (review113-2 risk 5)', () => {
+    const at = (passes: MyFullRequest['passes']) => {
+      const p = path('my.pr.husband', { ...husband, passes });
+      return [p.timeStatus, p.timeEarliestDate];
+    };
+    const spouse = (from: string, to: string) => ({
+      kind: 'ltsvp-spouse' as const,
+      from,
+      to,
+    });
+    // Unbroken from 2023-01-01, five years end on 2028-01-01.
+    expect(at([spouse('2023-01-01', '2035-12-31')])).toEqual([
+      'FUTURE',
+      '2028-01-01',
+    ]);
+    // A planned break of 2027-07-01..2027-08-31 (62 days) is bridged and
+    // left out: 1889 days less 62 reach the 1827 days of five years on
+    // 2028-03-04.
+    expect(
+      at([
+        spouse('2023-01-01', '2027-06-30'),
+        spouse('2027-09-01', '2035-12-31'),
+      ]),
+    ).toEqual(['FUTURE', '2028-03-04']);
+    // A planned break of eight months restarts the count on 2028-03-01.
+    expect(
+      at([
+        spouse('2023-01-01', '2027-06-30'),
+        spouse('2028-03-01', '2035-12-31'),
+      ]),
+    ).toEqual(['FUTURE', '2033-03-01']);
+    // A wife's pass ending 2027-01-31 before a new one from 2027-09-01:
+    // more than 12 months from 2027-09-01 is 2028-09-02.
+    const w = path('my.pr.wife', {
+      ...wife,
+      passes: [
+        spouse('2026-06-01', '2027-01-31'),
+        spouse('2027-09-01', '2030-12-31'),
+      ],
+    });
+    expect([w.timeStatus, w.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2028-09-02',
+    ]);
+    expect(w.assumptions).toEqual([]);
+    // Past the last pass entered, renewal is an assumption.
+    const renewed = path('my.pr.wife', {
+      ...wife,
+      passes: [spouse('2026-06-01', '2026-12-31')],
+    });
+    expect([renewed.timeStatus, renewed.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2027-06-02',
+    ]);
+    expect(renewed.assumptions.join('')).toContain('续签');
+    // Residence Pass category 3: three years restart after a planned break.
+    const rp = path('my.rp.family', {
+      ...wife,
+      passes: [
+        spouse('2025-01-01', '2026-12-31'),
+        spouse('2027-03-01', '2031-12-31'),
+      ],
+    });
+    expect([rp.timeStatus, rp.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2030-03-01',
+    ]);
+    // RP-T: three years of Employment Pass restart after a planned break.
+    const rpt = path('my.pass.rpt', {
+      simulationDate: day,
+      passes: [
+        { kind: 'employment', from: '2025-01-01', to: '2026-12-31' },
+        { kind: 'employment', from: '2027-06-01', to: '2031-12-31' },
+      ],
+    });
+    expect([rpt.timeStatus, rpt.timeEarliestDate]).toEqual([
+      'FUTURE',
+      '2030-06-01',
+    ]);
+  });
+
   test('a longer break restarts the count', () => {
     const req = {
       ...husband,
