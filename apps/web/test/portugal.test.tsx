@@ -1215,3 +1215,62 @@ test.each(['zh-CN', 'en'] as const)(
     expect(html).toContain(t('pt.policy.nationalityChange', locale));
   },
 );
+
+// Shared option from task 93: nested parameters are shown with labelled
+// fields, EUR amounts and percentages instead of raw keys and bare arrays.
+test.each(['zh-CN', 'en'] as const)(
+  'the Portugal policy page shows nested parameters by meaning (%s)',
+  (locale) => {
+    const values = pt.policy.parameters['pt.current-law'].values;
+    const nested = Object.entries(values).filter(
+      ([, parameter]) => typeof parameter.value === 'object',
+    );
+    expect(nested.map(([name]) => name)).toHaveLength(28);
+    for (const [name, parameter] of nested) {
+      const shown = pt.policy.displayParameter?.(name, locale);
+      expect(shown, name).toBeDefined();
+      const raw = Object.keys(parameter.value as object);
+      const keys = Array.isArray(shown)
+        ? shown.flatMap((row) => Object.keys(Object(row)))
+        : Object.keys(shown as object);
+      for (const key of raw) expect(keys, `${name}.${key}`).not.toContain(key);
+      expect(JSON.stringify(shown), name).not.toMatch(/\[\d/);
+    }
+    const html = render(<PortugalPolicyPage />, locale);
+    // The parameter's row, up to the next parameter.
+    const row = (name: string) =>
+      html.match(
+        new RegExp(
+          `<tr data-parameter="${name}">[\\s\\S]*?(?=<tr data-parameter=|$)`,
+        ),
+      )![0];
+    const l = (key: TranslationKey) => t(key, locale);
+    const fee = row('aimaOrdinaryFees');
+    for (const key of [
+      'pt.param.feeItem',
+      'pt.option.feeColumn.left',
+      'pt.option.feeColumn.right',
+    ] as const)
+      expect(fee).toContain(`<th scope="col">${l(key)}</th>`);
+    expect(fee).toContain(
+      `<td>${l('pt.param.fee.analysis')}</td><td>EUR 133.00</td><td>EUR 99.80</td>`,
+    );
+    expect(row('aimaLongTermFees')).toContain(
+      `<td>${l('pt.param.fee.protected')}</td><td>EUR 0.00</td><td>EUR 0.00</td>`,
+    );
+    expect(row('nationalityYears')).toContain(
+      `<td>${l('pt.option.route.other')}</td><td>10</td>`,
+    );
+    expect(row('householdWeights')).toContain(
+      `${l('pt.param.firstAdult')} 100%`,
+    );
+    expect(row('ariFund')).toContain(
+      `${l('pt.param.minimumTransfer')} EUR 500,000`,
+    );
+    expect(row('minimumWage2026')).toContain(
+      `${l('pt.option.region.mainland')} EUR 920`,
+    );
+    // No Portuguese parameter is a calendar year; amounts keep their groups.
+    expect(row('ariResearchEur')).toContain('500,000');
+  },
+);
