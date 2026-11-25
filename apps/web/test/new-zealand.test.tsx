@@ -15,6 +15,7 @@ import site from '../app/site.module.css';
 import { t, type TranslationKey } from '../i18n';
 import { nzFormZh } from '../i18n/countries/new-zealand-form';
 import { LocaleContext } from '../i18n/locale';
+import { punct } from '../i18n/punctuation';
 import { japanModule } from '../lib/japan-module';
 import {
   nzStepDefinitions,
@@ -493,22 +494,63 @@ test('opening a New Zealand share link keeps the local draft, and skipping to th
 });
 
 test.each(['zh-CN', 'en'] as const)(
-  'the projected date is labelled as the date the conditions are met in results and comparisons (%s)',
+  'only the travel conditions date is labelled as the date the conditions are met (%s)',
   (locale) => {
-    const draft = citizenshipDraft();
-    const result = nz.run(draft, locale);
-    expect(nz.earliestLabel).toBe('nz.result.earliest');
-    const label = t('nz.result.earliest', locale);
-    expect(label).toBeTruthy();
-    const html = render(
-      <ResultView country={nz} result={result} draft={draft} />,
+    const own = t('nz.result.earliest', locale);
+    const shared = t('result.earliest', locale);
+    const result = (draft: NzDraft) =>
+      render(
+        <ResultView
+          country={nz}
+          result={nz.run(draft, locale)}
+          draft={draft}
+        />,
+        locale,
+      );
+    // Travel conditions follow the first resident entry, not a filing date.
+    const travel: NzDraft = {
+      ...citizenshipDraft(),
+      goals: ['travel'],
+      answers: {
+        dateOfBirth: '1990-01-01',
+        firstArrival: '2026-11-23',
+        residentVisa: { granted: '2026-11-23', category: 'general' },
+        trips: [],
+        resident: {
+          travel: {
+            grantLocation: 'onshore',
+            currentlyInNz: true,
+            restrictedEntry: false,
+            action: 'initial',
+            passportCoversInitialConditions: true,
+          },
+        },
+        common: { requiredFeePaid: true },
+      },
+    };
+    expect(pathways(travel, locale)).toMatchObject([
+      { id: 'NZ-TRAVEL', status: 'MET', earliestDate: '2026-11-23' },
+    ]);
+    const travelHtml = result(travel);
+    expect(travelHtml).toContain(`<dt>${own}</dt>`);
+    expect(travelHtml).not.toContain(shared);
+
+    // Residence and citizenship dates are the earliest filing dates, in the
+    // facts, the gaps and the comparison.
+    for (const draft of [citizenshipDraft(), residentDraft('2025-11-01')]) {
+      const html = result(draft);
+      expect(html).toContain(`<dt>${shared}</dt>`);
+      expect(html).not.toContain(own);
+    }
+    expect(result(citizenshipDraft())).toContain(
+      `${shared}${punct(locale).colon}2027-06-12`,
+    );
+    const whatIf = render(
+      <WhatIfView country={nz} draft={citizenshipDraft()} />,
       locale,
     );
-    expect(html).toContain(`<dt>${label}</dt>`);
-    expect(html).not.toContain(t('result.earliest', locale));
-    const whatIf = render(<WhatIfView country={nz} draft={draft} />, locale);
-    expect(whatIf).toContain(`<dt>${label}</dt>`);
-    expect(whatIf).not.toContain(t('result.earliest', locale));
+    expect(whatIf).toContain(`<dt>${shared}</dt>`);
+    expect(whatIf).not.toContain(own);
   },
 );
 

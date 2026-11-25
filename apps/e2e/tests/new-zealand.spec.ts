@@ -178,7 +178,7 @@ test('a New Zealand citizenship questionnaire shows its conditions, saves, share
   await result.locator('a[href*="?focus=trips"]').first().click();
   await expect(page.locator('#nz-whatif-trips')).toBeFocused();
   const earliest = assessment(page, zhCN)
-    .getByText(zhCN['nz.result.earliest'], { exact: true })
+    .getByText(zhCN['result.earliest'], { exact: true })
     .locator('xpath=following-sibling::dd[1]');
   await expect(earliest).toHaveText('2027-06-12→2027-06-12');
   await page.locator('#nz-whatif-last-return').fill('2026-10-01');
