@@ -170,12 +170,18 @@ test.each(['zh-CN', 'en'] as const)(
     // Citizenship: the result page's outcome; the presence date is a detail.
     expect(bars).toContain(t('country.status.NOT_MET', locale));
     expect(bars).not.toContain('2030-04-15');
+    // As the shell passes it: the game's text prefers `nz.*` keys.
     const detail = render(
-      nzCountry.progressDetail(state, 'cit', (key) => t(key, locale)),
+      nzCountry.progressDetail(state, 'cit', (key) =>
+        t(gameKey('nz', key), locale),
+      ),
       locale,
     );
     expect(detail).toContain(t('nz.game.presenceDate', locale));
     expect(detail).toContain('2030-04-15');
+    // The date row keeps the result page's label for citizenship.
+    expect(detail).toContain(t('result.earliest', locale));
+    expect(detail).not.toContain(t('nz.result.earliest', locale));
     const office = settle(nz.enter(settle(state), 'council'));
     let menu: React.ReactNode;
     function Probe() {

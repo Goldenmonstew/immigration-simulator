@@ -10,6 +10,7 @@ import type {
 } from '@uk-immigration/game/nz';
 import type { Text } from '@uk-immigration/game/core';
 import { CountryAssessmentColumns } from '../../../components/result-view';
+import { t as translate } from '../../../i18n';
 import { nzGameEn, nzGameZh } from '../../../i18n/countries/new-zealand-game';
 import {
   isDecisionOutcome,
@@ -199,7 +200,9 @@ export const nzCountry: GameCountry<NzKinds> = {
           </div>
           {date && (
             <div>
-              <dt>{t(date.label)}</dt>
+              {/* The result page's label: the game's text would prefer
+                  `nz.result.earliest`, the travel pathway's own label. */}
+              <dt>{translate(date.label, state.locale)}</dt>
               <dd>{date.date ?? t('result.undetermined')}</dd>
             </div>
           )}
