@@ -73,6 +73,8 @@ export const zhCN = {
   'game.renewedThisSeason': '本季已续签。',
   'game.renewedThrough': '本季已续签，当时签发的许可有效至 {date}。',
   'game.visaUrgent': '签证即将到期',
+  'game.visaPending': '申请待决',
+  'game.visaPendingShort': '待决',
   'game.money': '存款',
   'game.mood': '心情',
   'game.health': '健康',

@@ -150,10 +150,14 @@ export function createQuarterSummary<K extends GameKinds>(
         )}
         <p
           className={
-            visa.months <= 6 && !visa.renewed ? styles.urgent : undefined
+            visa.months <= 6 && !visa.renewed && !visa.pending
+              ? styles.urgent
+              : undefined
           }
         >
-          {withCount(t('game.visa'), 'count', visa.months)}
+          {visa.pending
+            ? t('game.visaPending')
+            : withCount(t('game.visa'), 'count', visa.months)}
         </p>
         {renewals.map((entry, index) => (
           <p key={index}>

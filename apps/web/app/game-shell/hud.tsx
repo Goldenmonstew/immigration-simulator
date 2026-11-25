@@ -76,22 +76,28 @@ export function createHud<K extends GameKinds>(c: GameCountry<K>) {
     const name = game.characters.find(
       (item) => item.id === state.characterId,
     )!.name;
-    const { months, renewed } = c.visaStatus(state);
-    const urgent = months <= 6 && !renewed;
+    const { months, renewed, pending } = c.visaStatus(state);
+    const urgent = months <= 6 && !renewed && !pending;
     const visa = (compact = false) => (
       <span
         className={
           urgent ? `${styles.urgent} ${styles.visaFlash}` : styles.visa
         }
-        aria-label={withCount(t('game.visa'), 'count', months)}
+        aria-label={
+          pending
+            ? t('game.visaPending')
+            : withCount(t('game.visa'), 'count', months)
+        }
         title={urgent ? t('game.visaUrgent') : undefined}
       >
         {compact && <GameIcon name="visa" />}
-        {withCount(
-          t(compact ? 'game.visaShort' : 'game.visa'),
-          'count',
-          months,
-        )}
+        {pending
+          ? t(compact ? 'game.visaPendingShort' : 'game.visaPending')
+          : withCount(
+              t(compact ? 'game.visaShort' : 'game.visa'),
+              'count',
+              months,
+            )}
       </span>
     );
     const icon = (key: string) => (

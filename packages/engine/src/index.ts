@@ -145,7 +145,11 @@ export type {
   EsResult,
   EsTrip,
 } from './spain';
-export { US_CONDITIONAL, evaluateUnitedStates } from './united-states';
+export {
+  US_CONDITIONAL,
+  evaluateUnitedStates,
+  nextUsBusinessDay,
+} from './united-states';
 export type {
   UsConditional,
   UsPathway,
