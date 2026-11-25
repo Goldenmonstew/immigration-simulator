@@ -181,7 +181,7 @@ function oath(ctx: MyContext, registration: boolean): MyCheck {
             ` No date of birth is entered, so whether the applicant is ${v.registrationOathAge.value} or over and must take the oath is unknown.`,
           )
         : ''),
-    ageUnknown ? [] : ['PD-418'],
+    answer === 'unsure' ? ['PD-418'] : [],
   );
   return registration &&
     years !== undefined &&

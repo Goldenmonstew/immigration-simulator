@@ -516,7 +516,7 @@ export function assessRpt(ctx: MyContext): MyPathway {
               ` Counting other passes, the stay has been unbroken since ${anyPass.start}; whether work on other passes counts needs confirmation.`,
             )
           : ''),
-      ['PD-431'],
+      run ? ['PD-431'] : [],
     ),
     check(
       'my.pass.ep-validity',
@@ -758,7 +758,9 @@ export function assessDeRantau(ctx: MyContext): MyPathway {
         `科技类（软件、云、网络安全、人工智能、数码营销等）USD${tech}，非科技类（列明的管理、财务、营销、法律等职位）USD${income.nonTech}。科技类门槛自 ${income.techFrom} 版 FAQ 起由 USD${income.techBefore} 提高。Section A 写最低收入为该数，Section B 写须高于该数，收入恰为门槛时待确认。`,
         `Tech talent (software, cloud, cybersecurity, AI, digital marketing and similar) USD${tech}; listed non-tech roles (management, finance, marketing, legal and similar) USD${income.nonTech}. The tech threshold rose from USD${income.techBefore} in the FAQ dated ${income.techFrom}. Section A calls the figure the minimum while Section B asks for more than it, so income exactly at the threshold needs confirmation.`,
       ),
-      d.annualIncomeUsd === threshold ? ['PD-430'] : ['PD-426'],
+      threshold !== undefined && d.annualIncomeUsd === threshold
+        ? ['PD-430']
+        : [],
     ),
     employer,
     check(

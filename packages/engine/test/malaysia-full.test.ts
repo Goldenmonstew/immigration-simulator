@@ -1914,6 +1914,17 @@ describe('review113-3 risks and suggestions', () => {
     }
   });
 
+  test('DE Rantau income cites PD-430 only at the threshold (suggestion 1)', () => {
+    const income = (talent?: 'tech', annualIncomeUsd?: number) =>
+      cond('my.pass.de-rantau', 'my.pass.income', {
+        simulationDate: day,
+        deRantau: { talent, annualIncomeUsd },
+      });
+    for (const c of [income(), income('tech'), income(undefined, 36_000)])
+      expect([c.status, c.pendingDetails]).toEqual(['UNKNOWN', undefined]);
+    expect(income('tech', 36_000).pendingDetails).toEqual(['PD-430']);
+  });
+
   test('DE Rantau without the work type explains both kinds of work (suggestion 2)', () => {
     const c = cond('my.pass.de-rantau', 'my.pass.remote-employer', {
       simulationDate: day,
@@ -1922,6 +1933,31 @@ describe('review113-3 risks and suggestions', () => {
     expect(c.explanation).toContain('远程雇员');
     expect(c.explanation).toContain('自由职业者');
     expect(c.explanation).toContain('未填');
+  });
+
+  test('missing answers carry no pending details (suggestion 3)', () => {
+    const none: [MyPathwayId, string, Partial<MyFullRequest>][] = [
+      ['my.pr.wife', 'my.pr.spouse-pass', {}],
+      ['my.pr.husband', 'my.pr.spouse-pass', {}],
+      ['my.pr.was', 'my.pr.qualifying-pass', {}],
+      ['my.rp.family', 'my.rp.long-term-pass', { family: { tie: 'none' } }],
+      [
+        'my.rp.family',
+        'my.rp.long-term-pass',
+        { family: { tie: 'parent-of-citizen' } },
+      ],
+      ['my.pass.rpt', 'my.pass.work-years', {}],
+      ['my.cit.naturalisation', 'my.cit.renunciation-oath', {}],
+      ['my.pr.wife', 'my.pr.sponsor', {}],
+      ['my.pr.wife', 'my.pr.referees', {}],
+    ];
+    for (const [id, key, extra] of none) {
+      const c = cond(id, key, { simulationDate: day, ...extra });
+      expect([c.status, c.pendingDetails], `${id} ${key}`).toEqual([
+        'UNKNOWN',
+        undefined,
+      ]);
+    }
   });
 });
 

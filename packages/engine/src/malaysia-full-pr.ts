@@ -321,7 +321,7 @@ function earlyPassCheck(
         : '') +
       (helps || onResidencePass ? residencePassText(ctx, helps) : ''),
     [
-      ...(strict === undefined || (helps && combined.met === undefined)
+      ...((run && strict === undefined) || (helps && combined.met === undefined)
         ? ['PD-406']
         : []),
       ...(helps ? ['PD-428'] : []),
@@ -402,7 +402,7 @@ function longPassCheck(
         : '') +
       (helps || onResidencePass ? residencePassText(ctx, helps) : ''),
     [
-      ...(strict === undefined || (helps && combined.met === undefined)
+      ...((run && strict === undefined) || (helps && combined.met === undefined)
         ? ['PD-407']
         : []),
       ...(helps ? ['PD-428'] : []),
@@ -482,7 +482,6 @@ function commonChecks(ctx: MyContext, route: PrRoute): MyCheck[] {
       `由${sponsorWho}担保；递交申请时申请人与担保人须一同到场并带齐原件。`,
       `Sponsored by ${sponsorWho}. The applicant and sponsor must attend together with all original documents.`,
     ),
-    ['PD-410'],
   );
 
   const refereesNeeded =
@@ -503,7 +502,6 @@ function commonChecks(ctx: MyContext, route: PrRoute): MyCheck[] {
           `须附 ${refereesNeeded} 名马来西亚公民推荐人的身份证（MyKad）副本；指南未列其他资格。`,
           `Copies of the identity cards (MyKad) of ${refereesNeeded} Malaysian citizen referees are required; the guideline lists no other qualification.`,
         ),
-    ['PD-410'],
   );
   if (route === 'child')
     referees = inapplicable(
@@ -1372,7 +1370,7 @@ export function assessResidencePass(ctx: MyContext): MyPathway {
                 ' The years are reached only by adding periods before a break; the page does not say whether they must be continuous.',
               )
             : ''),
-        ['PD-429'],
+        run ? ['PD-429'] : [],
       ),
     );
   }
