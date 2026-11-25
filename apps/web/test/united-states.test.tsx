@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
+import type { UsFullPathway } from '@uk-immigration/engine';
 import { usePathname } from 'next/navigation';
 import { afterEach, expect, test, vi } from 'vitest';
 import UnitedStatesPage from '../app/united-states/page';
@@ -26,6 +27,7 @@ import {
   type UsField,
 } from '../lib/united-states-fields';
 import { unitedStatesModule as us } from '../lib/united-states-module';
+import type { UnitedStatesWhatIf } from '../lib/united-states-whatif';
 import { japanModule } from '../lib/japan-module';
 import { sourceUrls } from '../lib/sources';
 import { gapRules } from '../lib/gap-summary';
@@ -800,6 +802,7 @@ test('comparison controls drive the engine and keep answers tied to the assessme
   const available = us.whatif.apply(charted, {
     ...knobs,
     visaAtDecision: 'available',
+    visaChanged: true,
   });
   expect(decisionMonths(available)).toEqual({ '2027-02': 'available' });
   expect(visa(charted)).toBe('NOT_MET');
@@ -811,19 +814,42 @@ test('comparison controls drive the engine and keep answers tied to the assessme
       us.whatif.apply(blank, {
         ...us.whatif.initial(blank),
         visaAtDecision: 'available',
+        visaChanged: true,
       }),
     ),
   ).toEqual({ '2027-02': 'available' });
-  // A later decision date keeps the availability the knob shows (#2).
+  // A later decision date reads that month's answer; the untouched control
+  // shows it, and a changed control sets it (#2, review96-2 #1).
   const sameMonth = f2a({
     decisionOn: '2026-11-30',
     visaAtDecision: 'available',
   });
   const sameKnobs = us.whatif.initial(sameMonth);
   expect(sameKnobs.visaAtDecision).toBe('available');
+  const later = us.whatif.apply(sameMonth, {
+    ...sameKnobs,
+    decisionOn: '2027-01-15',
+  });
+  expect(decisionMonths(later)).toBeUndefined();
+  expect(visa(later)).toBe('UNKNOWN');
+  expect(
+    render(
+      <UnitedStatesWhatIfControls
+        afterDraft={later}
+        knobs={{ ...sameKnobs, decisionOn: '2027-01-15' }}
+        errors={{}}
+        update={() => {}}
+      />,
+    ),
+  ).toMatch(/id="us-whatif-visa"><option value="" selected=""/);
   expect(
     decisionMonths(
-      us.whatif.apply(sameMonth, { ...sameKnobs, decisionOn: '2027-01-15' }),
+      us.whatif.apply(sameMonth, {
+        ...sameKnobs,
+        decisionOn: '2027-01-15',
+        visaAtDecision: 'available',
+        visaChanged: true,
+      }),
     ),
   ).toEqual({ '2027-01': 'available' });
   // Answers for the assessment date stay with that date when it moves (risk 5).
@@ -835,7 +861,6 @@ test('comparison controls drive the engine and keep answers tied to the assessme
   const moved = us.whatif.apply(bound, {
     ...us.whatif.initial(bound),
     simulationDate: '2027-01-10',
-    visaAtDecision: undefined,
   });
   expect(moved.admission).toMatchObject({
     visaAtFilingByMonth: [{ month: '2026-11', availability: 'available' }],
@@ -908,6 +933,196 @@ test('comparison controls drive the engine and keep answers tied to the assessme
   expect(controls(travelDraft())).toContain(
     'aria-describedby="us-whatif-date-hint"',
   );
+});
+
+// A permanent resident's spouse adjusting status with every answer filled
+// (review96-2).
+const spouseAdjustment = (admission: UsDraft['admission'] = {}): UsDraft => ({
+  ...us.createDraft(),
+  simulationDate: '2026-11-21',
+  step: 13,
+  completed: true,
+  pathway: 'US-FAMILY',
+  dateOfBirth: '1990-01-01',
+  trips: [],
+  admission: {
+    process: 'adjustment',
+    petitionStatus: 'approved',
+    petitionFiledOn: '2024-01-10',
+    qualifyingBasis: 'cleared',
+    i485FiledOn: '2026-10-01',
+    legalEntry: 'admitted',
+    otherAdjustmentBar: 'none',
+    qualifyingViolationsDays: 0,
+    discretion: 'cleared',
+    visaAtFilingByMonth: [{ month: '2026-10', availability: 'available' }],
+    classAHealth: 'cleared',
+    vaccines: 'cleared',
+    medicalEvidence: 'cleared',
+    i693SignedOn: '2026-09-20',
+    i693LinkedToAnotherClosedCase: false,
+    publicChargeExempt: false,
+    publicCharge: 'cleared',
+    benefits: 'none',
+    crime: {
+      unclassifiedRecord: false,
+      cimtCount: 0,
+      convictionCount: 0,
+      combinedSentenceMonths: 0,
+      confinementDays: 0,
+      controlledSubstance: 'none',
+      duiCount: 0,
+    },
+    criminalOtherGround: 'cleared',
+    drugTraffickingBar: false,
+    securityGround: 'clear',
+    party: { membership: 'none' },
+    immigrationFraud: false,
+    falseCitizenship: false,
+    unlawfulDeparture: 'none',
+    unlawfulReentryBar: false,
+    otherInadmissibility: 'cleared',
+    ...admission,
+  },
+  family: {
+    petitioner: 'lpr',
+    relationship: 'spouse',
+    relationshipValid: 'cleared',
+    priorMarriageLprSince: 'not-applicable',
+    marriageDuringRemoval: false,
+    priorMarriageFraud: false,
+    adamWalsh: 'cleared',
+    petitionerAge: 40,
+    beneficiaryAge: 36,
+  },
+  support: {
+    exemption: 'none',
+    sponsorAge: 40,
+    relationshipToBeneficiary: 'spouse',
+    sponsorStatus: 'lpr',
+    domiciledInUs: 'cleared',
+    affidavitSubmitted: true,
+    household: { region: 'contiguous', size: 2, incomeUsd: 200000 },
+    beneficiaryAge: 36,
+  },
+  fees: {
+    channel: 'paper',
+    relief: 'none',
+    specialFeeExemption: false,
+    adjustmentSupplementA: false,
+    applyingWithParent: false,
+  },
+});
+
+test('an untouched availability control keeps the answer for the month the decision falls in (review96-2 #1)', () => {
+  const compare = (draft: UsDraft, change: Partial<UnitedStatesWhatIf>) => {
+    const knobs = { ...us.whatif.initial(draft), ...change };
+    const after = us.whatif.apply(draft, knobs);
+    const html = render(
+      <UnitedStatesWhatIfControls
+        afterDraft={after}
+        knobs={knobs}
+        errors={{}}
+        update={() => {}}
+      />,
+    );
+    const shown = html
+      .split('id="us-whatif-visa"')[1]
+      .split('</select>')[0]
+      .match(/<option value="([^"]*)" selected=""/)?.[1];
+    return { after, shown };
+  };
+  const stages = (draft: UsDraft) => {
+    const pathway = pathwayOf(draft) as UsFullPathway;
+    return {
+      status: pathway.status,
+      approvalStatus: pathway.approvalStatus,
+      approvalEarliestDate: pathway.approvalEarliestDate,
+    };
+  };
+  const withAdmission = (draft: UsDraft, admission: UsDraft['admission']) => ({
+    ...draft,
+    admission: { ...draft.admission, ...admission },
+  });
+  // A: the decision moves to a month with its own answer.
+  for (const [february, march] of [
+    ['available', 'unavailable'],
+    ['unavailable', 'available'],
+  ] as const) {
+    const draft = spouseAdjustment({
+      decisionOn: '2027-02-01',
+      visaAtDecisionByMonth: [
+        { month: '2027-02', availability: february },
+        { month: '2027-03', availability: march },
+      ],
+    });
+    expect(us.validateStep({ ...draft, step: 10 })).toEqual({});
+    const { after, shown } = compare(draft, { decisionOn: '2027-03-10' });
+    const asked = withAdmission(draft, { decisionOn: '2027-03-10' });
+    expect(after.admission?.visaAtDecisionByMonth).toEqual(
+      draft.admission?.visaAtDecisionByMonth,
+    );
+    expect(us.run(after, 'en')).toEqual(us.run(asked, 'en'));
+    expect(stages(after).approvalStatus).toBe(
+      march === 'available' ? 'FUTURE' : 'NOT_MET',
+    );
+    expect(shown).toBe(march);
+  }
+  // B: the decision moves into the assessment month, which has a single answer.
+  const single = spouseAdjustment({
+    decisionOn: '2027-02-01',
+    visaAtDecision: 'unavailable',
+    visaAtDecisionByMonth: [{ month: '2027-02', availability: 'available' }],
+  });
+  const november = compare(single, { decisionOn: '2026-11-30' });
+  expect(november.after.admission?.visaAtDecision).toBe('unavailable');
+  expect(us.run(november.after, 'en')).toEqual(
+    us.run(withAdmission(single, { decisionOn: '2026-11-30' }), 'en'),
+  );
+  expect(stages(november.after).approvalStatus).toBe('NOT_MET');
+  expect(november.shown).toBe('unavailable');
+  // C: the assessment date moves into a month with its own answer.
+  const assessed = spouseAdjustment({
+    visaAtDecision: 'available',
+    visaAtDecisionByMonth: [{ month: '2027-01', availability: 'unavailable' }],
+  });
+  const january = compare(assessed, { simulationDate: '2027-01-15' });
+  expect(
+    [...(january.after.admission?.visaAtDecisionByMonth ?? [])].sort((a, b) =>
+      a.month.localeCompare(b.month),
+    ),
+  ).toEqual([
+    { month: '2026-11', availability: 'available' },
+    { month: '2027-01', availability: 'unavailable' },
+  ]);
+  expect(stages(january.after)).toEqual(
+    stages({ ...assessed, simulationDate: '2027-01-15' }),
+  );
+  expect(stages(january.after).approvalStatus).toBe('NOT_MET');
+  expect(january.shown).toBe('unavailable');
+  // A changed control still sets the month the decision falls in.
+  const chosen = compare(
+    spouseAdjustment({
+      decisionOn: '2027-02-01',
+      visaAtDecisionByMonth: [
+        { month: '2027-03', availability: 'unavailable' },
+      ],
+    }),
+    {
+      decisionOn: '2027-03-10',
+      visaAtDecision: 'available',
+      visaChanged: true,
+    },
+  );
+  expect(chosen.after.admission?.visaAtDecisionByMonth).toEqual([
+    { month: '2027-03', availability: 'available' },
+  ]);
+  expect(chosen.shown).toBe('available');
+  // Untouched controls leave each of these as it is.
+  for (const draft of [single, assessed])
+    expect(
+      us.run(us.whatif.apply(draft, us.whatif.initial(draft)), 'en'),
+    ).toEqual(us.run(draft, 'en'));
 });
 
 test('results show the approval stage and keep procedural notes out of the gaps (review96-1)', () => {

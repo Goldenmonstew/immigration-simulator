@@ -23,6 +23,9 @@ export interface UnitedStatesWhatIf {
   income?: number;
   decisionOn?: string;
   visaAtDecision?: UsAdmissionAnswers['visaAtDecision'];
+  // Until the availability control is changed, the questionnaire's answer for
+  // the decision month stands, wherever the date controls move that month.
+  visaChanged?: boolean;
 }
 
 export const unitedStatesFocusControls = {
@@ -81,7 +84,7 @@ const decisionMonth = (draft: UsDraft) =>
 
 // The engine reads the decision month's chart, or the single answer when the
 // decision falls in the assessment month.
-function decisionAvailability(draft: UsDraft): Availability {
+export function decisionAvailability(draft: UsDraft): Availability {
   const month = decisionMonth(draft);
   return (
     draft.admission?.visaAtDecisionByMonth?.find((row) => row.month === month)
@@ -182,8 +185,7 @@ export const unitedStatesWhatIf: CountryWhatIf<UsDraft, UnitedStatesWhatIf> = {
     draft.admission = assign<UsAdmissionDraft>(draft.admission, {
       decisionOn: knobs.decisionOn || undefined,
     });
-    if (knobs.visaAtDecision !== decisionAvailability(draft))
-      setDecisionAvailability(draft, knobs.visaAtDecision);
+    if (knobs.visaChanged) setDecisionAvailability(draft, knobs.visaAtDecision);
     return activeUnitedStatesAnswers(draft);
   },
   validate(draft, knobs) {

@@ -8,6 +8,7 @@ import {
   isNaturalization,
 } from '../../../lib/united-states-fields';
 import {
+  decisionAvailability,
   hasReturnControl,
   unitedStatesFocusControls as ids,
   type UnitedStatesWhatIf,
@@ -37,14 +38,22 @@ export function UnitedStatesWhatIfControls({
     );
   const described = (key: string) =>
     errors[key] ? `us-whatif-${key}-error` : undefined;
+  // The untouched availability control shows the decision month's answer.
+  const value = (field: Choice) =>
+    field === 'visaAtDecision' && !knobs.visaChanged
+      ? decisionAvailability(afterDraft)
+      : knobs[field];
   const select = (field: Choice, id: string, label: TranslationKey) => (
     <div className={styles.field}>
       <label htmlFor={id}>{t(label)}</label>
       <select
         id={id}
-        value={knobs[field] ?? ''}
+        value={value(field) ?? ''}
         onChange={(event) =>
-          update({ [field]: event.target.value || undefined })
+          update({
+            [field]: event.target.value || undefined,
+            ...(field === 'visaAtDecision' && { visaChanged: true }),
+          })
         }
       >
         <option value="">{t('us.form.unknown')}</option>
