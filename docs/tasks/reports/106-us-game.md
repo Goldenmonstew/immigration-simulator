@@ -96,3 +96,47 @@ brief 给的 610–619 已被任务 86 的审核轮次（610–618）和任务 9
 3. `public/sw.js` 的缓存名与并行分支会在同一行冲突，合并时取一个新值即可。
 4. 缺的素材：美国角色与镇民的 64×64 三表情立绘和 16px 行走图；联邦大楼、法律援助中心、高架站的门牌；黄鲈、银鲑、蓝鳃太阳鱼的鱼图（暂借 perch、pike、bream）；热狗、焦糖苹果、热可可的物品图（暂借 meal、cake、tea）；海鸥、松鼠等本地动物。
 5. 共用外壳的商店只在 `shop` 与 `green` 显示，所以防波堤旁的热狗车只是装饰，热狗改在杂货店卖。
+
+## 合入 main 与试点修正跟进
+
+brief：`brief-106c`。本分支原本建在日本试点（任务 111）与美国页面（任务 96）的早期版本上，两者合入 main 后分别又经过 review111-1 至 111-3 与 review96-1、96-2 的修正。本节先合入 main，再按 brief 列的五项逐项核对美国游戏。第 1–4 节里与本节不符的说法以本节为准：搬家与 AR-11 现在按当天日期记录（不是季初日期），入籍进度条开局为"无法确定"（不是"最早 2028-03-17 满足条件"），结局链接只带所选路径问卷会问的答案。PROGRESS 行号按 brief 用 932 起，提交前查过所有本地分支、远端分支与各 worktree 的 PROGRESS（已用到 921），932–937 没有被占用。
+
+### 1. 做了什么（按 commit）
+
+| PROGRESS | commit | 对应 | 内容 |
+|---|---|---|---|
+| — | `Merge: 合入 main` | brief 第 1 项 | 冲突 4 处：`site-countries.ts` 的 `pagesByCountry` 每国一行，美国取带 `'game'` 的那行，其余（澳、希、日、德）照 main；`sw.js` 与 `about-page.test.tsx` 缓存版本改为 `2026-11-25-usgame`；`PROGRESS.md` 取并集。共用外壳（`app/game-shell/`）、`game.ts`、`content-pack.ts` 没有冲突，以 main 为准；本分支对外壳本来就没有改动（属性图标沿用外壳已有的 `english`），不需要重加。`packages/engine/src/index.ts` 的 `nextUsBusinessDay` 导出自动合并保留；`game-page.tsx`、`lib/game-country.ts`、`packages/game/package.json` 的国家登记合并后是日本与美国的并集。 |
+| 932 | `Fix: 美国菜谱做法文案改用国家前缀键` | review111-1 问题 3 | 6 道菜的做法键由 `game.prepare-<ID>` 改为 `us.game.prepare-<ID>`，外壳 `gameKey` 优先取用。加拿大分支也定义了不带前缀的 `game.prepare-garden-salad`，两国都合并后不会再互相覆盖。 |
+| 933 | `Fix: 美国搬家与 AR-11 按当天日期记录，评估与结局链接取同一评估日时间线` | review111-1 风险 2、review111-2 问题 1 | 原来 `moved`、`addressReport` 记季初日期 `state.date`，同季里第一天搬家、节日那天（八周后）才申报也算按时。改为在时间线的游戏专用字段 `moves` 里按 `state.day.date` 记搬家与申报；`usRequest` 按评估日（本季首个 USCIS 工作日）取问卷答案：评估日之后的搬家先不计入（`movedOn: 'no-move'` 或上一次搬家），之后的申报先按 `not-reported`。游戏内评估（`usRules.evaluate`）与结局链接草稿（`gameDraft`）都经 `usRequest` 取答案，所以是同一份评估日时间线，草稿里没有晚于模拟日期的已发生事项。美国引擎只读最近一次搬家，所以用列表而不是像日本那样过滤引擎自己的申报列表。照试点"有天数期限的手续要保证当天能办"：搬家与退租只在当天搬完还来得及在线提交 AR-11 时提供（`minute + 60 + 10 ≤ 1440`），搬家说明写明可当天在家提交。 |
+| 934 | `Fix: 美国条件绿卡过期结局反映身份失效` | review111-3 | `usRules.expired` 判定条件身份终止（两周年前未递交 I-751，SRC-079 8 U.S.C. 1186a(c)(2)）时，把 `conditions.marriage.lateFilingExcuse` 与 `naturalization.lawfulAdmission` 写为 `barred`（问卷显示"已确认不符合"）。结局评估与结果页里取消条件路径的 `US-TIME-CONDITIONS-FILING`、公民配偶入籍路径的 `US-C02-LAWFUL-LPR` 为未满足，两条路径递交与核准都是未满足；原来是"无法确定"与"最早 2028-06-20 满足条件"。 |
+| 935 | `Fix: 美国结局链接按结果页回读，游戏内结论与结果页一致` | review111-1 问题 1（含建议 4 的思路） | 美国结果页经 review96-2 修正后，结论取递交与核准两阶段中更不利的一方，并给检查项分类、金额加千分位、在摘要后补核准阶段。游戏内原来直接显示引擎原始结果（递交阶段），开局入籍条是"最早 2028-03-17 满足条件"，结果页是"无法确定"。`united-states-module.ts` 把这段后处理抽成 `presentUnitedStatesResult`（`run` 改为评估后调用它，结果页行为不变）；美国游戏的法律援助中心评估、结局评估与进度详情都经它显示（`shownResult`），模拟日期改传首个 USCIS 工作日，进度详情的日期标签用结果页的"最早递交日（推算）"。进度条的结论改用同一排序（内容包 `stageOutcome`，与结果页 `pathwayOutcome` 写法一致），仍按递交日期填充百分比；游戏逻辑（何时能寄 I-751、N-400，何时能宣誓）仍读引擎原始的递交与核准阶段。`gameDraft` 按 `activeUnitedStatesAnswers` 只留所选路径问卷会问的答案，与分享链接保存的草稿相同。 |
+| 936 | `Test: 美国公民配偶入籍到宣誓结局的流程与文案` | review111-1 问题 2（核对） | 美国只有宣誓（`oath`）一种 `settled` 结局，I-751、I-90、N-400 都不是结局；`endingText` 不读任何申请旗标，`settled` 直接取角色自己的宣誓文案，不存在日本那种 `ending` 效果先定稿、`actionFlags` 后写旗标的错位，所以没有加 `beforeAction`。补晓雯的完整流程单测作为核对：寄 I-751 取消条件后 2028-09-01 `US-SPOUSE` 可递交，寄 N-400、下一季面谈通过后核准为满足，宣誓结局的叙述与日志都是晓雯自己的文案（俊浩的已有单测覆盖）。 |
+| 937 | `Docs: 任务 106 合入 main 与试点修正跟进报告` | brief 第 3 项 | 本节与 PROGRESS。 |
+
+### 2. 怎么验证的
+
+- 每项先写回归测试并确认失败，再改：
+  - 932：网页单测「US recipes keep their own cooking steps in %s」，修前 `gameKey('us', 'game.prepare-mashed-potatoes')` 返回不带前缀的键。修后中英文都通过，英国沙拉仍是「轻轻拌匀 / Toss gently」，美国沙拉是「切块，淋上农场沙拉酱」。
+  - 933：内容包单测「a move and its AR-11 report carry the day and join the next quarter's assessment」：俊浩 2026-03-10 搬家，本季（评估日 2026-03-02）问卷答案仍是 `no-move`；当天申报后下一季为 `movedOn`、`addressReportedOn` 都是 2026-03-10，`US-C19-ADDRESS` 满足；不申报，下一季不满足；2026-05-05 节日那天才申报，当季仍满足（还没进入评估），下一季不满足。修前本季答案已是 `movedOn: 2026-03-01`。「a move is offered only while the AR-11 can still be filed that day」：22:50 可以搬家、22:51 不可以，退租同理；修前 22:51 仍可搬家。
+  - 934：内容包单测「missing the I-751 window ends conditional residence」补断言，修前 `US-TIME-CONDITIONS-FILING` 是 `UNKNOWN`。
+  - 935：网页单测「the ending link opens the same %s timeline on the US result page」按角色循环：开局、出境一个月回来、同季搬家未申报后离开、同季搬家当天申报后离开、跨季补报后同季离开，晓雯另加条件身份失效结局，俊浩另加寄 N-400、面谈、宣誓结局。每个状态用结果页同一入口 `readPageResult(unitedStatesModule, 'zh-CN', 片段, 'result')` 回读：无更正提示，草稿等于 `gameDraft(state)`，模拟日期为首个 USCIS 工作日，停在问卷最后一个可见步骤；所选路径的结论、最早日期、核准阶段与日期、摘要、各检查项的状态与分类与游戏内显示（`shownResult`）一致，进度条结论等于结果页结论；失效结局为未满足、宣誓结局为满足。修前（合入 main 后）草稿与回读不等（结果页去掉了入籍路径不问的 `travel`、`conditions` 答案），旧的回读用例结论不等（游戏 `FUTURE`、结果页 `UNKNOWN`）。另一个用例逐对核对 `stageOutcome` 与结果页 `pathwayOutcome` 在 5×6 种组合下一致。状态栏用例与内容包第 2 个用例的入籍条预期随之改为 `UNKNOWN`、57%。
+  - 936：新增用例第一次运行即通过（没有错位需要修）。
+  - 每个 commit 前跑了受影响包的 `tsc --noEmit`、ESLint、Prettier 检查与 `us-pack`、`united-states-game` 两个测试文件；935 另跑了美国页面单测 `united-states.test.tsx`（71 项与游戏单测一起通过），确认抽出 `presentUnitedStatesResult` 后结果页不变。
+- 整链（HEAD `22b43fcc`，报告提交前）：`export VITEST_MAX_WORKERS=2` 后 `pnpm lint && pnpm typecheck && pnpm test && pnpm build`，退出码 0：error-report 2、policy-data 23、engine 6,006（既有 1 项按默认跳过）、game 1,374、web 987 项通过，构建生成 50 个静态页面（含 `/united-states/game`）。
+- 浏览器 e2e：确认 4481 端口空闲后 `cd apps/e2e && E2E_PORT=4481 npx playwright test tests/game.spec.ts tests/life.spec.ts tests/japan-game.spec.ts tests/united-states-game.spec.ts --project=desktop --reporter=line`，31 项全部通过（英国 `game.spec.ts` 14、`life.spec.ts` 7，日本 5，美国 5）；服务由 Playwright 的 webServer 起停，跑完端口已释放，`apps/e2e/test-results` 已删除。
+- 视觉检查：用临时 Playwright 脚本无头截图（脚本跑完删除，未入库）。俊浩开局：入籍条「57% 无法确定」，下方「还差：永久居民年限 · 英语读写与口语 · 美国历史与政府公民考试 · 入籍核准所需完整居住年限」，绿卡条「已满足条件」；入籍进度详情「一般入籍 · 无法确定」「最早递交日（推算）2028-03-17」「核准条件 无法确定」；在高架站离开美国后的结局评估：返美路径「已满足条件」，一般入籍「无法确定 · 已评估的递交条件须等到最早递交日。核准阶段：无法确定。」，检查项带「时间条件」「费用预算」分类、日期标为「最早递交日（推算）」，与结果页一致。
+
+### 3. 没做或没验证的
+
+- 试点"其他国家照做的要点"里不在本 brief 五项内的几条，美国还没跟上（见第 4 段第 1 条），按范围未改。
+- 季末余额不足时的自动退租由共用 `game.ts` 处理，不经过美国的 `moved` 效果，不记搬家与 AR-11（试点 review111-1 已列为未做，美国同样未改）。
+- 美国引擎只看最近一次搬家：先搬家未申报、之后再搬家并按时申报，前一次逾期就从评估里消失。这是问卷与引擎的口径，游戏没有另做记录。
+- 英国 e2e 截图基线仍未在本机比对（本机 Playwright 忽略截图）；没有跑 a11y e2e 与 mobile project。
+
+### 4. 发现与建议（范围外，未实现）
+
+1. 试点 review111-1 建议 1 的几处英国语境，美国仍用共用文案：日记与旅程的抛竿地点（内容包没设 `fishingSpot`，写成"池塘抛竿"，美国是湖边防波堤）；空厨房提示 `game.kitchenNoIngredients`（"河鲈要去池塘钓"，美国是黄鲈与防波堤）；结局"一点点布置的家"的家具名（没设 `furnishingNames`，结局写"阅读椅、厚窗帘"，美国商店卖的是"旧货店的扶手椅、保暖窗帘"）。各是一两行改动。
+2. `timeout` 结局文案固定为"入籍申请还躺在抽屉里"，寄出 N-400 甚至面谈通过后到了时间上限也这样写；可按 `n400-filed`、`interview-passed` 选文案（同样要在结局定稿前读到旗标）。
+3. 进度条的 `stageOutcome` 与结果页的 `pathwayOutcome` 是同一规则的两份写法（内容包不能引用网页代码），网页单测逐对核对；以后改结果页的结论规则时，单测会提示同步。
+4. 试点"个案裁量的结果不要预设成对玩家最有利的值"：美国游戏把寄出 I-751、I-90 当作获批，新卡按 `cardYears` 记十年（活动说明写明"本情景预设"）。是否改为"待决、身份按收件通知延续"需要统筹决定，这会影响晓雯的入籍核准时间。
+5. 共用外壳点开进度条时，详情弹窗的标题是 `game.progressChanges`「进入新一年前 → 进入新一年后」（`game-client.tsx` 的 `detail` 分支），与弹窗内容（某条路径的当前结论）不符；英国、日本、美国都一样，属共用外壳，本任务未改。
