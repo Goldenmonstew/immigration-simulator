@@ -1,6 +1,7 @@
 import {
   evaluateCanadaFull,
   type CaFullCheck,
+  type CaFullResult,
   type CountryCheck,
   type CountryResult,
   type Locale,
@@ -36,14 +37,17 @@ function checkKind(check: CaFullCheck): CountryCheck['kind'] {
 }
 
 // The engine assesses every route; the page shows the routes the user chose.
-function run(draft: CanadaDraft, locale: Locale): CountryResult {
-  const result = evaluateCanadaFull(canadaRequest(draft, locale));
+// The town game shows its own assessment through the same function.
+export function presentCanadaResult(
+  result: CaFullResult,
+  goals: readonly string[],
+): CountryResult {
   return {
     ...result,
     columns: result.columns.map((column) => ({
       ...column,
       pathways: column.pathways
-        .filter((pathway) => draft.goals.includes(pathway.id))
+        .filter((pathway) => goals.includes(pathway.id))
         .map((pathway) => {
           const settled =
             pathway.status === 'MET' || pathway.status === 'NOT_APPLICABLE';
@@ -85,6 +89,13 @@ function run(draft: CanadaDraft, locale: Locale): CountryResult {
         }),
     })),
   };
+}
+
+function run(draft: CanadaDraft, locale: Locale): CountryResult {
+  return presentCanadaResult(
+    evaluateCanadaFull(canadaRequest(draft, locale)),
+    draft.goals,
+  );
 }
 
 export const canadaModule: CountryModule<CanadaDraft, CanadaWhatIf> = {

@@ -11,7 +11,6 @@ export const caGameZh = {
   'ca.game.prepare-turnip-mash': '煮软压成泥，拌进黄油',
   'ca.game.prColumn': '永久居民',
   'ca.game.citColumn': '入籍',
-  'ca.game.timeDate': '居住天数最早满足',
   'ca.game.entry': '玩一局 · 枫港生活',
   'ca.game.entryDesc':
     '在哈利法克斯港边的像素小镇上班、钓鲭鱼、溜冰、赶百家宴，看看日常选择怎样影响永久居民和入籍的时间线。',
@@ -57,7 +56,6 @@ export const caGameEn: Record<keyof typeof caGameZh, string> = {
   'ca.game.prepare-turnip-mash': 'Boil soft, mash and fold in butter',
   'ca.game.prColumn': 'Permanent residence',
   'ca.game.citColumn': 'Citizenship',
-  'ca.game.timeDate': 'Physical presence met from',
   'ca.game.entry': 'Play a round · Life in Maple Harbour',
   'ca.game.entryDesc':
     'Work, fish for mackerel, skate and join the potluck in a pixel-art corner of Halifax harbour, and see how everyday choices shape your PR and citizenship timeline.',

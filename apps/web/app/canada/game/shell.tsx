@@ -9,10 +9,18 @@ import type {
   CaTimeline,
 } from '@uk-immigration/game/ca';
 import { CountryAssessmentColumns } from '../../../components/result-view';
-import { createCanadaDraft, type CanadaDraft } from '../../../lib/canada-draft';
+import {
+  activeCanadaAnswers,
+  createCanadaDraft,
+  type CanadaDraft,
+} from '../../../lib/canada-draft';
 import { canadaGoals, canadaStepsFor } from '../../../lib/canada-fields';
-import { canadaModule } from '../../../lib/canada-module';
-import { isDecisionOutcome, pathwayTitle } from '../../../lib/country-module';
+import { canadaModule, presentCanadaResult } from '../../../lib/canada-module';
+import {
+  isDecisionOutcome,
+  pathwayDate,
+  pathwayTitle,
+} from '../../../lib/country-module';
 import { encodeDraft } from '../../../lib/share';
 import { countryPath } from '../../../lib/site-countries';
 import { createGameShell } from '../../game-shell/shell';
@@ -62,7 +70,14 @@ export function itemIcon(id: string) {
   return caAsset(files[id] ?? '/assets/indoor/item.png');
 }
 
-/** The game timeline as a completed questionnaire for the result page. */
+// The questionnaire lists routes in its own order.
+const goalsOf = (state: CaState) =>
+  canadaGoals.filter((goal) => state.timeline.goals.includes(goal));
+
+/**
+ * The game timeline as a completed questionnaire for the result page, with
+ * only the answers its steps ask for the character's routes.
+ */
 export function gameDraft(state: CaState): CanadaDraft {
   const { simulationDate, ...answers } = caGame.caRequest(
     state.timeline,
@@ -71,19 +86,29 @@ export function gameDraft(state: CaState): CanadaDraft {
   const draft: CanadaDraft = {
     ...createCanadaDraft(),
     simulationDate,
-    // The questionnaire lists routes in its own order.
-    goals: canadaGoals.filter((goal) => state.timeline.goals.includes(goal)),
+    goals: goalsOf(state),
     answers: structuredClone(answers),
     completed: true,
   };
-  return { ...draft, step: canadaStepsFor(draft).at(-1)!.step };
+  return activeCanadaAnswers({
+    ...draft,
+    step: canadaStepsFor(draft).at(-1)!.step,
+  });
 }
+
+/** The game's assessment as the result page shows it. */
+export const shownResult = (state: CaState) =>
+  presentCanadaResult(state.result, goalsOf(state));
+const shownPathway = (state: CaState, column: CaColumn) =>
+  shownResult(state).columns[0]?.pathways.find(
+    (pathway) => pathway.id === caGame.columnPathway(state.timeline, column),
+  );
 
 /** The character's two routes, as the Canada result page shows them. */
 const assessment = (state: CaState, idPrefix: string) => (
   <CountryAssessmentColumns
     country={canadaModule}
-    result={canadaModule.run(gameDraft(state), state.locale)}
+    result={shownResult(state)}
     simulationDate={caGame.assessedOn(state)}
     idPrefix={idPrefix}
   />
@@ -139,32 +164,35 @@ export const caCountry: GameCountry<CaKinds> = {
     `${countryPath('ca', 'result')}#s=${encodeDraft(canadaModule, gameDraft(state))}`,
   assessment,
   endingAssessment: (state) => assessment(state, 'ending-'),
+  // The result page's outcome, time condition and date rows.
   progressDetail(state, id, t) {
-    const pathway = caGame.pathwayOf(
-      state.result,
-      caGame.columnPathway(state.timeline, id),
-    );
+    const pathway = shownPathway(state, id);
     if (!pathway)
       return <p className={styles.lead}>{t('result.undetermined')}</p>;
-    const time = pathway.checks.find(
-      (check) => check.timeBaseline,
-    )?.timeBaseline;
+    const date = pathwayDate(pathway, canadaModule.earliestLabel);
     return (
       <>
         <p className={styles.lead}>
           {pathway.title} · {pathwayTitle(pathway, t)}
         </p>
         <dl className={styles.facts}>
-          {time && (
+          {pathway.timeStatus && (
             <div>
-              <dt>{t('ca.game.timeDate')}</dt>
-              <dd>{time.earliestDate ?? t('result.undetermined')}</dd>
+              <dt>{t('country.timeConditions')}</dt>
+              <dd>
+                {t(`country.status.${pathway.timeStatus}`).replace(
+                  '{date}',
+                  pathway.timeEarliestDate ?? t('result.undetermined'),
+                )}
+              </dd>
             </div>
           )}
-          <div>
-            <dt>{t('result.earliest')}</dt>
-            <dd>{pathway.earliestDate ?? t('result.undetermined')}</dd>
-          </div>
+          {date && (
+            <div>
+              <dt>{t(date.label)}</dt>
+              <dd>{date.date ?? t('result.undetermined')}</dd>
+            </div>
+          )}
         </dl>
       </>
     );

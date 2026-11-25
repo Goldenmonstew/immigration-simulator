@@ -2,20 +2,25 @@ import { existsSync } from 'node:fs';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, beforeAll, expect, test, vi } from 'vitest';
-import type { CountryPathway, Locale } from '@uk-immigration/engine';
+import type {
+  CountryPathway,
+  CountryResult,
+  Locale,
+} from '@uk-immigration/engine';
 import * as ca from '@uk-immigration/game/ca';
 import { caGameArt } from '@uk-immigration/game/ca/presentation';
 import { CountryAssessmentColumns } from '../components/result-view';
 import { LocaleContext } from '../i18n/locale';
 import { t, withCount, type TranslationKey } from '../i18n';
 import { canadaModule } from '../lib/canada-module';
-import { decodeDraft } from '../lib/share';
+import { readPageResult } from '../lib/page-result';
 import { sitePagePaths, siteCountries } from '../lib/site-countries';
 import {
   caCountry,
   caShell,
   gameDraft,
   itemIcon,
+  shownResult,
 } from '../app/canada/game/shell';
 import { gameKey } from '../app/game-shell/game-ui';
 import town from '../public/game/canada/town.json';
@@ -58,24 +63,135 @@ test('Canada has a game page, entries and its own save and sound keys', () => {
   expect(storage.get('ca-immigration-life-muted')).toBe('false');
 });
 
-test.each(['citizen', 'graduate'])(
-  'the ending link restores the %s timeline on the Canada result page',
-  (id) => {
-    const state = settle(ca.newGame(id, 4, 'en'));
+/** Answer events and read letters until nothing is pending. */
+function settleAll(state: State) {
+  for (;;) {
+    state = settle(state);
+    if (!ca.mailbox(state).length) return state;
+    state = ca.readMail(state);
+  }
+}
+function visit(state: State, place: string, minute: number) {
+  state = settleAll(state);
+  if (state.day.minute < minute)
+    state = settleAll(ca.tick(state, minute - state.day.minute));
+  return settleAll(ca.enter(state, place));
+}
+function nextDay(state: State) {
+  const day = state.dayNumber;
+  for (let i = 0; i < 8 && state.dayNumber === day; i++)
+    state = settleAll(ca.sleep(settleAll(state)));
+  return state;
+}
+function nextQuarter(from: State) {
+  let state = from;
+  for (let i = 0; i < 12 && state.date === from.date; i++)
+    state = settleAll(ca.sleep(settleAll(state)));
+  return state;
+}
+/** Jump to a later quarter, its assessment and its playable workday. */
+function jump(from: State, date: string, day: string) {
+  const state = structuredClone(from);
+  state.date = date;
+  state.day = { ...state.day, date: day, minute: 540, done: [] };
+  state.result = ca.caRules.evaluate(state);
+  return state;
+}
+const leave = (state: State) =>
+  ca.doActivity(visit(state, 'station', 960), 'leave');
+
+/** Each route as the result page shows it, with every check. */
+const view = (result: CountryResult) =>
+  result.columns[0].pathways.map((pathway) => ({
+    id: pathway.id,
+    status: pathway.status,
+    earliestDate: pathway.earliestDate,
+    timeStatus: pathway.timeStatus,
+    timeEarliestDate: pathway.timeEarliestDate,
+    travelDate: pathway.travelDate,
+    checks: pathway.checks.map(({ id, status, kind }) => [id, status, kind]),
+  }));
+
+/** Open each state's ending link the way the result page does. */
+function readBack(states: State[]) {
+  vi.stubGlobal('localStorage', {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+  });
+  for (const state of states) {
+    const label = `${state.characterId} ${state.date} ${state.ending}`;
     const href = caCountry.resultHref(state);
-    expect(href.startsWith('/canada/result#s=')).toBe(true);
-    const draft = decodeDraft(canadaModule, href.split('#s=')[1], true)!;
-    expect(draft).toEqual(gameDraft(state));
-    expect(draft.completed).toBe(true);
-    expect([...draft.goals].sort()).toEqual([...state.timeline.goals].sort());
-    const shown = canadaModule.run(draft, 'en').columns[0].pathways;
-    expect(shown.map(({ id, status }) => [id, status])).toEqual(
-      state.result.columns[0].pathways
-        .filter((pathway) => state.timeline.goals.includes(pathway.id))
-        .map(({ id, status }) => [id, status]),
+    expect(href.startsWith('/canada/result#s='), label).toBe(true);
+    const page = readPageResult(
+      canadaModule,
+      'zh-CN',
+      href.split('#s=')[1],
+      'result',
     );
-  },
-);
+    expect(page.correction, label).toBeUndefined();
+    expect(page.draft, label).toEqual(gameDraft(state));
+    expect(page.draft!.simulationDate, label).toBe(ca.assessedOn(state));
+    expect(view(page.result!), label).toEqual(view(shownResult(state)));
+    const progress = ca.progress(state);
+    for (const column of ['pr', 'cit'] as const)
+      expect(progress[column].outcome, `${label} ${column}`).toBe(
+        page.result!.columns[0].pathways.find(
+          ({ id }) => id === ca.columnPathway(state.timeline, column),
+        )!.status,
+      );
+  }
+}
+const pathway = (state: State, id: string) =>
+  shownResult(state).columns[0].pathways.find((item) => item.id === id)!;
+
+test('the citizen’s ending links open the same timeline on the result page', () => {
+  const opening = settleAll(ca.newGame('citizen', 5, 'zh-CN'));
+  const abroad = settleAll(
+    ca.doActivity(visit(opening, 'station', 600), 'travel-1'),
+  );
+  const ready = jump(opening, '2027-09-01', '2027-09-14');
+  const signed = settleAll(
+    ca.doActivity(visit(ready, 'visa', 600), 'apply-citizenship'),
+  );
+  const invited = nextQuarter(signed);
+  invited.stats.civics = 70;
+  const passed = ca.doActivity(visit(invited, 'visa', 600), 'cit-test');
+  const sworn = ca.doActivity(visit(nextQuarter(passed), 'visa', 600), 'oath');
+  expect(sworn.ending).toBe('settled');
+  readBack([opening, abroad, leave(signed), sworn]);
+  expect(pathway(sworn, 'CA-CITIZENSHIP').status).toBe('MET');
+});
+
+test('the graduate’s ending links open the same timeline on the result page', () => {
+  let papers = settleAll(ca.newGame('graduate', 5, 'zh-CN'));
+  Object.assign(papers.stats, { career: 45, english: 65, money: 9_000 });
+  for (const [place, action] of [
+    ['work', 'permanent-post'],
+    ['newcomer', 'settlement-plan'],
+    ['work', 'endorsement-request'],
+    ['library', 'police-request'],
+    ['college', 'exam'],
+  ])
+    papers = settleAll(ca.doActivity(visit(papers, place, 600), action));
+  const next = nextQuarter(papers);
+  const filed = ca.doActivity(visit(next, 'visa', 600), 'settle');
+  expect(filed.ending).toBe('settled');
+  let lapsed = structuredClone(next);
+  lapsed.timeline.document.expires = '2026-07-30';
+  for (let i = 0; i < 6 && !ca.isOver(lapsed); i++) lapsed = nextDay(lapsed);
+  expect(lapsed.ending).toBe('overstayed');
+  readBack([papers, leave(papers), filed, lapsed]);
+  // Only the medical exam, which IRCC instructs after receipt, is open.
+  expect(
+    pathway(filed, 'CA-AIP')
+      .checks.filter(
+        ({ kind, status }) => kind === 'requirement' && status !== 'MET',
+      )
+      .map(({ id }) => id),
+  ).toEqual(['CA-R24']);
+  expect(pathway(lapsed, 'CA-AIP').status).not.toBe('MET');
+});
 
 test('a story that ends in town opens on the result page as of its last day', () => {
   const opening = settle(ca.newGame('graduate', 4, 'en'));
@@ -111,7 +227,15 @@ test.each(['zh-CN', 'en'] as const)(
       locale,
     );
     expect(bars).toContain(t('ca.game.citColumn', locale));
-    expect(bars).toContain(
+    // The result page's outcome; the date belongs to the time condition.
+    expect(bars).toContain(t('country.status.UNKNOWN', locale));
+    expect(bars).not.toContain('2027-06-22');
+    const detail = render(
+      caCountry.progressDetail(state, 'cit', (key) => t(key, locale)),
+      locale,
+    );
+    expect(detail).toContain(t('country.timeConditions', locale));
+    expect(detail).toContain(
       t('country.status.FUTURE', locale).replace('{date}', '2027-06-22'),
     );
     const office = settle(ca.enter(settle(state), 'council'));

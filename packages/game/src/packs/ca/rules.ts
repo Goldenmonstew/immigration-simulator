@@ -223,6 +223,13 @@ function visaMonthsLeft(state: CaState): number {
   return months;
 }
 
+/**
+ * The physical presence count (CA-R03, CA-R08; SRC-074 s.5(1)(c), SRC-075
+ * s.28). Its own earliest date is the one the result page's time row gives.
+ */
+export const presenceCheck = (pathway?: CaPathway) =>
+  pathway?.checks.find((check) => check.timeBaseline);
+
 function progress(state: CaState): Progress<CaColumn, CaOutcome> {
   const start = Date.parse(state.timeline.arrived);
   const entry = (column: CaColumn) => {
@@ -231,34 +238,31 @@ function progress(state: CaState): Progress<CaColumn, CaOutcome> {
       columnPathway(state.timeline, column),
     );
     if (!pathway) return { outcome: 'UNKNOWN' as const, percent: 0 };
-    if (pathway.status === 'MET')
-      return { outcome: 'MET' as const, percent: 100 };
-    // The physical presence clock, before other requirements (SRC-074
-    // s.5(1)(c), SRC-075 s.28): the bar shows time; the label the route.
-    const time = pathway.checks.find(
-      (check) => check.timeBaseline,
-    )?.timeBaseline;
-    if (time?.status === 'FUTURE' && time.earliestDate) {
+    // The label is the route's outcome, as the result page shows it. The bar
+    // fills with the presence clock or, for initial PR, the requirements met.
+    const outcome = pathway.status;
+    const label = {
+      outcome,
+      ...(outcome === 'FUTURE' &&
+        pathway.earliestDate && { earliestDate: pathway.earliestDate }),
+    };
+    if (outcome === 'MET') return { ...label, percent: 100 };
+    const time = presenceCheck(pathway);
+    if (time?.earliestDate) {
       const target = Date.parse(time.earliestDate);
       const elapsed = (Date.parse(state.date) - start) / (target - start);
       return {
-        outcome: 'FUTURE' as const,
-        earliestDate: time.earliestDate,
+        ...label,
         percent: Math.round(Math.max(0, Math.min(100, elapsed * 100))),
       };
     }
-    if (time)
-      return {
-        outcome: pathway.status,
-        percent: time.status === 'MET' ? 100 : 0,
-      };
-    // Initial PR has no clock: count the requirements already met.
+    if (time) return { ...label, percent: time.status === 'MET' ? 100 : 0 };
     const required = pathway.checks.filter((check) => !check.advisory);
     const met = required.filter((check) => check.status === 'MET').length;
     return {
-      outcome: pathway.status,
+      ...label,
       percent:
-        pathway.status === 'NOT_MET' || pathway.status === 'NOT_APPLICABLE'
+        outcome === 'NOT_MET' || outcome === 'NOT_APPLICABLE'
           ? 0
           : Math.round((met / required.length) * 100),
     };

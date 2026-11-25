@@ -123,6 +123,7 @@ export {
   filedToday,
   filingToday,
   pathwayOf,
+  presenceCheck,
   readyToFile,
   type CaColumn,
   type CaEffect,

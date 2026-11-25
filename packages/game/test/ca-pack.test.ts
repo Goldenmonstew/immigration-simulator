@@ -89,11 +89,16 @@ test('the Canadian rules engine assesses each route and sets the progress bars',
   expect(citizen.result.columns[0].id).toBe(canadaFull2026_11.ruleSetId);
   expect(ca.pathwayOf(citizen.result, 'CA-RESIDENCY')?.status).toBe('MET');
   // 1,095 days with half credit for the pre-PR years, less the trip home
-  // (SRC-074 s.5(1)(c)(i), s.5(1.001)).
+  // (SRC-074 s.5(1)(c)(i), s.5(1.001)). The bar fills with the days; its
+  // label is the route's outcome, as on the result page.
   expect(ca.progress(citizen)).toEqual({
     pr: { outcome: 'MET', percent: 100 },
-    cit: { outcome: 'FUTURE', earliestDate: '2027-06-22', percent: 73 },
+    cit: { outcome: 'UNKNOWN', percent: 73 },
   });
+  expect(
+    ca.presenceCheck(ca.pathwayOf(citizen.result, 'CA-CITIZENSHIP'))
+      ?.earliestDate,
+  ).toBe('2027-06-22');
   expect(unmet(citizen, 'CA-CITIZENSHIP')).toEqual([
     'CA-R08',
     'CA-R11',
@@ -145,7 +150,10 @@ test('a trip home delays citizenship, and a JSON save continues the same quarter
     { departed: '2026-03-10', returned: '2026-04-10' },
   ]);
   expect([state.date, state.quarter]).toEqual(['2026-06-01', 3]);
-  expect(ca.progress(state).cit.earliestDate).toBe('2027-07-22');
+  expect(
+    ca.presenceCheck(ca.pathwayOf(state.result, 'CA-CITIZENSHIP'))
+      ?.earliestDate,
+  ).toBe('2027-07-22');
   const restored: State = JSON.parse(JSON.stringify(state));
   const played = nextQuarter(state);
   expect(played.date).toBe('2026-09-01');

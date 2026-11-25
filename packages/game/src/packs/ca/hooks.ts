@@ -16,6 +16,8 @@ import { caCharacters } from './characters';
 import {
   caRules,
   filingToday,
+  pathwayOf,
+  presenceCheck,
   readyToFile,
   type CaEffect,
   type CaFestival,
@@ -309,7 +311,9 @@ export function nextStep(state: CaState): Text | undefined {
         'Your application is in. Watch the post for the test invitation.',
       );
     if (readyToFile(state)) return;
-    const date = caRules.progress(state).cit.earliestDate;
+    const date = presenceCheck(
+      pathwayOf(state.result, 'CA-CITIZENSHIP'),
+    )?.earliestDate;
     return date
       ? t(
           `实际居住天数最早 ${date} 满足，到时再来签署入籍申请。`,
