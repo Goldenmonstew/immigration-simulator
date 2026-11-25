@@ -165,6 +165,33 @@ test('a late renewal pays the monthly fine; past the late period the story ends'
   expect(state.date).toBe('2026-09-01');
 });
 
+test('on the 2026 calendar the late fine and late deadline follow the day of filing', () => {
+  const lateFine = greece2026_11.values.lateFinePerMonthEur.value;
+  const fees = values.workFees.value;
+  const autumn = nextQuarter(
+    nextQuarter(settle(gr.newGame('bluecard', 7, 'en'))),
+  );
+  // The card ends on 2026-09-14; the quarter's working day is the 15th.
+  const office = visit(autumn, 'visa', 600);
+  expect([office.date, office.day.date]).toEqual(['2026-09-01', '2026-09-15']);
+  const action = gr
+    .activities(office, 'visa')
+    .find(({ id }) => id === 'extend')!;
+  expect(action.label.en).toContain('1-month late fine');
+  expect(gr.doActivity(office, 'extend').stats.money).toBe(
+    office.stats.money - fees.permit - fees.print - lateFine,
+  );
+
+  // Past the late period on 2026-12-15 (it ended on 2026-12-14).
+  const winter = nextQuarter(autumn);
+  const closed = visit(winter, 'visa', 600);
+  expect([closed.date, closed.day.date]).toEqual(['2026-12-01', '2026-12-15']);
+  expect(ids(closed, 'visa')).not.toContain('extend');
+  const lapsed = nextQuarter(closed);
+  expect([lapsed.date, lapsed.ending]).toEqual(['2027-03-01', 'overstayed']);
+  expect(lapsed.timeline.permits.at(-1)?.to).toBe('2026-09-14');
+});
+
 test('a lapsed Blue Card ends the story with both routes unmet', () => {
   let state = settle(gr.newGame('bluecard', 9, 'en'));
   state.date = '2029-12-01';

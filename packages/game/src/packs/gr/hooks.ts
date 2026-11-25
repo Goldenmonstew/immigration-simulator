@@ -95,11 +95,14 @@ const festivalResults: Record<GrFestival, Text> = {
   ),
 };
 
-/** The renewal fee and any late-filing fine on the quarter's date. */
+/**
+ * The renewal fee and any late-filing fine on the day of filing. A part month
+ * counts as a month (PD-150).
+ */
 function renewalFees(state: GrState) {
   const expiry = state.timeline.currentCardExpiresOn;
   let late = 0;
-  while (addMonths(expiry, late) < state.date) late++;
+  while (addMonths(expiry, late) < state.day.date) late++;
   const fees = values.workFees.value;
   return {
     fee: fees.permit + fees.print,
@@ -158,12 +161,13 @@ export function actionAvailable(
   if (action.id === 'tax-return') return unfiledTaxYear(state) !== undefined;
   if (action.id === 'extend') {
     const { early, late } = renewalWindow(state.timeline.currentCardExpiresOn);
-    // The game counts in quarters: any quarter that reaches the window.
+    // Any quarter that reaches the window may file early; the late period
+    // ends on its own day.
     return (
       isBlueCard(state) &&
       !state.flags.includes('quarter-visa-renewed') &&
       addMonths(state.date, b.monthsPerQuarter) > early &&
-      state.date <= late &&
+      state.day.date <= late &&
       state.stats.money >= renewalFees(state).fee + renewalFees(state).fine
     );
   }

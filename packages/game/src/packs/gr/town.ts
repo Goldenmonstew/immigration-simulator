@@ -610,8 +610,8 @@ export const grActions: GrActivity[] = [
     place: 'visa',
     label: t('续期欧盟蓝卡', 'Renew the EU Blue Card'),
     note: t(
-      `到期前 ${timing.renewalWindowMonths.value} 个月起可递交；到期后 ${timing.lateRenewalMonths.value} 个月内可逾期补交，每逾期一个月罚款 ${euro(timing.lateFinePerMonthEur.value)}（${src(timing.renewalWindowMonths)}）。游戏按季度计时：这一季碰到递交窗口就能办，本情景预设获批。`,
-      `File from ${timing.renewalWindowMonths.value} months before expiry, or late for up to ${timing.lateRenewalMonths.value} months with a ${euro(timing.lateFinePerMonthEur.value)} fine per late month (${src(timing.renewalWindowMonths)}). The game counts in quarters: you can file in any quarter that reaches the window, and the renewal is assumed granted.`,
+      `到期前 ${timing.renewalWindowMonths.value} 个月起可递交；到期后 ${timing.lateRenewalMonths.value} 个月内可逾期补交，每逾期一个月罚款 ${euro(timing.lateFinePerMonthEur.value)}（${src(timing.renewalWindowMonths)}）。游戏按季度计时：这一季碰到递交窗口就能提前递交；逾期月数与逾期补交的截止按办理当天计算，不足一个月按一个月计（PD-150）。本情景预设获批。`,
+      `File from ${timing.renewalWindowMonths.value} months before expiry, or late for up to ${timing.lateRenewalMonths.value} months with a ${euro(timing.lateFinePerMonthEur.value)} fine per late month (${src(timing.renewalWindowMonths)}). The game counts in quarters, so you can file early in any quarter that reaches the window. Late months and the end of the late period count from the day you file, and a part month counts as a month (PD-150). The renewal is assumed granted.`,
     ),
     minutes: b.minutes.paperwork,
     oncePerDay: true,
